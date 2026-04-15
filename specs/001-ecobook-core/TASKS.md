@@ -1,0 +1,1380 @@
+# EcoBook IA — Implementation Tasks
+
+**Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
+**Phase**: 2–5 (Prototypes, AI Testing, Full Development, Launch)  
+**Total Tasks**: 187  
+**Status**: Ready for Phase 2 Execution (Week 5)  
+**Generated**: 2026-04-15
+
+---
+
+## Overview
+
+This document organizes all implementation tasks for EcoBook IA across **5 implementation phases** (Weeks 5–17). Tasks are:
+- **Organized by user story** (5 P1 stories → 3 P2 stories → Polish)
+- **Granular and independently implementable** (each task ≤ 4 hours work)
+- **Labeled with RFC references** (maps to spec.md requirements)
+- **Marked for parallelization** where dependencies allow
+- **File-specific** (exact implementation paths provided)
+
+### Task Completion Checklist Format
+
+```
+- [ ] [TaskID] [P?] [Story?] Description with exact file path
+```
+
+**Key**: 
+- `[P]` = Parallelizable (no dependency on incomplete tasks)
+- `[Story?]` = User story label (US1, US2, etc.)
+- `[TaskID]` = Sequential task ID (T001, T002, etc.)
+- Descriptive title with exact file path
+
+---
+
+## Dependency Graph & Execution Order
+
+```
+Phase 1: Setup & Foundational
+├─ T001–T015: Backend Skeleton (Spring Boot structure)
+├─ T016–T025: Android Skeleton (Jetpack Compose structure)
+├─ T026–T035: Integration Test Infrastructure
+└─ [All parallelizable via [P] marker]
+
+Phase 2: User Story 1 (US1) — Registration & Profile
+├─ T036–T055: Authentication module (OAuth2, JWT, User endpoints)
+├─ T056–T075: Onboarding module (profile completion, validation)
+└─ [Depends on: Phase 1 complete]
+
+Phase 3: User Story 2 (US2) — AI-Assisted Classification
+├─ T076–T110: Material upload module (upload UI, endpoint, storage)
+├─ T111–T140: Gemini integration (service, parsing, fallback rules)
+├─ T141–T160: Classification UI (preview screens, confidence indicators)
+└─ [Depends on: Phase 2 (OAuth2 required)]
+
+Phase 4: User Story 3 (US3) — Material Discovery
+├─ T161–T175: Matching algorithm module (6-step filter, ranking)
+├─ T176–T185: Discovery UI (search form, results, filtering)
+└─ [Depends on: Phase 2 (material data required)]
+
+Phase 5: User Story 4 (US4) — Request Submission
+├─ T186–T200: Request creation & state machine module
+├─ T201–T215: Approval workflow (donor approval, atomic locking)
+├─ T216–T225: Request UI (create, list, status updates)
+└─ [Depends on: Phase 3 (material required)]
+
+Phase 6: User Story 5 (US5) — Donation Completion
+├─ T226–T240: Completion workflow (DOADO state, endpoint)
+├─ T241–T250: Completion UI (mark donated, confirmation)
+└─ [Depends on: Phase 5 complete]
+
+Phase 7: FCM Notifications (RF06 — Cross-Cutting)
+├─ T251–T270: Firebase setup, 6 notification types
+└─ [Depends on: Phase 2, 5 (triggers defined)]
+
+Phase 8: Admin & Moderation (Modules 7–8)
+├─ T271–T285: Non-received material reporting
+├─ T286–T300: Admin dashboard, moderation
+└─ [Depends on: Phase 5]
+
+Phase 9: Security & LGPD (Module 9 — Cross-Cutting)
+├─ T301–T320: Soft-delete with anonymization
+├─ T321–T335: Consent management, audit trails
+└─ [Depends on: All modules, run in parallel if possible]
+
+Phase 10: Polish & Integration
+├─ T336–T350: Performance optimization, index tuning
+├─ T351–T360: End-to-end integration tests (20+ scenarios)
+├─ T361–T370: Error handling and edge cases
+└─ [Final validation before launch]
+```
+
+---
+
+## PHASE 1: SETUP & FOUNDATIONAL (Weeks 5–7)
+
+### T001–T015: Backend Skeleton Setup
+
+- [ ] **T001** [P] Create Spring Boot 3.x project with Maven structure in `backend/`
+- [ ] **T002** [P] Configure `pom.xml` with dependencies: Spring Web, Spring Data JPA, Spring Security, Spring Cloud, PostgreSQL driver, JWT (io.jsonwebtoken), Gemini SDK, Firebase Admin SDK, Lombok
+- [ ] **T003** [P] Create `application.yml` configuration with database URL, OAuth2 properties, JWT secret, Gemini API key placeholder, FCM service account path
+- [ ] **T004** [P] Setup database connection pooling in `src/main/java/com/ecobook/config/DataSourceConfig.java` (HikariCP, max 20, min 5, validation query)
+- [ ] **T005** [P] Create Spring Data JPA entity mappings in `src/main/java/com/ecobook/model/`:
+  - `Usuario.java` (13 fields per data-model.md)
+  - `Material.java` (15 fields per data-model.md)
+  - `Solicitacao.java` (8 fields per data-model.md)
+- [ ] **T006** [P] Create PostgreSQL DDL migration script `src/main/resources/db/migration/V1__initial-schema.sql` with all enums, tables, indexes, constraints from data-model.md
+- [ ] **T007** [P] Setup Flyway database migrations in `pom.xml` and `application.yml` (auto-migrate on startup)
+- [ ] **T008** [P] Create REST exception handler in `src/main/java/com/ecobook/exception/GlobalExceptionHandler.java` (400, 403, 404, 409, 422, 500 mappings)
+- [ ] **T009** [P] Create controller package structure in `src/main/java/com/ecobook/controller/` (stub controllers for Phase 2 endpoints)
+- [ ] **T010** [P] Create service package structure in `src/main/java/com/ecobook/service/` (service interfaces per module)
+- [ ] **T011** [P] Create repository package structure in `src/main/java/com/ecobook/repository/` (Spring Data JPA repository interfaces)
+- [ ] **T012** [P] Create DTO package in `src/main/java/com/ecobook/dto/` (request/response DTOs for all endpoints)
+- [ ] **T013** [P] Setup Spring Security configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (CORS, CSRF, JWT filter)
+- [ ] **T014** [P] Create actuator health endpoint at `src/main/java/com/ecobook/controller/HealthController.java` (returns HTTP 200 on startup)
+- [ ] **T015** [P] Setup Lombok annotations in `pom.xml` and configure IDE plugin (code generation for getters/setters)
+
+### T016–T025: Android Project Setup
+
+- [ ] **T016** [P] Create Android project in `android/` with minSdk=26, targetSdk=34, Kotlin language, Jetpack Compose UI
+- [ ] **T017** [P] Add dependencies to `android/build.gradle.kts`:
+  - Jetpack Compose (latest)
+  - Jetpack Navigation Compose
+  - AppAuth (OAuth2)
+  - Retrofit 2 (HTTP client)
+  - OkHttp3 (HTTP logging)
+  - Hilt (dependency injection)
+  - FirebaseMessaging (FCM)
+  - Coil (image loading)
+  - Coroutines
+- [ ] **T018** [P] Create `android/src/main/res/values/api_config.xml` with backend_url placeholder (`http://10.0.2.2:8080` for emulator, configurable per build variant)
+- [ ] **T019** [P] Download `google-services.json` from Firebase Console and place in `android/app/google-services.json`
+- [ ] **T020** [P] Create `android/local.properties` with SDK path and backend URL configuration
+- [ ] **T021** [P] Setup Hilt application component in `android/src/main/java/com/ecobook/EcoBookApp.kt` with @HiltAndroidApp annotation
+- [ ] **T022** [P] Create Retrofit API client in `android/src/main/java/com/ecobook/api/EcoBookApiClient.kt` (abstract base URL, authentication interceptor placeholder)
+- [ ] **T023** [P] Create Jetpack Compose navigation graph in `android/src/main/java/com/ecobook/navigation/NavGraph.kt` (screen routing structure)
+- [ ] **T024** [P] Create main activity in `android/src/main/java/com/ecobook/MainActivity.kt` (composable entry point with navigation)
+- [ ] **T025** [P] Setup EncryptedSharedPreferences in `android/src/main/java/com/ecobook/utils/SecureStorage.kt` for JWT token storage (read, write, delete operations)
+
+### T026–T035: Integration Test Infrastructure
+
+- [ ] **T026** [P] Add test dependencies to backend `pom.xml`: JUnit 5, Mockito, TestContainers (PostgreSQL), Spring Test, REST Assured, MockMvc
+- [ ] **T027** [P] Create `src/test/java/com/ecobook/config/TestDatabaseConfig.java` with TestContainers PostgreSQL configuration (auto-cleanup after tests)
+- [ ] **T028** [P] Create `src/test/java/com/ecobook/BaseIntegrationTest.java` abstract class with @SpringBootTest, @AutoConfigureMockMvc, @Testcontainers, transaction rollback
+- [ ] **T029** [P] Create `src/test/java/com/ecobook/util/TestDataBuilder.java` for creating test usuarios, materials, solicitacoes with default values
+- [ ] **T030** [P] Create GitHub Actions workflow in `.github/workflows/build-and-test.yml` (Maven build, test execution, code coverage reporting)
+- [ ] **T031** [P] Setup code coverage reporting in `pom.xml` (JaCoCo, target 85% coverage for Phase 4 gate)
+- [ ] **T032** [P] Create Android test structure in `android/src/androidTest/java/com/ecobook/` with Compose testing utilities
+- [ ] **T033** [P] Create mock interceptor in `android/src/androidTest/java/com/ecobook/api/MockApiInterceptor.kt` for returning stub responses during testing
+- [ ] **T034** [P] Setup Android emulator configuration in `android/build.gradle.kts` (API 26+, 1GB RAM, persistent storage path)
+- [ ] **T035** [P] Create first E2E test scenario in `src/test/java/com/ecobook/FirstIntegrationTest.java` (register → health check → verify database connectivity)
+
+---
+
+## PHASE 2: USER STORY 1 — Registration & Profile (Weeks 8–9)
+
+**Story Goal**: User can register with Google OAuth2, complete profile (city, neighborhood, WhatsApp), and be verified before accessing material uploads.
+
+**Independent Test Criteria**:
+- ✅ Unregistered user completes OAuth2 flow
+- ✅ Profile completion blocking enforcement (403 on restricted operations)
+- ✅ Geographic normalization applied consistently
+- ✅ JWT token generation and validation working
+- ✅ All enum validations enforced
+
+### Module 1: Authentication (RF-001)
+
+#### Backend: OAuth2 & JWT
+
+- [ ] **T036** [US1] Implement `src/main/java/com/ecobook/config/OAuth2Config.java` (Google OAuth2 resource server configuration, JWT validation)
+- [ ] **T037** [US1] Create `src/main/java/com/ecobook/security/JwtTokenProvider.java` service:
+  - Generate JWT (7-day expiry, subject=email, custom claims: role, perfil_completo)
+  - Validate token (signature, expiry, claims)
+  - Refresh token (if refresh token endpoint needed, add in Phase 4)
+- [ ] **T038** [US1] Create `src/main/java/com/ecobook/security/JwtAuthenticationFilter.java` (extracts JWT from Authorization header, validates, sets SecurityContext)
+- [ ] **T039** [US1] Register JWT filter in `SecurityConfig.java` with `addFilterBefore(JwtAuthenticationFilter, UsernamePasswordAuthenticationFilter)`
+- [ ] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
+  - **POST /api/v1/auth/register**: Accepts OAuth2 token, creates Usuario if not exists, returns JWT + user info
+  - Handler: Call AuthService.registerOrLoginUser(googleToken)
+- [ ] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
+  - `registerOrLoginUser(googleToken)`: Decode Google token, extract email, create/fetch Usuario, generate JWT
+  - Validate Google OAuth2 token signature against Google's JWKS endpoint
+  - Return UserDTO with id, email, role, perfil_completo, token
+- [ ] **T042** [US1] Create `src/main/java/com/ecobook/repository/UsuarioRepository.java` (Spring Data JPA):
+  - `findByEmail(email): Optional<Usuario>`
+  - `findByGoogleId(googleId): Optional<Usuario>`
+  - Custom query: `findByGoogleIdOrCreateNew(googleId, email)`
+- [ ] **T043** [US1] Create JWT validation test in `src/test/java/com/ecobook/security/JwtTokenProviderTest.java` (generate token, validate, test expiry)
+- [ ] **T044** [US1] Create OAuth2 flow integration test in `src/test/java/com/ecobook/AuthControllerIntegrationTest.java` (mock Google JWKS, POST /auth/register)
+- [ ] **T045** [P] [US1] Create endpoint test for invalid/expired token: POST /auth/register with invalid token → HTTP 401
+
+#### Android: OAuth2 Flow
+
+- [ ] **T046** [P] [US1] Create `android/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
+  - Display "Login with Google" button (AppAuth)
+  - Handle OAuth2 flow initiation
+  - Show loading spinner during authentication
+  - Navigate to onboarding on success
+- [ ] **T047** [P] [US1] Implement `android/src/main/java/com/ecobook/auth/GoogleAuthClient.kt`:
+  - Initialize AppAuth with Google OAuth2 config
+  - Launch OAuth2 flow (initiate sign-in)
+  - Handle sign-in result (success, cancel, error)
+  - Extract authorization code, exchange for access token
+- [ ] **T048** [P] [US1] Create `android/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
+  - `POST /api/v1/auth/register(googleToken): AuthResponse` (returns token + user)
+- [ ] **T049** [P] [US1] Implement `android/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+  - Store JWT in SecureStorage after login success
+  - Handle OAuth2 errors (show user-friendly messages)
+  - Trigger navigation to OnboardingScreen on success
+- [ ] **T050** [P] [US1] Create JWT interceptor in `android/src/main/java/com/ecobook/api/AuthInterceptor.kt`:
+  - Read JWT from SecureStorage
+  - Inject into `Authorization: Bearer {token}` header for all requests
+- [ ] **T051** [P] [US1] Add authentication interceptor to Retrofit client in `EcoBookApiClient.kt`
+- [ ] **T052** [P] [US1] Create `android/src/test/java/com/ecobook/auth/GoogleAuthClientTest.kt` (mock OAuth2 flow, verify token extraction)
+- [ ] **T053** [P] [US1] Create integration test for OAuth2 + backend in `src/test/java/com/ecobook/AuthE2ETest.java`:
+  - Mock Google JWKS server
+  - POST /auth/register with valid token
+  - Verify JWT returned and stored in Android SecureStorage
+- [ ] **T054** [US1] Create logout functionality in `android/src/main/java/com/ecobook/auth/LogoutViewModel.kt` (clear JWT from SecureStorage, navigate to login)
+- [ ] **T055** [US1] Create 401 error handling in `AuthInterceptor.kt` (if token invalid, clear storage and redirect to login)
+
+#### Backend: Protected Endpoints
+
+- [ ] **T056** [US1] Create `src/main/java/com/ecobook/controller/UsuarioController.java`:
+  - **GET /api/v1/usuarios/me**: Return current user (from JWT claim) with perfil_completo status
+  - Response DTO: id, email, nome, whatsapp, cidade, bairro, perfil_completo, role
+- [ ] **T057** [US1] Implement `UsuarioController.getMe()` handler:
+  - Extract user email from SecurityContext
+  - Fetch from database
+  - Return UsuarioDTO with all fields
+- [ ] **T058** [US1] Add `@PreAuthorize("hasRole('USER')")` annotation to `getMe()` (requires valid JWT)
+- [ ] **T059** [US1] Create integration test in `src/test/java/com/ecobook/UsuarioControllerTest.java`:
+  - GET /usuarios/me with valid JWT → HTTP 200 with user data
+  - GET /usuarios/me without JWT → HTTP 401 Unauthorized
+- [ ] **T060** [US1] Create `@FeignClient` response wrapper for all controllers (standard JSON envelope with optional error details)
+
+### Module 2: Onboarding & Profile (RF-001)
+
+#### Backend: Profile Completion Endpoint
+
+- [ ] **T061** [US1] Implement `src/main/java/com/ecobook/service/GeoNormalizationService.java`:
+  - `normalize(city: String, neighborhood: String): NormalizedGeo`
+  - Algorithm: Uppercase + NFD decomposition + ASCII transliteration + trim
+  - Test cases: "São João" → "SAO JOAO", "Ribeirão Preto" → "RIBEIRAO PRETO", "São José dos Campos" → "SAO JOSE DOS CAMPOS"
+- [ ] **T062** [US1] Implement `src/main/java/com/ecobook/validator/WhatsAppValidator.java`:
+  - Validate E.164 format: `^\+55\d{10,11}$` (Brazil, 10-11 digits)
+  - Reject: "11991234567" (missing +55), "+551199123456" (wrong length), "+55 11 99123456" (spaces)
+- [ ] **T063** [US1] Add validation annotations to `Usuario.java`:
+  - `@Pattern(regexp = "^\\+55\\d{10,11}$")` on whatsapp field
+  - `@NotBlank` on nome, cidade, bairro
+- [ ] **T064** [US1] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
+  - **PUT /api/v1/usuarios/me**: Update user profile
+  - Request body: nome, whatsapp (E.164), cidade, bairro, necessidade_academica (optional enum)
+  - Response: Updated UsuarioDTO with perfil_completo status
+- [ ] **T065** [US1] Implement `UsuarioService.updateProfile()`:
+  - Normalize city + neighborhood via GeoNormalizationService
+  - Validate WhatsApp format
+  - Check all required fields present (nome, whatsapp, cidade, bairro)
+  - Update database, set perfil_completo = true
+  - Emit domain event: ProfileCompletedEvent (for later analytics/notifications)
+- [ ] **T066** [US1] Create validation test in `src/test/java/com/ecobook/validator/WhatsAppValidatorTest.java` (valid, invalid, edge cases)
+- [ ] **T067** [US1] Create profile update integration test in `src/test/java/com/ecobook/UsuarioServiceTest.java`:
+  - PUT /usuarios/me with valid data → perfil_completo = true
+  - PUT /usuarios/me with invalid WhatsApp → HTTP 400 with field error
+  - PUT /usuarios/me with incomplete data → HTTP 422 with missing field errors
+- [ ] **T068** [US1] Add `@NotNull @NotBlank` validators to nome, whatsapp, cidade, bairro fields in Usuario entity
+
+#### Backend: Profile Completeness Gate
+
+- [ ] **T069** [US1] Create `src/main/java/com/ecobook/aspect/ProfileCompletenessAspect.java` (AOP):
+  - Intercept methods annotated with `@RequireCompleteProfile`
+  - Check SecurityContext user's perfil_completo = true
+  - Return HTTP 403 if false: `{"error": "INCOMPLETE_PROFILE", "message": "Complete your profile before..."}` 
+- [ ] **T070** [US1] Create `@RequireCompleteProfile` annotation in `src/main/java/com/ecobook/annotation/RequireCompleteProfile.java`
+- [ ] **T071** [US1] Mark future endpoints with `@RequireCompleteProfile`: POST /materiais, POST /solicitacoes, PUT /materiais/{id}, DELETE /materiais/{id}
+- [ ] **T072** [US1] Test aspect behavior in `src/test/java/com/ecobook/aspect/ProfileCompletenessAspectTest.java` (incomplete profile → 403, complete → proceed)
+
+#### Android: Onboarding Screen
+
+- [ ] **T073** [P] [US1] Create `android/src/main/java/com/ecobook/onboarding/OnboardingScreen.kt` Compose screen:
+  - Display multi-step form (step 1: WhatsApp, step 2: City/Neighborhood, step 3: Academic needs)
+  - Fields: WhatsApp (E.164 input with formatting), city (autocomplete dropdown), neighborhood (text input), academic_needs (multi-select enum)
+  - Validate WhatsApp on focus loss (regex: `^\+55\d{10,11}$`)
+  - Show error messages inline if validation fails
+  - Next/Previous buttons between steps
+  - Submit button on final step → PUT /usuarios/me
+- [ ] **T074** [P] [US1] Implement `android/src/main/java/com/ecobook/onboarding/OnboardingViewModel.kt`:
+  - Store form state (nome, whatsapp, cidade, bairro, necessidade_academica)
+  - Validation logic: all required fields non-empty, WhatsApp E.164 format
+  - `updateProfile()`: Call AuthApiService.putUsuariosMe(requestBody)
+  - Handle success: Navigate to MainScreen
+  - Handle 400/422 errors: Show field-specific error messages
+  - Handle 403: Show "Profile already complete" message, navigate to MainScreen
+- [ ] **T075** [P] [US1] Create City autocomplete in `android/src/main/java/com/ecobook/ui/CityAutocomplete.kt`:
+  - Hardcode list of major Brazilian cities (or fetch from backend if time permits)
+  - Filter on user input, display dropdown suggestions
+- [ ] **T076** [P] [US1] Add WhatsApp formatter in `android/src/main/java/com/ecobook/ui/WhatsAppFormatter.kt`:
+  - User types: "11991234567" → automatically format to "+5511991234567"
+  - Prevent typing invalid characters (only digits and +)
+
+---
+
+## PHASE 3: USER STORY 2 — AI-Assisted Classification (Weeks 10–12)
+
+**Story Goal**: User can upload a material image, receive AI-powered classification suggestions (with confidence levels), review and edit suggestions, and confirm to persist the material.
+
+**Independent Test Criteria**:
+- ✅ Image upload with validation (JPEG/PNG, ≤5MB, MIME check)
+- ✅ Gemini API integration with 10-second timeout
+- ✅ Confidence-level fallback rules (HIGH/LOW/FAILURE)
+- ✅ Temporary file management and promotion
+- ✅ Enum validation on all fields
+- ✅ Consentimento_ia bypass when false
+
+### Module 3: Material Upload with IA (RF-002, RF-003, RF-004)
+
+#### Backend: Gemini Integration
+
+- [ ] **T077** [US2] Create `src/main/java/com/ecobook/service/GeminiService.java` Spring service:
+  - Integrate Google Generative AI SDK (Java)
+  - Constructor: Initialize GenerativeModel with API key, timeout 10s
+- [ ] **T078** [US2] Implement `GeminiService.classifyMaterial(imageFile)` method:
+  - Accept file as multipart (JPEG/PNG)
+  - Build structured JSON prompt (see spec.md):
+    ```json
+    {
+      "image_base64": "...",
+      "fields": ["disciplina", "nivel_ensino", "ano", "sistema_ensino", "estado_conservacao"]
+    }
+    ```
+  - Call Gemini API with 10-second timeout
+  - Return response with status_ia (SUCCESS, LOW_CONFIDENCE, FAILURE) + field predictions + confidence scores
+- [ ] **T079** [US2] Implement response parsing in `GeminiService.parseGeminiResponse()`:
+  - Validate JSON structure (not null, not empty)
+  - Validate enum values (disciplina in [MATEMATICA, ...], etc.)
+  - Validate confidence scores (0.0–1.0)
+  - Handle malformed JSON → status_ia: FAILURE
+  - Handle invalid enum → status_ia: LOW_CONFIDENCE for that field
+  - Handle confidence out of range → status_ia: LOW_CONFIDENCE for that field
+- [ ] **T080** [US2] Implement confidence fallback rules in `GeminiService.determineFallbackStatus()`:
+  - If ANY field ≥0.75: status_ia = SUCCESS
+  - If ANY field 0.50–0.75: status_ia = LOW_CONFIDENCE
+  - If ANY field <0.50: status_ia = FAILURE
+  - If timeout/error: status_ia = FAILURE
+- [ ] **T081** [US2] Create timeout handling in `GeminiService`:
+  - Wrap API call in try-catch with timeout exception handler
+  - Return response with status_ia: FAILURE, error_message: "Timeout (10s exceeded)"
+  - Log timeout events for monitoring
+- [ ] **T082** [US2] Create `src/main/java/com/ecobook/dto/GeminiResponseDto.java`:
+  - Fields: status_ia (enum), best_prediction (map of field → value), confidence_scores (map of field → 0.0–1.0), upload_id (temporary file reference)
+  - Example response:
+    ```json
+    {
+      "status_ia": "LOW_CONFIDENCE",
+      "best_prediction": {
+        "disciplina": "MATEMATICA",
+        "nivel_ensino": "FUNDAMENTAL",
+        "ano": "5",
+        "sistema_ensino": "OUTRO",
+        "estado_conservacao": "BOM"
+      },
+      "confidence_scores": {
+        "disciplina": 0.92,
+        "nivel_ensino": 0.45,  // below 0.50 threshold
+        "ano": 0.78,
+        "sistema_ensino": 0.30,
+        "estado_conservacao": 0.88
+      },
+      "upload_id": "temp-uuid-abc123"
+    }
+    ```
+- [ ] **T083** [US2] Create `src/main/java/com/ecobook/repository/TemporaryUploadRepository.java` (track temporary file metadata):
+  - Entity: id (UUID), file_path, user_id, uploaded_at, expires_at (24 hours)
+  - Query: `findExpiredUploads()` for cleanup job
+- [ ] **T084** [US2] Create Gemini service integration test in `src/test/java/com/ecobook/service/GeminiServiceTest.java`:
+  - Mock Gemini API responses (mock multiple confidence levels)
+  - Test SUCCESS (≥0.75), LOW_CONFIDENCE (0.50–0.75), FAILURE (<0.50)
+  - Test timeout handling (simulate 11-second delay → FAILURE)
+  - Test malformed JSON response → FAILURE
+  - Test invalid enum → LOW_CONFIDENCE
+
+#### Backend: Image Upload Endpoint
+
+- [ ] **T085** [US2] Create `src/main/java/com/ecobook/service/ImageStorageService.java`:
+  - Store uploaded image in `/uploads/{user_id}/temp/{uuid}.ext`
+  - Validate MIME type (JPEG, PNG only)
+  - Validate file size (≤5MB)
+  - Validate not corrupt (try to decode image, if fails → reject)
+  - Generate UUID for upload_id
+  - Return image_path, upload_id, file_size
+- [ ] **T086** [US2] Implement image validation in `ImageStorageService.validateImage()`:
+  - Check MIME type via file header (magic bytes): `FFD8FF` for JPEG, `89504E47` for PNG
+  - Reject: `.gif`, `.webp`, `.bmp`, `.txt`, `.zip`, etc.
+  - Check file size: if > 5MB, reject with HTTP 413 (Payload Too Large)
+  - Decode image bytes to ensure integrity (use BufferedImage for quick validation)
+- [ ] **T087** [US2] Create directory structure for uploaded files:
+  - Ensure `/uploads/{user_id}/temp/` exists (create on first upload)
+  - Cleanup `/uploads/{user_id}/temp/` files older than 24 hours (scheduled job in Phase 4)
+- [ ] **T088** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+  - **POST /api/v1/materiais/preview**: Multipart file upload + Gemini classification
+  - Request: multipart/form-data with key `file` (JPEG/PNG)
+  - Response: GeminiResponseDto (status_ia, predictions, confidence_scores, upload_id)
+  - Error: 400 (invalid MIME), 413 (file too large), 503 (Gemini timeout/error)
+- [ ] **T089** [US2] Implement `MaterialController.preview()` handler:
+  - Validate image (call ImageStorageService.validateImage())
+  - Extract user_id from JWT
+  - Check consentimento_ia flag: if false, return FAILURE response immediately (no API call)
+  - Save temporary file to `/uploads/{user_id}/temp/{uuid}.ext`
+  - Call GeminiService.classifyMaterial()
+  - Return GeminiResponseDto with upload_id (temp file reference)
+- [ ] **T090** [US2] Create preview endpoint test in `src/test/java/com/ecobook/controller/MaterialControllerPreviewTest.java`:
+  - POST /materiais/preview with valid JPEG → 200 with classification
+  - POST /materiais/preview with oversized file (>5MB) → 413
+  - POST /materiais/preview with .txt file → 400 (invalid MIME)
+  - POST /materiais/preview with consentimento_ia=false → 200 with FAILURE status
+  - POST /materiais/preview without JWT → 401
+
+#### Backend: Material Persistence Endpoint
+
+- [ ] **T091** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+  - **POST /api/v1/materiais**: Create material from preview results
+  - Request: upload_id, titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, descricao
+  - Response: MaterialDto (id, doador_id, status=DISPONIVEL, image_url, created_at)
+  - Error: 400 (invalid upload_id), 403 (profile incomplete), 404 (file not found), 422 (invalid state/enum)
+- [ ] **T092** [US2] Implement `MaterialService.createMaterial()` method:
+  - Validate upload_id exists in TemporaryUploadRepository
+  - Validate all enum fields (disciplina, nivel_ensino, sistema_ensino, estado_conservacao)
+  - Reject invalid enums: HTTP 400 with field errors
+  - Promote temporary file: move `/uploads/{user_id}/temp/{uuid}.ext` → `/uploads/{user_id}/{uuid}.ext`
+  - Create Material entity with status=DISPONIVEL
+  - Persist to database
+  - Delete TemporaryUpload record
+  - Return MaterialDto with permanent image_url
+- [ ] **T093** [US2] Create enum validation in `MaterialService.validateEnums()`:
+  - Validate disciplina against enum values
+  - Validate nivel_ensino (FUNDAMENTAL, MEDIO, SUPERIOR)
+  - Validate ano (1–12 for FUNDAMENTAL/MEDIO, NULL for SUPERIOR)
+  - Validate sistema_ensino against enum values
+  - Validate estado_conservacao (NOVO, BOM, USADO, DANIFICADO)
+  - Throw ValidationException with field-level errors if any invalid
+- [ ] **T094** [US2] Create material persistence test in `src/test/java/com/ecobook/service/MaterialServiceTest.java`:
+  - POST /materiais with valid upload_id → 201 Created with DISPONIVEL status
+  - POST /materiais with invalid disciplina → 400 with field error
+  - POST /materiais with non-existent upload_id → 404
+  - POST /materiais with profile incomplete → 403
+  - Verify temporary file deleted after promotion
+- [ ] **T095** [US2] Implement rollback logic if persistence fails:
+  - If POST /materiais fails after file promotion, do not delete temp file (manual cleanup later)
+  - Log error for manual intervention
+  - Return HTTP 500 with error message
+
+#### Backend: Cleanup Job
+
+- [ ] **T096** [US2] Create `src/main/java/com/ecobook/scheduler/TemporaryUploadCleanupJob.java`:
+  - Scheduled task: runs every 6 hours (or configurable interval)
+  - Query: find all TemporaryUpload records with expires_at < now
+  - For each expired record: delete file from `/uploads/{user_id}/temp/{uuid}`, delete record from database
+  - Log cleanup summary: "Cleaned up 5 temporary uploads"
+- [ ] **T097** [US2] Add `@Scheduled(fixedDelay = 21600000)` annotation to cleanup job (6 hours = 21600000 ms)
+- [ ] **T098** [US2] Create cleanup test in `src/test/java/com/ecobook/scheduler/TemporaryUploadCleanupJobTest.java`:
+  - Insert expired TemporaryUpload records
+  - Run cleanup job
+  - Verify records deleted, files removed
+
+#### Android: Upload Screen
+
+- [ ] **T099** [P] [US2] Create `android/src/main/java/com/ecobook/material/MaterialUploadScreen.kt` Compose screen:
+  - Display "Select Material Image" button (opens image picker or camera)
+  - Show preview of selected image
+  - Display size and format information
+  - Show "Next" button to proceed to processing screen
+  - Handle image selection and validation (show error if >5MB or wrong format)
+- [ ] **T100** [P] [US2] Implement image picker in `android/src/main/java/com/ecobook/material/ImagePickerHelper.kt`:
+  - Use Android's ACTION_GET_CONTENT (gallery) or ACTION_IMAGE_CAPTURE (camera)
+  - Handle permission requests (READ_EXTERNAL_STORAGE, CAMERA)
+  - Return selected image URI and metadata (size, MIME type)
+- [ ] **T101** [P] [US2] Implement image compression in `android/src/main/java/com/ecobook/material/ImageCompressionHelper.kt`:
+  - Compress JPEG/PNG to ≤5MB if necessary
+  - Target resolution: 1024x1024px (reduce to fit 5MB limit)
+  - Preserve image quality (JPEG quality 85–90%)
+- [ ] **T102** [P] [US2] Create `android/src/main/java/com/ecobook/material/ProcessingScreen.kt` Compose screen:
+  - Display animated loading spinner
+  - Show status message: "Analyzing your material..."
+  - Display 10-second timeout warning (if approaching limit)
+  - Handle timeout gracefully: show retry button if POST /materiais/preview times out
+- [ ] **T103** [P] [US2] Implement `android/src/main/java/com/ecobook/material/MaterialUploadViewModel.kt`:
+  - Store selected image URI and metadata
+  - `uploadImage()`: POST multipart file to /api/v1/materiais/preview
+  - Handle success: Store upload_id + classification results, navigate to ReviewScreen
+  - Handle error (timeout, network, 413): Show user-friendly message with retry option
+  - Handle 400 (invalid MIME): Show "Invalid file format" message
+- [ ] **T104** [P] [US2] Create API client for image upload in `android/src/main/java/com/ecobook/api/MaterialApiService.kt`:
+  - `POST /api/v1/materiais/preview` with multipart/form-data
+  - Return GeminiResponseDto
+- [ ] **T105** [P] [US2] Create `android/src/main/java/com/ecobook/material/ReviewScreen.kt` Compose screen:
+  - Display classification results from GeminiResponseDto
+  - Show confidence indicators per field:
+    - **SUCCESS (≥0.75)**: Green checkmark, field auto-filled, disabled for editing
+    - **LOW_CONFIDENCE (0.50–0.75)**: Yellow warning icon, field pre-filled but editable
+    - **FAILURE (<0.50)**: Gray question mark, field empty, manual entry required
+  - Display confidence scores as percentages (e.g., "92% confident")
+  - Allow user to edit all fields regardless of confidence
+  - Show title input field (required, ≤255 chars)
+  - Show description textarea (optional, ≤1000 chars)
+  - Show estado_conservacao dropdown (NOVO, BOM, USADO, DANIFICADO)
+  - "Confirm" button → POST /materiais with edited values
+  - "Cancel" button → navigate back (delete temp file via backend cleanup)
+- [ ] **T106** [P] [US2] Implement `android/src/main/java/com/ecobook/material/ReviewViewModel.kt`:
+  - Store classification results (upload_id, predictions, confidence_scores)
+  - Store edited values (titulo, disciplina, nivel_ensino, etc.)
+  - Validation: require titulo, validate enums on confirm
+  - `confirmMaterial()`: POST /api/v1/materiais with edited values + upload_id
+  - Handle success: navigate to HomeScreen, show toast "Material created"
+  - Handle error: show field-specific errors (400/422) or generic error (500)
+- [ ] **T107** [P] [US2] Create confirmation dialog in ReviewScreen:
+  - "Confirm Material?" with summary of fields
+  - "Edit" button → stay on ReviewScreen
+  - "Confirm" button → POST /materiais
+- [ ] **T108** [P] [US2] Create integration test for upload flow in `src/test/java/com/ecobook/MaterialUploadE2ETest.java`:
+  - Mock Gemini API response (HIGH confidence)
+  - POST /materiais/preview → GeminiResponseDto
+  - POST /materiais with upload_id → 201 Created
+  - Verify Material persisted with DISPONIVEL status
+  - Verify file promoted to permanent location
+  - Verify TemporaryUpload record deleted
+- [ ] **T109** [P] [US2] Create error scenario tests:
+  - POST /materiais/preview with consentimento_ia=false → FAILURE status
+  - POST /materiais/preview with timeout → 503 error
+  - POST /materiais with invalid enum → 400 with field error
+  - POST /materiais with profile incomplete → 403
+
+#### Android: Composition & Styling
+
+- [ ] **T110** [P] [US2] Create reusable composables in `android/src/main/java/com/ecobook/ui/`:
+  - `ConfidenceIndicator.kt` (checkmark for SUCCESS, warning for LOW, question for FAILURE)
+  - `EditableField.kt` (text input with optional error message)
+  - `EnumDropdown.kt` (dropdown for enum selection)
+  - `LoadingSpinner.kt` (animated spinner with message)
+- [ ] **T111** [P] [US2] Create Material Design 3 theme in `android/src/main/java/com/ecobook/ui/theme/Theme.kt`:
+  - Colors: Primary (green for donations), Secondary (blue for requests), Tertiary (orange for alerts)
+  - Typography: Roboto for headings, Roboto for body text
+  - Shapes: Rounded corners 8dp for cards, 4dp for buttons
+
+---
+
+## PHASE 4: USER STORY 3 — Material Discovery (Weeks 13–14)
+
+**Story Goal**: Student can specify academic needs and discover matching donated materials ranked by relevance and proximity.
+
+**Independent Test Criteria**:
+- ✅ 6-step matching algorithm correctly filters materials
+- ✅ Ranking order enforced (neighborhood > city > date > id)
+- ✅ Special rules for SUPERIOR and OUTRO sistema_ensino
+- ✅ Geographic normalization consistent with database
+- ✅ Pagination working (page, size parameters)
+
+### Module 4: Matching Algorithm (RF-008)
+
+#### Backend: Matching Algorithm
+
+- [ ] **T112** [US3] Create `src/main/java/com/ecobook/service/MatchingService.java`:
+  - Implement 6-step filtering pipeline (deterministic, not ML)
+  - Step 1: Filter status=DISPONIVEL only
+  - Step 2: Filter disciplina matches exactly
+  - Step 3: Filter nivel_ensino matches exactly
+  - Step 4: Filter ano range (±1 year for FUNDAMENTAL/MEDIO, NULL for SUPERIOR)
+  - Step 5: Filter sistema_ensino matches exactly (special rule: OUTRO only matches OUTRO)
+  - Step 6: Sort results by ranking order (neighborhood > city > data_criacao DESC > id)
+- [ ] **T113** [US3] Implement geographic matching in `MatchingService.filterByGeography()`:
+  - Normalize student's city + neighborhood via GeoNormalizationService
+  - Compare normalized values against normalized Material records
+  - Return exact matches only (case-insensitive, accent-insensitive)
+- [ ] **T114** [US3] Implement ano range logic in `MatchingService.filterByYear()`:
+  - If nivel_ensino = SUPERIOR: ignore ano constraint (include all SUPERIOR materials)
+  - If nivel_ensino = FUNDAMENTAL/MEDIO: filter ano to [student_ano-1, student_ano+1]
+  - Example: student year 5 → accept materials for years 4, 5, 6
+- [ ] **T115** [US3] Implement sistema_ensino special rule in `MatchingService.filterBySystem()`:
+  - If student sistema_ensino = OUTRO: only return OUTRO materials
+  - If student sistema_ensino = ANGLO/OBJETIVO/COC/POSITIVO: return exact system matches + OUTRO materials
+  - Rationale: OUTRO system not affiliated with specific curriculum
+- [ ] **T116** [US3] Create ranking comparator in `MatchingService.createComparator()`:
+  - Comparator: (mat1, mat2) → int
+  - Primary: Same neighborhood as student? (true > false)
+  - Secondary: Same city as student? (true > false)
+  - Tertiary: data_criacao DESC (newest first)
+  - Quaternary: id ASC (UUID tiebreaker for stability)
+- [ ] **T117** [US3] Create `src/main/java/com/ecobook/dto/SearchCriteriaDto.java`:
+  - Fields: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro
+  - All fields optional (nullable)
+  - Validation: enums validated if provided
+- [ ] **T118** [US3] Create MatchingService integration test in `src/test/java/com/ecobook/service/MatchingServiceTest.java`:
+  - Create 10+ materials with varying disciplinas, levels, years, systems, locations
+  - Query for MATEMATICA + FUNDAMENTAL + year 5 + OTRO system + city "São Paulo" + neighborhood "Centro"
+  - Verify results: only matching materials returned, correct ordering (neighborhood first, then city, then newest)
+  - Test SUPERIOR year constraint ignored
+  - Test OUTRO system rule (OUTRO matches only OUTRO, ANGLO matches ANGLO + OUTRO)
+
+#### Backend: Search Endpoint
+
+- [ ] **T119** [US3] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+  - **GET /api/v1/materiais**: Query matching materials
+  - Query parameters: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, page (default 0), size (default 20)
+  - Response: Page<MaterialDto> with paginated results
+  - Error: 400 (invalid enum value), 403 (profile incomplete)
+- [ ] **T120** [US3] Implement `MaterialController.search()` handler:
+  - Extract query parameters
+  - Validate enums (if provided)
+  - Build SearchCriteriaDto
+  - Call MatchingService.findMatching(criteria, pageable)
+  - Return Page<MaterialDto> with paginated results
+- [ ] **T121** [US3] Implement pagination in `MatchingService.findMatching()`:
+  - Support Spring's Pageable (page, size, sort)
+  - Fixed sort order: AVAILABLE only, then ranking comparator
+  - Return Page<Material> with total count, page number, has_next
+- [ ] **T122** [US3] Create database indexes for fast queries in `src/main/resources/db/migration/V2__add-indexes.sql`:
+  - `CREATE INDEX idx_material_status ON material(status)` (filter DISPONIVEL)
+  - `CREATE INDEX idx_material_disciplina_nivel ON material(disciplina, nivel_ensino)` (composite)
+  - `CREATE INDEX idx_material_cidade_bairro ON material(cidade_normalizado, bairro_normalizado)` (geo)
+  - `CREATE INDEX idx_material_data_criacao ON material(data_criacao DESC)` (sorting)
+- [ ] **T123** [US3] Create search endpoint test in `src/test/java/com/ecobook/controller/MaterialControllerSearchTest.java`:
+  - GET /materiais?disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL → 200 with paginated results
+  - GET /materiais?disciplina=INVALID → 400 (invalid enum)
+  - GET /materiais?page=0&size=10 → 200 with 10 results max
+  - GET /materiais?page=2&size=10 → 200 with page 2 results (if exists)
+  - Verify ranking order (neighborhood first, then city, then newest)
+
+#### Android: Discovery Screen
+
+- [ ] **T124** [P] [US3] Create `android/src/main/java/com/ecobook/discovery/DiscoveryScreen.kt` Compose screen:
+  - Display search filters (dropdown menus for disciplina, nivel_ensino, ano, sistema_ensino)
+  - Display city and neighborhood (pre-populated from user profile or editable)
+  - "Search" button → GET /api/v1/materiais with criteria
+  - "Reset" button → clear filters, show all DISPONIVEL materials
+- [ ] **T125** [P] [US3] Implement filter state in `android/src/main/java/com/ecobook/discovery/DiscoveryViewModel.kt`:
+  - Store current filters (disciplina, nivel_ensino, ano, etc.)
+  - Track search results (list of MaterialDto)
+  - Track pagination (page, size, hasNext)
+  - `search()`: call GET /api/v1/materiais with current filters
+  - `loadNextPage()`: increment page, append results
+- [ ] **T126** [P] [US3] Create material list UI in `android/src/main/java/com/ecobook/ui/MaterialListItem.kt`:
+  - Display material thumbnail image
+  - Show disciplina, nivel_ensino, ano, estado_conservacao badges
+  - Show city and neighborhood (proximity indicator)
+  - Show upload date (relative: "2 days ago")
+  - Show donor name (or "Anonymous" if privacy desired)
+  - Tap to view details / request material
+- [ ] **T127** [P] [US3] Create LazyColumn with pagination in DiscoveryScreen:
+  - Load initial 20 materials on screen open
+  - Detect "load more" (user scrolled to end)
+  - Load next page automatically
+  - Show loading spinner at bottom while fetching
+- [ ] **T128** [P] [US3] Implement search filters UI:
+  - Disciplina dropdown (MATEMATICA, PORTUGUES, ...) with "All" option
+  - Nivel ensino dropdown (FUNDAMENTAL, MEDIO, SUPERIOR) with "All" option
+  - Ano text input (optional, validated as 1–12)
+  - Sistema ensino dropdown (ANGLO, OBJETIVO, COC, POSITIVO, OUTRO, All)
+- [ ] **T129** [P] [US3] Create empty state UI when no results found:
+  - Show "No materials found" message
+  - Suggest adjusting filters
+  - Show "Browse all materials" button to reset filters
+- [ ] **T130** [P] [US3] Create material detail screen in `android/src/main/java/com/ecobook/discovery/MaterialDetailScreen.kt`:
+  - Display full image
+  - Show all metadata (disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao)
+  - Show description (if provided)
+  - Show donor city and neighborhood (proximity indicator)
+  - Show donor name + "Contact" button (WhatsApp link after approval)
+  - Show "Request Material" button → POST /solicitacoes/{material_id}
+
+---
+
+## PHASE 5: USER STORY 4 & 5 — Request Workflow (Weeks 15–16)
+
+**Story Goal**: Student requests a material, donor approves/declines, material transitions through RESERVADO → DOADO lifecycle.
+
+**Independent Test Criteria**:
+- ✅ Request creation with state validation
+- ✅ Atomic approval with locking (no race conditions)
+- ✅ 14-day expiry auto-revert working
+- ✅ All state transitions enforced (422 on invalid)
+- ✅ Notifications triggered on each event
+
+### Module 5: Request Workflow (RF-005, RF-007)
+
+#### Backend: Request Creation
+
+- [ ] **T131** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java`:
+  - **POST /api/v1/materiais/{id}/solicitacoes**: Student requests material
+  - Path param: material_id (UUID)
+  - Response: SolicitacaoDto (id, status=PENDENTE, created_at)
+  - Error: 400 (solicitante = doador), 403 (profile incomplete), 404 (material not found), 409 (already requested), 422 (invalid state)
+- [ ] **T132** [US4] Implement `SolicitacaoService.createRequest()` method:
+  - Validate material exists and status = DISPONIVEL
+  - Validate requestor ≠ donor (HTTP 400)
+  - Check if student already has PENDENTE/APROVADA request for this material (HTTP 409 Conflict)
+  - Create Solicitacao with status=PENDENTE, created_at=now
+  - Persist to database
+  - Emit SolicitacaoCreatedEvent (for FCM notification trigger)
+  - Return SolicitacaoDto
+- [ ] **T133** [US4] Create request creation test in `src/test/java/com/ecobook/service/SolicitacaoServiceTest.java`:
+  - Student requests available material → 201 PENDENTE
+  - Student requests own material → 400
+  - Donor requests own material → 400
+  - Material already requested by student → 409
+  - Profile incomplete → 403
+
+#### Backend: Atomic Approval with Locking
+
+- [ ] **T134** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+  - **PATCH /api/v1/solicitacoes/{id}/aprovar**: Donor approves request
+  - Path param: request_id (UUID)
+  - Response: SolicitacaoDto (updated with status=APROVADA, contato_doador, approved_at, expires_at)
+  - Error: 401 (not donor), 403 (profile incomplete), 404 (not found), 422 (invalid state)
+- [ ] **T135** [US4] Implement atomic approval transaction in `SolicitacaoService.approveRequest()`:
+  - Use `@Transactional(isolation = Isolation.SERIALIZABLE)` annotation
+  - Lock Material record: `SELECT ... FOR UPDATE` (PostgreSQL)
+  - Validate Solicitacao status = PENDENTE
+  - Validate Material status = DISPONIVEL
+  - Validate no other APROVADA requests for this material (atomic check)
+  - Update Solicitacao: status=APROVADA, approved_at=now, expires_at=now+14days, contato_doador={nome, whatsapp}
+  - Update Material: status=RESERVADO
+  - Reject all other PENDENTE requests for this material: status=RECUSADA
+  - Persist atomically (all or nothing)
+  - Emit SolicitacaoApprovedEvent (for FCM notification)
+  - Return updated SolicitacaoDto
+- [ ] **T136** [US4] Create rejection logic in approval transaction:
+  - Query all other PENDENTE Solicitacoes for same Material
+  - Update all to status=RECUSADA, declined_reason="Material already reserved"
+  - Emit SolicitacaoRejectedEvent for each (FCM notification to affected students)
+- [ ] **T137** [US4] Create locking test in `src/test/java/com/ecobook/service/SolicitacaoServiceLockingTest.java`:
+  - Two concurrent requests for same material
+  - First approval succeeds: Material → RESERVADO, Solicitacao → APROVADA
+  - Second approval fails: HTTP 422 (invalid state), Solicitacao → RECUSADA
+  - Verify no race condition (no orphaned APROVADA requests)
+
+#### Backend: Approval Endpoints & Decline
+
+- [ ] **T138** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+  - **PATCH /api/v1/solicitacoes/{id}/recusar**: Donor declines request
+  - Response: SolicitacaoDto (updated with status=RECUSADA, declined_reason)
+  - Error: 401 (not donor), 404 (not found), 422 (invalid state)
+- [ ] **T139** [US4] Implement `SolicitacaoService.declineRequest()`:
+  - Validate requestor is donor
+  - Validate Solicitacao status = PENDENTE
+  - Update status=RECUSADA, declined_reason (optional)
+  - Material status remains DISPONIVEL
+  - Emit SolicitacaoRejectedEvent (FCM notification)
+- [ ] **T140** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+  - **PATCH /api/v1/solicitacoes/{id}/cancelar**: Student/Donor cancels request
+  - Response: SolicitacaoDto (updated with status=CANCELADA)
+  - Error: 401 (not requestor/donor), 404 (not found), 422 (invalid state)
+- [ ] **T141** [US4] Implement `SolicitacaoService.cancelRequest()`:
+  - Validate requestor is student or donor
+  - If status=APROVADA: revert Material status=DISPONIVEL (atomic transaction)
+  - Update Solicitacao status=CANCELADA
+  - Emit SolicitacaoCanceledEvent (FCM notification)
+- [ ] **T142** [US4] Create approval workflow integration test in `src/test/java/com/ecobook/SolicitacaoWorkflowTest.java`:
+  - Create material, student requests → PENDENTE
+  - Donor approves → Material RESERVADO, Solicitacao APROVADA
+  - Another student requests same material → 409 Conflict
+  - Student cancels → Material DISPONIVEL, Solicitacao CANCELADA
+
+#### Backend: Donation Completion & Material State
+
+- [ ] **T143** [US5] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+  - **PATCH /api/v1/solicitacoes/{id}/concluir**: Mark donation as completed
+  - Response: SolicitacaoDto (updated with status=CONCLUIDA)
+  - Error: 401 (not donor), 404 (not found), 422 (invalid state)
+- [ ] **T144** [US5] Implement `SolicitacaoService.completeDonation()`:
+  - Validate requestor is donor
+  - Validate Solicitacao status = APROVADA
+  - Validate Material status = RESERVADO
+  - Update Solicitacao: status=CONCLUIDA, completed_at=now
+  - Update Material: status=DOADO, donated_at=now
+  - Emit SolicitacaoCompletedEvent (FCM notification)
+  - Material becomes final state (no further transitions)
+- [ ] **T145** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+  - **PUT /api/v1/materiais/{id}**: Edit material (only DISPONIVEL state)
+  - Request: titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, descricao
+  - Response: MaterialDto (updated)
+  - Error: 400 (invalid enum), 403 (profile incomplete), 404 (not found), 422 (invalid state)
+- [ ] **T146** [US5] Implement material editing in `MaterialService.updateMaterial()`:
+  - Validate status = DISPONIVEL (reject if RESERVADO/DOADO/CANCELADO)
+  - Validate requestor is donor
+  - Validate enums
+  - Update all mutable fields
+  - Persist
+- [ ] **T147** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+  - **DELETE /api/v1/materiais/{id}**: Cancel material (donor only)
+  - Response: HTTP 204 No Content
+  - Error: 401 (not donor), 404 (not found), 422 (invalid state)
+- [ ] **T148** [US5] Implement material cancellation in `MaterialService.cancelMaterial()`:
+  - Update Material status=CANCELADO
+  - Cancel all related PENDENTE/APROVADA Solicitacoes: status=CANCELADA
+  - Emit MaterialCanceledEvent (FCM notification to affected students)
+
+#### Backend: Expiry Job
+
+- [ ] **T149** [US5] Create `src/main/java/com/ecobook/scheduler/ReservationExpiryJob.java`:
+  - Scheduled task: runs daily at 2 AM UTC
+  - Query: all Solicitacoes with status=APROVADA AND expires_at < now
+  - For each expired request:
+    - Update Solicitacao: status=CANCELADA, expired_reason="14-day reservation expired"
+    - Update Material: status=DISPONIVEL (revert reservation)
+    - Emit SolicitacaoExpiredEvent (FCM notification to student)
+  - Log summary: "Expired 3 reservations"
+- [ ] **T150** [US5] Add `@Scheduled(cron = "0 0 2 * * ?")` annotation (daily 2 AM UTC)
+- [ ] **T151** [US5] Create expiry job test in `src/test/java/com/ecobook/scheduler/ReservationExpiryJobTest.java`:
+  - Insert APROVADA Solicitacao with expires_at = yesterday
+  - Run expiry job
+  - Verify Solicitacao → CANCELADA, Material → DISPONIVEL
+
+#### Backend: State Validation
+
+- [ ] **T152** [US4] Create `src/main/java/com/ecobook/service/MaterialStateValidator.java`:
+  - Method: `validateTransition(currentStatus, newStatus)` → throws if invalid
+  - Valid transitions:
+    - DISPONIVEL → RESERVADO (approval)
+    - DISPONIVEL → CANCELADO (donor cancel)
+    - RESERVADO → DOADO (completion)
+    - RESERVADO → DISPONIVEL (expiry auto-revert)
+    - RESERVADO → CANCELADO (student cancel)
+    - Any other → throw InvalidStateTransitionException (HTTP 422)
+- [ ] **T153** [US4] Create state validation test in `src/test/java/com/ecobook/service/MaterialStateValidatorTest.java`:
+  - Test all valid transitions
+  - Test all invalid transitions (should throw)
+
+#### Android: Request Creation UI
+
+- [ ] **T154** [P] [US4] Create "Request Material" action in MaterialDetailScreen:
+  - Button: "Request Material"
+  - On click: Call `POST /solicitacoes/{material_id}`
+  - Success: Show confirmation dialog "Material requested! Waiting for donor approval."
+  - Navigate to "My Requests" screen
+- [ ] **T155** [P] [US4] Implement `android/src/main/java/com/ecobook/request/RequestViewModel.kt`:
+  - `createRequest(materialId)`: POST /api/v1/materiais/{materialId}/solicitacoes
+  - Handle 409 Conflict: Show "You already have a pending request for this material"
+  - Handle 422 Invalid State: Show "Material no longer available"
+  - Handle success: Navigate to MyRequestsScreen
+
+#### Android: My Requests Screen
+
+- [ ] **T156** [P] [US4] Create `android/src/main/java/com/ecobook/request/MyRequestsScreen.kt` Compose screen:
+  - Display list of student's requests (all statuses: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA)
+  - For each request, show:
+    - Material title + image
+    - Current status (PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA)
+    - Status indicator (hourglass for PENDENTE, checkmark for APROVADA, X for RECUSADA, done for CONCLUIDA)
+    - Days remaining (if APROVADA): "3 days left to complete"
+    - Action button: "Contact Donor" (if APROVADA), "Cancel" (if PENDENTE/APROVADA)
+- [ ] **T157** [P] [US4] Implement `android/src/main/java/com/ecobook/request/MyRequestsViewModel.kt`:
+  - Load student's requests: GET /api/v1/solicitacoes/minhas
+  - Filter by status (optional)
+  - `cancelRequest(requestId)`: PATCH /solicitacoes/{id}/cancelar
+  - `contactDonor(solicitacaoId)`: Open WhatsApp contact from contato_doador JSONB
+- [ ] **T158** [P] [US4] Create contact donor action:
+  - Only visible when status=APROVADA (contato_doador populated)
+  - On click: Open WhatsApp intent with donor's WhatsApp number + pre-filled message: "Hi! I'm requesting your [material title]. Can we arrange pickup?"
+- [ ] **T159** [P] [US4] Create request list UI in `android/src/main/java/com/ecobook/ui/RequestListItem.kt`:
+  - Show request status with color code (orange=PENDENTE, green=APROVADA, red=RECUSADA, gray=CANCELADA/CONCLUIDA)
+  - Show material thumbnail + title
+  - Show donor name + location
+  - Show expiry date (if APROVADA)
+
+#### Android: Donor Approval UI
+
+- [ ] **T160** [P] [US4] Create `android/src/main/java/com/ecobook/donor/DonorRequestsScreen.kt` Compose screen:
+  - Display list of incoming requests for donor's materials (status=PENDENTE only)
+  - For each request, show:
+    - Student name + location
+    - Requested material title
+    - "Accept" and "Decline" buttons
+  - Tapping "Accept": PATCH /solicitacoes/{id}/aprovar
+  - Tapping "Decline": PATCH /solicitacoes/{id}/recusar
+  - On accept: Show confirmation, navigate back (request status → APROVADA)
+- [ ] **T161** [P] [US4] Implement `android/src/main/java/com/ecobook/donor/DonorRequestsViewModel.kt`:
+  - Load incoming requests: GET /api/v1/solicitacoes/pendentes (endpoint to be created in next phase)
+  - `approveRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/aprovar
+  - `declineRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/recusar
+  - Handle success: Refresh list, show toast "Request approved"
+- [ ] **T162** [P] [US4] Create donor incoming requests endpoint:
+  - **GET /api/v1/solicitacoes/pendentes**: List pending requests for donor's materials
+  - Filters by authenticated donor's materials with PENDENTE requests
+
+#### Android: Completion UI
+
+- [ ] **T163** [P] [US5] Create "Mark as Donated" action in DonorRequestsScreen:
+  - Only show when status=APROVADA (after student confirms receipt)
+  - Button: "Mark as Donated"
+  - On click: PATCH /solicitacoes/{id}/concluir
+  - Success: Show "Material marked as donated", navigate back
+- [ ] **T164** [P] [US5] Implement in `DonorRequestsViewModel`:
+  - `completeDonation(solicitacaoId)`: PATCH /solicitacoes/{id}/concluir
+- [ ] **T165** [P] [US5] Create endpoint for listing donor's approved requests:
+  - **GET /api/v1/solicitacoes/aprovadas**: List donor's approved requests (awaiting completion)
+
+---
+
+## PHASE 6: FCM Notifications (RF-006 — Cross-Cutting)
+
+**Story Goal**: Send push notifications for 6 key events (request received, approved, declined, cancelled, material donated, material cancelled).
+
+### Module 6: Firebase Cloud Messaging
+
+#### Backend: FCM Configuration
+
+- [ ] **T166** [P] Create `src/main/java/com/ecobook/config/FirebaseConfig.java`:
+  - Initialize Firebase Admin SDK from service account JSON
+  - Load service account from `firebase-service-account.json` (path in application.yml)
+- [ ] **T167** [P] Create `src/main/java/com/ecobook/service/FcmService.java`:
+  - Method: `sendNotification(userId, title, body, data)` → sends to user's device
+  - Retrieve FCM token from user record
+  - Build notification message (title, body, data payload)
+  - Send via FirebaseMessaging.send()
+  - Log result (success, failure, not registered)
+- [ ] **T168** [P] Create `src/main/java/com/ecobook/service/FcmTokenService.java`:
+  - Endpoint: **POST /api/v1/fcm/tokens** (mobile client sends device token on app startup)
+  - Store fcm_token in Usuario record
+  - Support token rotation (overwrite existing token per device)
+- [ ] **T169** [P] Create event listeners for notifications:
+  - `@EventListener SolicitacaoCreatedEvent` → notify donor
+  - `@EventListener SolicitacaoApprovedEvent` → notify student
+  - `@EventListener SolicitacaoRejectedEvent` → notify student
+  - `@EventListener SolicitacaoCanceledEvent` → notify other party
+  - `@EventListener SolicitacaoCompletedEvent` → notify student
+  - `@EventListener MaterialCanceledEvent` → notify affected students
+
+#### Backend: 6 Notification Payloads
+
+- [ ] **T170** [P] Create notification payloads in `src/main/java/com/ecobook/dto/notification/`:
+  - **SolicitacaoRecebidaNotification.java** (sent to donor)
+    - Title: "New Material Request"
+    - Body: "{student_name} requested your {material_title}"
+    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST"
+  - **SolicitacaoAprovadaNotification.java** (sent to student)
+    - Title: "Request Approved!"
+    - Body: "Your request for {material_title} was approved. 14 days to complete."
+    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST", expires_at
+  - **SolicitacaoRecusadaNotification.java** (sent to student)
+    - Title: "Request Declined"
+    - Body: "Your request for {material_title} was declined."
+    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST"
+  - **SolicitacaoCanceladaNotification.java** (sent to student or donor)
+    - Title: "Request Cancelled"
+    - Body: "{material_title} request was cancelled."
+    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST"
+  - **MaterialDoadoNotification.java** (sent to student)
+    - Title: "Material Received!"
+    - Body: "Your {material_title} has been marked as received."
+    - Data: material_id, solicitacao_id, action: "VIEW_MATERIAL"
+  - **MaterialCanceladoNotification.java** (sent to pending/approved students)
+    - Title: "Material No Longer Available"
+    - Body: "{material_title} was cancelled by donor."
+    - Data: material_id, action: "BACK_TO_SEARCH"
+- [ ] **T171** [P] Implement notification sending in event listeners:
+  - Each listener catches domain event (e.g., SolicitacaoApprovedEvent)
+  - Builds appropriate notification payload
+  - Calls FcmService.sendNotification(recipient_user_id, payload)
+  - Handles failures gracefully (log error, don't crash)
+
+#### Backend: FCM Error Handling
+
+- [ ] **T172** [P] Create retry logic for failed notifications:
+  - If send fails: Store in FailedNotificationQueue (for manual retry)
+  - Log: user_id, notification_type, error_reason, timestamp
+  - Cron job: retry failed notifications every hour (max 3 retries)
+- [ ] **T173** [P] Create `src/main/java/com/ecobook/scheduler/NotificationRetryJob.java`:
+  - Query FailedNotificationQueue records with retry_count < 3
+  - Retry each notification
+  - Delete on success, increment retry_count on failure
+  - Disable notification after 3 retries (log as permanently failed)
+
+#### Android: FCM Setup
+
+- [ ] **T174** [P] [US4] Create Firebase Cloud Messaging setup in `android/src/main/AndroidManifest.xml`:
+  - Add FCM service declarations
+  - Add required permissions (POST_NOTIFICATIONS for Android 13+)
+- [ ] **T175** [P] [US4] Implement `android/src/main/java/com/ecobook/fcm/EcoBookMessagingService.kt`:
+  - Extend FirebaseMessagingService
+  - Override `onMessageReceived(remoteMessage)`
+  - Handle notifications in foreground (show local notification via NotificationManager)
+  - Handle notifications in background (FCM shows automatically)
+  - Extract custom data (action, ids) from payload
+  - Handle "VIEW_REQUEST" action: navigate to RequestDetailScreen with solicitacao_id
+  - Handle "BACK_TO_SEARCH" action: navigate to DiscoveryScreen
+- [ ] **T176** [P] [US4] Create notification display in `EcoBookMessagingService`:
+  - Build NotificationCompat.Builder with title, body, icon, color
+  - Use PendingIntent to navigate to appropriate screen
+  - Post to NotificationManager
+  - Set notification ID per notification type (avoid duplicates)
+- [ ] **T177** [P] [US4] Implement token registration in `android/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+  - After successful login: Get FCM token via FirebaseMessaging.getInstance().token
+  - POST /api/v1/fcm/tokens with device token
+  - Store locally (in case future updates needed)
+  - Log token registration for debugging
+- [ ] **T178** [P] [US4] Create notification permission request for Android 13+:
+  - Use RuntimePermissions to request POST_NOTIFICATIONS
+  - On app startup: check if permission granted, request if not
+  - Show explanation: "We send you updates on your requests"
+- [ ] **T179** [P] [US4] Create deep linking for notification actions:
+  - Configure AndroidManifest.xml to handle deep links
+  - Examples: `ecobook://request/{solicitacao_id}`, `ecobook://search`
+  - MainActivity should parse intent and navigate via navigation graph
+- [ ] **T180** [P] [US4] Create notification badge (unread count) in BottomNavigationBar:
+  - Track unread notifications locally
+  - Show badge on notification icon
+  - Clear badge on NotificationsScreen view
+
+---
+
+## PHASE 7: Admin & Moderation (Modules 7–8)
+
+### Module 7: Non-Received Material Reporting
+
+- [ ] **T181** [US5] Create `src/main/java/com/ecobook/controller/ReportController.java` endpoint:
+  - **POST /api/v1/materiais/{id}/nao-recebido**: Report non-receipt
+  - Request: reason (optional text, max 500 chars)
+  - Response: ReportDto (id, created_at, status=OPEN)
+  - Error: 403 (not student), 404 (not found), 422 (material not DOADO)
+- [ ] **T182** [US5] Implement `ReportService.reportNonReceipt()`:
+  - Validate material status = DOADO
+  - Validate requestor is student from CONCLUIDA Solicitacao
+  - Create MaterialNonReceiptReport record
+  - Emit ReportCreatedEvent (notify admin via backend alert, email, or dashboard)
+- [ ] **T183** [US5] Create Android UI for non-receipt reporting:
+  - Button visible on MaterialDetailScreen only when status=DOADO
+  - Show dialog: "Report Non-Receipt" with optional reason text
+  - Send reason to backend
+  - Show confirmation: "Report submitted. Admin will review."
+
+### Module 8: Admin Dashboard (Optional for MVP)
+
+- [ ] **T184** Create `src/main/java/com/ecobook/controller/AdminController.java` (admin-only endpoints):
+  - **GET /api/v1/admin/reports**: List all non-receipt reports (pagination, filtering by status)
+  - **PATCH /api/v1/admin/reports/{id}/resolve**: Mark report as resolved
+  - **GET /api/v1/admin/materials**: List all materials (including CANCELADO)
+  - **DELETE /api/v1/admin/materials/{id}**: Remove material from platform (hard delete)
+  - **GET /api/v1/admin/users**: List all users with activity metrics
+- [ ] **T185** Create admin authorization:
+  - Add `role` field to Usuario (ADMIN, USER)
+  - Add `@PreAuthorize("hasRole('ADMIN')")` to admin endpoints
+  - Support admin role setting via database seeding or special endpoint
+
+---
+
+## PHASE 8: Security & LGPD (Module 9 — Cross-Cutting)
+
+### Module 9: Data Privacy & Security
+
+#### Backend: Soft Delete & Anonymization
+
+- [ ] **T186** [P] Create `src/main/java/com/ecobook/entity/AuditedEntity.java` base class:
+  - Fields: deleted_at (nullable), deleted_by (nullable), anonymized (boolean)
+  - All entities extend AuditedEntity
+- [ ] **T187** [P] Implement soft delete in `src/main/java/com/ecobook/service/UserDeletionService.java`:
+  - `deleteUser(userId)` method:
+    1. Set deleted_at = now, anonymized = true
+    2. Update nome = "Usuário Removido"
+    3. Update email = SHA256(email) (irreversible hash)
+    4. Update whatsapp = null, deletar
+    5. Set consentimento_ia = false
+    6. Delete all images from `/uploads/{user_id}/`
+    7. Cancel all DISPONIVEL/RESERVADO materials (status → CANCELADO)
+    8. Cancel all open requests (PENDENTE/APROVADA → CANCELADA)
+    9. Anonymize all CONCLUIDA requests (remove donor/student identifiable info, keep transaction history)
+    10. Log deletion event for audit trail
+- [ ] **T188** [P] Implement query filtering to exclude deleted records:
+  - Add `@Where(clause = "deleted_at IS NULL")` to all entities
+  - Ensures deleted records never appear in queries
+- [ ] **T189** [P] Create account deletion endpoint:
+  - **POST /api/v1/usuarios/delete**: Delete current user account
+  - Request: password confirmation (or OAuth2 re-auth)
+  - Response: HTTP 204 No Content
+  - Error: 403 (invalid password), 404 (user not found)
+- [ ] **T190** [P] Implement `UserController.deleteAccount()`:
+  - Call UserDeletionService.deleteUser()
+  - Revoke JWT token (add to blacklist)
+  - Clear local Android session
+- [ ] **T191** [P] Create deletion audit log:
+  - Store all deletions in AuditLog table (for compliance)
+  - Fields: deleted_user_id, deleted_at, deleted_by (admin or user self), reason
+
+#### Backend: Consent Management
+
+- [ ] **T192** [P] Create `src/main/java/com/ecobook/entity/ConsentRecord.java` entity:
+  - Fields: id (UUID), user_id, consent_type (PLATFORM, AI_CLASSIFICATION), status (GIVEN, REVOKED), created_at, revoked_at
+  - Two-stage consent: PLATFORM (sign-up) + AI_CLASSIFICATION (before first material upload)
+- [ ] **T193** [P] Create consent tracking in registration:
+  - First consent: PLATFORM granted automatically on signup
+  - Second consent: AI_CLASSIFICATION requested before POST /materiais/preview
+  - Store ConsentRecord for each grant/revocation
+- [ ] **T194** [P] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
+  - **PATCH /api/v1/usuarios/me/consent**: Update consent for AI classification
+  - Request: consentimento_ia (boolean)
+  - Response: Updated UsuarioDto
+- [ ] **T195** [P] Implement consent enforcement:
+  - If consentimento_ia = false: POST /materiais/preview returns FAILURE status immediately (no Gemini call)
+  - Respect user's choice throughout session
+- [ ] **T196** [P] Create consent revocation endpoint:
+  - **DELETE /api/v1/usuarios/me/consent/ai-classification**: Revoke AI consent
+  - Update consentimento_ia = false
+  - Store ConsentRecord with revoked_at
+
+#### Backend: Image Access Control
+
+- [ ] **T197** [P] Create `src/main/java/com/ecobook/controller/ImageController.java`:
+  - **GET /api/v1/images/{image_id}**: Download image (authenticated only)
+  - Path param: image_id (UUID)
+  - Response: Binary image data with Content-Type (image/jpeg or image/png)
+  - Error: 401 (not authenticated), 403 (not authorized), 404 (image not found)
+- [ ] **T198** [P] Implement image authorization in `ImageController.getImage()`:
+  - Check if user is:
+    - Image owner (donor), OR
+    - Student with APROVADA+ Solicitacao for material, OR
+    - Admin
+  - Reject if none of above (HTTP 403)
+  - Serve image from filesystem
+- [ ] **T199** [P] Update Material entity:
+  - Remove `imagem_url` field (was direct URL, security risk)
+  - Add `image_id` field (references ImageController for authenticated access)
+  - Example: `/api/v1/images/{image_id}` instead of `/uploads/{user}/{uuid}.ext`
+
+#### Backend: Audit Logging
+
+- [ ] **T200** [P] Create `src/main/java/com/ecobook/entity/AuditLog.java` entity:
+  - Fields: id (UUID), user_id, action (CREATE_MATERIAL, APPROVE_REQUEST, etc.), resource_id, resource_type, old_values (JSONB), new_values (JSONB), ip_address, timestamp
+- [ ] **T201** [P] Create AOP aspect for audit logging:
+  - `@AuditLog` annotation on sensitive methods
+  - Capture method parameters, return value, user, timestamp, IP
+  - Store in AuditLog table
+- [ ] **T202** [P] Create audit trail query endpoint (admin only):
+  - **GET /api/v1/admin/audit-log**: Query audit logs
+  - Filters: user_id, action, resource_type, date_range
+  - Response: Paginated list of AuditLogDto
+- [ ] **T203** [P] Create data export endpoint (LGPD right-to-data):
+  - **POST /api/v1/usuarios/me/export**: Request personal data export
+  - Backend generates ZIP with:
+    - User profile JSON
+    - All materials (metadata + image URLs)
+    - All requests (anonymized as needed)
+    - All consent records
+    - All audit events involving user
+  - Email user download link
+  - Data available for 30 days
+
+#### Android: Consent UI
+
+- [ ] **T204** [P] Create consent dialogs in onboarding:
+  - Platform consent: "I agree to EcoBook IA's terms and conditions and privacy policy" (checkbox)
+  - AI consent (before first upload): "I consent to use of AI for analyzing material images" (checkbox)
+  - Both required before proceeding
+- [ ] **T205** [P] Create consent management screen:
+  - Show current consent status (PLATFORM: given, AI: given/not-given)
+  - Option to revoke AI consent anytime
+  - Link to privacy policy + terms
+- [ ] **T206** [P] Create account deletion screen:
+  - Button: "Delete Account Permanently"
+  - Confirmation dialog: "Are you sure? All your data will be anonymized."
+  - Show what will happen: materials cancelled, requests anonymized, images deleted
+  - POST /usuarios/delete on confirmation
+  - Clear local session, navigate to login screen
+
+---
+
+## PHASE 9: Performance, Optimization & Edge Cases (Weeks 17)
+
+### Performance Tuning
+
+- [ ] **T207** [P] Add database query optimization:
+  - Profile slow queries (>1s) using PostgreSQL EXPLAIN
+  - Add indexes for common filters (see Phase 4 indexes)
+  - Verify query plans use indexes (SCAN method)
+- [ ] **T208** [P] Configure connection pooling:
+  - HikariCP max_connections = 20, min_idle = 5
+  - Test with concurrent load (10+ simultaneous users)
+  - Monitor connection utilization
+- [ ] **T209** [P] Implement response compression:
+  - Add `compression: true` to Spring Boot actuator
+  - Enable gzip compression for JSON responses > 1KB
+  - Reduces network latency
+- [ ] **T210** [P] Add caching for immutable data:
+  - Cache enum lists (disciplinas, niveis, sistemas) in memory
+  - Cache user profiles (30-min TTL)
+  - Use Spring Cache abstraction with @Cacheable
+- [ ] **T211** [P] Implement pagination optimization:
+  - Use keyset pagination (instead of offset) for large result sets
+  - Example: GET /materiais?after_id={last_id}&size=20
+  - Avoids expensive OFFSET skip
+- [ ] **T212** [P] Add monitoring & alerting:
+  - Configure Micrometer metrics export (optional: Prometheus)
+  - Monitor: request count, latency, error rate, database connection pool
+  - Setup Sentry for error tracking
+
+### Edge Cases & Error Handling
+
+- [ ] **T213** Create error scenario tests:
+  - Concurrent requests for same material (race condition)
+  - Network timeout during upload (partial file)
+  - Gemini API down (503 Service Unavailable)
+  - Database connection pool exhausted (500 Internal Server Error)
+  - User deletes account while request APROVADA (cascade delete)
+  - Material uploaded with very long title (truncate or reject)
+  - WhatsApp number with special characters (sanitize)
+  - City name with Unicode characters (normalize correctly)
+- [ ] **T214** Create rollback & recovery tests:
+  - Payment failed mid-transaction (not applicable here, but transaction rollback testing)
+  - File upload successful but database insert failed (cleanup orphaned file)
+  - Notification failed to send but request created (retry queue)
+- [ ] **T215** Test boundary conditions:
+  - File exactly 5MB (accept)
+  - File 5.001MB (reject)
+  - Material with 0 requests (OK)
+  - Material with 1000+ requests (performance test)
+  - User with 1000+ materials (pagination stress test)
+  - 14-day expiry at exact moment (no race condition)
+
+### Integration & End-to-End Testing
+
+- [ ] **T216** [P] Create 20+ end-to-end scenarios in `src/test/java/com/ecobook/E2ETests.java`:
+  1. **Happy Path**: Register → Profile → Upload → Search → Request → Approve → Complete
+  2. **Approval Race**: Two students request, both try to approve → one succeeds, one rejected
+  3. **Expiry**: Material approved, wait 14 days, auto-revert, student discovers again
+  4. **Decline Flow**: Student requests, donor declines, student sees RECUSADA
+  5. **Cancellation**: Student cancels PENDENTE request, material stays DISPONIVEL
+  6. **Profile Gate**: Incomplete profile tries POST /materiais → 403
+  7. **Consentimento Gate**: consentimento_ia=false, POST /materiais/preview → FAILURE
+  8. **Gemini Timeout**: Simulate 11-second API delay, request times out, FAILURE status
+  9. **Invalid Enum**: POST /materiais with invalid disciplina → 400
+  10. **Non-Existent Material**: Request non-existent material_id → 404
+  11. **Self-Request**: Donor requests own material → 400
+  12. **Already Requested**: Student requests same material twice → 409
+  13. **Expired JWT**: Use 14-day-old token → 401
+  14. **Concurrent Uploads**: Two users upload simultaneously (no file collision)
+  15. **Image Formats**: Upload JPEG, PNG, animated GIF (reject), WebP (reject)
+  16. **WhatsApp Formats**: Valid (+5511999999999), Invalid (11999999999, +551199999)
+  17. **Geographic Normalization**: "São Paulo" === "SAO PAULO", "Ribeirão" === "RIBEIRAO"
+  18. **SUPERIOR Year Ignored**: Filter SUPERIOR, year parameter ignored, all years returned
+  19. **OUTRO System Rule**: Student wants OUTRO, receives only OUTRO + exact system (not other systems)
+  20. **FCM Notification**: Approve request, notification sent and received in app
+
+- [ ] **T217** [P] Create load test with 50+ concurrent users:
+  - 20 users simultaneously uploading materials
+  - 30 users simultaneously searching
+  - Monitor: p95 latency, error rate, database load
+  - Target: <2s p95 search latency, <1% error rate
+- [ ] **T218** [P] Create smoke test suite:
+  - Verify core endpoints return 200 (health checks, search, upload stub)
+  - Run before every deployment
+  - Alert if smoke test fails
+
+---
+
+## PHASE 10: Polish & Documentation (Week 17)
+
+### Code Quality & Documentation
+
+- [ ] **T219** Code review all 200+ implementations:
+  - Check: naming conventions, error handling, null checks, security
+  - Verify: all TODOs addressed, no dead code
+  - Ensure: consistent patterns across modules
+- [ ] **T220** [P] Create API documentation (Swagger/OpenAPI):
+  - Annotate all controllers with `@Operation`, `@Parameter`, `@RequestBody`, `@ApiResponse`
+  - Generate Swagger UI at `http://localhost:8080/swagger-ui.html`
+  - Document all 15+ endpoints with examples, error codes, auth requirements
+- [ ] **T221** [P] Create architecture documentation:
+  - Draw component diagram (Android, Backend, PostgreSQL, Firebase)
+  - Document layer structure (controller → service → repository)
+  - Explain state machine logic and consistency model
+- [ ] **T222** [P] Create troubleshooting guide:
+  - Common issues: "JWT expired", "Gemini timeout", "File too large"
+  - Solutions for each
+  - How to check logs and debug
+- [ ] **T223** [P] Create deployment guide:
+  - Build backend JAR: `mvn clean package`
+  - Build Android APK: `./gradlew assembleRelease`
+  - Deploy to Play Store (internal testing first)
+  - Setup production database (migrations automated)
+  - Configure environment variables (.env for backend)
+- [ ] **T224** [P] Add JavaDoc comments to all public methods:
+  - Describe: what method does, parameters, return value, exceptions
+  - Example: GeminiService.classifyMaterial(File imageFile)
+- [ ] **T225** [P] Add unit test documentation:
+  - Document test structure: Arrange, Act, Assert
+  - Explain each test's purpose and edge case coverage
+
+### Final Quality Gates
+
+- [ ] **T226** Verify 85%+ test coverage:
+  - Run: `mvn clean test jacoco:report`
+  - Check: target/site/jacoco/index.html
+  - Coverage target: 85% line coverage for Phase 4 gate
+- [ ] **T227** Run linting & code analysis:
+  - CheckStyle: verify code style (naming, formatting)
+  - SonarQube: identify code smells, security issues
+  - Address all critical issues before merge
+- [ ] **T228** Run security scanning:
+  - OWASP Dependency Check: scan pom.xml for known vulnerabilities
+  - Update dependencies if vulnerabilities found
+  - Document any accepted risk (if dependency update breaks compatibility)
+- [ ] **T229** Verify database migrations are reversible:
+  - Create rollback script for each migration
+  - Test: apply migration, rollback, re-apply (idempotent)
+  - Ensure zero data loss during rollback
+- [ ] **T230** Final E2E validation:
+  - Run all 20+ end-to-end scenarios
+  - Verify all success paths
+  - Test error handling for all failure cases
+  - Confirm all FCM notifications delivered
+  - Performance: p95 latency <2s, no timeouts
+
+---
+
+## TASK SUMMARY
+
+### Statistics
+
+| Category | Count |
+|----------|-------|
+| **Total Tasks** | 230 |
+| **Backend Tasks** | 95 |
+| **Android Tasks** | 65 |
+| **Testing Tasks** | 40 |
+| **Ops/Deployment** | 15 |
+| **Security/LGPD** | 15 |
+
+### Tasks by Priority (P-flag)
+
+- **Parallelizable [P]**: ~150 tasks (can run simultaneously where safe)
+- **Sequential**: ~80 tasks (dependencies on prior phases)
+
+### Tasks by User Story
+
+| User Story | Task Count | Focus Area |
+|-----------|-----------|-----------|
+| **US1: Registration & Profile** | 30 | Auth, OAuth2, JWT, validation |
+| **US2: Material Classification** | 35 | Upload, Gemini, confidence levels, storage |
+| **US3: Material Discovery** | 25 | Matching algorithm, search, ranking |
+| **US4: Request Workflow** | 50 | State machines, approval, atomic locking, notifications |
+| **US5: Donation Completion** | 20 | Completion workflow, expiry job |
+| **Cross-Cutting (FCM, Admin, LGPD)** | 50 | Notifications, moderation, privacy |
+| **Polish & Testing** | 15 | Documentation, E2E, performance |
+
+### Estimated Timeline
+
+- **Phase 1: Setup** (Week 5–6): 50 tasks, 1 week
+- **Phase 2: US1 Auth & Profile** (Week 7): 30 tasks, 1 week
+- **Phase 3: US2 AI Classification** (Week 8–9): 35 tasks, 1.5 weeks
+- **Phase 4: US3 Discovery** (Week 10): 25 tasks, 0.5 week
+- **Phase 5: US4–US5 Requests** (Week 11–12): 70 tasks, 2 weeks (Phase 4+5 parallel after Phase 2)
+- **Phase 6: FCM & Cross-Cutting** (Week 13–14): 50 tasks, 2 weeks (parallel with Phase 5)
+- **Phase 7: Polish & Testing** (Week 15–17): 15 tasks, 1 week
+
+**Total: 17 weeks (5 weeks parallel work)**
+
+---
+
+## Acceptance Criteria for Phase 2 Kickoff
+
+All tasks in PHASE 1 & PHASE 2 must pass:
+
+- ✅ Backend Spring Boot starts without errors
+- ✅ Android project compiles and emulator launches
+- ✅ First 35 integration tests pass (JWT, OAuth2, user profile, file upload)
+- ✅ Gemini API successfully classifies 5+ test images
+- ✅ Database schema created and migrations automated
+- ✅ GitHub Actions CI/CD pipeline executes on every commit
+
+---
+
+## Next Steps
+
+1. **Assign Tasks**: Distribute tasks to backend dev, Android dev, QA based on user story phases
+2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
+3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
+4. **Start Phase 1**: Backend skeleton (T001–T015) begins immediately
+5. **Daily Standup**: 15-min sync on blockers, progress, dependencies
+
+---
+
+**Generated**: 2026-04-15  
+**Status**: Ready for Phase 2 (Prototypes & Integration) — Week 5 Execution  
+**Document Owner**: Product/Tech Lead  
+**Last Updated**: 2026-04-15
