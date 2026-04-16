@@ -513,10 +513,10 @@ public GeminiResponse callGeminiWithTimeout(String imageBase64) {
 ## 9. Material Matching Algorithm Correctness
 
 ### Research Question
-Is the 6-step deterministic matching algorithm correctly specified and implementable?
+Is the 7-step deterministic matching algorithm correctly specified and implementable?
 
 ### Decision
-**✅ Algorithm is correct and implementable** with clear SQL queries.
+**✅ Algorithm is correct and implementable** with clear SQL queries. Publication date range filter is optional and does not impact performance.
 
 ### Rationale
 
@@ -526,7 +526,8 @@ Is the 6-step deterministic matching algorithm correctly specified and implement
 3. Filter: nivel_ensino (exact match)
 4. Filter: |ano_material - ano_estudante| ≤ 1 (special: SUPERIOR ignores year)
 5. Filter: sistema_ensino (exact match; OUTRO matches only OUTRO)
-6. Sort by: same bairro (proximity) > same cidade (proximity) > data_criacao DESC (recency) > id (tiebreaker)
+6. Filter: data_publicacao range (optional; if provided: min_ano_publicacao <= data_publicacao <= max_ano_publicacao)
+7. Sort by: same bairro (proximity) > same cidade (proximity) > data_publicacao DESC (most recent publication first) > id (tiebreaker)
 
 **SQL Implementation** (pseudo-code):
 ```sql
@@ -542,10 +543,12 @@ WHERE m.status = 'DISPONIVEL'
     (m.sistema_ensino = ? AND ? <> 'OUTRO')
     OR (m.sistema_ensino = 'OUTRO' AND ? = 'OUTRO')
   )
+  AND (? IS NULL OR m.data_publicacao >= ?)  -- Optional min publication year
+  AND (? IS NULL OR m.data_publicacao <= ?)  -- Optional max publication year
 ORDER BY
   CASE WHEN m.bairro = ? THEN 0 ELSE 1 END,  -- Same bairro first
   CASE WHEN m.cidade = ? THEN 0 ELSE 1 END,  -- Same city next
-  m.data_criacao DESC,                       -- Newest first
+  m.data_publicacao DESC,                       -- Most recent publication first
   m.id;                                      -- Tiebreaker
 LIMIT 20 OFFSET ?;  -- Pagination
 ```
@@ -555,7 +558,7 @@ LIMIT 20 OFFSET ?;  -- Pagination
 CREATE INDEX idx_material_status_disciplina ON material(status, disciplina);
 CREATE INDEX idx_material_status_nivel ON material(status, nivel_ensino);
 CREATE INDEX idx_material_bairro_cidade ON material(bairro, cidade);
-CREATE INDEX idx_material_data_criacao ON material(data_criacao DESC);
+CREATE INDEX idx_material_data_publicacao ON material(data_publicacao DESC);
 ```
 
 **Phase 4 Testing**:
@@ -613,7 +616,7 @@ How reliable is Firebase Cloud Messaging? Should we implement retry logic for fa
 | **Image Storage** | Local filesystem per Constitution V | High | Not scalable post-MVP; acceptable as technical debt (mitigated by migration path to S3) |
 | **Geographic Normalization** | NFD + uppercase + ASCII | High | Edge cases (hyphenated names) handled correctly by algorithm |
 | **Gemini Prompting** | Structured JSON prompt + strict parsing | Medium | Prompt may need tuning based on Phase 3 results |
-| **Matching Algorithm** | 6-step deterministic filter + ranking | High | Correctness validated by SQL; performance acceptable with indexes |
+| **Matching Algorithm** | 7-step deterministic filter (5 required + 1 optional publication range) + ranking | High | Correctness validated by SQL; optional publication range does not impact performance; indexes sufficient for 500+ materials |
 | **FCM Reliability** | Best-effort; no retry; in-app polling fallback | Medium | Non-guaranteed delivery acceptable for MVP (critical info in DB) |
 
 ---

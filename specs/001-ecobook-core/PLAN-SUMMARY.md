@@ -41,7 +41,7 @@
 6. **Local Filesystem Storage** → ✅ `/uploads/{user_id}/{uuid}.ext` per Constitution
 7. **Geographic Normalization** → ✅ Uppercase + NFD + ASCII
 8. **Gemini Prompt Engineering** → ✅ Structured JSON prompt + strict parsing
-9. **Matching Algorithm** → ✅ 6-step deterministic filter + ranking
+9. **Matching Algorithm** → ✅ 7-step deterministic filter (5 core + 1 optional publication range) + ranking
 10. **FCM Reliability** → ✅ Best-effort; in-app polling fallback
 
 **All NEEDS CLARIFICATION Resolved** ✓
@@ -69,7 +69,7 @@ idx_material_status
 idx_material_status_disciplina
 idx_material_status_nivel_ensino
 idx_material_cidade_bairro
-idx_material_data_criacao DESC
+idx_material_data_publicacao DESC
 idx_solicitacao_expires_at (for 14-day expiry job)
 ```
 
@@ -122,7 +122,7 @@ idx_solicitacao_expires_at (for 14-day expiry job)
 | **III. Security & OAuth2** | ✅ | Google OAuth2 + JWT 7-day expiry; atomic approval with SERIALIZABLE locks |
 | **IV. Data Privacy & LGPD** | ✅ | 2-year image retention, soft-delete with anonymization, 2-stage consent |
 | **V. MVP Scope Discipline** | ✅ | No ML recommendations, condition automation, multi-needs, cloud storage, or analytics |
-| **VI. Rule-Based Deterministic** | ✅ | 6-step deterministic algorithm, enum-only categories, text-based geo (no GPS) |
+| **VI. Rule-Based Deterministic** | ✅ | 7-step deterministic algorithm (5 core + 1 optional publication range), enum-only categories, text-based geo (no GPS) |
 
 ---
 

@@ -294,8 +294,7 @@ curl -X POST http://localhost:8080/auth/register \
   -d '{
     "email": "test@example.com",
     "nome": "Test User",
-    "whatsapp": "+5548999999999",
-    "role": "AMBOS"
+    "whatsapp": "+5548999999999"
   }'
 
 # Response:
@@ -335,11 +334,13 @@ curl -X POST http://localhost:8080/materiais/preview \
 #   "status_ia": "SUCCESS",
 #   "upload_id": "temp-upload-abc123",
 #   "best_prediction": {
+#     "titulo": { "value": "Matemática 7º Ano - Anglo", "confidence": 0.92 },
 #     "disciplina": { "value": "MATEMATICA", "confidence": 0.95 },
 #     "nivel_ensino": { "value": "FUNDAMENTAL", "confidence": 0.88 },
 #     "ano": { "value": 7, "confidence": 0.75 },
 #     "sistema_ensino": { "value": "ANGLO", "confidence": 0.92 },
-#     "estado_conservacao": { "value": "BOM", "confidence": 0.81 }
+#     "estado_conservacao": { "value": "BOM", "confidence": 0.81 },
+#     "data_publicacao": { "value": 2010, "confidence": 0.70 }
 #   }
 # }
 ```
@@ -376,15 +377,17 @@ curl -X POST http://localhost:8080/materiais \
 
 #### Step 5: Search Materials
 
+**Note**: This example demonstrates the workflow with a second user in the "student capacity", but the same user could both donate materials AND request materials. All users simultaneously have both donor and student capabilities.
+
 ```bash
-# Create student profile (another user)
+# Create second user (for this demo, acting as a student who searches/requests)
+# In production, the same user could do both: upload materials AND request materials
 curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "student@example.com",
-    "nome": "Student User",
-    "whatsapp": "+5548988888888",
-    "role": "AMBOS"
+    "nome": "Another User",
+    "whatsapp": "+5548988888888"
   }'
 
 # Update student profile

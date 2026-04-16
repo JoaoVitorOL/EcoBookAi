@@ -52,7 +52,7 @@ Phase 3: User Story 2 (US2) — AI-Assisted Classification
 └─ [Depends on: Phase 2 (OAuth2 required)]
 
 Phase 4: User Story 3 (US3) — Material Discovery
-├─ T161–T175: Matching algorithm module (6-step filter, ranking)
+├─ T161–T175: Matching algorithm module (7-step filter: 5 core + 1 optional publication range, ranking)
 ├─ T176–T185: Discovery UI (search form, results, filtering)
 └─ [Depends on: Phase 2 (material data required)]
 
@@ -323,7 +323,7 @@ Phase 10: Polish & Integration
     ```json
     {
       "image_base64": "...",
-      "fields": ["disciplina", "nivel_ensino", "ano", "sistema_ensino", "estado_conservacao"]
+      "fields": ["titulo", "disciplina", "nivel_ensino", "ano", "sistema_ensino", "estado_conservacao", "data_publicacao"]
     }
     ```
   - Call Gemini API with 10-second timeout
@@ -351,18 +351,22 @@ Phase 10: Polish & Integration
     {
       "status_ia": "LOW_CONFIDENCE",
       "best_prediction": {
+        "titulo": "Matemática 5º Ano",
         "disciplina": "MATEMATICA",
         "nivel_ensino": "FUNDAMENTAL",
         "ano": "5",
         "sistema_ensino": "OUTRO",
-        "estado_conservacao": "BOM"
+        "estado_conservacao": "BOM",
+        "data_publicacao": 2010
       },
       "confidence_scores": {
+        "titulo": 0.89,
         "disciplina": 0.92,
         "nivel_ensino": 0.45,  // below 0.50 threshold
         "ano": 0.78,
         "sistema_ensino": 0.30,
-        "estado_conservacao": 0.88
+        "estado_conservacao": 0.88,
+        "data_publicacao": 0.70
       },
       "upload_id": "temp-uuid-abc123"
     }
@@ -417,7 +421,7 @@ Phase 10: Polish & Integration
 
 - [ ] **T091** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
   - **POST /api/v1/materiais**: Create material from preview results
-  - Request: upload_id, titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, descricao
+  - Request: upload_id, titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao (optional), descricao
   - Response: MaterialDto (id, doador_id, status=DISPONIVEL, image_url, created_at)
   - Error: 400 (invalid upload_id), 403 (profile incomplete), 404 (file not found), 422 (invalid state/enum)
 - [ ] **T092** [US2] Implement `MaterialService.createMaterial()` method:
@@ -546,7 +550,7 @@ Phase 10: Polish & Integration
 **Story Goal**: Student can specify academic needs and discover matching donated materials ranked by relevance and proximity.
 
 **Independent Test Criteria**:
-- ✅ 6-step matching algorithm correctly filters materials
+- ✅ 7-step matching algorithm correctly filters materials (5 core + 1 optional publication range)
 - ✅ Ranking order enforced (neighborhood > city > date > id)
 - ✅ Special rules for SUPERIOR and OUTRO sistema_ensino
 - ✅ Geographic normalization consistent with database
@@ -557,13 +561,13 @@ Phase 10: Polish & Integration
 #### Backend: Matching Algorithm
 
 - [ ] **T112** [US3] Create `src/main/java/com/ecobook/service/MatchingService.java`:
-  - Implement 6-step filtering pipeline (deterministic, not ML)
+  - Implement 7-step filtering pipeline (5 core + 1 optional publication range; deterministic, not ML)
   - Step 1: Filter status=DISPONIVEL only
   - Step 2: Filter disciplina matches exactly
   - Step 3: Filter nivel_ensino matches exactly
   - Step 4: Filter ano range (±1 year for FUNDAMENTAL/MEDIO, NULL for SUPERIOR)
   - Step 5: Filter sistema_ensino matches exactly (special rule: OUTRO only matches OUTRO)
-  - Step 6: Sort results by ranking order (neighborhood > city > data_criacao DESC > id)
+  - Step 6: Sort results by ranking order (neighborhood > city > data_publicacao DESC > id)
 - [ ] **T113** [US3] Implement geographic matching in `MatchingService.filterByGeography()`:
   - Normalize student's city + neighborhood via GeoNormalizationService
   - Compare normalized values against normalized Material records
@@ -580,7 +584,7 @@ Phase 10: Polish & Integration
   - Comparator: (mat1, mat2) → int
   - Primary: Same neighborhood as student? (true > false)
   - Secondary: Same city as student? (true > false)
-  - Tertiary: data_criacao DESC (newest first)
+  - Tertiary: data_publicacao DESC (most recent publication first)
   - Quaternary: id ASC (UUID tiebreaker for stability)
 - [ ] **T117** [US3] Create `src/main/java/com/ecobook/dto/SearchCriteriaDto.java`:
   - Fields: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro
@@ -597,13 +601,15 @@ Phase 10: Polish & Integration
 
 - [ ] **T119** [US3] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
   - **GET /api/v1/materiais**: Query matching materials
-  - Query parameters: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, page (default 0), size (default 20)
+  - Query parameters: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, min_ano_publicacao (optional), max_ano_publicacao (optional), page (default 0), size (default 20)
   - Response: Page<MaterialDto> with paginated results
-  - Error: 400 (invalid enum value), 403 (profile incomplete)
+  - Error: 400 (invalid enum value, invalid publication range), 403 (profile incomplete)
 - [ ] **T120** [US3] Implement `MaterialController.search()` handler:
   - Extract query parameters
   - Validate enums (if provided)
-  - Build SearchCriteriaDto
+  - Validate publication date range: if both min and max provided, check min <= max; if either provided, check bounds in [1900, 2100]
+  - Return HTTP 400 if validation fails
+  - Build SearchCriteriaDto (including min_ano_publicacao, max_ano_publicacao)
   - Call MatchingService.findMatching(criteria, pageable)
   - Return Page<MaterialDto> with paginated results
 - [ ] **T121** [US3] Implement pagination in `MatchingService.findMatching()`:
@@ -614,13 +620,19 @@ Phase 10: Polish & Integration
   - `CREATE INDEX idx_material_status ON material(status)` (filter DISPONIVEL)
   - `CREATE INDEX idx_material_disciplina_nivel ON material(disciplina, nivel_ensino)` (composite)
   - `CREATE INDEX idx_material_cidade_bairro ON material(cidade_normalizado, bairro_normalizado)` (geo)
-  - `CREATE INDEX idx_material_data_criacao ON material(data_criacao DESC)` (sorting)
+  - `CREATE INDEX idx_material_data_publicacao ON material(data_publicacao DESC)` (sorting)
 - [ ] **T123** [US3] Create search endpoint test in `src/test/java/com/ecobook/controller/MaterialControllerSearchTest.java`:
   - GET /materiais?disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL → 200 with paginated results
   - GET /materiais?disciplina=INVALID → 400 (invalid enum)
   - GET /materiais?page=0&size=10 → 200 with 10 results max
   - GET /materiais?page=2&size=10 → 200 with page 2 results (if exists)
   - Verify ranking order (neighborhood first, then city, then newest)
+  - GET /materiais?min_ano_publicacao=2000&max_ano_publicacao=2015 → 200, returns only materials with data_publicacao in [2000, 2015]
+  - GET /materiais?min_ano_publicacao=2015 → 200, returns only materials with data_publicacao >= 2015
+  - GET /materiais?max_ano_publicacao=2000 → 200, returns only materials with data_publicacao <= 2000
+  - GET /materiais?min_ano_publicacao=2015&max_ano_publicacao=2000 → 400 (invalid range)
+  - GET /materiais?min_ano_publicacao=1800 → 400 (out of bounds)
+  - GET /materiais?max_ano_publicacao=2200 → 400 (out of bounds)
 
 #### Android: Discovery Screen
 
@@ -641,6 +653,7 @@ Phase 10: Polish & Integration
   - Show city and neighborhood (proximity indicator)
   - Show upload date (relative: "2 days ago")
   - Show donor name (or "Anonymous" if privacy desired)
+  - Show publication year (data_publicacao) if available
   - Tap to view details / request material
 - [ ] **T127** [P] [US3] Create LazyColumn with pagination in DiscoveryScreen:
   - Load initial 20 materials on screen open
@@ -652,13 +665,16 @@ Phase 10: Polish & Integration
   - Nivel ensino dropdown (FUNDAMENTAL, MEDIO, SUPERIOR) with "All" option
   - Ano text input (optional, validated as 1–12)
   - Sistema ensino dropdown (ANGLO, OBJETIVO, COC, POSITIVO, OUTRO, All)
+  - Min publication year input (optional, 1900-2100, labeled "Publication year from:")
+  - Max publication year input (optional, 1900-2100, labeled "Publication year to:")
+  - Validation: if both min and max provided, min must be <= max; show error toast if violated
 - [ ] **T129** [P] [US3] Create empty state UI when no results found:
   - Show "No materials found" message
   - Suggest adjusting filters
   - Show "Browse all materials" button to reset filters
 - [ ] **T130** [P] [US3] Create material detail screen in `android/src/main/java/com/ecobook/discovery/MaterialDetailScreen.kt`:
   - Display full image
-  - Show all metadata (disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao)
+  - Show all metadata (disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao)
   - Show description (if provided)
   - Show donor city and neighborhood (proximity indicator)
   - Show donor name + "Contact" button (WhatsApp link after approval)
@@ -773,7 +789,7 @@ Phase 10: Polish & Integration
   - Material becomes final state (no further transitions)
 - [ ] **T145** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
   - **PUT /api/v1/materiais/{id}**: Edit material (only DISPONIVEL state)
-  - Request: titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, descricao
+  - Request: titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao (optional), descricao
   - Response: MaterialDto (updated)
   - Error: 400 (invalid enum), 403 (profile incomplete), 404 (not found), 422 (invalid state)
 - [ ] **T146** [US5] Implement material editing in `MaterialService.updateMaterial()`:

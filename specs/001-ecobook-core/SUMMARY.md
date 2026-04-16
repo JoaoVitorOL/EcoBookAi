@@ -14,7 +14,7 @@
 - ✅ All 7 enum definitions (Disciplina, NivelEnsino, SistemaEnsino, EstadoConservacao, StatusMaterial, StatusSolicitacao, StatusRespostaIA)
 - ✅ Complete REST API specification (15+ endpoints with methods, RFCs, business rules, HTTP codes)
 - ✅ All 7 JSON communication contracts (AI response, Material, Solicitacao, errors, 6 FCM notification types, academic need structure)
-- ✅ Material matching algorithm (complete 6-step pipeline with geographic ranking and special rules)
+- ✅ Material matching algorithm (complete 7-step pipeline: 5 core filters + optional publication range + geographic ranking)
 - ✅ Image processing pipeline (10-step workflow from user selection to permanent storage)
 - ✅ AI confidence fallback rules (6 scenarios from SUCCESS to FAILURE)
 - ✅ AI response parsing rules (7 validation criteria)
@@ -62,7 +62,7 @@
 ✅ **Material Lifecycle**: DISPONIVEL → RESERVADO → DOADO (or CANCELADO)  
 ✅ **Request Workflow**: PENDENTE → APROVADA → CONCLUIDA (or RECUSADA/CANCELADA)  
 ✅ **AI Classification**: Gemini integration with confidence-based fallbacks  
-✅ **Matching Algorithm**: 6-step pipeline with geographic ranking  
+✅ **Matching Algorithm**: 7-step pipeline (5 core + 1 optional publication range) with geographic ranking  
 ✅ **Notifications**: 6 FCM event types for key state transitions  
 ✅ **State Machines**: Explicit valid/invalid transitions with HTTP 422 enforcement  
 ✅ **Data Consistency**: 5 core invariants with atomic approval locks  
@@ -84,8 +84,8 @@
 - Filter DISPONIVEL → Filter disciplina (exact) → Filter nivel_ensino (exact) → Filter year range (±1, except SUPERIOR) → Filter sistema_ensino (exact, OUTRO special rule) → Rank by proximity + recency
 
 **Confidence Fallbacks**:
-- ≥0.75: Auto-fill, disabled edit, SUCCESS
-- 0.50–0.75: Auto-fill, warning, editable, LOW_CONFIDENCE
+- ≥0.75: Auto-fill with green checkmark, editable, SUCCESS
+- 0.50–0.75: Auto-fill with yellow warning, editable, LOW_CONFIDENCE
 - <0.50: Empty, manual entry required, LOW_CONFIDENCE
 - Timeout/Failure: Empty, manual entry required, FAILURE
 

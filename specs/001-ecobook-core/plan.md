@@ -62,7 +62,7 @@
 | **III. Security Through OAuth2 & Deterministic Processes** | ✅ | Google OAuth2 + JWT; atomic approval with SELECT...FOR UPDATE locks; no race conditions |
 | **IV. Data Privacy & LGPD Compliance** | ✅ | Two-stage consent (platform + AI); image retention 2 years; soft-delete with anonymization |
 | **V. MVP Scope Discipline** | ✅ | No collaborative filtering, ML recommendations, condition automation, multi-needs, cloud storage |
-| **VI. Rule-Based Deterministic Matching** | ✅ | Structured enums only; geographic normalization (text-based, no GPS); deterministic 6-step filter + rank algorithm |
+| **VI. Rule-Based Deterministic Matching** | ✅ | Structured enums only; geographic normalization (text-based, no GPS); deterministic 7-step filter (5 core + 1 optional publication range) + rank algorithm |
 
 ---
 
@@ -199,7 +199,7 @@ docs/
 | **Gemini Integration** | High | Free-tier API rate limits (250 req/day), timeout handling, confidence parsing | Phase 3 testing (≥20 diverse images), fallback UI rules, 10s timeout |
 | **State Machines** | High | 2 entities × 4–5 states + transitions + invariants + atomic locking | Explicit state diagram, SELECT...FOR UPDATE for approval, daily expiry job |
 | **Image Pipeline** | Medium | 10-step workflow (upload → temp → Gemini → parse → validate → persist → promote) | Idempotent upload_id tracking, clear validation gates, error recovery |
-| **Matching Algorithm** | Medium | 6-step deterministic pipeline with geographic ranking; correctness critical | Comprehensive unit tests, property-based tests (QuickCheck), audit logs |
+| **Matching Algorithm** | Medium | 7-step deterministic pipeline (5 core + 1 optional publication range) with geographic ranking; correctness critical | Comprehensive unit tests for range filters, property-based tests (QuickCheck), audit logs |
 | **Geographic Normalization** | Low | Text-based normalization (uppercase + NFD + ASCII); must be consistent | Unit test all variations, pre-populate reference city/neighborhood table |
 | **FCM Notifications** | Medium | 6 event types, reliable delivery required but not guaranteed, retry logic | Test in QA environment, log all delivery attempts, fallback UI indication |
 | **Concurrent Users** | Medium | Database locks, connection pooling, query optimization needed | HikariCP pooling, SERIALIZABLE isolation for critical ops, index strategy |
@@ -422,7 +422,7 @@ docs/
 
 1. **Backend Implementation (43 FR + 5 NFR)**
    - Complete GeminiService with all parsing rules (RF-011 through RF-021)
-   - Implement MatchingService with 6-step algorithm (RF-022 through RF-025)
+   - Implement MatchingService with 7-step algorithm (RF-022 through RF-025, RF-044)
    - Material state machine (RF-005 through RF-006): DISPONIVEL → RESERVADO (14-day expiry) → DOADO/CANCELADO
    - Solicitacao state machine (RF-026 through RF-031): PENDENTE → APROVADA → CONCLUIDA/RECUSADA/CANCELADA
    - Atomic approval (RF-035): SELECT...FOR UPDATE on Material row, transaction isolation SERIALIZABLE

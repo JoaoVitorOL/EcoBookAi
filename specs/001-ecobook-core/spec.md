@@ -17,9 +17,9 @@ EcoBook IA is an AI-powered material donation matching platform designed to prom
 
 ## User Scenarios & Testing
 
-### User Story 1 - Donor Registers and Creates Material Profile (Priority: P1)
+### User Story 1 - User Registration and Material Upload (Priority: P1)
 
-A donor (teacher, organization, or individual) registers on the platform, completes their profile, and lists a donated material with the system.
+A user (teacher, student, organization, or individual) registers on the platform, completes their profile, and can donate materials or request materials based on their needs.
 
 **Why this priority**: Core functionality - the platform cannot function without material supply. Establishing trustworthy donor profiles is essential for platform credibility.
 
@@ -27,9 +27,9 @@ A donor (teacher, organization, or individual) registers on the platform, comple
 
 **Acceptance Scenarios**:
 
-1. **Given** an unregistered donor accesses the app, **When** they select "Register as Donor", **Then** they see a registration form requesting name, email, WhatsApp (E.164 format), city, neighborhood, and optional institution affiliation
-2. **Given** a registered donor with incomplete profile, **When** they attempt POST /materiais, **Then** the system returns HTTP 403 Forbidden with field `perfil_completo: false`
-3. **Given** a donor with complete profile selects a book image, **When** they confirm the system's AI suggestions, **Then** the material is persisted with status DISPONIVEL and appears in student discovery flows
+1. **Given** an unregistered user accesses the app, **When** they select "Register", **Then** they see a registration form requesting name, email, WhatsApp (E.164 format), city, neighborhood, and optional institution affiliation
+2. **Given** a registered user with incomplete profile, **When** they attempt POST /materiais, **Then** the system returns HTTP 403 Forbidden with field `perfil_completo: false`
+3. **Given** a user with complete profile selects a book image to donate, **When** they confirm the system's AI suggestions, **Then** the material is persisted with status DISPONIVEL and becomes available to other users searching for materials
 
 ---
 
@@ -43,7 +43,7 @@ A donor uploads a material image. The backend calls Google Gemini to extract met
 
 **Acceptance Scenarios**:
 
-1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all fields (discipline, nivel_ensino, sistema_ensino) are auto-populated with disabled-for-edit inputs
+1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all AI-assisted fields (titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao) are auto-populated with editable inputs and a green checkmark indicator
 2. **Given** Gemini returns confidence 0.50–0.75 (LOW_CONFIDENCE), **When** the response renders in the frontend, **Then** fields display suggested values with yellow warning icons and are editable
 3. **Given** Gemini confidence < 0.50 or timeout occurs, **When** response is returned, **Then** all classification fields render empty and require manual input; status_ia displays FAILURE or LOW_CONFIDENCE
 4. **Given** consentimento_ia = false for the user, **When** they upload an image, **Then** POST /materiais/preview returns status_ia: FAILURE and no Gemini call is made
@@ -61,9 +61,13 @@ A student specifies their academic needs (discipline, education level, curriculu
 **Acceptance Scenarios**:
 
 1. **Given** a student with profile (discipline: MATEMATICA, nivel_ensino: FUNDAMENTAL, ano: 7, cidade: Florianópolis, bairro: Centro), **When** they query available materials, **Then** the system returns materials where: status = DISPONIVEL AND disciplina = MATEMATICA AND nivel_ensino = FUNDAMENTAL AND |ano_material - 7| ≤ 1 (or SUPERIOR ignores year filter) AND sistema_ensino matches
-2. **Given** multiple matching materials exist, **When** results are ranked, **Then** order is: (a) same neighborhood first, (b) same city next, (c) sorted by data_criacao DESC (newest first), (d) ID as tiebreaker
+2. **Given** multiple matching materials exist, **When** results are ranked, **Then** order is: (a) same neighborhood first, (b) same city next, (c) sorted by data_publicacao DESC (most recent publication first), (d) ID as tiebreaker
 3. **Given** a student searches for SUPERIOR level materials, **When** results are filtered, **Then** year constraint is ignored; materials are matched purely by discipline, level, and system
 4. **Given** a student searches for sistema_ensino = OUTRO, **When** the system filters, **Then** it returns ONLY materials with sistema_ensino = OUTRO (not all systems)
+5. **Given** a student filters with min_ano_publicacao=1990 and max_ano_publicacao=2010, **When** results are filtered, **Then** only materials with data_publicacao between 1990 and 2010 (inclusive) are returned
+6. **Given** a student provides only min_ano_publicacao=2015, **When** results are filtered, **Then** only materials with data_publicacao >= 2015 are returned
+7. **Given** a student provides only max_ano_publicacao=2000, **When** results are filtered, **Then** only materials with data_publicacao <= 2000 are returned
+8. **Given** a student provides min_ano_publicacao=2010 and max_ano_publicacao=2000 (invalid range), **When** the query is sent, **Then** the system returns HTTP 400 Bad Request with error message
 
 ---
 
@@ -165,7 +169,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-005**: Material lifecycle states are: DISPONIVEL (initially), RESERVADO (approved request), DOADO (completed donation), CANCELADO (donor-initiated cancellation); no other states allowed
 - **RF-006**: System MUST reject invalid state transitions with HTTP 422 Unprocessable Entity
 - **RF-007**: Material MUST be discoverable only in DISPONIVEL state
-- **RF-008**: Material creation requires: titulo, descricao, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, imagem (JPEG/PNG, ≤ 5MB), doador_id, cidade, bairro, data_criacao
+- **RF-008**: Material creation requires: titulo, descricao, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, imagem (JPEG/PNG, ≤ 5MB), doador_id, cidade, bairro, data_publicacao
 - **RF-009**: Material images MUST be validated for MIME type (JPEG/PNG only); invalid types rejected with HTTP 400
 - **RF-010**: Image uploads MUST return `upload_id` in POST /materiais response for tracking and promotion from temporary to permanent storage
 
@@ -180,18 +184,19 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 
 #### AI Confidence & Fallback Rules
 
-- **RF-017**: Gemini confidence ≥ 0.75 → fields auto-filled, disabled for edit in UI, status_ia = SUCCESS
-- **RF-018**: Gemini confidence 0.50–0.75 → fields auto-filled with warning icon, editable, status_ia = LOW_CONFIDENCE
+- **RF-017**: Gemini confidence ≥ 0.75 → fields auto-filled with green checkmark, editable, status_ia = SUCCESS
+- **RF-018**: Gemini confidence 0.50–0.75 → fields auto-filled with yellow warning icon, editable, status_ia = LOW_CONFIDENCE
 - **RF-019**: Gemini confidence < 0.50 → all fields empty, manual entry required, status_ia = LOW_CONFIDENCE
 - **RF-020**: Gemini FAILURE or timeout → all fields empty, manual entry required, status_ia = FAILURE
 - **RF-021**: If consentimento_ia = false, backend skips Gemini call and returns status_ia = FAILURE
 
 #### Material Matching Algorithm
 
-- **RF-022**: Matching pipeline (in order): (1) Filter status = DISPONIVEL, (2) Filter disciplina (exact), (3) Filter nivel_ensino (exact), (4) Filter |ano_material - ano_student| ≤ 1 (except SUPERIOR, which ignores year), (5) Filter sistema_ensino (exact; OUTRO matches only OUTRO), (6) Sort by: same bairro > same cidade > data_criacao DESC > id
+- **RF-022**: Matching pipeline (in order): (1) Filter status = DISPONIVEL, (2) Filter disciplina (exact), (3) Filter nivel_ensino (exact), (4) Filter |ano_material - ano_student| ≤ 1 (except SUPERIOR, which ignores school year), (5) Filter sistema_ensino (exact; OUTRO matches only OUTRO), (6) Filter data_publicacao range if provided (min_ano_publicacao and/or max_ano_publicacao), (7) Sort by: same bairro > same cidade > data_publicacao DESC (newest publication first) > id
 - **RF-023**: Query endpoint: GET /materiais?disciplina=X&nivel_ensino=Y&ano=Z&sistema_ensino=W&cidade=C&bairro=B returns paginated results
-- **RF-024**: Special rule: SUPERIOR level (nivel_ensino = SUPERIOR) ignores year constraint in filtering
+- **RF-024**: Special rule: SUPERIOR level (nivel_ensino = SUPERIOR) ignores school year constraint in filtering
 - **RF-025**: Special rule: sistema_ensino = OUTRO matches ONLY materials with sistema_ensino = OUTRO (not a wildcard)
+- **RF-044**: Optional publication date range filter (min_ano_publicacao, max_ano_publicacao) allows narrowing by original publication year (1900-2100); if both provided, must satisfy min <= max; if only min provided, filters data_publicacao >= min; if only max provided, filters data_publicacao <= max; violating min > max returns HTTP 400
 
 #### Request Lifecycle & Approval
 
@@ -255,7 +260,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 
 ### User (Usuário)
 
-Represents a registered user who can act as donor or student.
+Represents a registered user who can simultaneously act as both material donor and material recipient (no role separation).
 
 **Attributes**:
 - `id` (UUID): Unique identifier
@@ -267,7 +272,6 @@ Represents a registered user who can act as donor or student.
 - `instituicao` (String, optional): School/organization affiliation
 - `perfil_completo` (Boolean): True if all required fields completed
 - `consentimento_ia` (Boolean): True if user consents to AI processing
-- `role` (Enum: DOADOR | ESTUDANTE | AMBOS): Primary account type
 - `created_at` (Timestamp)
 - `updated_at` (Timestamp)
 
@@ -279,8 +283,8 @@ Represents a donated educational resource.
 
 **Attributes**:
 - `id` (UUID): Unique identifier
-- `titulo` (String): Material title
-- `descricao` (String): Detailed description
+- `titulo` (String): Material title; can be auto-populated by Gemini via OCR (confidence typically 0.85-0.95); always editable by user
+- `descricao` (String): Detailed description; **manual-only field** (never auto-populated to prevent hallucinations)
 - `disciplina` (Enum: MATEMATICA | PORTUGUES | HISTORIA | GEOGRAFIA | CIENCIAS | LITERATURA)
 - `nivel_ensino` (Enum: FUNDAMENTAL | MEDIO | SUPERIOR)
 - `ano` (Integer): Target grade/year (1–12 for FUNDAMENTAL/MEDIO, null for SUPERIOR)
@@ -292,7 +296,7 @@ Represents a donated educational resource.
 - `doador_id` (UUID): Foreign key to User (donor)
 - `cidade` (String): Normalized geographic location
 - `bairro` (String): Normalized neighborhood
-- `data_criacao` (Timestamp): When material was first offered
+- `data_publicacao` (Integer/Date, optional): Year or date the material (book/workbook) was originally published (e.g., 2010); can be estimated or provided by AI classification; different from created_at which tracks when donated to platform
 - `created_at` (Timestamp)
 - `updated_at` (Timestamp)
 
@@ -350,6 +354,10 @@ Represents a student's expressed learning requirements for discovery.
   "status_ia": "SUCCESS|LOW_CONFIDENCE|FAILURE",
   "upload_id": "temp-upload-uuid-12345",
   "best_prediction": {
+    "titulo": {
+      "value": "Geometria Plana 7º Ano",
+      "confidence": 0.92
+    },
     "disciplina": {
       "value": "MATEMATICA",
       "confidence": 0.95
@@ -369,6 +377,10 @@ Represents a student's expressed learning requirements for discovery.
     "estado_conservacao": {
       "value": "BOM",
       "confidence": 0.81
+    },
+    "data_publicacao": {
+      "value": 2010,
+      "confidence": 0.70
     }
   },
   "error_details": {
@@ -382,8 +394,8 @@ Represents a student's expressed learning requirements for discovery.
 
 **Validation Rules**:
 - If `status_ia = FAILURE`: all fields in `best_prediction` may be null; frontend renders empty form
-- If `status_ia = LOW_CONFIDENCE`: some fields may be null or have confidence < 0.50; frontend marks with warning and allows editing
-- If `status_ia = SUCCESS`: all fields present with confidence ≥ 0.75; frontend auto-fills and disables edit
+- If `status_ia = LOW_CONFIDENCE`: some fields may be null or have confidence < 0.50; frontend marks with yellow warning and allows editing
+- If `status_ia = SUCCESS`: all fields present with confidence ≥ 0.75; frontend auto-fills with green checkmark and allows editing
 - If Gemini timeout or consentimento_ia = false: `status_ia = FAILURE`, `best_prediction` empty object
 
 ---
@@ -440,7 +452,7 @@ Represents a student's expressed learning requirements for discovery.
   },
   "cidade": "FLORIANOPOLIS",
   "bairro": "CENTRO",
-  "data_criacao": "2026-04-10T14:30:00Z",
+  "data_publicacao": "2010",
   "created_at": "2026-04-10T14:30:00Z",
   "updated_at": "2026-04-10T14:30:00Z"
 }
@@ -607,7 +619,7 @@ All error responses follow this structure:
 - **Method**: POST
 - **RFC**: RF-001, RF-002
 - **Description**: Register new user
-- **Request**: `{ email, nome, whatsapp, role: DOADOR|ESTUDANTE|AMBOS }`
+- **Request**: `{ email, nome, whatsapp }`
 - **Response**: User entity (HTTP 201)
 - **Rules**: 
   - WhatsApp must be E.164 format
@@ -665,16 +677,19 @@ All error responses follow this structure:
 
 #### GET /materiais
 - **Method**: GET
-- **RFC**: RF-022 through RF-025
+- **RFC**: RF-022 through RF-025, RF-044
 - **Description**: Search available materials with matching algorithm
-- **Query Params**: `disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, page, limit`
+- **Query Params**: `disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, min_ano_publicacao (optional), max_ano_publicacao (optional), page, limit`
 - **Response**: Paginated array of Material entities (HTTP 200)
 - **Rules**:
-  - Filter by: status=DISPONIVEL, disciplina (exact), nivel_ensino (exact), year range, sistema_ensino (exact), city/neighborhood
-  - Sort by: same bairro > same cidade > data_criacao DESC > id
-  - SUPERIOR ignores year filter
+  - Filter by: status=DISPONIVEL, disciplina (exact), nivel_ensino (exact), school year (ano: 1-12), sistema_ensino (exact), city/neighborhood
+  - Optional publication date range filter (min_ano_publicacao, max_ano_publicacao): if both provided, must satisfy min <= max and both in [1900, 2100]
+  - Sort by: same bairro > same cidade > data_publicacao DESC (newest publication first) > id
+  - SUPERIOR ignores school year filter (ano)
   - OUTRO sistema_ensino matches ONLY OUTRO
-- **HTTP Codes**: 200 OK, 400 Bad Request (invalid enum)
+  - If min_ano_publicacao > max_ano_publicacao when both provided: HTTP 400 Bad Request
+  - If min or max outside [1900, 2100]: HTTP 400 Bad Request
+- **HTTP Codes**: 200 OK, 400 Bad Request (invalid enum, invalid publication range), 403 Forbidden (profile incomplete)
 
 #### GET /materiais/{id}
 - **Method**: GET
@@ -691,7 +706,8 @@ All error responses follow this structure:
 - **Response**: Updated Material entity (HTTP 200)
 - **Rules**:
   - Validate state transition (HTTP 422 if invalid)
-  - Only donor can modify own material
+  - Only the user who created the material (in their donor capacity) can modify it
+  - Users can request materials from other users regardless of their own donor status
   - Canceling RESERVADO material cascades to related Solicitacao
 - **HTTP Codes**: 200 OK, 403 Forbidden, 422 Unprocessable Entity
 
@@ -720,7 +736,7 @@ All error responses follow this structure:
 - **Response**: Updated Solicitacao entity (HTTP 200)
 - **Rules**:
   - Validate state transition (HTTP 422 if invalid)
-  - Only donor can approve/decline; only appropriate party can cancel
+  - Only the user who created the material can approve/decline requests to that material; either party (material creator or requester) can cancel under valid conditions
   - Approval is atomic: update Solicitacao.status, Material.status = RESERVADO, send FCM, use database lock
   - Decline keeps Material DISPONIVEL
   - Cancel may cascade if Material was RESERVADO
@@ -730,11 +746,11 @@ All error responses follow this structure:
 #### GET /solicitacoes
 - **Method**: GET
 - **RFC**: RF-026
-- **Description**: List requests for current user (donor or student)
+- **Description**: List requests for current user (in both donor and student capacities)
 - **Query Params**: `status, page, limit`
 - **Response**: Paginated array of Solicitacao entities (HTTP 200)
 - **Rules**:
-  - Return only requests where current user is donor or estudante
+  - Return requests where current user is the material creator (as donor) OR the requester (as student)
   - Filter by status if provided
 - **HTTP Codes**: 200 OK
 
@@ -775,8 +791,8 @@ All error responses follow this structure:
    - Set `status_ia` = SUCCESS|LOW_CONFIDENCE|FAILURE
 6. **Return to Frontend**: POST /materiais/preview response includes `status_ia`, `best_prediction`, `upload_id`
 7. **User Review**: Frontend displays:
-   - If SUCCESS: auto-filled fields, disabled edit, upload_id in form
-   - If LOW_CONFIDENCE: auto-filled with warning, editable, upload_id in form
+   - If SUCCESS: auto-filled fields with green checkmark, editable, upload_id in form
+   - If LOW_CONFIDENCE: auto-filled with yellow warning icon, editable, upload_id in form
    - If FAILURE: empty fields, manual entry required, no upload_id
 8. **Confirmation Submission**: User reviews/edits, confirms; frontend sends full data + `upload_id` to POST /materiais
 9. **Backend Validation**: Backend validates all enums, matches upload_id, persists Material with status = DISPONIVEL
@@ -792,15 +808,22 @@ Analyze this educational material image and extract metadata.
 Return ONLY valid JSON in this format:
 {
   "best_prediction": {
+    "titulo": { "value": "Geometria Plana 7º Ano", "confidence": 0.92 },
     "disciplina": { "value": "MATEMATICA|PORTUGUES|HISTORIA|GEOGRAFIA|CIENCIAS|LITERATURA", "confidence": 0.95 },
     "nivel_ensino": { "value": "FUNDAMENTAL|MEDIO|SUPERIOR", "confidence": 0.85 },
     "ano": { "value": 7, "confidence": 0.75 },
     "sistema_ensino": { "value": "ANGLO|OBJETIVO|COC|POSITIVO|OUTRO", "confidence": 0.90 },
-    "estado_conservacao": { "value": "NOVO|BOM|USADO|DANIFICADO", "confidence": 0.88 }
+    "estado_conservacao": { "value": "NOVO|BOM|USADO|DANIFICADO", "confidence": 0.88 },
+    "data_publicacao": { "value": 2010, "confidence": 0.70 }
   }
 }
 
 Confidence must be 0.0–1.0. If uncertain about any field, set low confidence or null. Never invent values.
+
+For titulo: Extract from cover/spine/title page visible text via OCR. Only extract text explicitly visible; never invent titles.
+For data_publicacao: Extract the publication year (e.g., 2010 for a 2010 textbook) if visible on cover/spine. 
+If only a decade is visible (e.g., "1990s"), estimate conservatively (1995). If entirely uncertain, return null.
+NOT EXTRACTED (manual-only): descricao - never attempt to generate descriptions as this causes hallucinations.
 ```
 
 ---
@@ -809,7 +832,7 @@ Confidence must be 0.0–1.0. If uncertain about any field, set low confidence o
 
 | Confidence Range | Behavior | UI Presentation | status_ia |
 |---|---|---|---|
-| ≥ 0.75 | Auto-fill all fields | Green checkmark, disabled edit | SUCCESS |
+| ≥ 0.75 | Auto-fill all fields | Green checkmark, editable | SUCCESS |
 | 0.50–0.75 | Auto-fill with warning | Yellow warning icon, editable | LOW_CONFIDENCE |
 | < 0.50 | Leave empty | Empty fields, manual entry | LOW_CONFIDENCE |
 | Timeout (>10s) | Leave empty | Empty fields, manual entry, alert | FAILURE |
@@ -905,7 +928,7 @@ Rules:
 8. **FCM Reliability**: Firebase Cloud Messaging failures are logged and retried; not guaranteed delivery (acceptable for non-critical notifications)
 9. **WhatsApp Format**: All WhatsApp numbers are Brazilian (+55 prefix); international numbers not supported in MVP
 10. **Enum Stability**: Enum values (disciplines, systems, conservation states) are unlikely to change during typical feature development cycle
-11. **Material Ownership**: Donors own only their own materials; students can only request (no modification); Admin panel handles disputes
+11. **Material Ownership**: Users own materials they have created and made available for donation. When requesting materials from other users, requesters have no modification rights; only the material creator can modify or manage their materials. Admin panel handles disputes.
 12. **No Bidding/Negotiation**: Single-step approval/decline; no counter-offers or negotiation flow
 
 ---

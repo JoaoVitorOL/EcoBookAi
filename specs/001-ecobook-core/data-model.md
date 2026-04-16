@@ -26,7 +26,7 @@
 │ created_at  │         │ upload_id    │                  │
 │ updated_at  │         │ cidade       │            (max 1 APROVADA
 └─────────────┘         │ bairro       │             per Material)
-       ▲                │ data_criacao │
+       ▲                │ data_publicacao│
        │                │ created_at   │
        │                │ updated_at   │
        │                └──────────────┘
@@ -54,7 +54,6 @@
 | `instituicao` | VARCHAR(255) | NULLABLE | 0–255 chars | School/organization affiliation |
 | `perfil_completo` | BOOLEAN | DEFAULT false | Not null | Profile completion flag |
 | `consentimento_ia` | BOOLEAN | DEFAULT false | Not null | Consent for Gemini API usage |
-| `role` | ENUM('DOADOR', 'ESTUDANTE', 'AMBOS') | DEFAULT 'AMBOS' | Not null | User type (currently all users are AMBOS) |
 | `google_id` | VARCHAR(255) | NULLABLE | Unique per user | OAuth2 Google ID for authentication |
 | `created_at` | TIMESTAMP | DEFAULT now() | Not null | Creation timestamp |
 | `updated_at` | TIMESTAMP | DEFAULT now() | Not null | Last modification timestamp |
@@ -87,8 +86,8 @@ CREATE INDEX idx_usuario_perfil_completo ON usuario(perfil_completo);
 |-------|------|-----------|-----------|-------|
 | `id` | UUID | PRIMARY KEY | Not null | Auto-generated |
 | `doador_id` | UUID | FOREIGN KEY (usuario.id) | Not null | Donor who listed material |
-| `titulo` | VARCHAR(255) | NOT NULL | 1–255 chars | Material title |
-| `descricao` | TEXT | NULLABLE | 0–2000 chars | Detailed description |
+| `titulo` | VARCHAR(255) | NOT NULL | 1–255 chars | Material title; can be auto-populated by Gemini via OCR (confidence 0.85–0.95); always editable |
+| `descricao` | TEXT | NULLABLE | 0–2000 chars | Detailed description; **manual-only field** (never auto-populated to prevent hallucinations) |
 | `disciplina` | ENUM | NOT NULL | See enum list below | Subject/discipline |
 | `nivel_ensino` | ENUM | NOT NULL | FUNDAMENTAL, MEDIO, SUPERIOR | Education level |
 | `ano` | INTEGER | NULLABLE | 1–12 or NULL for SUPERIOR | Grade/year; NULL for SUPERIOR |
@@ -99,7 +98,7 @@ CREATE INDEX idx_usuario_perfil_completo ON usuario(perfil_completo);
 | `upload_id` | VARCHAR(100) | NULLABLE | Unique identifier | Temporary upload tracking (for audit, deduplication) |
 | `cidade` | VARCHAR(100) | NOT NULL | Normalized | Geographic location (normalized at insert/update) |
 | `bairro` | VARCHAR(100) | NOT NULL | Normalized | Neighborhood (normalized at insert/update) |
-| `data_criacao` | DATE | NOT NULL | Valid date | When material was initially offered |
+| `data_publicacao` | INTEGER/DATE | NULLABLE | Valid year or date (e.g., 2010, 2010-05-15) | Year or date material was originally published; editable by user; can be auto-filled by Gemini AI |
 | `created_at` | TIMESTAMP | DEFAULT now() | Not null | DB insert timestamp |
 | `updated_at` | TIMESTAMP | DEFAULT now() | Not null | DB update timestamp |
 
@@ -110,17 +109,18 @@ CREATE INDEX idx_material_status_disciplina ON material(status, disciplina);
 CREATE INDEX idx_material_status_nivel_ensino ON material(status, nivel_ensino);
 CREATE INDEX idx_material_sistema_ensino ON material(sistema_ensino);
 CREATE INDEX idx_material_cidade_bairro ON material(cidade, bairro);
-CREATE INDEX idx_material_data_criacao DESC ON material(data_criacao DESC);
+CREATE INDEX idx_material_data_publicacao DESC ON material(data_publicacao DESC);
 CREATE INDEX idx_material_doador_id ON material(doador_id);
 ```
 
 **Validation Rules**:
-- `doador_id` must reference valid usuario with `role` in (DOADOR, AMBOS)
+- `doador_id` must reference valid usuario (any user can be a donor)
 - `disciplina`, `nivel_ensino`, `sistema_ensino`, `estado_conservacao` must be exact enum values (HTTP 400 if not)
 - `ano` must be in [1, 12] if `nivel_ensino` in (FUNDAMENTAL, MEDIO); NULL if SUPERIOR
 - `cidade` and `bairro` normalized via GeoNormalizationService before insert
 - `status` can only transition via PATCH /materiais/{id} with atomic locking
 - `imagem_url` must be non-null if material created successfully (set during image promotion)
+- `data_publicacao` (optional in queries): if provided as filter, must be INTEGER in [1900, 2100]; if both min_ano_publicacao and max_ano_publicacao provided, must satisfy min <= max (HTTP 400 if violated)
 
 **State Transitions** (enforced via HTTP 422):
 ```
@@ -260,10 +260,6 @@ CREATE TYPE status_solicitacao_enum AS ENUM (
     'PENDENTE', 'APROVADA', 'RECUSADA', 'CANCELADA', 'CONCLUIDA'
 );
 
-CREATE TYPE user_role_enum AS ENUM (
-    'DOADOR', 'ESTUDANTE', 'AMBOS'
-);
-
 -- Usuario table
 CREATE TABLE usuario (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -275,7 +271,6 @@ CREATE TABLE usuario (
     instituicao VARCHAR(255),
     perfil_completo BOOLEAN DEFAULT false NOT NULL,
     consentimento_ia BOOLEAN DEFAULT false NOT NULL,
-    role user_role_enum DEFAULT 'AMBOS' NOT NULL,
     google_id VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT now() NOT NULL,
     updated_at TIMESTAMP DEFAULT now() NOT NULL
@@ -301,7 +296,7 @@ CREATE TABLE material (
     upload_id VARCHAR(100),
     cidade VARCHAR(100) NOT NULL,
     bairro VARCHAR(100) NOT NULL,
-    data_criacao DATE NOT NULL,
+    data_publicacao INTEGER,
     created_at TIMESTAMP DEFAULT now() NOT NULL,
     updated_at TIMESTAMP DEFAULT now() NOT NULL,
     
@@ -317,7 +312,7 @@ CREATE INDEX idx_material_status_disciplina ON material(status, disciplina);
 CREATE INDEX idx_material_status_nivel_ensino ON material(status, nivel_ensino);
 CREATE INDEX idx_material_sistema_ensino ON material(sistema_ensino);
 CREATE INDEX idx_material_cidade_bairro ON material(cidade, bairro);
-CREATE INDEX idx_material_data_criacao ON material(data_criacao DESC);
+CREATE INDEX idx_material_data_publicacao ON material(data_publicacao DESC);
 CREATE INDEX idx_material_doador_id ON material(doador_id);
 
 -- Solicitacao table
@@ -470,14 +465,16 @@ WHERE m.status = 'DISPONIVEL'
   AND (m.nivel_ensino = 'SUPERIOR' OR ABS(m.ano - ?) <= 1)
   AND (m.sistema_ensino = ? OR ? = 'OUTRO')
   AND m.cidade = ?
+  AND (? IS NULL OR m.data_publicacao >= ?)  -- min_ano_publicacao filter (optional)
+  AND (? IS NULL OR m.data_publicacao <= ?)  -- max_ano_publicacao filter (optional)
 ORDER BY
   CASE WHEN m.bairro = ? THEN 0 ELSE 1 END,
-  m.data_criacao DESC,
+  m.data_publicacao DESC,
   m.id
 LIMIT 20;
 ```
-**Index**: `idx_material_status_disciplina`, `idx_material_status_nivel_ensino`, `idx_material_cidade_bairro`  
-**Expected Plan**: Index scan + sort + limit → <100ms for 500 materials
+**Index**: `idx_material_status_disciplina`, `idx_material_status_nivel_ensino`, `idx_material_cidade_bairro`, `idx_material_data_publicacao`  
+**Expected Plan**: Index scan + range filter + sort + limit → <100ms for 500 materials
 
 ### Connection Pooling
 
@@ -528,7 +525,7 @@ db/migration/
 ## Testing Checklist
 
 - [ ] Unit tests for GeoNormalizationService (all accent/case variations)
-- [ ] Unit tests for MatchingService (verify 6-step algorithm with sample materials)
+- [ ] Unit tests for MatchingService (verify 7-step algorithm: 5 core filters + optional publication range + ranking with sample materials)
 - [ ] Integration tests for state transitions (verify invariants, lock behavior)
 - [ ] Concurrency tests (two simultaneous approvals for same material)
 - [ ] Database constraint tests (enum validation, year constraints)
