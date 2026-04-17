@@ -1,0 +1,495 @@
+# Material API Contracts
+
+**Reference**: spec.md RF-005 through RF-025, RF-044  
+**Version**: 1.0  
+**Date**: 2026-04-17
+
+---
+
+## POST /materiais
+
+Create a new material with image upload. This is a full material creation combining preview classification with final form submission.
+
+### Request
+
+```http
+POST /api/v1/materiais
+Content-Type: multipart/form-data
+Authorization: Bearer <jwt_token>
+
+{
+  "titulo": "Geometria Plana 7º Ano",
+  "descricao": "Livro em bom estado, com marcações de uso, base do currículo Anglo 7º ano",
+  "disciplina": "MATEMATICA",
+  "nivel_ensino": "FUNDAMENTAL",
+  "ano": 7,
+  "sistema_ensino": "ANGLO",
+  "estado_conservacao": "BOM",
+  "cidade": "florianópolis",
+  "bairro": "centro",
+  "data_publicacao": 2010,
+  "upload_id": "temp-upload-uuid-abc123def",
+  "image": <binary_file>
+}
+```
+
+**Validation Rules**:
+- `titulo`: 1-255 characters, required, AI-preenchível
+- `descricao`: 10-2000 characters, required, **manual-only field** (never auto-populated by system)
+- `disciplina`: MATEMATICA | PORTUGUES | HISTORIA | GEOGRAFIA | CIENCIAS | LITERATURA
+- `nivel_ensino`: FUNDAMENTAL | MEDIO | SUPERIOR
+- `ano`: 1-12 for FUNDAMENTAL/MEDIO; null for SUPERIOR
+- `sistema_ensino`: ANGLO | OBJETIVO | COC | POSITIVO | OUTRO
+- `estado_conservacao`: NOVO | BOM | USADO | DANIFICADO
+- `cidade`: Will be normalized to uppercase, NFD-decomposed, ASCII-only (max 100 chars)
+- `bairro`: Will be normalized to uppercase, NFD-decomposed, ASCII-only (max 100 chars)
+- `data_publicacao`: Optional integer (1900-2100) representing year material was originally published
+- `upload_id`: Temporary storage ID from POST /materiais/preview (links to AI classification results)
+- `image`: JPEG or PNG file, ≤ 5MB (optional if upload_id provided; in that case image from temp storage reused)
+- User must have `perfil_completo = true` (HTTP 403 if false)
+
+### Response
+
+**HTTP 201 Created**
+```json
+{
+  "id": "material-uuid-1234567890",
+  "titulo": "Geometria Plana 7º Ano",
+  "descricao": "Livro em bom estado, com marcações de uso, base do currículo Anglo 7º ano",
+  "disciplina": "MATEMATICA",
+  "nivel_ensino": "FUNDAMENTAL",
+  "ano": 7,
+  "sistema_ensino": "ANGLO",
+  "estado_conservacao": "BOM",
+  "status": "DISPONIVEL",
+  "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-1234567890.jpg",
+  "upload_id": "temp-upload-uuid-abc123def",
+  "doador": {
+    "id": "user-uuid-donor",
+    "nome": "João Silva",
+    "whatsapp": "+5548999999999",
+    "cidade": "FLORIANOPOLIS",
+    "bairro": "CENTRO"
+  },
+  "cidade": "FLORIANOPOLIS",
+  "bairro": "CENTRO",
+  "data_publicacao": 2010,
+  "created_at": "2026-04-17T14:30:00Z",
+  "updated_at": "2026-04-17T14:30:00Z"
+}
+```
+
+**Processing Steps**:
+1. Validate user has `perfil_completo = true` → HTTP 403 if false
+2. Retrieve temporary image via `upload_id` (or accept new image file)
+3. Validate MIME type (JPEG/PNG only) → HTTP 400 if not
+4. Validate file size (≤ 5MB) → HTTP 400 if exceeded
+5. Validate all enum values → HTTP 400 if invalid
+6. Normalize geographic data (cidade, bairro)
+7. Persist Material with status = DISPONIVEL
+8. Promote temporary image to permanent storage (imagem_url)
+9. Return Material entity with HTTP 201
+
+### Error Responses
+
+**HTTP 400 Bad Request** - Invalid enum value
+
+```json
+{
+  "error": "INVALID_ENUM",
+  "message": "Invalid enum value for field",
+  "field": "disciplina",
+  "details": {
+    "received_value": "MUSICA",
+    "allowed_values": ["MATEMATICA", "PORTUGUES", "HISTORIA", "GEOGRAFIA", "CIENCIAS", "LITERATURA"]
+  }
+}
+```
+
+**HTTP 400 Bad Request** - Invalid image format
+
+```json
+{
+  "error": "INVALID_IMAGE",
+  "message": "Image must be JPEG or PNG format and ≤ 5MB",
+  "field": "image",
+  "details": {
+    "received_mime_type": "image/gif",
+    "received_size_mb": 6.2,
+    "allowed_types": ["image/jpeg", "image/png"],
+    "max_size_mb": 5
+  }
+}
+```
+
+**HTTP 403 Forbidden** - Profile incomplete
+
+```json
+{
+  "error": "INCOMPLETE_PROFILE",
+  "message": "Profile must be complete before uploading materials",
+  "details": {
+    "perfil_completo": false,
+    "missing_fields": ["cidade", "bairro"]
+  }
+}
+```
+
+**HTTP 404 Not Found** - Upload ID not found
+
+```json
+{
+  "error": "UPLOAD_NOT_FOUND",
+  "message": "Temporary upload not found or expired",
+  "field": "upload_id"
+}
+```
+
+---
+
+## GET /materiais
+
+Search for available materials using deterministic matching algorithm.
+
+### Request
+
+```http
+GET /api/v1/materiais?disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=florianópolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=1&limit=20
+Authorization: Bearer <jwt_token>
+```
+
+**Query Parameters**:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `disciplina` | String | Yes | Filter by discipline (exact match) |
+| `nivel_ensino` | String | Yes | Filter by education level (exact match) |
+| `ano` | Integer | Yes | Target grade year (1-12 for FUNDAMENTAL/MEDIO; null or omitted for SUPERIOR) |
+| `sistema_ensino` | String | Yes | Curriculum system (exact match; OUTRO matches only OUTRO) |
+| `cidade` | String | Yes | City (will be normalized for matching) |
+| `bairro` | String | No | Neighborhood (if omitted, entire city searched) |
+| `min_ano_publicacao` | Integer | No | Filter materials published on or after this year (1900-2100) |
+| `max_ano_publicacao` | Integer | No | Filter materials published on or before this year (1900-2100) |
+| `page` | Integer | No | Page number (default 1) |
+| `limit` | Integer | No | Results per page (default 20, max 100) |
+
+**Validation Rules**:
+- All fields except `min_ano_publicacao`, `max_ano_publicacao`, `bairro`, `page`, `limit` are required
+- If `min_ano_publicacao` and `max_ano_publicacao` both provided: must satisfy min ≤ max
+- If either publication year outside [1900, 2100]: HTTP 400
+- City/neighborhood normalized before query (user input "são joão" → "SAO JOAO")
+- Geographic search returns exact matches only (no fuzzy matching)
+
+### Response
+
+**HTTP 200 OK** - Sorted by geographic proximity + recency
+
+```json
+{
+  "total": 45,
+  "page": 1,
+  "limit": 20,
+  "results": [
+    {
+      "id": "material-uuid-1",
+      "titulo": "Geometria Plana 7º Ano",
+      "descricao": "Livro em bom estado",
+      "disciplina": "MATEMATICA",
+      "nivel_ensino": "FUNDAMENTAL",
+      "ano": 7,
+      "sistema_ensino": "ANGLO",
+      "estado_conservacao": "BOM",
+      "status": "DISPONIVEL",
+      "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-1.jpg",
+      "doador": {
+        "id": "user-uuid-1",
+        "nome": "João Silva",
+        "whatsapp": "+5548999999999",
+        "cidade": "FLORIANOPOLIS",
+        "bairro": "CENTRO"
+      },
+      "cidade": "FLORIANOPOLIS",
+      "bairro": "CENTRO",
+      "data_publicacao": 2010,
+      "created_at": "2026-04-15T10:00:00Z",
+      "updated_at": "2026-04-15T10:00:00Z"
+    },
+    {
+      "id": "material-uuid-2",
+      "titulo": "Álgebra Fundamental",
+      "descricao": "Livro novo, nunca usado",
+      "disciplina": "MATEMATICA",
+      "nivel_ensino": "FUNDAMENTAL",
+      "ano": 7,
+      "sistema_ensino": "ANGLO",
+      "estado_conservacao": "NOVO",
+      "status": "DISPONIVEL",
+      "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-2.jpg",
+      "doador": {
+        "id": "user-uuid-2",
+        "nome": "Maria Santos",
+        "whatsapp": "+5548988888888",
+        "cidade": "FLORIANOPOLIS",
+        "bairro": "CENTRO"
+      },
+      "cidade": "FLORIANOPOLIS",
+      "bairro": "CENTRO",
+      "data_publicacao": 2015,
+      "created_at": "2026-04-12T14:00:00Z",
+      "updated_at": "2026-04-12T14:00:00Z"
+    }
+  ]
+}
+```
+
+**Sorting Algorithm** (in order of priority):
+
+1. **Same neighborhood first** (bairro match)
+2. **Same city, different neighborhood** (cidade match)
+3. **Within matching results**: Sort by `data_publicacao DESC` (newest first)
+4. **Tiebreaker**: Sort by `id` (deterministic order)
+
+**Example Ranking**:
+- Material A: Centro (same bairro) → Rank 1
+- Material B: Centro (same bairro) → Rank 2 (newer publication year)
+- Material C: Lagoa (same city, different bairro) → Rank 3
+- Material D: Lagoa (same city, different bairro) → Rank 4
+
+### Error Responses
+
+**HTTP 400 Bad Request** - Invalid enum value
+
+```json
+{
+  "error": "INVALID_ENUM",
+  "message": "Invalid enum value",
+  "field": "disciplina",
+  "details": {
+    "received_value": "MUSICA",
+    "allowed_values": ["MATEMATICA", "PORTUGUES", "HISTORIA", "GEOGRAFIA", "CIENCIAS", "LITERATURA"]
+  }
+}
+```
+
+**HTTP 400 Bad Request** - Invalid publication date range
+
+```json
+{
+  "error": "INVALID_RANGE",
+  "message": "min_ano_publicacao must be ≤ max_ano_publicacao",
+  "details": {
+    "min_ano_publicacao": 2010,
+    "max_ano_publicacao": 2000
+  }
+}
+```
+
+**HTTP 400 Bad Request** - Publication year outside valid range
+
+```json
+{
+  "error": "INVALID_YEAR",
+  "message": "Publication year must be between 1900 and 2100",
+  "field": "min_ano_publicacao",
+  "details": {
+    "received_value": 1850,
+    "valid_range": [1900, 2100]
+  }
+}
+```
+
+**HTTP 403 Forbidden** - User profile incomplete
+
+```json
+{
+  "error": "INCOMPLETE_PROFILE",
+  "message": "Profile must be complete to search materials"
+}
+```
+
+---
+
+## GET /materiais/{id}
+
+Retrieve details for a single material.
+
+### Request
+
+```http
+GET /api/v1/materiais/material-uuid-1234567890
+Authorization: Bearer <jwt_token>
+```
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "material-uuid-1234567890",
+  "titulo": "Geometria Plana 7º Ano",
+  "descricao": "Livro em bom estado, com marcações de uso",
+  "disciplina": "MATEMATICA",
+  "nivel_ensino": "FUNDAMENTAL",
+  "ano": 7,
+  "sistema_ensino": "ANGLO",
+  "estado_conservacao": "BOM",
+  "status": "DISPONIVEL",
+  "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-1234567890.jpg",
+  "upload_id": "temp-upload-uuid-abc123def",
+  "doador": {
+    "id": "user-uuid-donor",
+    "nome": "João Silva",
+    "whatsapp": "+5548999999999",
+    "cidade": "FLORIANOPOLIS",
+    "bairro": "CENTRO"
+  },
+  "cidade": "FLORIANOPOLIS",
+  "bairro": "CENTRO",
+  "data_publicacao": 2010,
+  "created_at": "2026-04-10T14:30:00Z",
+  "updated_at": "2026-04-10T14:30:00Z"
+}
+```
+
+### Error Responses
+
+**HTTP 404 Not Found**
+```json
+{
+  "error": "NOT_FOUND",
+  "message": "Material not found"
+}
+```
+
+---
+
+## PATCH /materiais/{id}
+
+Update material status (e.g., cancel a donation).
+
+### Request
+
+```http
+PATCH /api/v1/materiais/material-uuid-1234567890
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+
+{
+  "status": "CANCELADO"
+}
+```
+
+**Validation Rules**:
+- User must be the material creator (donor) → HTTP 403 if not
+- Only valid state transitions allowed → HTTP 422 if invalid
+- Canceling RESERVADO material cascades: related APROVADA Solicitacao → CANCELADA, FCM notification sent
+
+**Valid Transitions**:
+
+| Current Status | Target Status | Allowed | Notes |
+|---|---|---|---|
+| DISPONIVEL | CANCELADO | ✅ Yes | Donor decides not to donate |
+| DISPONIVEL | DOADO | ❌ No | Invalid transition |
+| RESERVADO | CANCELADO | ✅ Yes | Cascades to Solicitacao; sends SOLICITACAO_CANCELADA notification |
+| RESERVADO | DOADO | ✅ Yes | Completion (via Solicitacao state) |
+| DOADO | * | ❌ No | Terminal state; no transitions out |
+| CANCELADO | * | ❌ No | Terminal state; no transitions out |
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "material-uuid-1234567890",
+  "titulo": "Geometria Plana 7º Ano",
+  "descricao": "Livro em bom estado",
+  "disciplina": "MATEMATICA",
+  "nivel_ensino": "FUNDAMENTAL",
+  "ano": 7,
+  "sistema_ensino": "ANGLO",
+  "estado_conservacao": "BOM",
+  "status": "CANCELADO",
+  "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-1234567890.jpg",
+  "doador": {
+    "id": "user-uuid-donor",
+    "nome": "João Silva",
+    "whatsapp": "+5548999999999",
+    "cidade": "FLORIANOPOLIS",
+    "bairro": "CENTRO"
+  },
+  "cidade": "FLORIANOPOLIS",
+  "bairro": "CENTRO",
+  "data_publicacao": 2010,
+  "created_at": "2026-04-10T14:30:00Z",
+  "updated_at": "2026-04-17T16:45:00Z"
+}
+```
+
+### Error Responses
+
+**HTTP 403 Forbidden** - User is not the material creator
+
+```json
+{
+  "error": "FORBIDDEN",
+  "message": "Only the material donor can modify this material"
+}
+```
+
+**HTTP 422 Unprocessable Entity** - Invalid state transition
+
+```json
+{
+  "error": "INVALID_STATE_TRANSITION",
+  "message": "Cannot transition from DOADO to any state",
+  "details": {
+    "current_status": "DOADO",
+    "requested_status": "CANCELADO",
+    "reason": "DOADO is a terminal state"
+  }
+}
+```
+
+**HTTP 404 Not Found**
+```json
+{
+  "error": "NOT_FOUND",
+  "message": "Material not found"
+}
+```
+
+---
+
+## Performance SLA (Q6 Requirements)
+
+**Material Search Endpoint** (GET /materiais):
+
+| Latency Metric | Target | Status | Notes |
+|---|---|---|---|
+| P95 latency | ≤ 150ms | Aggressive target | Achieved via database indexes on (status, disciplina, nivel_ensino, cidade, bairro, data_publicacao DESC) |
+| P99 latency | ≤ 300ms | Aggressive target | Query optimization + connection pooling (HikariCP) |
+
+**Implementation Details**:
+- PostgreSQL indexes on composite keys for filter + sort
+- HikariCP connection pool (20 connections default)
+- Query result pagination (default 20 items/page)
+- No N+1 queries (eager load doador data)
+
+---
+
+## Field Classification Reference
+
+| Field | Auto-Populated | Editable | Source |
+|-------|---|---|---|
+| `titulo` | Gemini OCR (confidence 0.85-0.95) | Yes | AI or manual |
+| `descricao` | **Manual-only** (NEVER auto-populated) | Yes | Always user input |
+| `disciplina` | Gemini classification | Yes | AI or manual |
+| `nivel_ensino` | Gemini classification | Yes | AI or manual |
+| `ano` | Gemini classification or manual | Yes | AI or manual |
+| `sistema_ensino` | Gemini classification | Yes | AI or manual |
+| `estado_conservacao` | Gemini classification | Yes | AI or manual |
+| `data_publicacao` | Gemini OCR (if visible) | Yes | AI or manual |
+| `status` | System (starts DISPONIVEL) | No (only via state transitions) | Automatic |
+| `imagem_url` | System (after promotion) | No (immutable) | Generated |
+| `upload_id` | System (from preview) | No (audit trail) | Generated |
+| `city`, `bairro` | User input (normalized) | Yes | Automatic normalization |
