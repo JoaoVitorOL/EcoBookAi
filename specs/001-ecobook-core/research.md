@@ -186,7 +186,192 @@ Scenario: Scaling to 1000 users (post-MVP)
 
 ---
 
-## 4. PostgreSQL Locking & State Machine Atomicity
+## 4. Gemini Error Handling & Resilience Strategy (NEW: Clarification Q7)
+
+### Research Question
+How do we handle Gemini API failures (429, 5xx, timeouts) to meet aggressive performance targets (RNF-015-018) and prevent cascading failures?
+
+### Decision
+**✅ Implement multi-tier retry strategy + circuit breaker pattern** per Clarification Q7 (RF-062-065, RNF-019).
+
+### Rationale
+
+**Problem**: Gemini API can fail for multiple reasons:
+- HTTP 429 (rate limit): Transient, recoverable with backoff
+- HTTP 5xx (server error): Transient, server recovering
+- Timeout/connection: Network blip, try again
+- Malformed response: Protocol error, not recoverable
+
+**Solution**: Conditional retry logic per error type + circuit breaker to prevent cascading failures.
+
+### Retry Strategy (from Clarification Q7)
+
+| Error Type | Retry Count | Backoff Strategy | Rationale |
+|------------|------------|---|---|
+| HTTP 429 (Rate Limit) | 3 retries | Exponential: 1s → 2s → 4s | Respect API limits; allow recovery |
+| HTTP 5xx (Server Error) | 3 retries | Conservative: 2s → 4s → 8s | Assume server recovering; be patient |
+| Timeout/Connection | 2 retries | Immediate: 1s delay each | Network blip, quick retry |
+| Malformed Response | 0 retries | N/A | Protocol bug, not recoverable |
+
+**Implementation Approach** (GeminiService.java):
+
+```java
+public GeminiResponse classifyMaterial(String imageUrl) {
+    for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            // Call Gemini API with 10s timeout
+            return geminiClient.classify(imageUrl);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                // HTTP 429: Retry 3x with exponential backoff
+                if (attempt <= 3) {
+                    long delay = (long) Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+                    Thread.sleep(delay);
+                    continue;
+                }
+            } else if (e.getStatusCode().is5xxServerError()) {
+                // HTTP 5xx: Retry 3x with conservative backoff
+                if (attempt <= 3) {
+                    long delay = (long) Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+                    Thread.sleep(delay);
+                    continue;
+                }
+            }
+            throw e;
+        } catch (SocketTimeoutException | ConnectException e) {
+            // Timeout/connection: Retry 2x at 1s delay
+            if (attempt <= 2) {
+                Thread.sleep(1000);
+                continue;
+            }
+            throw e;
+        } catch (JsonProcessingException e) {
+            // Malformed response: No retry, log and fail
+            logger.error("Malformed Gemini response: {}", e.getMessage());
+            return GeminiResponse.failure("Malformed API response");
+        }
+    }
+    return GeminiResponse.failure("Max retries exhausted");
+}
+```
+
+### Circuit Breaker Pattern (RNF-019)
+
+**Purpose**: Prevent cascading failures when Gemini API is down.
+
+**States**:
+- **CLOSED** (normal): Allow all Gemini calls
+- **OPEN** (failure): Reject calls for 30 seconds, return FAILURE immediately
+- **HALF_OPEN** (recovery): Allow one probe request; on success → CLOSED, on failure → OPEN
+
+**Trigger**: 10+ failures in 5-minute rolling window
+
+**Implementation** (GeminiCircuitBreaker.java):
+
+```java
+public class GeminiCircuitBreaker {
+    private AtomicLong failureCount = new AtomicLong(0);
+    private AtomicLong failureWindowStart = new AtomicLong(System.currentTimeMillis());
+    private CircuitBreakerState state = CLOSED;
+    private long openStateStartTime = 0;
+
+    public GeminiResponse call(Callable<GeminiResponse> operation) {
+        if (state == OPEN) {
+            if (System.currentTimeMillis() - openStateStartTime > 30_000) {
+                // 30s pause expired, transition to HALF_OPEN
+                state = HALF_OPEN;
+            } else {
+                // Still in pause, reject immediately
+                return GeminiResponse.failure("Circuit breaker OPEN, try again later");
+            }
+        }
+
+        try {
+            GeminiResponse response = operation.call();
+            // Success: reset failure count, transition to CLOSED
+            failureCount.set(0);
+            state = CLOSED;
+            return response;
+        } catch (Exception e) {
+            recordFailure();
+            if (state == HALF_OPEN) {
+                // Probe failed, reopen circuit
+                state = OPEN;
+                openStateStartTime = System.currentTimeMillis();
+                return GeminiResponse.failure("Probe failed, circuit reopening");
+            }
+            throw e;
+        }
+    }
+
+    private void recordFailure() {
+        long now = System.currentTimeMillis();
+        // Slide 5-minute window
+        if (now - failureWindowStart > 300_000) {
+            failureCount.set(1);
+            failureWindowStart.set(now);
+        } else {
+            long count = failureCount.incrementAndGet();
+            if (count >= 10) {
+                state = OPEN;
+                openStateStartTime = now;
+            }
+        }
+    }
+}
+```
+
+### Metrics & Observability
+
+**Counters** (for alerting):
+- `gemini.requests.total`: Total API calls
+- `gemini.requests.success`: Successful responses
+- `gemini.requests.429`: Rate limit errors
+- `gemini.requests.5xx`: Server errors
+- `gemini.requests.timeout`: Timeout errors
+- `gemini.circuit_breaker.trips`: Number of times circuit opened
+
+**Gauges**:
+- `gemini.circuit_breaker.state`: 0=CLOSED, 1=OPEN, 2=HALF_OPEN
+
+**Histograms**:
+- `gemini.latency_ms`: Response latency (p50, p95, p99)
+- `gemini.confidence.distribution`: Confidence score buckets
+
+**Alerts**:
+- Alert if circuit breaker trips (state = OPEN)
+- Alert if 429 rate limit errors exceed 5 per hour
+- Alert if P95 latency > 8 seconds (RNF-016 target)
+
+### Testing Strategy (Phase 3)
+
+**Scenario 1**: Simulate HTTP 429 rate limit
+- Mock Gemini client to return 429
+- Verify: Retry 3x with correct backoff (1s, 2s, 4s)
+- Verify: After 3 retries, return FAILURE
+
+**Scenario 2**: Simulate HTTP 500 server error
+- Mock Gemini client to return 500
+- Verify: Retry 3x with conservative backoff (2s, 4s, 8s)
+
+**Scenario 3**: Simulate connection timeout
+- Mock Gemini client to timeout
+- Verify: Retry 2x at 1s delay, then fail
+
+**Scenario 4**: Simulate malformed JSON response
+- Mock Gemini client to return invalid JSON
+- Verify: No retry, fail immediately
+
+**Scenario 5**: Circuit breaker triggers
+- Simulate 10+ failures in 5 minutes
+- Verify: Circuit transitions to OPEN
+- Verify: Subsequent calls rejected immediately (no retry)
+- Wait 30 seconds, verify: Circuit transitions to HALF_OPEN
+- Allow probe: Verify: On success → CLOSED, on failure → OPEN
+
+---
+
+## 6. PostgreSQL Locking & State Machine Atomicity
 
 ### Research Question
 How do we ensure atomic approval transactions (Material + Solicitacao state sync) without race conditions? Which PostgreSQL isolation level is sufficient?
@@ -242,7 +427,7 @@ Verify: Material.status = RESERVADO, only 1 APROVADA solicitacao
 
 ---
 
-## 5. Android OAuth2 + JWT Implementation
+## 7. Android OAuth2 + JWT Implementation
 
 ### Research Question
 Which OAuth2 library for Android? How to manage JWT tokens (store, refresh, expiry)?
@@ -295,7 +480,7 @@ Which OAuth2 library for Android? How to manage JWT tokens (store, refresh, expi
 
 ---
 
-## 6. Local Filesystem Storage vs Cloud Storage
+## 8. Local Filesystem Storage vs Cloud Storage
 
 ### Research Question
 Constitution V mandates "no cloud storage for MVP". Can we practically store images locally? What are trade-offs?
@@ -357,7 +542,7 @@ public void purgeExpiredImages() {
 
 ---
 
-## 7. Geographic Normalization Algorithm
+## 9. Geographic Normalization Algorithm
 
 ### Research Question
 How to normalize geographic data (cities, neighborhoods) to ensure consistent matching? What about Unicode/accents?
@@ -569,7 +754,7 @@ CREATE INDEX idx_material_data_publicacao ON material(data_publicacao DESC);
 
 ---
 
-## 10. FCM Notification Reliability & Retry Strategy
+## 11. FCM Notification Reliability & Retry Strategy
 
 ### Research Question
 How reliable is Firebase Cloud Messaging? Should we implement retry logic for failed deliveries?
