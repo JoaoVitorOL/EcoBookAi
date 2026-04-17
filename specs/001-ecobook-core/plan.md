@@ -1,6 +1,6 @@
 # Implementation Plan: EcoBook IA - Core System
 
-**Branch**: `001-ecobook-core` | **Date**: 2026-04-15 | **Spec**: [specs/001-ecobook-core/spec.md](spec.md)  
+**Branch**: `001-ecobook-core` | **Date**: 2026-04-15 | **Last Updated**: 2026-04-17 (Q6 Performance SLAs + Q7 Gemini Error Handling) | **Spec**: [specs/001-ecobook-core/spec.md](spec.md)  
 **Input**: Feature specification from `/specs/001-ecobook-core/spec.md`
 
 ---
@@ -32,22 +32,29 @@
 **Testing**: JUnit 5, Mockito, Compose testing, Spring Boot TestContainers  
 **Target Platform**: Android 8.0+ (API 26+), Spring Boot on Linux/Docker  
 **Project Type**: Mobile app (Android) + REST API backend  
-**Performance Goals**:
-- P95 latency for material search: < 2 seconds
-- Material upload/classification: < 3 minutes end-to-end
-- Gemini API timeout: 10 seconds max
+**Performance Goals** (UPDATED: Clarification Q6 - Aggressive SLAs):
+- Material search (GET /materiais): P95 ≤ 150ms, P99 ≤ 300ms (15x improvement from prior < 2s)
+- Material classification (POST /materiais/preview): P95 ≤ 7 seconds, P99 ≤ 9 seconds (includes Gemini 10s timeout)
+- Request approval (PATCH /solicitacoes/{id}): P95 ≤ 50ms, P99 ≤ 150ms (atomic DB lock required)
+- FCM webhook (POST /webhooks/fcm): P95 ≤ 30ms, P99 ≤ 75ms (async processing)
 - FCM notification delivery: > 95% within 5 seconds
 - Concurrent users: ≥ 10,000 (MVP target: 100 active)
 
 **Constraints**:
 - Image file size: ≤ 5MB (JPEG/PNG only)
 - Gemini API rate limit: 250 req/day (free tier); MVP average ~5 images/user × 100 users = 500 req/month ✓
+- Gemini error handling (UPDATED: Clarification Q7):
+  - HTTP 429 (rate limit): Retry 3x with exponential backoff (1s-2s-4s)
+  - HTTP 5xx (server error): Retry 3x with conservative backoff (2s-4s-8s)
+  - Timeout/connection: Retry 2x at 1s delay
+  - Malformed response: No retry, log and return FAILURE
+  - Circuit breaker: Pause Gemini calls for 30s after 10+ failures in 5 minutes
 - JWT token expiry: 7 days
 - Reservation expiry: 14 days (auto-revert)
 - Database locks: SERIALIZABLE isolation for approval operations
 - LGPD compliance: 2-year image retention, soft-delete with anonymization
 
-**Scale/Scope**: 100 active users, ~500 materials (~1GB storage at 2MB avg), 8 user stories, 43 FR, 15+ REST endpoints, 5 state machines, 6 enums, 7 JSON contracts
+**Scale/Scope**: 100 active users, ~500 materials (~1GB storage at 2MB avg), 8 user stories, 65 FR (added RF-062-065 + RNF-015-019 from Q6/Q7), 15+ REST endpoints, 5 state machines, 6 enums, 7 JSON contracts
 
 ---
 
@@ -62,7 +69,7 @@
 | **III. Security Through OAuth2 & Deterministic Processes** | ✅ | Google OAuth2 + JWT; atomic approval with SELECT...FOR UPDATE locks; no race conditions |
 | **IV. Data Privacy & LGPD Compliance** | ✅ | Two-stage consent (platform + AI); image retention 2 years; soft-delete with anonymization |
 | **V. MVP Scope Discipline** | ✅ | No collaborative filtering, ML recommendations, condition automation, multi-needs, cloud storage |
-| **VI. Rule-Based Deterministic Matching** | ✅ | Structured enums only; geographic normalization (text-based, no GPS); deterministic 7-step filter (5 core + 1 optional publication range) + rank algorithm |
+| **VI. Rule-Based Deterministic Matching** | ✅ | Structured enums only; geographic normalization (text-based, no GPS); deterministic 6-step filter + rank algorithm |
 
 ---
 
@@ -196,10 +203,10 @@ docs/
 
 | Aspect | Complexity | Justification | Mitigation |
 |--------|-----------|---|---|
-| **Gemini Integration** | High | Free-tier API rate limits (250 req/day), timeout handling, confidence parsing | Phase 3 testing (≥20 diverse images), fallback UI rules, 10s timeout |
+| **Gemini Integration** | High | Free-tier API rate limits (250 req/day), timeout handling, confidence parsing, retry resilience | Phase 0 error handling design (3x retries for 429/5xx, 2x for timeout, circuit breaker), Phase 3 testing (≥20 diverse images), fallback UI rules, 10s timeout, RNF-019 circuit breaker implementation |
 | **State Machines** | High | 2 entities × 4–5 states + transitions + invariants + atomic locking | Explicit state diagram, SELECT...FOR UPDATE for approval, daily expiry job |
 | **Image Pipeline** | Medium | 10-step workflow (upload → temp → Gemini → parse → validate → persist → promote) | Idempotent upload_id tracking, clear validation gates, error recovery |
-| **Matching Algorithm** | Medium | 7-step deterministic pipeline (5 core + 1 optional publication range) with geographic ranking; correctness critical | Comprehensive unit tests for range filters, property-based tests (QuickCheck), audit logs |
+| **Matching Algorithm** | Medium | 6-step deterministic pipeline with geographic ranking; correctness critical | Comprehensive unit tests, property-based tests (QuickCheck), audit logs |
 | **Geographic Normalization** | Low | Text-based normalization (uppercase + NFD + ASCII); must be consistent | Unit test all variations, pre-populate reference city/neighborhood table |
 | **FCM Notifications** | Medium | 6 event types, reliable delivery required but not guaranteed, retry logic | Test in QA environment, log all delivery attempts, fallback UI indication |
 | **Concurrent Users** | Medium | Database locks, connection pooling, query optimization needed | HikariCP pooling, SERIALIZABLE isolation for critical ops, index strategy |
@@ -222,33 +229,43 @@ docs/
    - Baseline: Test classification accuracy, identify common failure modes
    - Document: Confidence thresholds, expected LOW_CONFIDENCE/FAILURE rates, fallback UI design
 
-2. **Image Quality Impact Study**
+2. **Gemini Error Handling & Resilience Design** (NEW: Clarification Q7)
+   - Research: HTTP error codes from Gemini API (429, 5xx, timeouts)
+   - Design: Retry strategy per error type (RF-062-065, RNF-019)
+     - HTTP 429: 3 retries with exponential backoff (1s→2s→4s)
+     - HTTP 5xx: 3 retries with conservative backoff (2s→4s→8s)
+     - Timeout/connection: 2 retries at 1s delay
+     - Malformed response: No retry, log and return FAILURE
+   - Implement: Circuit breaker pattern (track failures over 5-min window, pause 30s after 10+ failures)
+   - Test: Simulate each error type, verify retry counts and timing, confirm circuit breaker triggers correctly
+
+3. **Image Quality Impact Study**
    - Research: Camera API (Android), image compression strategies
    - Find: Library for Kotlin/Android image validation (MIME, size, resolution)
    - Test: Compression filters, blur detection, contrast analysis
    - Document: Acceptable quality thresholds, user guidance
 
-3. **API Rate Limit Strategy**
+4. **API Rate Limit Strategy**
    - Research: Gemini free tier limits (250 req/day), paid tier pricing
    - Calculate: MVP load (~500 requests/month = 16/day avg, ~12 Peak/day) ✓ within free tier
    - Plan: Graceful degradation if rate-limited, user notification
 
-4. **Database Schema & Locking Strategy**
+5. **Database Schema & Locking Strategy**
    - Research: PostgreSQL SERIALIZABLE isolation, SELECT...FOR UPDATE syntax
    - Design: Transaction isolation levels for approval operations
    - Test: Race condition scenarios (two concurrent approvals for same material)
 
-5. **OAuth2 & JWT Implementation**
+6. **OAuth2 & JWT Implementation**
    - Research: Google OAuth2 flow for Android (AppAuth library)
    - Design: JWT token format, 7-day expiry, refresh token strategy
    - Integrate: Spring Security, OAuth2ResourceServer
 
-6. **Storage Architecture Validation**
+7. **Storage Architecture Validation**
    - Research: Local filesystem vs cloud storage trade-offs (Constitution V constraint)
    - Design: Directory structure (`/uploads/{user_id}/{uuid}.ext`), cleanup strategy
    - Plan: 2-year retention policy, automated purge job
 
-**Output**: `research.md` with 6 sections above, all NEEDS CLARIFICATION resolved.
+**Output**: `research.md` with 7 sections above, all NEEDS CLARIFICATION resolved.
 
 ---
 
@@ -422,7 +439,7 @@ docs/
 
 1. **Backend Implementation (43 FR + 5 NFR)**
    - Complete GeminiService with all parsing rules (RF-011 through RF-021)
-   - Implement MatchingService with 7-step algorithm (RF-022 through RF-025, RF-044)
+   - Implement MatchingService with 6-step algorithm (RF-022 through RF-025)
    - Material state machine (RF-005 through RF-006): DISPONIVEL → RESERVADO (14-day expiry) → DOADO/CANCELADO
    - Solicitacao state machine (RF-026 through RF-031): PENDENTE → APROVADA → CONCLUIDA/RECUSADA/CANCELADA
    - Atomic approval (RF-035): SELECT...FOR UPDATE on Material row, transaction isolation SERIALIZABLE

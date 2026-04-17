@@ -15,6 +15,21 @@ EcoBook IA is an AI-powered material donation matching platform designed to prom
 
 ---
 
+## Clarifications
+
+### Session 2026-04-17
+
+- Q: FCM notification failure handling strategy? → A: Retry with exponential backoff (1s, 2s, 4s, 8s, max 5 retries); after 5 failures, discard and log alert. This prevents overwhelming FCM service on recoverable errors while ensuring most notifications reach users.
+- Q: API versioning and backward compatibility strategy? → A: Versioned paths (e.g., `/api/v1/materiais`); support 2 concurrent versions with clear deprecation period. New major versions get new path prefix; overlapping support period allows client migration.
+- Q: FCM queue data recovery and dead-letter queue strategy? → A: Failed retries (after 5 attempts) move to `fcm_notifications_dlq` table; ops team reviews and manually retries critical ones; old DLQ entries (>30 days) auto-archived to audit table. Prevents queue bloat and provides audit trail.
+- Q: Rate limiting and request throttling strategy? → A: Per-user token buckets with endpoint-specific limits (e.g., 10 uploads/hour, 100 searches/minute, 5 requests/hour); limits reset hourly; excess requests return HTTP 429 with `Retry-After` header. Fair, prevents accidental abuse, industry standard.
+- Q: Image storage location and disaster recovery strategy? → A: Local filesystem MVP (`/uploads/{user_id}/{uuid}.ext`) with daily automated backups to external drive; no cloud dependency; sufficient for 100 active users (~1GB). Document S3 migration path for Phase 2+ scale.
+- Q: Performance SLA/SLO targets by endpoint type? → A: Aggressive targets for better UX: Material search P95 150ms/P99 300ms; Gemini classification P95 7s/P99 9s; Approval operations P95 50ms/P99 150ms; FCM webhooks P95 30ms/P99 75ms. Targets drive database design (indexes, partitioning), infrastructure sizing, and monitoring thresholds.
+- Q: Gemini API error handling and retry strategy? → A: HTTP 429 (rate limit): 3 retries with exponential backoff (1s-2s-4s). HTTP 5xx (server error): 3 retries with conservative backoff (2s-4s-8s). Timeout/connection: 2 retries at 1s delay. Malformed response: no retry, log and return FAILURE. Circuit breaker: pause Gemini calls for 30s after 10+ failures in 5 minutes, return FAILURE immediately. Protects against cascading failures and respects API limits.
+- Q: Logging & observability strategy (levels, format, retention)? → A: Deferred to Phase 2 (MVP focuses on core functionality; basic application logging via Spring Boot default; structured logging and centralized aggregation (ELK/Datadog) planned post-launch)
+
+---
+
 ## User Scenarios & Testing
 
 ### User Story 1 - User Registration and Material Upload (Priority: P1)
@@ -190,6 +205,13 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-020**: Gemini FAILURE or timeout → all fields empty, manual entry required, status_ia = FAILURE
 - **RF-021**: If consentimento_ia = false, backend skips Gemini call and returns status_ia = FAILURE
 
+#### Gemini Error Handling & Resilience
+
+- **RF-062**: HTTP 429 (rate limit) responses from Gemini MUST trigger retry with exponential backoff: 1s, 2s, 4s (max 3 retries); if all retries exhausted, return status_ia = FAILURE
+- **RF-063**: HTTP 5xx (server error) responses from Gemini MUST trigger retry with conservative exponential backoff: 2s, 4s, 8s (max 3 retries); if all retries exhausted, return status_ia = FAILURE
+- **RF-064**: Connection timeout or socket timeout exceptions MUST trigger immediate retry at 1s delay (max 2 retries); if both retries fail, return status_ia = FAILURE
+- **RF-065**: Malformed or invalid Gemini response (JSON parse error, missing best_prediction field, invalid enum values) MUST NOT be retried; backend logs error with request ID for debugging and returns status_ia = FAILURE
+
 #### Material Matching Algorithm
 
 - **RF-022**: Matching pipeline (in order): (1) Filter status = DISPONIVEL, (2) Filter disciplina (exact), (3) Filter nivel_ensino (exact), (4) Filter |ano_material - ano_student| ≤ 1 (except SUPERIOR, which ignores school year), (5) Filter sistema_ensino (exact; OUTRO matches only OUTRO), (6) Filter data_publicacao range if provided (min_ano_publicacao and/or max_ano_publicacao), (7) Sort by: same bairro > same cidade > data_publicacao DESC (newest publication first) > id
@@ -225,6 +247,8 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
   - MATERIAL_DOADO: Sent to student when donation completed (includes donor contact)
   - MATERIAL_CANCELADO: Sent to student when material is cancelled
 - **RF-038**: FCM must be reliable; failures are logged but do not block primary operations
+- **RF-038a**: FCM notification failures MUST be retried with exponential backoff: first retry at 1s, second at 2s, third at 4s, fourth at 8s, maximum 5 total attempts; after 5 failures, notification is discarded and a system alert is logged for operations review
+- **RF-038b**: Failed FCM notifications MUST be queued in a persistent retry system (database or message broker); queued notifications are processed by a background job that runs every 5 minutes
 
 #### Enums & Data Types
 
@@ -244,6 +268,36 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-042**: Donor contact details (nome, whatsapp) are included in MATERIAL_DOADO notification and in Solicitacao.contato_doador only when Solicitacao.status = APROVADA
 - **RF-043**: Solicitacao.contato_doador is NULL when status ≠ APROVADA
 
+#### API Versioning & Compatibility
+
+- **RF-044**: All REST API endpoints MUST use versioned path prefixes: `/api/v1/` for current version, e.g., `/api/v1/materiais`, `/api/v1/solicitacoes`, `/api/v1/usuarios`
+- **RF-045**: System MUST maintain backward compatibility with the current and previous major versions (e.g., v1 and v2 running simultaneously); deprecated versions are supported for 6-month transition period before removal
+- **RF-046**: Breaking changes (field removals, renamed paths, changed HTTP methods) are reserved for major version increments only; minor versions (v1.1, v1.2) MUST maintain full backward compatibility
+- **RF-047**: API versioning MUST be communicated in documentation and app release notes; clients are notified 3 months before version deprecation
+
+#### FCM Queue Recovery & Dead-Letter Queue
+
+- **RF-048**: FCM notifications that fail 5 consecutive retry attempts MUST be moved to a dead-letter queue (DLQ) table `fcm_notifications_dlq` with fields: notification_id, failed_from_retry_queue_at, dlq_timestamp, reason_for_dlq, manual_retry_attempted, resolved_at
+- **RF-049**: Operations team MUST be able to query and review DLQ entries via admin dashboard; entries show notification type, recipient, failed payload, and retry history
+- **RF-050**: DLQ entries older than 30 days MUST be automatically archived to `fcm_notifications_archive` table (read-only, used for auditing); archived entries MUST NOT be retried unless explicitly moved back to active queue by admin
+- **RF-051**: Successful FCM notifications are deleted from active queue after confirmed delivery (Firebase webhook confirmation); if confirmation not received within 5 minutes, entry remains in queue for next retry cycle
+
+#### Rate Limiting & Throttling
+
+- **RF-052**: System MUST implement per-user rate limiting using token bucket algorithm; each user gets endpoint-specific quotas that reset hourly: (a) Material upload (POST /api/v1/materiais): 10 requests/hour, (b) Material search (GET /api/v1/materiais): 100 requests/hour, (c) Request submission (POST /api/v1/solicitacoes): 5 requests/hour, (d) All other endpoints: 60 requests/hour
+- **RF-053**: Rate limit enforcement MUST happen at the API gateway or Spring Boot filter layer before request reaches business logic; user identity tracked by JWT token (for authenticated requests) or API key (for client apps)
+- **RF-054**: When rate limit is exceeded, system MUST return HTTP 429 (Too Many Requests) with response headers: `Retry-After: <seconds>` (time until next token available), `X-RateLimit-Limit: <total quota>`, `X-RateLimit-Remaining: <tokens left>`, `X-RateLimit-Reset: <unix timestamp of reset>`
+- **RF-055**: Rate limit state MUST be stored in Redis for sub-millisecond lookup performance (token count, last reset time per user per endpoint); fallback to in-memory cache with eventual consistency if Redis unavailable
+
+#### Image Storage & Disaster Recovery
+
+- **RF-056**: Material images MUST be stored persistently on local filesystem in directory structure `/uploads/{user_id}/{material_uuid}.{ext}` where ext is jpg or png; images promoted to permanent storage after material creation confirmed and persisted to database
+- **RF-057**: Temporary upload images MUST be stored in separate directory `/tmp/uploads/` with TTL; files older than 24 hours without associated material record are automatically deleted by cleanup job
+- **RF-058**: Daily backup job MUST run at 2:00 AM (server timezone) and copy entire `/uploads/` directory to external backup location (external hard drive mounted at `/backups/` or network share); backup should preserve directory structure and file timestamps
+- **RF-059**: Backup retention policy: Keep daily backups for 7 days, then archive oldest backup to long-term storage; maintain at least 30 days of backups for disaster recovery
+- **RF-060**: Image serving MUST include HTTP cache headers: `Cache-Control: public, max-age=31536000` (1 year) for permanent images (immutable content); `ETag` header for change detection; conditional GET support (If-None-Match) to reduce bandwidth
+- **RF-061**: Disaster recovery plan (documented separately): If primary storage lost, restore from daily backup within 4 hours; interim: serve images from 24-hour-old backup if necessary. S3 migration path defined for Phase 2 (scale >10,000 users)
+
 ---
 
 ### Non-Functional Requirements
@@ -253,6 +307,20 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RNF-003**: Gemini API calls MUST timeout after 10 seconds; timeout returns FAILURE status
 - **RNF-004**: Image processing MUST validate and reject non-JPEG/PNG files with HTTP 400
 - **RNF-005**: System MUST log all security events (authentication, authorization, state transitions) with timestamp and actor
+- **RNF-006**: FCM notification retry queue MUST persist failed notifications in PostgreSQL with fields: notification_id, recipient_user_id, notification_type, payload (JSON), attempt_count, last_attempt_timestamp, next_retry_timestamp; retry job MUST update these fields and track delivery status
+- **RNF-007**: API versioning infrastructure MUST support at least 2 major versions running concurrently (e.g., v1 and v2 routable to different handler chains); routing decision based on URL path prefix only
+- **RNF-008**: FCM notification database schema MUST include DLQ and archive tables; primary queue table should have indexes on (status, next_retry_timestamp) for efficient retrieval of next batch of retries; archive table indexed by archived_at for efficient age-based queries
+- **RNF-009**: PostgreSQL replication MUST be configured in streaming replication mode (primary-replica) to ensure zero data loss on primary failure; replica can be promoted to primary within 2 minutes of primary outage detection
+- **RNF-010**: Rate limiting lookup MUST complete within 5ms per request to avoid bottleneck; Redis cluster with 3+ nodes (primary + replicas) provides high availability; in-memory fallback uses LRU cache limited to 100,000 user entries
+- **RNF-011**: Rate limit quotas MUST be configurable per endpoint without code changes; configuration stored in database (feature_flags table) or Spring property file; changes take effect within 1 minute
+- **RNF-012**: Material image filesystem storage MUST support at least 10GB capacity (sufficient for ~5000 images @ 2MB average); storage location configurable via environment variable (e.g., `UPLOAD_DIR=/uploads/`); directory structure enforced via application layer
+- **RNF-013**: Daily backup job MUST complete within 30 minutes and not impact API response times; backup process runs in background thread with lower priority; backup integrity verified via checksum (SHA-256) before deletion of temporary files
+- **RNF-014**: Phase 2 upgrade path to AWS S3 documented: Spring Cloud Storage abstraction layer allows zero-code-change migration; S3 configuration activatable via Spring profile (e.g., `spring.profiles.active=s3`)
+- **RNF-015**: Material search endpoint (GET /materiais with filters) MUST maintain P95 latency ≤ 150ms and P99 ≤ 300ms under 10k concurrent users; requires database indexing on (disciplina, nivel_ensino, cidade, bairro, status) and query result pagination (limit 50 per page)
+- **RNF-016**: Gemini classification (POST /materiais/preview) MUST complete within P95 7 seconds and P99 9 seconds including image upload, Gemini API call (10s timeout), and response marshaling; Gemini timeout at 10s ensures we stay below target
+- **RNF-017**: Material request approval (PATCH /solicitacoes/{id} status=APROVADA) MUST maintain P95 latency ≤ 50ms and P99 ≤ 150ms; database lock acquisition (RF-035) and notification queue insertion must be optimized
+- **RNF-018**: FCM webhook handler (POST /webhooks/fcm) MUST process callbacks within P95 30ms and P99 75ms; webhook processing offloaded to async job queue to avoid blocking caller
+- **RNF-019**: Gemini API circuit breaker MUST track failure count and timestamp over 5-minute window; when failure count exceeds 10, circuit breaker enters OPEN state and pauses all Gemini calls for 30 seconds, returning status_ia = FAILURE immediately; after 30s, transitions to HALF_OPEN and allows probe request; on probe success, resets to CLOSED. Prevents cascading failures and API exhaustion.
 
 ---
 
