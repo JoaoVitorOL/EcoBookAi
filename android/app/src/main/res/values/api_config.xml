@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API Configuration -->
+    <string name="backend_url" translatable="false">http://10.0.2.2:8080/api</string>
+    <string name="backend_url_emulator" translatable="false">http://10.0.2.2:8080/api</string>
+    <string name="backend_url_physical" translatable="false">http://192.168.1.100:8080/api</string>
+    
+    <!-- OAuth2 Configuration -->
+    <string name="google_oauth_client_id" translatable="false">YOUR_CLIENT_ID_HERE</string>
+    <string name="google_oauth_redirect_scheme" translatable="false">com.ecobook</string>
+    
+    <!-- Firebase Configuration -->
+    <string name="firebase_database_url" translatable="false">https://your-project.firebaseio.com</string>
+    
+    <!-- App Configuration -->
+    <string name="app_name">EcoBook</string>
+    <string name="app_version">1.0.0</string>
+</resources>
