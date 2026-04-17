@@ -320,6 +320,8 @@ Phase 10: Polish & Integration
 - [ ] **T078** [US2] Implement `GeminiService.classifyMaterial(imageFile)` method:
   - Accept file as multipart (JPEG/PNG)
   - Build structured JSON prompt (see spec.md):
+    - **AI-Assisted Fields** (fields that Gemini will attempt to extract): titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao
+    - **Manual-Only Fields** (NEVER auto-populated): descricao (to prevent hallucinations)
     ```json
     {
       "image_base64": "...",
@@ -502,8 +504,8 @@ Phase 10: Polish & Integration
     - **FAILURE (<0.50)**: Gray question mark, field empty, manual entry required
   - Display confidence scores as percentages (e.g., "92% confident")
   - Allow user to edit all fields regardless of confidence
-  - Show title input field (required, ≤255 chars)
-  - Show description textarea (optional, ≤1000 chars)
+  - Show title input field (required, ≤255 chars; AI-assisted, always editable)
+  - Show description textarea (optional, ≤2000 chars; **manual-only, never auto-filled** to prevent hallucinations)
   - Show estado_conservacao dropdown (NOVO, BOM, USADO, DANIFICADO)
   - "Confirm" button → POST /materiais with edited values
   - "Cancel" button → navigate back (delete temp file via backend cleanup)

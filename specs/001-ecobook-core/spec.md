@@ -43,7 +43,7 @@ A donor uploads a material image. The backend calls Google Gemini to extract met
 
 **Acceptance Scenarios**:
 
-1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all AI-assisted fields (titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao) are auto-populated with editable inputs and a green checkmark indicator
+1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all AI-assisted fields (titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao) are auto-populated with editable inputs and a green checkmark indicator
 2. **Given** Gemini returns confidence 0.50–0.75 (LOW_CONFIDENCE), **When** the response renders in the frontend, **Then** fields display suggested values with yellow warning icons and are editable
 3. **Given** Gemini confidence < 0.50 or timeout occurs, **When** response is returned, **Then** all classification fields render empty and require manual input; status_ia displays FAILURE or LOW_CONFIDENCE
 4. **Given** consentimento_ia = false for the user, **When** they upload an image, **Then** POST /materiais/preview returns status_ia: FAILURE and no Gemini call is made
