@@ -34,7 +34,7 @@ public class DataSourceConfig {
         config.setIdleTimeout(300000);
         config.setMaxLifetime(1200000);
         config.setAutoCommit(true);
-        config.setValidationQuery("SELECT 1");
+        config.setConnectionTestQuery("SELECT 1");
         config.setLeakDetectionThreshold(60000);
 
         return new HikariDataSource(config);

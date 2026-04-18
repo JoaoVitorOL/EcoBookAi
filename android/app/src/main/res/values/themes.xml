@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.EcoBook" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Você pode adicionar cores customizadas aqui depois -->
+    </style>
+</resources>
