@@ -59,8 +59,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/actuator/health").permitAll()
+                        .requestMatchers(
+                                "/v1/auth/**",
+                                "/api/v1/auth/**",
+                                "/v1/health",
+                                "/api/v1/health",
+                                "/actuator/health",
+                                "/api/actuator/health"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Protected endpoints
                         .anyRequest().authenticated()

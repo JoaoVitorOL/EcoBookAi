@@ -1,9 +1,10 @@
 package com.ecobook.model;
 
 import com.ecobook.model.enums.StatusSolicitacao;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -46,7 +47,8 @@ public class Solicitacao {
     @Builder.Default
     private StatusSolicitacao status = StatusSolicitacao.PENDENTE;
 
-    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column
     private Map<String, String> contatoDoador;
 
     @Column(nullable = false, updatable = false)

@@ -14,7 +14,7 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
       auto-commit: true
-      validation-query: SELECT 1
+      connection-test-query: SELECT 1
   
   jpa:
     hibernate:

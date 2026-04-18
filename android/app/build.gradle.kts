@@ -3,7 +3,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
    // id("com.google.gms.google-services")
-    id("dagger.hilt.android.plugin")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -44,15 +44,20 @@ android {
         jvmTarget = "17"
     }
 
+    kapt {
+        correctErrorTypes = true
+    }
+
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
 
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -62,8 +67,10 @@ android {
 dependencies {
     // Jetpack Core
     implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("com.google.android.material:material:1.12.0")
 
     // Jetpack Compose
     val composeBom = platform("androidx.compose:compose-bom:2023.10.01")

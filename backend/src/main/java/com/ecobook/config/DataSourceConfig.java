@@ -1,12 +1,10 @@
 package com.ecobook.config;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.sql.DataSource;
 
 /**
  * Database connection pooling configuration using HikariCP
@@ -26,17 +24,17 @@ public class DataSourceConfig {
      * @return Configured HikariDataSource
      */
     @Bean
-    public DataSource dataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(20);
-        config.setMinimumIdle(5);
-        config.setConnectionTimeout(20000);
-        config.setIdleTimeout(300000);
-        config.setMaxLifetime(1200000);
-        config.setAutoCommit(true);
-        config.setConnectionTestQuery("SELECT 1");
-        config.setLeakDetectionThreshold(60000);
+    @ConfigurationProperties("spring.datasource")
+    public DataSourceProperties dataSourceProperties() {
+        return new DataSourceProperties();
+    }
 
-        return new HikariDataSource(config);
+    @Bean
+    @ConfigurationProperties("spring.datasource.hikari")
+    public HikariDataSource dataSource(DataSourceProperties dataSourceProperties) {
+        return dataSourceProperties
+                .initializeDataSourceBuilder()
+                .type(HikariDataSource.class)
+                .build();
     }
 }
