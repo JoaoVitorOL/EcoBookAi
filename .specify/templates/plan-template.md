@@ -69,7 +69,7 @@ tests/
 └── unit/
 
 # [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
+EcoBookAiBackend/
 ├── src/
 │   ├── models/
 │   ├── services/
@@ -87,7 +87,7 @@ frontend/
 api/
 └── [same as backend above]
 
-ios/ or android/
+ios/ or EcoBookAiAndroid/
 └── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 

@@ -9,7 +9,7 @@
 ## Backend Skeleton Setup (T001-T015) ✅
 
 ### Project Structure Created
-- ✅ **T001**: Spring Boot 3.x Maven project structure in `backend/`
+- ✅ **T001**: Spring Boot 3.x Maven project structure in `EcoBookAiBackend/`
 - ✅ **T002**: `pom.xml` with all required dependencies:
   - Spring Web, Spring Data JPA, Spring Security
   - PostgreSQL driver, JWT (io.jsonwebtoken)
@@ -255,7 +255,7 @@
 
 ### Backend (Spring Boot)
 ```
-backend/
+EcoBookAiBackend/
 ├── pom.xml
 ├── src/main/java/com/ecobook/
 │   ├── EcoBookApplication.java
@@ -323,7 +323,7 @@ backend/
 
 ### Android (Kotlin/Compose)
 ```
-android/
+EcoBookAiAndroid/
 ├── build.gradle.kts
 ├── build.gradle (root)
 ├── local.properties

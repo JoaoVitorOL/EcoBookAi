@@ -98,7 +98,7 @@ specs/001-ecobook-core/
 
 ```text
 # Android Frontend (Kotlin + Jetpack Compose)
-android/
+EcoBookAiAndroid/
 ├── app/
 │   ├── src/main/kotlin/com/ecobook/
 │   │   ├── MainActivity.kt
@@ -133,7 +133,7 @@ android/
 └── AndroidManifest.xml                  # Permissions (INTERNET, CAMERA, READ_EXTERNAL_STORAGE, FCM)
 
 # Backend (Spring Boot + Java)
-backend/
+EcoBookAiBackend/
 ├── src/main/java/com/ecobook/
 │   ├── EcoBookApplication.java          # Spring Boot entry point
 │   ├── config/

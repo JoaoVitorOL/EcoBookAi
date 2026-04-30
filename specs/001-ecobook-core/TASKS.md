@@ -94,7 +94,7 @@ Phase 10: Polish & Integration
 
 ### T001–T015: Backend Skeleton Setup
 
-- [ ] **T001** [P] Create Spring Boot 3.x project with Maven structure in `backend/`
+- [ ] **T001** [P] Create Spring Boot 3.x project with Maven structure in `EcoBookAiBackend/`
 - [ ] **T002** [P] Configure `pom.xml` with dependencies: Spring Web, Spring Data JPA, Spring Security, Spring Cloud, PostgreSQL driver, JWT (io.jsonwebtoken), Gemini SDK, Firebase Admin SDK, Lombok
 - [ ] **T003** [P] Create `application.yml` configuration with database URL, OAuth2 properties, JWT secret, Gemini API key placeholder, FCM service account path
 - [ ] **T004** [P] Setup database connection pooling in `src/main/java/com/ecobook/config/DataSourceConfig.java` (HikariCP, max 20, min 5, validation query)
@@ -115,8 +115,8 @@ Phase 10: Polish & Integration
 
 ### T016–T025: Android Project Setup
 
-- [ ] **T016** [P] Create Android project in `android/` with minSdk=26, targetSdk=34, Kotlin language, Jetpack Compose UI
-- [ ] **T017** [P] Add dependencies to `android/build.gradle.kts`:
+- [ ] **T016** [P] Create Android project in `EcoBookAiAndroid/` with minSdk=26, targetSdk=34, Kotlin language, Jetpack Compose UI
+- [ ] **T017** [P] Add dependencies to `EcoBookAiAndroid/build.gradle.kts`:
   - Jetpack Compose (latest)
   - Jetpack Navigation Compose
   - AppAuth (OAuth2)
@@ -126,14 +126,14 @@ Phase 10: Polish & Integration
   - FirebaseMessaging (FCM)
   - Coil (image loading)
   - Coroutines
-- [ ] **T018** [P] Create `android/src/main/res/values/api_config.xml` with backend_url placeholder (`http://10.0.2.2:8080` for emulator, configurable per build variant)
-- [ ] **T019** [P] Download `google-services.json` from Firebase Console and place in `android/app/google-services.json`
-- [ ] **T020** [P] Create `android/local.properties` with SDK path and backend URL configuration
-- [ ] **T021** [P] Setup Hilt application component in `android/src/main/java/com/ecobook/EcoBookApp.kt` with @HiltAndroidApp annotation
-- [ ] **T022** [P] Create Retrofit API client in `android/src/main/java/com/ecobook/api/EcoBookApiClient.kt` (abstract base URL, authentication interceptor placeholder)
-- [ ] **T023** [P] Create Jetpack Compose navigation graph in `android/src/main/java/com/ecobook/navigation/NavGraph.kt` (screen routing structure)
-- [ ] **T024** [P] Create main activity in `android/src/main/java/com/ecobook/MainActivity.kt` (composable entry point with navigation)
-- [ ] **T025** [P] Setup EncryptedSharedPreferences in `android/src/main/java/com/ecobook/utils/SecureStorage.kt` for JWT token storage (read, write, delete operations)
+- [ ] **T018** [P] Create `EcoBookAiAndroid/src/main/res/values/api_config.xml` with backend_url placeholder (`http://10.0.2.2:8080` for emulator, configurable per build variant)
+- [ ] **T019** [P] Download `google-services.json` from Firebase Console and place in `EcoBookAiAndroid/app/google-services.json`
+- [ ] **T020** [P] Create `EcoBookAiAndroid/local.properties` with SDK path and backend URL configuration
+- [ ] **T021** [P] Setup Hilt application component in `EcoBookAiAndroid/src/main/java/com/ecobook/EcoBookApp.kt` with @HiltAndroidApp annotation
+- [ ] **T022** [P] Create Retrofit API client in `EcoBookAiAndroid/src/main/java/com/ecobook/api/EcoBookApiClient.kt` (abstract base URL, authentication interceptor placeholder)
+- [ ] **T023** [P] Create Jetpack Compose navigation graph in `EcoBookAiAndroid/src/main/java/com/ecobook/navigation/NavGraph.kt` (screen routing structure)
+- [ ] **T024** [P] Create main activity in `EcoBookAiAndroid/src/main/java/com/ecobook/MainActivity.kt` (composable entry point with navigation)
+- [ ] **T025** [P] Setup EncryptedSharedPreferences in `EcoBookAiAndroid/src/main/java/com/ecobook/utils/SecureStorage.kt` for JWT token storage (read, write, delete operations)
 
 ### T026–T035: Integration Test Infrastructure
 
@@ -143,9 +143,9 @@ Phase 10: Polish & Integration
 - [ ] **T029** [P] Create `src/test/java/com/ecobook/util/TestDataBuilder.java` for creating test usuarios, materials, solicitacoes with default values
 - [ ] **T030** [P] Create GitHub Actions workflow in `.github/workflows/build-and-test.yml` (Maven build, test execution, code coverage reporting)
 - [ ] **T031** [P] Setup code coverage reporting in `pom.xml` (JaCoCo, target 85% coverage for Phase 4 gate)
-- [ ] **T032** [P] Create Android test structure in `android/src/androidTest/java/com/ecobook/` with Compose testing utilities
-- [ ] **T033** [P] Create mock interceptor in `android/src/androidTest/java/com/ecobook/api/MockApiInterceptor.kt` for returning stub responses during testing
-- [ ] **T034** [P] Setup Android emulator configuration in `android/build.gradle.kts` (API 26+, 1GB RAM, persistent storage path)
+- [ ] **T032** [P] Create Android test structure in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/` with Compose testing utilities
+- [ ] **T033** [P] Create mock interceptor in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/api/MockApiInterceptor.kt` for returning stub responses during testing
+- [ ] **T034** [P] Setup Android emulator configuration in `EcoBookAiAndroid/build.gradle.kts` (API 26+, 1GB RAM, persistent storage path)
 - [ ] **T035** [P] Create first E2E test scenario in `src/test/java/com/ecobook/FirstIntegrationTest.java` (register → health check → verify database connectivity)
 
 ---
@@ -189,32 +189,32 @@ Phase 10: Polish & Integration
 
 #### Android: OAuth2 Flow
 
-- [ ] **T046** [P] [US1] Create `android/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
+- [ ] **T046** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
   - Display "Login with Google" button (AppAuth)
   - Handle OAuth2 flow initiation
   - Show loading spinner during authentication
   - Navigate to onboarding on success
-- [ ] **T047** [P] [US1] Implement `android/src/main/java/com/ecobook/auth/GoogleAuthClient.kt`:
+- [ ] **T047** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/GoogleAuthClient.kt`:
   - Initialize AppAuth with Google OAuth2 config
   - Launch OAuth2 flow (initiate sign-in)
   - Handle sign-in result (success, cancel, error)
   - Extract authorization code, exchange for access token
-- [ ] **T048** [P] [US1] Create `android/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
+- [ ] **T048** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
   - `POST /api/v1/auth/register(googleToken): AuthResponse` (returns token + user)
-- [ ] **T049** [P] [US1] Implement `android/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+- [ ] **T049** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
   - Store JWT in SecureStorage after login success
   - Handle OAuth2 errors (show user-friendly messages)
   - Trigger navigation to OnboardingScreen on success
-- [ ] **T050** [P] [US1] Create JWT interceptor in `android/src/main/java/com/ecobook/api/AuthInterceptor.kt`:
+- [ ] **T050** [P] [US1] Create JWT interceptor in `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthInterceptor.kt`:
   - Read JWT from SecureStorage
   - Inject into `Authorization: Bearer {token}` header for all requests
 - [ ] **T051** [P] [US1] Add authentication interceptor to Retrofit client in `EcoBookApiClient.kt`
-- [ ] **T052** [P] [US1] Create `android/src/test/java/com/ecobook/auth/GoogleAuthClientTest.kt` (mock OAuth2 flow, verify token extraction)
+- [ ] **T052** [P] [US1] Create `EcoBookAiAndroid/src/test/java/com/ecobook/auth/GoogleAuthClientTest.kt` (mock OAuth2 flow, verify token extraction)
 - [ ] **T053** [P] [US1] Create integration test for OAuth2 + backend in `src/test/java/com/ecobook/AuthE2ETest.java`:
   - Mock Google JWKS server
   - POST /auth/register with valid token
   - Verify JWT returned and stored in Android SecureStorage
-- [ ] **T054** [US1] Create logout functionality in `android/src/main/java/com/ecobook/auth/LogoutViewModel.kt` (clear JWT from SecureStorage, navigate to login)
+- [ ] **T054** [US1] Create logout functionality in `EcoBookAiAndroid/src/main/java/com/ecobook/auth/LogoutViewModel.kt` (clear JWT from SecureStorage, navigate to login)
 - [ ] **T055** [US1] Create 401 error handling in `AuthInterceptor.kt` (if token invalid, clear storage and redirect to login)
 
 #### Backend: Protected Endpoints
@@ -275,24 +275,24 @@ Phase 10: Polish & Integration
 
 #### Android: Onboarding Screen
 
-- [ ] **T073** [P] [US1] Create `android/src/main/java/com/ecobook/onboarding/OnboardingScreen.kt` Compose screen:
+- [ ] **T073** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/onboarding/OnboardingScreen.kt` Compose screen:
   - Display multi-step form (step 1: WhatsApp, step 2: City/Neighborhood, step 3: Academic needs)
   - Fields: WhatsApp (E.164 input with formatting), city (autocomplete dropdown), neighborhood (text input), academic_needs (multi-select enum)
   - Validate WhatsApp on focus loss (regex: `^\+55\d{10,11}$`)
   - Show error messages inline if validation fails
   - Next/Previous buttons between steps
   - Submit button on final step → PUT /usuarios/me
-- [ ] **T074** [P] [US1] Implement `android/src/main/java/com/ecobook/onboarding/OnboardingViewModel.kt`:
+- [ ] **T074** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/onboarding/OnboardingViewModel.kt`:
   - Store form state (nome, whatsapp, cidade, bairro, necessidade_academica)
   - Validation logic: all required fields non-empty, WhatsApp E.164 format
   - `updateProfile()`: Call AuthApiService.putUsuariosMe(requestBody)
   - Handle success: Navigate to MainScreen
   - Handle 400/422 errors: Show field-specific error messages
   - Handle 403: Show "Profile already complete" message, navigate to MainScreen
-- [ ] **T075** [P] [US1] Create City autocomplete in `android/src/main/java/com/ecobook/ui/CityAutocomplete.kt`:
+- [ ] **T075** [P] [US1] Create City autocomplete in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/CityAutocomplete.kt`:
   - Hardcode list of major Brazilian cities (or fetch from backend if time permits)
   - Filter on user input, display dropdown suggestions
-- [ ] **T076** [P] [US1] Add WhatsApp formatter in `android/src/main/java/com/ecobook/ui/WhatsAppFormatter.kt`:
+- [ ] **T076** [P] [US1] Add WhatsApp formatter in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/WhatsAppFormatter.kt`:
   - User types: "11991234567" → automatically format to "+5511991234567"
   - Prevent typing invalid characters (only digits and +)
 
@@ -468,35 +468,35 @@ Phase 10: Polish & Integration
 
 #### Android: Upload Screen
 
-- [ ] **T099** [P] [US2] Create `android/src/main/java/com/ecobook/material/MaterialUploadScreen.kt` Compose screen:
+- [ ] **T099** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadScreen.kt` Compose screen:
   - Display "Select Material Image" button (opens image picker or camera)
   - Show preview of selected image
   - Display size and format information
   - Show "Next" button to proceed to processing screen
   - Handle image selection and validation (show error if >5MB or wrong format)
-- [ ] **T100** [P] [US2] Implement image picker in `android/src/main/java/com/ecobook/material/ImagePickerHelper.kt`:
+- [ ] **T100** [P] [US2] Implement image picker in `EcoBookAiAndroid/src/main/java/com/ecobook/material/ImagePickerHelper.kt`:
   - Use Android's ACTION_GET_CONTENT (gallery) or ACTION_IMAGE_CAPTURE (camera)
   - Handle permission requests (READ_EXTERNAL_STORAGE, CAMERA)
   - Return selected image URI and metadata (size, MIME type)
-- [ ] **T101** [P] [US2] Implement image compression in `android/src/main/java/com/ecobook/material/ImageCompressionHelper.kt`:
+- [ ] **T101** [P] [US2] Implement image compression in `EcoBookAiAndroid/src/main/java/com/ecobook/material/ImageCompressionHelper.kt`:
   - Compress JPEG/PNG to ≤5MB if necessary
   - Target resolution: 1024x1024px (reduce to fit 5MB limit)
   - Preserve image quality (JPEG quality 85–90%)
-- [ ] **T102** [P] [US2] Create `android/src/main/java/com/ecobook/material/ProcessingScreen.kt` Compose screen:
+- [ ] **T102** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/ProcessingScreen.kt` Compose screen:
   - Display animated loading spinner
   - Show status message: "Analyzing your material..."
   - Display 10-second timeout warning (if approaching limit)
   - Handle timeout gracefully: show retry button if POST /materiais/preview times out
-- [ ] **T103** [P] [US2] Implement `android/src/main/java/com/ecobook/material/MaterialUploadViewModel.kt`:
+- [ ] **T103** [P] [US2] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadViewModel.kt`:
   - Store selected image URI and metadata
   - `uploadImage()`: POST multipart file to /api/v1/materiais/preview
   - Handle success: Store upload_id + classification results, navigate to ReviewScreen
   - Handle error (timeout, network, 413): Show user-friendly message with retry option
   - Handle 400 (invalid MIME): Show "Invalid file format" message
-- [ ] **T104** [P] [US2] Create API client for image upload in `android/src/main/java/com/ecobook/api/MaterialApiService.kt`:
+- [ ] **T104** [P] [US2] Create API client for image upload in `EcoBookAiAndroid/src/main/java/com/ecobook/api/MaterialApiService.kt`:
   - `POST /api/v1/materiais/preview` with multipart/form-data
   - Return GeminiResponseDto
-- [ ] **T105** [P] [US2] Create `android/src/main/java/com/ecobook/material/ReviewScreen.kt` Compose screen:
+- [ ] **T105** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/ReviewScreen.kt` Compose screen:
   - Display classification results from GeminiResponseDto
   - Show confidence indicators per field:
     - **SUCCESS (≥0.75)**: Green checkmark, field auto-filled, disabled for editing
@@ -509,7 +509,7 @@ Phase 10: Polish & Integration
   - Show estado_conservacao dropdown (NOVO, BOM, USADO, DANIFICADO)
   - "Confirm" button → POST /materiais with edited values
   - "Cancel" button → navigate back (delete temp file via backend cleanup)
-- [ ] **T106** [P] [US2] Implement `android/src/main/java/com/ecobook/material/ReviewViewModel.kt`:
+- [ ] **T106** [P] [US2] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/material/ReviewViewModel.kt`:
   - Store classification results (upload_id, predictions, confidence_scores)
   - Store edited values (titulo, disciplina, nivel_ensino, etc.)
   - Validation: require titulo, validate enums on confirm
@@ -535,12 +535,12 @@ Phase 10: Polish & Integration
 
 #### Android: Composition & Styling
 
-- [ ] **T110** [P] [US2] Create reusable composables in `android/src/main/java/com/ecobook/ui/`:
+- [ ] **T110** [P] [US2] Create reusable composables in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/`:
   - `ConfidenceIndicator.kt` (checkmark for SUCCESS, warning for LOW, question for FAILURE)
   - `EditableField.kt` (text input with optional error message)
   - `EnumDropdown.kt` (dropdown for enum selection)
   - `LoadingSpinner.kt` (animated spinner with message)
-- [ ] **T111** [P] [US2] Create Material Design 3 theme in `android/src/main/java/com/ecobook/ui/theme/Theme.kt`:
+- [ ] **T111** [P] [US2] Create Material Design 3 theme in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/theme/Theme.kt`:
   - Colors: Primary (green for donations), Secondary (blue for requests), Tertiary (orange for alerts)
   - Typography: Roboto for headings, Roboto for body text
   - Shapes: Rounded corners 8dp for cards, 4dp for buttons
@@ -638,18 +638,18 @@ Phase 10: Polish & Integration
 
 #### Android: Discovery Screen
 
-- [ ] **T124** [P] [US3] Create `android/src/main/java/com/ecobook/discovery/DiscoveryScreen.kt` Compose screen:
+- [ ] **T124** [P] [US3] Create `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/DiscoveryScreen.kt` Compose screen:
   - Display search filters (dropdown menus for disciplina, nivel_ensino, ano, sistema_ensino)
   - Display city and neighborhood (pre-populated from user profile or editable)
   - "Search" button → GET /api/v1/materiais with criteria
   - "Reset" button → clear filters, show all DISPONIVEL materials
-- [ ] **T125** [P] [US3] Implement filter state in `android/src/main/java/com/ecobook/discovery/DiscoveryViewModel.kt`:
+- [ ] **T125** [P] [US3] Implement filter state in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/DiscoveryViewModel.kt`:
   - Store current filters (disciplina, nivel_ensino, ano, etc.)
   - Track search results (list of MaterialDto)
   - Track pagination (page, size, hasNext)
   - `search()`: call GET /api/v1/materiais with current filters
   - `loadNextPage()`: increment page, append results
-- [ ] **T126** [P] [US3] Create material list UI in `android/src/main/java/com/ecobook/ui/MaterialListItem.kt`:
+- [ ] **T126** [P] [US3] Create material list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/MaterialListItem.kt`:
   - Display material thumbnail image
   - Show disciplina, nivel_ensino, ano, estado_conservacao badges
   - Show city and neighborhood (proximity indicator)
@@ -674,7 +674,7 @@ Phase 10: Polish & Integration
   - Show "No materials found" message
   - Suggest adjusting filters
   - Show "Browse all materials" button to reset filters
-- [ ] **T130** [P] [US3] Create material detail screen in `android/src/main/java/com/ecobook/discovery/MaterialDetailScreen.kt`:
+- [ ] **T130** [P] [US3] Create material detail screen in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/MaterialDetailScreen.kt`:
   - Display full image
   - Show all metadata (disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao)
   - Show description (if provided)
@@ -847,7 +847,7 @@ Phase 10: Polish & Integration
   - On click: Call `POST /solicitacoes/{material_id}`
   - Success: Show confirmation dialog "Material requested! Waiting for donor approval."
   - Navigate to "My Requests" screen
-- [ ] **T155** [P] [US4] Implement `android/src/main/java/com/ecobook/request/RequestViewModel.kt`:
+- [ ] **T155** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/RequestViewModel.kt`:
   - `createRequest(materialId)`: POST /api/v1/materiais/{materialId}/solicitacoes
   - Handle 409 Conflict: Show "You already have a pending request for this material"
   - Handle 422 Invalid State: Show "Material no longer available"
@@ -855,7 +855,7 @@ Phase 10: Polish & Integration
 
 #### Android: My Requests Screen
 
-- [ ] **T156** [P] [US4] Create `android/src/main/java/com/ecobook/request/MyRequestsScreen.kt` Compose screen:
+- [ ] **T156** [P] [US4] Create `EcoBookAiAndroid/src/main/java/com/ecobook/request/MyRequestsScreen.kt` Compose screen:
   - Display list of student's requests (all statuses: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA)
   - For each request, show:
     - Material title + image
@@ -863,7 +863,7 @@ Phase 10: Polish & Integration
     - Status indicator (hourglass for PENDENTE, checkmark for APROVADA, X for RECUSADA, done for CONCLUIDA)
     - Days remaining (if APROVADA): "3 days left to complete"
     - Action button: "Contact Donor" (if APROVADA), "Cancel" (if PENDENTE/APROVADA)
-- [ ] **T157** [P] [US4] Implement `android/src/main/java/com/ecobook/request/MyRequestsViewModel.kt`:
+- [ ] **T157** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/MyRequestsViewModel.kt`:
   - Load student's requests: GET /api/v1/solicitacoes/minhas
   - Filter by status (optional)
   - `cancelRequest(requestId)`: PATCH /solicitacoes/{id}/cancelar
@@ -871,7 +871,7 @@ Phase 10: Polish & Integration
 - [ ] **T158** [P] [US4] Create contact donor action:
   - Only visible when status=APROVADA (contato_doador populated)
   - On click: Open WhatsApp intent with donor's WhatsApp number + pre-filled message: "Hi! I'm requesting your [material title]. Can we arrange pickup?"
-- [ ] **T159** [P] [US4] Create request list UI in `android/src/main/java/com/ecobook/ui/RequestListItem.kt`:
+- [ ] **T159** [P] [US4] Create request list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/RequestListItem.kt`:
   - Show request status with color code (orange=PENDENTE, green=APROVADA, red=RECUSADA, gray=CANCELADA/CONCLUIDA)
   - Show material thumbnail + title
   - Show donor name + location
@@ -879,7 +879,7 @@ Phase 10: Polish & Integration
 
 #### Android: Donor Approval UI
 
-- [ ] **T160** [P] [US4] Create `android/src/main/java/com/ecobook/donor/DonorRequestsScreen.kt` Compose screen:
+- [ ] **T160** [P] [US4] Create `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsScreen.kt` Compose screen:
   - Display list of incoming requests for donor's materials (status=PENDENTE only)
   - For each request, show:
     - Student name + location
@@ -888,7 +888,7 @@ Phase 10: Polish & Integration
   - Tapping "Accept": PATCH /solicitacoes/{id}/aprovar
   - Tapping "Decline": PATCH /solicitacoes/{id}/recusar
   - On accept: Show confirmation, navigate back (request status → APROVADA)
-- [ ] **T161** [P] [US4] Implement `android/src/main/java/com/ecobook/donor/DonorRequestsViewModel.kt`:
+- [ ] **T161** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsViewModel.kt`:
   - Load incoming requests: GET /api/v1/solicitacoes/pendentes (endpoint to be created in next phase)
   - `approveRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/aprovar
   - `declineRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/recusar
@@ -987,10 +987,10 @@ Phase 10: Polish & Integration
 
 #### Android: FCM Setup
 
-- [ ] **T174** [P] [US4] Create Firebase Cloud Messaging setup in `android/src/main/AndroidManifest.xml`:
+- [ ] **T174** [P] [US4] Create Firebase Cloud Messaging setup in `EcoBookAiAndroid/src/main/AndroidManifest.xml`:
   - Add FCM service declarations
   - Add required permissions (POST_NOTIFICATIONS for Android 13+)
-- [ ] **T175** [P] [US4] Implement `android/src/main/java/com/ecobook/fcm/EcoBookMessagingService.kt`:
+- [ ] **T175** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/fcm/EcoBookMessagingService.kt`:
   - Extend FirebaseMessagingService
   - Override `onMessageReceived(remoteMessage)`
   - Handle notifications in foreground (show local notification via NotificationManager)
@@ -1003,7 +1003,7 @@ Phase 10: Polish & Integration
   - Use PendingIntent to navigate to appropriate screen
   - Post to NotificationManager
   - Set notification ID per notification type (avoid duplicates)
-- [ ] **T177** [P] [US4] Implement token registration in `android/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+- [ ] **T177** [P] [US4] Implement token registration in `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
   - After successful login: Get FCM token via FirebaseMessaging.getInstance().token
   - POST /api/v1/fcm/tokens with device token
   - Store locally (in case future updates needed)

@@ -118,7 +118,7 @@ ALTER ROLE ecobook WITH CREATEDB;
 #### 3. Backend Configuration
 
 ```bash
-cd backend
+cd EcoBookAiBackend
 
 # Create .env file with secrets
 cat > .env << 'EOF'
@@ -166,7 +166,7 @@ EOF
 
 ```bash
 # Navigate to backend directory
-cd backend
+cd EcoBookAiBackend
 
 # Using Maven
 mvn clean install
@@ -194,11 +194,11 @@ psql -h localhost -U ecobook -d ecobook -c "SELECT NOW();"
 #### Google Services JSON
 
 ```bash
-cd android/app
+cd EcoBookAiAndroid/app
 
 # Download google-services.json from Firebase Console
 # Project Settings → Your Apps → Android → Download google-services.json
-# Place in: android/app/
+# Place in: EcoBookAiAndroid/app/
 
 ls -la google-services.json  # Verify file exists
 ```
@@ -206,7 +206,7 @@ ls -la google-services.json  # Verify file exists
 #### Local Build Properties
 
 ```bash
-cd android
+cd EcoBookAiAndroid
 
 # Create local.properties
 cat > local.properties << 'EOF'
@@ -239,7 +239,7 @@ EOF
 #### Build & Run Android App
 
 ```bash
-cd android
+cd EcoBookAiAndroid
 
 # Build debug APK
 ./gradlew assembleDebug
@@ -280,7 +280,7 @@ adb shell am instrument -w com.ecobook.test/androidx.test.runner.AndroidJUnitRun
 docker-compose up postgres
 
 # Terminal 2: Spring Boot backend
-cd backend
+cd EcoBookAiBackend
 mvn spring-boot:run
 # Wait for: "Started EcoBookApplication in X seconds"
 ```
@@ -517,7 +517,7 @@ curl -X GET http://localhost:8080/solicitacoes/solicitacao-uuid-1 \
 
 **Backend**:
 ```bash
-cd backend
+cd EcoBookAiBackend
 # Edit src/main/java or src/main/resources
 
 # Rebuild
@@ -531,7 +531,7 @@ mvn spring-boot:run
 
 **Android**:
 ```bash
-cd android
+cd EcoBookAiAndroid
 # Edit app/src/main/kotlin or app/src/main/res
 
 # Rebuild and reinstall on emulator/device
@@ -543,14 +543,14 @@ adb shell am start -n com.ecobook/.MainActivity
 
 **Backend**:
 ```bash
-cd backend
+cd EcoBookAiBackend
 mvn test
 # Or in IDE: right-click test file → Run
 ```
 
 **Android**:
 ```bash
-cd android
+cd EcoBookAiAndroid
 ./gradlew connectedAndroidTest
 # Or in Android Studio: Run → Run Tests
 ```

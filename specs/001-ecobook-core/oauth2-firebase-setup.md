@@ -86,7 +86,7 @@ Google OAuth2 provides secure authentication without storing passwords. Users si
 ./gradlew signingReport
 
 # Or manually:
-keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+keytool -list -v -keystore ~/.EcoBookAiAndroid/debug.keystore -alias androiddebugkey -storepass android -keypass android
 ```
 
 Copy the SHA-1 value and use in Android OAuth2 credentials setup.
