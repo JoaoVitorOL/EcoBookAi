@@ -164,15 +164,15 @@ import java.util.Map;
     @ExceptionHandler(Exception.class)
     public ResponseEntity&lt;ErrorResponse&gt; handleGenericException(
             Exception ex, WebRequest request) {
-<span class="fc" id="L167">        ErrorResponse errorResponse = ErrorResponse.builder()</span>
-<span class="fc" id="L168">                .status(500)</span>
-<span class="fc" id="L169">                .error(&quot;INTERNAL_SERVER_ERROR&quot;)</span>
-<span class="fc" id="L170">                .message(&quot;An unexpected error occurred&quot;)</span>
-<span class="fc" id="L171">                .timestamp(LocalDateTime.now())</span>
-<span class="fc" id="L172">                .path(request.getDescription(false).replace(&quot;uri=&quot;, &quot;&quot;))</span>
-<span class="fc" id="L173">                .build();</span>
-<span class="fc" id="L174">        log.error(&quot;Unexpected error&quot;, ex);</span>
-<span class="fc" id="L175">        return ResponseEntity.status(500).body(errorResponse);</span>
+<span class="nc" id="L167">        ErrorResponse errorResponse = ErrorResponse.builder()</span>
+<span class="nc" id="L168">                .status(500)</span>
+<span class="nc" id="L169">                .error(&quot;INTERNAL_SERVER_ERROR&quot;)</span>
+<span class="nc" id="L170">                .message(&quot;An unexpected error occurred&quot;)</span>
+<span class="nc" id="L171">                .timestamp(LocalDateTime.now())</span>
+<span class="nc" id="L172">                .path(request.getDescription(false).replace(&quot;uri=&quot;, &quot;&quot;))</span>
+<span class="nc" id="L173">                .build();</span>
+<span class="nc" id="L174">        log.error(&quot;Unexpected error&quot;, ex);</span>
+<span class="nc" id="L175">        return ResponseEntity.status(500).body(errorResponse);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

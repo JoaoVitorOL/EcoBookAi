@@ -5,7 +5,7 @@ EcoBook IA Backend,com.ecobook.service,GeminiService,1,3,0,0,1,1,1,1,1,1
 EcoBook IA Backend,com.ecobook.service,SolicitacaoService,1,3,0,0,1,1,1,1,1,1
 EcoBook IA Backend,com.ecobook.service,GeoNormalizationService.NormalizedGeo,0,9,0,0,0,1,0,1,0,1
 EcoBook IA Backend,com.ecobook.service,MatchingService,1,3,0,0,1,1,1,1,1,1
-EcoBook IA Backend,com.ecobook.service,UsuarioService,35,213,8,14,3,53,10,9,2,6
+EcoBook IA Backend,com.ecobook.service,UsuarioService,35,213,8,14,3,52,10,9,2,6
 EcoBook IA Backend,com.ecobook.service,MaterialService,1,3,0,0,1,1,1,1,1,1
 EcoBook IA Backend,com.ecobook.service,FcmService,1,3,0,0,1,1,1,1,1,1
 EcoBook IA Backend,com.ecobook.service,GeoNormalizationService,4,33,2,2,2,9,2,3,0,3
@@ -31,7 +31,7 @@ EcoBook IA Backend,com.ecobook.model.enums,Role,3,25,0,0,1,6,1,2,1,2
 EcoBook IA Backend,com.ecobook.model.enums,Disciplina,3,53,0,0,1,10,1,2,1,2
 EcoBook IA Backend,com.ecobook.model.enums,StatusMaterial,3,39,0,0,1,8,1,2,1,2
 EcoBook IA Backend,com.ecobook.exception,ProfileIncompleteException,5,4,0,0,2,2,1,1,1,1
-EcoBook IA Backend,com.ecobook.exception,GlobalExceptionHandler,172,158,0,0,52,48,6,7,6,7
+EcoBook IA Backend,com.ecobook.exception,GlobalExceptionHandler,200,130,0,0,61,39,7,6,7,6
 EcoBook IA Backend,com.ecobook.exception,InvalidStateTransitionException,9,0,0,0,4,0,2,0,2,0
 EcoBook IA Backend,com.ecobook.exception,ResourceNotFoundException,9,0,0,0,4,0,2,0,2,0
 EcoBook IA Backend,com.ecobook.exception,UnprocessableEntityException,5,10,0,0,2,4,1,2,1,2

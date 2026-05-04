@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.ecobook.AuthControllerIntegrationTest" time="1.613" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.ecobook.AuthControllerIntegrationTest" time="2.269" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="26"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -18,7 +18,7 @@
     <property name="user.country" value="BR"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-26\bin"/>
-    <property name="sun.java.command" value="C:\Users\jvol2\AppData\Local\Temp\surefire10782170643485662458\surefirebooter-20260504152631087_3.jar C:\Users\jvol2\AppData\Local\Temp\surefire10782170643485662458 2026-05-04T15-26-30_879-jvmRun1 surefire-20260504152631087_1tmp surefire_0-20260504152631087_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\jvol2\AppData\Local\Temp\surefire8058953853873362431\surefirebooter-20260504161441597_3.jar C:\Users\jvol2\AppData\Local\Temp\surefire8058953853873362431 2026-05-04T16-14-41_217-jvmRun1 surefire-20260504161441597_1tmp surefire_0-20260504161441597_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiBackend\target\test-classes;C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiBackend\target\classes;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.0\spring-boot-starter-web-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.0\spring-boot-starter-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.0\spring-boot-autoconfigure-3.2.0.jar;C:\Users\jvol2\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\jvol2\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.0\spring-boot-starter-json-3.2.0.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.0\spring-boot-starter-tomcat-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.16\tomcat-embed-core-10.1.16.jar;C:\Users\jvol2\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.16\tomcat-embed-websocket-10.1.16.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-web\6.1.1\spring-web-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-beans\6.1.1\spring-beans-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-webmvc\6.1.1\spring-webmvc-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-context\6.1.1\spring-context-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-expression\6.1.1\spring-expression-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.0\spring-boot-starter-data-jpa-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.0\spring-boot-starter-jdbc-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-jdbc\6.1.1\spring-jdbc-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\hibernate\orm\hibernate-core\6.3.1.Final\hibernate-core-6.3.1.Final.jar;C:\Users\jvol2\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\jvol2\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\jvol2\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\jvol2\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\jvol2\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\jvol2\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\jvol2\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\jvol2\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\jvol2\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\jvol2\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\jvol2\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\jvol2\.m2\repository\org\antlr\antlr4-runtime\4.10.1\antlr4-runtime-4.10.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\data\spring-data-jpa\3.2.0\spring-data-jpa-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\data\spring-data-commons\3.2.0\spring-data-commons-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-orm\6.1.1\spring-orm-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-tx\6.1.1\spring-tx-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-aspects\6.1.1\spring-aspects-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.2.0\spring-boot-starter-security-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-aop\6.1.1\spring-aop-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-config\6.2.0\spring-security-config-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-web\6.2.0\spring-security-web-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.2.0\spring-boot-starter-actuator-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.2.0\spring-boot-actuator-autoconfigure-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-actuator\3.2.0\spring-boot-actuator-3.2.0.jar;C:\Users\jvol2\.m2\repository\io\micrometer\micrometer-observation\1.12.0\micrometer-observation-1.12.0.jar;C:\Users\jvol2\.m2\repository\io\micrometer\micrometer-commons\1.12.0\micrometer-commons-1.12.0.jar;C:\Users\jvol2\.m2\repository\io\micrometer\micrometer-jakarta9\1.12.0\micrometer-jakarta9-1.12.0.jar;C:\Users\jvol2\.m2\repository\io\micrometer\micrometer-core\1.12.0\micrometer-core-1.12.0.jar;C:\Users\jvol2\.m2\repository\org\hdrhistogram\HdrHistogram\2.1.12\HdrHistogram-2.1.12.jar;C:\Users\jvol2\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.0\spring-boot-starter-validation-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.16\tomcat-embed-el-10.1.16.jar;C:\Users\jvol2\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\jvol2\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.0\spring-boot-starter-aop-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\aspectj\aspectjweaver\1.9.20.1\aspectjweaver-1.9.20.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-oauth2-resource-server\6.2.0\spring-security-oauth2-resource-server-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-core\6.2.0\spring-security-core-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-crypto\6.2.0\spring-security-crypto-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-oauth2-core\6.2.0\spring-security-oauth2-core-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-core\6.1.1\spring-core-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-jcl\6.1.1\spring-jcl-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-oauth2-jose\6.2.0\spring-security-oauth2-jose-6.2.0.jar;C:\Users\jvol2\.m2\repository\com\nimbusds\nimbus-jose-jwt\9.24.4\nimbus-jose-jwt-9.24.4.jar;C:\Users\jvol2\.m2\repository\com\github\stephenc\jcip\jcip-annotations\1.0-1\jcip-annotations-1.0-1.jar;C:\Users\jvol2\.m2\repository\org\postgresql\postgresql\42.7.1\postgresql-42.7.1.jar;C:\Users\jvol2\.m2\repository\org\checkerframework\checker-qual\3.41.0\checker-qual-3.41.0.jar;C:\Users\jvol2\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;C:\Users\jvol2\.m2\repository\org\flywaydb\flyway-core\9.22.3\flyway-core-9.22.3.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\jvol2\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\jvol2\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\jvol2\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar;C:\Users\jvol2\.m2\repository\io\jsonwebtoken\jjwt-api\0.12.3\jjwt-api-0.12.3.jar;C:\Users\jvol2\.m2\repository\io\jsonwebtoken\jjwt-impl\0.12.3\jjwt-impl-0.12.3.jar;C:\Users\jvol2\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.12.3\jjwt-jackson-0.12.3.jar;C:\Users\jvol2\.m2\repository\com\google\firebase\firebase-admin\9.2.0\firebase-admin-9.2.0.jar;C:\Users\jvol2\.m2\repository\com\google\api-client\google-api-client\2.2.0\google-api-client-2.2.0.jar;C:\Users\jvol2\.m2\repository\commons-codec\commons-codec\1.16.0\commons-codec-1.16.0.jar;C:\Users\jvol2\.m2\repository\com\google\oauth-client\google-oauth-client\1.34.1\google-oauth-client-1.34.1.jar;C:\Users\jvol2\.m2\repository\com\google\http-client\google-http-client-gson\1.42.3\google-http-client-gson-1.42.3.jar;C:\Users\jvol2\.m2\repository\com\google\http-client\google-http-client-apache-v2\1.42.3\google-http-client-apache-v2-1.42.3.jar;C:\Users\jvol2\.m2\repository\org\apache\httpcomponents\httpcore\4.4.16\httpcore-4.4.16.jar;C:\Users\jvol2\.m2\repository\com\google\api-client\google-api-client-gson\2.2.0\google-api-client-gson-2.2.0.jar;C:\Users\jvol2\.m2\repository\com\google\http-client\google-http-client\1.43.1\google-http-client-1.43.1.jar;C:\Users\jvol2\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\jvol2\.m2\repository\com\google\errorprone\error_prone_annotations\2.18.0\error_prone_annotations-2.18.0.jar;C:\Users\jvol2\.m2\repository\com\google\j2objc\j2objc-annotations\1.3\j2objc-annotations-1.3.jar;C:\Users\jvol2\.m2\repository\io\opencensus\opencensus-api\0.31.1\opencensus-api-0.31.1.jar;C:\Users\jvol2\.m2\repository\io\opencensus\opencensus-contrib-http-util\0.31.1\opencensus-contrib-http-util-0.31.1.jar;C:\Users\jvol2\.m2\repository\com\google\api\api-common\2.12.0\api-common-2.12.0.jar;C:\Users\jvol2\.m2\repository\com\google\auto\value\auto-value-annotations\1.10.1\auto-value-annotations-1.10.1.jar;C:\Users\jvol2\.m2\repository\javax\annotation\javax.annotation-api\1.3.2\javax.annotation-api-1.3.2.jar;C:\Users\jvol2\.m2\repository\com\google\auth\google-auth-library-oauth2-http\1.17.0\google-auth-library-oauth2-http-1.17.0.jar;C:\Users\jvol2\.m2\repository\com\google\auth\google-auth-library-credentials\1.17.0\google-auth-library-credentials-1.17.0.jar;C:\Users\jvol2\.m2\repository\com\google\cloud\google-cloud-storage\2.22.4\google-cloud-storage-2.22.4.jar;C:\Users\jvol2\.m2\repository\com\google\guava\failureaccess\1.0.1\failureaccess-1.0.1.jar;C:\Users\jvol2\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\jvol2\.m2\repository\com\google\http-client\google-http-client-jackson2\1.43.1\google-http-client-jackson2-1.43.1.jar;C:\Users\jvol2\.m2\repository\com\google\apis\google-api-services-storage\v1-rev20230301-2.0.0\google-api-services-storage-v1-rev20230301-2.0.0.jar;C:\Users\jvol2\.m2\repository\com\google\cloud\google-cloud-core\2.19.0\google-cloud-core-2.19.0.jar;C:\Users\jvol2\.m2\repository\com\google\cloud\google-cloud-core-http\2.19.0\google-cloud-core-http-2.19.0.jar;C:\Users\jvol2\.m2\repository\com\google\http-client\google-http-client-appengine\1.43.1\google-http-client-appengine-1.43.1.jar;C:\Users\jvol2\.m2\repository\com\google\api\gax-httpjson\0.114.0\gax-httpjson-0.114.0.jar;C:\Users\jvol2\.m2\repository\com\google\cloud\google-cloud-core-grpc\2.19.0\google-cloud-core-grpc-2.19.0.jar;C:\Users\jvol2\.m2\repository\com\google\api\gax\2.29.0\gax-2.29.0.jar;C:\Users\jvol2\.m2\repository\com\google\api\gax-grpc\2.29.0\gax-grpc-2.29.0.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-alts\1.55.1\grpc-alts-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-grpclb\1.55.1\grpc-grpclb-1.55.1.jar;C:\Users\jvol2\.m2\repository\org\conscrypt\conscrypt-openjdk-uber\2.5.2\conscrypt-openjdk-uber-2.5.2.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-auth\1.55.1\grpc-auth-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-protobuf\1.55.1\grpc-protobuf-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-protobuf-lite\1.55.1\grpc-protobuf-lite-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-context\1.55.1\grpc-context-1.55.1.jar;C:\Users\jvol2\.m2\repository\com\google\api\grpc\proto-google-iam-v1\1.15.0\proto-google-iam-v1-1.15.0.jar;C:\Users\jvol2\.m2\repository\com\google\protobuf\protobuf-java\3.23.2\protobuf-java-3.23.2.jar;C:\Users\jvol2\.m2\repository\com\google\protobuf\protobuf-java-util\3.23.2\protobuf-java-util-3.23.2.jar;C:\Users\jvol2\.m2\repository\com\google\api\grpc\proto-google-common-protos\2.20.0\proto-google-common-protos-2.20.0.jar;C:\Users\jvol2\.m2\repository\org\threeten\threetenbp\1.6.8\threetenbp-1.6.8.jar;C:\Users\jvol2\.m2\repository\com\google\api\grpc\proto-google-cloud-storage-v2\2.22.4-alpha\proto-google-cloud-storage-v2-2.22.4-alpha.jar;C:\Users\jvol2\.m2\repository\com\google\api\grpc\grpc-google-cloud-storage-v2\2.22.4-alpha\grpc-google-cloud-storage-v2-2.22.4-alpha.jar;C:\Users\jvol2\.m2\repository\com\google\api\grpc\gapic-google-cloud-storage-v2\2.22.4-alpha\gapic-google-cloud-storage-v2-2.22.4-alpha.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-api\1.55.1\grpc-api-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-netty-shaded\1.55.1\grpc-netty-shaded-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\perfmark\perfmark-api\0.26.0\perfmark-api-0.26.0.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-core\1.55.1\grpc-core-1.55.1.jar;C:\Users\jvol2\.m2\repository\com\google\android\annotations\4.1.1.4\annotations-4.1.1.4.jar;C:\Users\jvol2\.m2\repository\org\codehaus\mojo\animal-sniffer-annotations\1.23\animal-sniffer-annotations-1.23.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-stub\1.55.1\grpc-stub-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-googleapis\1.55.1\grpc-googleapis-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-xds\1.55.1\grpc-xds-1.55.1.jar;C:\Users\jvol2\.m2\repository\io\opencensus\opencensus-proto\0.2.0\opencensus-proto-0.2.0.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-services\1.55.1\grpc-services-1.55.1.jar;C:\Users\jvol2\.m2\repository\com\google\re2j\re2j\1.6\re2j-1.6.jar;C:\Users\jvol2\.m2\repository\io\grpc\grpc-rls\1.55.1\grpc-rls-1.55.1.jar;C:\Users\jvol2\.m2\repository\com\google\cloud\google-cloud-firestore\3.13.0\google-cloud-firestore-3.13.0.jar;C:\Users\jvol2\.m2\repository\commons-logging\commons-logging\1.2\commons-logging-1.2.jar;C:\Users\jvol2\.m2\repository\com\google\api\grpc\proto-google-cloud-firestore-v1\3.13.0\proto-google-cloud-firestore-v1-3.13.0.jar;C:\Users\jvol2\.m2\repository\com\google\cloud\proto-google-cloud-firestore-bundle-v1\3.13.0\proto-google-cloud-firestore-bundle-v1-3.13.0.jar;C:\Users\jvol2\.m2\repository\io\opencensus\opencensus-contrib-grpc-util\0.31.1\opencensus-contrib-grpc-util-0.31.1.jar;C:\Users\jvol2\.m2\repository\com\google\guava\guava\31.1-jre\guava-31.1-jre.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-codec-http\4.1.101.Final\netty-codec-http-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-common\4.1.101.Final\netty-common-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-buffer\4.1.101.Final\netty-buffer-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-codec\4.1.101.Final\netty-codec-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-handler\4.1.101.Final\netty-handler-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-resolver\4.1.101.Final\netty-resolver-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.101.Final\netty-transport-native-unix-common-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\io\netty\netty-transport\4.1.101.Final\netty-transport-4.1.101.Final.jar;C:\Users\jvol2\.m2\repository\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;C:\Users\jvol2\.m2\repository\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;C:\Users\jvol2\.m2\repository\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;C:\Users\jvol2\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.20\kotlin-stdlib-common-1.9.20.jar;C:\Users\jvol2\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.20\kotlin-stdlib-jdk8-1.9.20.jar;C:\Users\jvol2\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.9.20\kotlin-stdlib-1.9.20.jar;C:\Users\jvol2\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.20\kotlin-stdlib-jdk7-1.9.20.jar;C:\Users\jvol2\.m2\repository\org\projectlombok\lombok\1.18.44\lombok-1.18.44.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\jvol2\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.0\spring-boot-starter-logging-3.2.0.jar;C:\Users\jvol2\.m2\repository\ch\qos\logback\logback-classic\1.4.11\logback-classic-1.4.11.jar;C:\Users\jvol2\.m2\repository\ch\qos\logback\logback-core\1.4.11\logback-core-1.4.11.jar;C:\Users\jvol2\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\jvol2\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\jvol2\.m2\repository\org\slf4j\jul-to-slf4j\2.0.9\jul-to-slf4j-2.0.9.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.0\spring-boot-starter-test-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-test\3.2.0\spring-boot-test-3.2.0.jar;C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.0\spring-boot-test-autoconfigure-3.2.0.jar;C:\Users\jvol2\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\jvol2\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\jvol2\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\jvol2\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\jvol2\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\jvol2\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\jvol2\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\jvol2\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\jvol2\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\jvol2\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\jvol2\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\jvol2\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\jvol2\.m2\repository\org\springframework\spring-test\6.1.1\spring-test-6.1.1.jar;C:\Users\jvol2\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\jvol2\.m2\repository\org\springframework\security\spring-security-test\6.2.0\spring-security-test-6.2.0.jar;C:\Users\jvol2\.m2\repository\org\testcontainers\testcontainers\1.19.3\testcontainers-1.19.3.jar;C:\Users\jvol2\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\jvol2\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\jvol2\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\jvol2\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\jvol2\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\jvol2\.m2\repository\com\github\docker-java\docker-java-api\3.3.4\docker-java-api-3.3.4.jar;C:\Users\jvol2\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.4\docker-java-transport-zerodep-3.3.4.jar;C:\Users\jvol2\.m2\repository\com\github\docker-java\docker-java-transport\3.3.4\docker-java-transport-3.3.4.jar;C:\Users\jvol2\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\jvol2\.m2\repository\org\testcontainers\postgresql\1.19.3\postgresql-1.19.3.jar;C:\Users\jvol2\.m2\repository\org\testcontainers\jdbc\1.19.3\jdbc-1.19.3.jar;C:\Users\jvol2\.m2\repository\org\testcontainers\database-commons\1.19.3\database-commons-1.19.3.jar;C:\Users\jvol2\.m2\repository\org\testcontainers\junit-jupiter\1.19.3\junit-jupiter-1.19.3.jar;C:\Users\jvol2\.m2\repository\io\rest-assured\rest-assured\5.3.2\rest-assured-5.3.2.jar;C:\Users\jvol2\.m2\repository\org\apache\groovy\groovy\4.0.15\groovy-4.0.15.jar;C:\Users\jvol2\.m2\repository\org\apache\groovy\groovy-xml\4.0.15\groovy-xml-4.0.15.jar;C:\Users\jvol2\.m2\repository\org\apache\httpcomponents\httpclient\4.5.13\httpclient-4.5.13.jar;C:\Users\jvol2\.m2\repository\org\apache\httpcomponents\httpmime\4.5.13\httpmime-4.5.13.jar;C:\Users\jvol2\.m2\repository\org\ccil\cowan\tagsoup\tagsoup\1.2.1\tagsoup-1.2.1.jar;C:\Users\jvol2\.m2\repository\io\rest-assured\json-path\5.3.2\json-path-5.3.2.jar;C:\Users\jvol2\.m2\repository\org\apache\groovy\groovy-json\4.0.15\groovy-json-4.0.15.jar;C:\Users\jvol2\.m2\repository\io\rest-assured\rest-assured-common\5.3.2\rest-assured-common-5.3.2.jar;C:\Users\jvol2\.m2\repository\io\rest-assured\xml-path\5.3.2\xml-path-5.3.2.jar;C:\Users\jvol2\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\jvol2\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\jvol2\.m2\repository\net\bytebuddy\byte-buddy\1.14.10\byte-buddy-1.14.10.jar;C:\Users\jvol2\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.10\byte-buddy-agent-1.14.10.jar;C:\Users\jvol2\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\jvol2\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\jvol2\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\jvol2\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\jvol2\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\jvol2\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\jvol2\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\jvol2\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\jvol2\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -35,7 +35,7 @@
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="FILE_LOG_CHARSET" value="UTF-8"/>
     <property name="java.awt.headless" value="true"/>
-    <property name="surefire.real.class.path" value="C:\Users\jvol2\AppData\Local\Temp\surefire10782170643485662458\surefirebooter-20260504152631087_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\jvol2\AppData\Local\Temp\surefire8058953853873362431\surefirebooter-20260504161441597_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="26+35-2893"/>
@@ -51,19 +51,19 @@
     <property name="localRepository" value="C:\Users\jvol2\.m2\repository"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="C:\Users\jvol2\AppData\Local\Temp\"/>
-    <property name="catalina.home" value="C:\Users\jvol2\AppData\Local\Temp\tomcat.0.18358262109757667305"/>
+    <property name="catalina.home" value="C:\Users\jvol2\AppData\Local\Temp\tomcat.0.1559217376476677425"/>
     <property name="com.zaxxer.hikari.pool_number" value="2"/>
     <property name="java.version" value="26"/>
     <property name="user.dir" value="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiBackend"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="PID" value="5280"/>
+    <property name="PID" value="20392"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
     <property name="LOGBACK_ROLLINGPOLICY_MAX_HISTORY" value="7"/>
-    <property name="catalina.base" value="C:\Users\jvol2\AppData\Local\Temp\tomcat.0.8094521195714978457"/>
+    <property name="catalina.base" value="C:\Users\jvol2\AppData\Local\Temp\tomcat.0.395278244332944717"/>
     <property name="native.encoding" value="Cp1252"/>
-    <property name="java.library.path" value="C:\Program Files\Java\jdk-26\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files\Java\jdk-26\bin;C:\Users\jvol2\.codex\tmp\arg0\codex-arg093tKio;C:\Users\jvol2\AppData\Local\Programs\Microsoft VS Code;C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\PlasticSCM5\server;C:\Program Files\PlasticSCM5\client;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;c:\Users\jvol2\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;c:\Users\jvol2\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Users\jvol2\AppData\Local\Programs\Microsoft VS Code;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\PlasticSCM5\server;C:\Program Files\PlasticSCM5\client;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Users\jvol2\.local\bin;C:\Users\jvol2\AppData\Local\Microsoft\WindowsApps;C:\Users\jvol2\AppData\Local\Programs\Microsoft VS Code\bin;c:\Users\jvol2\.vscode\extensions\vscjava.vscode-java-debug-0.59.0\bundled\scripts\noConfigScripts;C:\tools\apache-maven-3.9.0\bin;C:\Users\jvol2\AppData\Roaming\npm;c:\Users\jvol2\.vscode\extensions\openai.chatgpt-26.429.30905-win32-x64\bin\windows-x86_64;."/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-26\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files\Java\jdk-26\bin;C:\Users\jvol2\.codex\tmp\arg0\codex-arg0MkQDJl;C:\Users\jvol2\AppData\Local\Programs\Microsoft VS Code;C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\PlasticSCM5\server;C:\Program Files\PlasticSCM5\client;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;c:\Users\jvol2\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;c:\Users\jvol2\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Users\jvol2\AppData\Local\Programs\Microsoft VS Code;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\PlasticSCM5\server;C:\Program Files\PlasticSCM5\client;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Users\jvol2\.local\bin;C:\Users\jvol2\AppData\Local\Microsoft\WindowsApps;C:\Users\jvol2\AppData\Local\Programs\Microsoft VS Code\bin;c:\Users\jvol2\.vscode\extensions\vscjava.vscode-java-debug-0.59.0\bundled\scripts\noConfigScripts;C:\tools\apache-maven-3.9.0\bin;C:\Users\jvol2\AppData\Roaming\npm;c:\Users\jvol2\.vscode\extensions\openai.chatgpt-26.429.30905-win32-x64\bin\windows-x86_64;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
     <property name="stderr.encoding" value="Cp1252"/>
     <property name="java.vendor" value="Oracle Corporation"/>
@@ -74,20 +74,20 @@
     <property name="CONSOLE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} - %msg%n"/>
     <property name="LOGGED_APPLICATION_NAME" value="[ecobook-ia-backend] "/>
   </properties>
-  <testcase name="shouldRejectInvalidGoogleToken" classname="com.ecobook.AuthControllerIntegrationTest" time="0.134">
-    <system-out><![CDATA[2026-05-04 15:26:42 - Neither @ContextConfiguration nor @ContextHierarchy found for test class [AuthControllerIntegrationTest]: using SpringBootContextLoader
-2026-05-04 15:26:42 - Could not detect default configuration classes for test class [com.ecobook.AuthControllerIntegrationTest]: AuthControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-05-04 15:26:42 - Using ContextCustomizerFactory implementations for test class [AuthControllerIntegrationTest]: [ImportsContextCustomizerFactory, ExcludeFilterContextCustomizerFactory, HttpGraphQlTesterContextCustomizerFactory, DuplicateJsonObjectContextCustomizerFactory, MockitoContextCustomizerFactory, TestRestTemplateContextCustomizerFactory, WebTestClientContextCustomizerFactory, OverrideAutoConfigurationContextCustomizerFactory, ObservabilityContextCustomizerFactory, TypeExcludeFiltersContextCustomizerFactory, PropertyMappingContextCustomizerFactory, WebDriverContextCustomizerFactory, MockServerContainerContextCustomizerFactory, DynamicPropertiesContextCustomizerFactory]
-2026-05-04 15:26:42 - Using ContextCustomizers for test class [AuthControllerIntegrationTest]: [ImportsContextCustomizer, ExcludeFilterContextCustomizer, DuplicateJsonObjectContextCustomizer, MockitoContextCustomizer, TestRestTemplateContextCustomizer, DisableObservabilityContextCustomizer, PropertyMappingContextCustomizer, WebDriverContextCustomizer]
-2026-05-04 15:26:42 - Found @SpringBootConfiguration com.ecobook.EcoBookApplication for test class com.ecobook.AuthControllerIntegrationTest
-2026-05-04 15:26:42 - Using TestExecutionListeners for test class [AuthControllerIntegrationTest]: [ServletTestExecutionListener, DirtiesContextBeforeModesTestExecutionListener, ApplicationEventsTestExecutionListener, MockitoTestExecutionListener, DependencyInjectionTestExecutionListener, DirtiesContextTestExecutionListener, TransactionalTestExecutionListener, SqlScriptsTestExecutionListener, EventPublishingTestExecutionListener, WithSecurityContextTestExecutionListener, ReactorContextTestExecutionListener, ResetMocksTestExecutionListener, RestDocsTestExecutionListener, MockRestServiceServerResetTestExecutionListener, MockMvcPrintOnlyOnFailureTestExecutionListener, WebDriverTestExecutionListener, MockWebServiceServerTestExecutionListener]
-2026-05-04 15:26:42 - Loading from YAML: class path resource [application.yml]
-2026-05-04 15:26:42 - Merging document (no matchers set): {spring={application={name=ecobook-ia-backend}, datasource={url=jdbc:postgresql://localhost:5432/ecobook, username=ecobook, password=${DB_PASSWORD:dev_password_123}, driver-class-name=org.postgresql.Driver, hikari={maximum-pool-size=20, minimum-idle=5, connection-timeout=20000, idle-timeout=300000, max-lifetime=1200000, auto-commit=true, connection-test-query=SELECT 1}}, jpa={hibernate={ddl-auto=validate}, properties={hibernate={format_sql=true, use_sql_comments=true, jdbc={batch_size=20, fetch_size=50}, order_inserts=true, order_updates=true, generate_statistics=false}}, show-sql=false, open-in-view=false}, flyway={enabled=true, locations=classpath:db/migration, baseline-on-migrate=true, baseline-version=0}, security={oauth2={resourceserver={jwt={issuer-uri=${GOOGLE_OAUTH_ISSUER_URI:https://accounts.google.com}, jwk-set-uri=${GOOGLE_OAUTH_JWK_SET_URI:https://www.googleapis.com/oauth2/v3/certs}}}}}, jackson={serialization={write-dates-as-timestamps=false, indent-output=false}, deserialization={fail-on-unknown-properties=false}, default-property-inclusion=non_null, time-zone=UTC}, servlet={multipart={max-file-size=5MB, max-request-size=5MB}}}, server={port=${SERVER_PORT:8080}, servlet={context-path=/api}, error={include-message=always, include-binding-errors=always, include-stacktrace=on_param, include-exception=false}, compression={enabled=true, min-response-size=1024}}, jwt={secret=${JWT_SECRET:change-this-jwt-secret-in-production-and-keep-it-at-least-64-characters-long}, expiration=${JWT_EXPIRATION:604800000}, refresh-expiration=${JWT_REFRESH_EXPIRATION:2592000000}}, google={oauth={client-id=${GOOGLE_OAUTH_CLIENT_ID:}, client-secret=${GOOGLE_OAUTH_CLIENT_SECRET:}}}, gemini={api-key=${GEMINI_API_KEY:}, model=${GEMINI_MODEL:gemini-2.5-flash}, max-retries=${GEMINI_MAX_RETRIES:3}, timeout-seconds=${GEMINI_TIMEOUT_SECONDS:10}, rate-limit-window-minutes=${GEMINI_RATE_LIMIT_WINDOW_MINUTES:5}, rate-limit-threshold=${GEMINI_RATE_LIMIT_THRESHOLD:10}, circuit-breaker-pause-seconds=${GEMINI_CIRCUIT_BREAKER_PAUSE_SECONDS:30}}, firebase={service-account-path=${FIREBASE_SERVICE_ACCOUNT_PATH:}, database-url=${FIREBASE_DATABASE_URL:}}, storage={upload-dir=${STORAGE_UPLOAD_DIR:./uploads}, max-file-size-mb=${STORAGE_MAX_FILE_SIZE_MB:5}, retention-days=${STORAGE_RETENTION_DAYS:730}}, management={endpoints={web={exposure={include=health,info,metrics}, base-path=/actuator}}, endpoint={health={show-details=when-authorized}}, metrics={tags={application=ecobook-ia}}}, logging={level={root=INFO, com.ecobook=DEBUG, org.springframework.security=DEBUG, org.hibernate.SQL=DEBUG, org.hibernate.type.descriptor.sql.BasicBinder=TRACE}, pattern={console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n, file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n}, file={name=logs/ecobook.log, max-size=10MB, max-history=7}}}
-2026-05-04 15:26:42 - Loaded 1 document from YAML resource: class path resource [application.yml]
-2026-05-04 15:26:42 - Loading from YAML: class path resource [application-test.yml]
-2026-05-04 15:26:42 - Merging document (no matchers set): {spring={datasource={url=jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH, driver-class-name=org.h2.Driver, username=sa, password=}, jpa={database-platform=org.hibernate.dialect.H2Dialect, hibernate={ddl-auto=create-drop}, show-sql=false}, flyway={enabled=false}}, jwt={secret=test-secret-key-for-testing-only-and-long-enough-for-hmac-sha512-signing, expiration=3600000}}
-2026-05-04 15:26:42 - Loaded 1 document from YAML resource: class path resource [application-test.yml]
-2026-05-04 15:26:42 - Activating profiles [test]
+  <testcase name="shouldRejectInvalidGoogleToken" classname="com.ecobook.AuthControllerIntegrationTest" time="0.138">
+    <system-out><![CDATA[2026-05-04 16:14:54 - Neither @ContextConfiguration nor @ContextHierarchy found for test class [AuthControllerIntegrationTest]: using SpringBootContextLoader
+2026-05-04 16:14:54 - Could not detect default configuration classes for test class [com.ecobook.AuthControllerIntegrationTest]: AuthControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-05-04 16:14:54 - Using ContextCustomizerFactory implementations for test class [AuthControllerIntegrationTest]: [ImportsContextCustomizerFactory, ExcludeFilterContextCustomizerFactory, HttpGraphQlTesterContextCustomizerFactory, DuplicateJsonObjectContextCustomizerFactory, MockitoContextCustomizerFactory, TestRestTemplateContextCustomizerFactory, WebTestClientContextCustomizerFactory, OverrideAutoConfigurationContextCustomizerFactory, ObservabilityContextCustomizerFactory, TypeExcludeFiltersContextCustomizerFactory, PropertyMappingContextCustomizerFactory, WebDriverContextCustomizerFactory, MockServerContainerContextCustomizerFactory, DynamicPropertiesContextCustomizerFactory]
+2026-05-04 16:14:54 - Using ContextCustomizers for test class [AuthControllerIntegrationTest]: [ImportsContextCustomizer, ExcludeFilterContextCustomizer, DuplicateJsonObjectContextCustomizer, MockitoContextCustomizer, TestRestTemplateContextCustomizer, DisableObservabilityContextCustomizer, PropertyMappingContextCustomizer, WebDriverContextCustomizer]
+2026-05-04 16:14:54 - Found @SpringBootConfiguration com.ecobook.EcoBookApplication for test class com.ecobook.AuthControllerIntegrationTest
+2026-05-04 16:14:54 - Using TestExecutionListeners for test class [AuthControllerIntegrationTest]: [ServletTestExecutionListener, DirtiesContextBeforeModesTestExecutionListener, ApplicationEventsTestExecutionListener, MockitoTestExecutionListener, DependencyInjectionTestExecutionListener, DirtiesContextTestExecutionListener, TransactionalTestExecutionListener, SqlScriptsTestExecutionListener, EventPublishingTestExecutionListener, WithSecurityContextTestExecutionListener, ReactorContextTestExecutionListener, ResetMocksTestExecutionListener, RestDocsTestExecutionListener, MockRestServiceServerResetTestExecutionListener, MockMvcPrintOnlyOnFailureTestExecutionListener, WebDriverTestExecutionListener, MockWebServiceServerTestExecutionListener]
+2026-05-04 16:14:54 - Loading from YAML: class path resource [application.yml]
+2026-05-04 16:14:54 - Merging document (no matchers set): {spring={application={name=ecobook-ia-backend}, datasource={url=jdbc:postgresql://localhost:5432/ecobook, username=ecobook, password=${DB_PASSWORD:dev_password_123}, driver-class-name=org.postgresql.Driver, hikari={maximum-pool-size=20, minimum-idle=5, connection-timeout=20000, idle-timeout=300000, max-lifetime=1200000, auto-commit=true, connection-test-query=SELECT 1}}, jpa={hibernate={ddl-auto=validate}, properties={hibernate={format_sql=true, use_sql_comments=true, jdbc={batch_size=20, fetch_size=50}, order_inserts=true, order_updates=true, generate_statistics=false}}, show-sql=false, open-in-view=false}, flyway={enabled=true, locations=classpath:db/migration, baseline-on-migrate=true, baseline-version=0}, security={oauth2={resourceserver={jwt={issuer-uri=${GOOGLE_OAUTH_ISSUER_URI:https://accounts.google.com}, jwk-set-uri=${GOOGLE_OAUTH_JWK_SET_URI:https://www.googleapis.com/oauth2/v3/certs}}}}}, jackson={serialization={write-dates-as-timestamps=false, indent-output=false}, deserialization={fail-on-unknown-properties=false}, default-property-inclusion=non_null, time-zone=UTC}, servlet={multipart={max-file-size=5MB, max-request-size=5MB}}}, server={port=${SERVER_PORT:8080}, servlet={context-path=/api}, error={include-message=always, include-binding-errors=always, include-stacktrace=on_param, include-exception=false}, compression={enabled=true, min-response-size=1024}}, jwt={secret=${JWT_SECRET:change-this-jwt-secret-in-production-and-keep-it-at-least-64-characters-long}, expiration=${JWT_EXPIRATION:604800000}, refresh-expiration=${JWT_REFRESH_EXPIRATION:2592000000}}, google={oauth={client-id=${GOOGLE_OAUTH_CLIENT_ID:}, client-secret=${GOOGLE_OAUTH_CLIENT_SECRET:}}}, gemini={api-key=${GEMINI_API_KEY:}, model=${GEMINI_MODEL:gemini-2.5-flash}, max-retries=${GEMINI_MAX_RETRIES:3}, timeout-seconds=${GEMINI_TIMEOUT_SECONDS:10}, rate-limit-window-minutes=${GEMINI_RATE_LIMIT_WINDOW_MINUTES:5}, rate-limit-threshold=${GEMINI_RATE_LIMIT_THRESHOLD:10}, circuit-breaker-pause-seconds=${GEMINI_CIRCUIT_BREAKER_PAUSE_SECONDS:30}}, firebase={service-account-path=${FIREBASE_SERVICE_ACCOUNT_PATH:}, database-url=${FIREBASE_DATABASE_URL:}}, storage={upload-dir=${STORAGE_UPLOAD_DIR:./uploads}, max-file-size-mb=${STORAGE_MAX_FILE_SIZE_MB:5}, retention-days=${STORAGE_RETENTION_DAYS:730}}, management={endpoints={web={exposure={include=health,info,metrics}, base-path=/actuator}}, endpoint={health={show-details=when-authorized}}, metrics={tags={application=ecobook-ia}}}, logging={level={root=INFO, com.ecobook=DEBUG, org.springframework.security=DEBUG, org.hibernate.SQL=DEBUG, org.hibernate.type.descriptor.sql.BasicBinder=TRACE}, pattern={console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n, file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n}, file={name=logs/ecobook.log, max-size=10MB, max-history=7}}}
+2026-05-04 16:14:54 - Loaded 1 document from YAML resource: class path resource [application.yml]
+2026-05-04 16:14:54 - Loading from YAML: class path resource [application-test.yml]
+2026-05-04 16:14:54 - Merging document (no matchers set): {spring={datasource={url=jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH, driver-class-name=org.h2.Driver, username=sa, password=}, jpa={database-platform=org.hibernate.dialect.H2Dialect, hibernate={ddl-auto=create-drop}, show-sql=false}, flyway={enabled=false}}, jwt={secret=test-secret-key-for-testing-only-and-long-enough-for-hmac-sha512-signing, expiration=3600000}}
+2026-05-04 16:14:54 - Loaded 1 document from YAML resource: class path resource [application-test.yml]
+2026-05-04 16:14:54 - Activating profiles [test]
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -97,48 +97,48 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.0)
 
-2026-05-04 15:26:42 - Starting AuthControllerIntegrationTest using Java 26 with PID 5280 (started by jvol2 in C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiBackend)
-2026-05-04 15:26:42 - Running with Spring Boot v3.2.0, Spring v6.1.1
-2026-05-04 15:26:42 - The following 1 profile is active: "test"
-2026-05-04 15:26:42 - Loading source class com.ecobook.EcoBookApplication
-2026-05-04 15:26:42 - Refreshing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@3021be13
-2026-05-04 15:26:42 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-05-04 15:26:42 - @EnableAutoConfiguration was declared on a class in the package 'com.ecobook'. Automatic @Repository and @Entity scanning is enabled.
-2026-05-04 15:26:42 - Finished Spring Data repository scanning in 14 ms. Found 3 JPA repository interfaces.
-2026-05-04 15:26:42 - Code archive: C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar
-2026-05-04 15:26:42 - Code archive: C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar
-2026-05-04 15:26:42 - None of the document roots [src/main/webapp, public, static] point to a directory and will be ignored.
-2026-05-04 15:26:42 - Tomcat initialized with port 0 (http)
-2026-05-04 15:26:42 - Starting service [Tomcat]
-2026-05-04 15:26:42 - Starting Servlet engine: [Apache Tomcat/10.1.16]
-2026-05-04 15:26:42 - Initializing Spring embedded WebApplicationContext
-2026-05-04 15:26:42 - Published root WebApplicationContext as ServletContext attribute with name [org.springframework.web.context.WebApplicationContext.ROOT]
-2026-05-04 15:26:42 - Root WebApplicationContext: initialization completed in 497 ms
-2026-05-04 15:26:42 - Mapping filters: webMvcObservationFilter urls=[/*] order=-2147483647, springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, jwtAuthenticationFilter urls=[/*] order=2147483647
-2026-05-04 15:26:42 - Mapping servlets: dispatcherServlet urls=[/]
-2026-05-04 15:26:42 - Filter 'requestContextFilter' configured for use
-2026-05-04 15:26:42 - Filter 'jwtAuthenticationFilter' configured for use
-2026-05-04 15:26:42 - Filter 'webMvcObservationFilter' configured for use
-2026-05-04 15:26:42 - Filter 'characterEncodingFilter' configured for use
-2026-05-04 15:26:42 - Filter 'springSecurityFilterChain' configured for use
-2026-05-04 15:26:42 - Filter 'formContentFilter' configured for use
-2026-05-04 15:26:42 - HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-05-04 15:26:42 - HHH000026: Second-level cache disabled
-2026-05-04 15:26:42 - No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-05-04 15:26:42 - HikariPool-2 - Starting...
-2026-05-04 15:26:42 - HikariPool-2 - Added connection conn5: url=jdbc:h2:mem:testdb user=SA
-2026-05-04 15:26:42 - HikariPool-2 - Start completed.
-2026-05-04 15:26:42 - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-05-04 15:26:42 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:54 - Starting AuthControllerIntegrationTest using Java 26 with PID 20392 (started by jvol2 in C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiBackend)
+2026-05-04 16:14:54 - Running with Spring Boot v3.2.0, Spring v6.1.1
+2026-05-04 16:14:54 - The following 1 profile is active: "test"
+2026-05-04 16:14:54 - Loading source class com.ecobook.EcoBookApplication
+2026-05-04 16:14:54 - Refreshing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4826082d
+2026-05-04 16:14:54 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-04 16:14:54 - @EnableAutoConfiguration was declared on a class in the package 'com.ecobook'. Automatic @Repository and @Entity scanning is enabled.
+2026-05-04 16:14:54 - Finished Spring Data repository scanning in 15 ms. Found 3 JPA repository interfaces.
+2026-05-04 16:14:55 - Code archive: C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar
+2026-05-04 16:14:55 - Code archive: C:\Users\jvol2\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar
+2026-05-04 16:14:55 - None of the document roots [src/main/webapp, public, static] point to a directory and will be ignored.
+2026-05-04 16:14:55 - Tomcat initialized with port 0 (http)
+2026-05-04 16:14:55 - Starting service [Tomcat]
+2026-05-04 16:14:55 - Starting Servlet engine: [Apache Tomcat/10.1.16]
+2026-05-04 16:14:55 - Initializing Spring embedded WebApplicationContext
+2026-05-04 16:14:55 - Published root WebApplicationContext as ServletContext attribute with name [org.springframework.web.context.WebApplicationContext.ROOT]
+2026-05-04 16:14:55 - Root WebApplicationContext: initialization completed in 946 ms
+2026-05-04 16:14:55 - Mapping filters: webMvcObservationFilter urls=[/*] order=-2147483647, springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, jwtAuthenticationFilter urls=[/*] order=2147483647
+2026-05-04 16:14:55 - Mapping servlets: dispatcherServlet urls=[/]
+2026-05-04 16:14:55 - Filter 'requestContextFilter' configured for use
+2026-05-04 16:14:55 - Filter 'jwtAuthenticationFilter' configured for use
+2026-05-04 16:14:55 - Filter 'webMvcObservationFilter' configured for use
+2026-05-04 16:14:55 - Filter 'characterEncodingFilter' configured for use
+2026-05-04 16:14:55 - Filter 'springSecurityFilterChain' configured for use
+2026-05-04 16:14:55 - Filter 'formContentFilter' configured for use
+2026-05-04 16:14:55 - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-04 16:14:55 - HHH000026: Second-level cache disabled
+2026-05-04 16:14:55 - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-04 16:14:55 - HikariPool-2 - Starting...
+2026-05-04 16:14:55 - HikariPool-2 - Added connection conn5: url=jdbc:h2:mem:testdb user=SA
+2026-05-04 16:14:55 - HikariPool-2 - Start completed.
+2026-05-04 16:14:55 - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-04 16:14:55 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-04 16:14:55 - 
     drop table if exists material cascade 
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     drop table if exists solicitacao cascade 
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     drop table if exists usuario cascade 
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     drop table if exists usuario_necessidades cascade 
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create table material (
         ano integer,
         confianca_ia float(53),
@@ -161,7 +161,7 @@
         titulo varchar(255) not null,
         primary key (id)
     )
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create table solicitacao (
         aprovado_em timestamp(6),
         atualizado_em timestamp(6) not null,
@@ -174,7 +174,7 @@
         contato_doador json,
         primary key (id)
     )
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create table usuario (
         consentimento_ia boolean not null,
         perfil_completo boolean not null,
@@ -191,91 +191,91 @@
         role varchar(255) not null check (role in ('USER','ADMIN')),
         primary key (id)
     )
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create table usuario_necessidades (
         usuario_id uuid not null,
         necessidade varchar(255) check (necessidade in ('TEXTBOOKS','WORKBOOKS','REFERENCE_MATERIALS','FICTION','TECHNICAL_BOOKS','TEST_PREP'))
     )
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_status 
        on material (status)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_status_disciplina 
        on material (status, disciplina)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_status_nivel_ensino 
        on material (status, nivel_ensino)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_sistema_ensino 
        on material (sistema_ensino)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_cidade_bairro 
        on material (cidade, bairro)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_data_publicacao 
        on material (data_publicacao)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_material_doador_id 
        on material (doador_id)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_solicitacao_material_id 
        on solicitacao (material_id)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_solicitacao_estudante_id 
        on solicitacao (estudante_id)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_solicitacao_status 
        on solicitacao (status)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_solicitacao_expires_at 
        on solicitacao (expires_at)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_usuario_google_id 
        on usuario (google_id)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     create index idx_usuario_perfil_completo 
        on usuario (perfil_completo)
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     alter table if exists material 
        add constraint FKah2y2x1u02mdo925q5opmrjgw 
        foreign key (doador_id) 
        references usuario
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     alter table if exists solicitacao 
        add constraint FKossq60i0b0igagubnqcplnqop 
        foreign key (estudante_id) 
        references usuario
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     alter table if exists solicitacao 
        add constraint FKsg0e9nqdlgb8b0guk82vnjno4 
        foreign key (material_id) 
        references material
-2026-05-04 15:26:42 - 
+2026-05-04 16:14:55 - 
     alter table if exists usuario_necessidades 
        add constraint FKeojnfy2rmulr4tc7cf70c032t 
        foreign key (usuario_id) 
        references usuario
-2026-05-04 15:26:42 - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-05-04 15:26:42 - No authenticationProviders and no parentAuthenticationManager defined. Returning null.
-2026-05-04 15:26:42 - 10 mappings in 'requestMappingHandlerMapping'
-2026-05-04 15:26:43 - Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
-2026-05-04 15:26:43 - Exposing 3 endpoint(s) beneath base path '/actuator'
-2026-05-04 15:26:43 - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@4759c470, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@2aa2ff5c, org.springframework.security.web.context.SecurityContextHolderFilter@14bc66a6, org.springframework.security.web.header.HeaderWriterFilter@70ff6b11, org.springframework.web.filter.CorsFilter@1fdd7b2d, org.springframework.security.web.authentication.logout.LogoutFilter@97edd47, com.ecobook.security.JwtAuthenticationFilter@6f377017, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3bab8e19, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@32ea3de8, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@29601d11, org.springframework.security.web.session.SessionManagementFilter@34088454, org.springframework.security.web.access.ExceptionTranslationFilter@48434b88, org.springframework.security.web.access.intercept.AuthorizationFilter@57e1822f]
-2026-05-04 15:26:43 - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
-2026-05-04 15:26:43 - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
-2026-05-04 15:26:43 - Mapping filters: webMvcObservationFilter urls=[/*] order=-2147483647, springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, jwtAuthenticationFilter urls=[/*] order=2147483647
-2026-05-04 15:26:43 - Mapping servlets: 
-2026-05-04 15:26:43 - Filter 'characterEncodingFilter' configured for use
-2026-05-04 15:26:43 - Filter 'webMvcObservationFilter' configured for use
-2026-05-04 15:26:43 - Filter 'formContentFilter' configured for use
-2026-05-04 15:26:43 - Filter 'requestContextFilter' configured for use
-2026-05-04 15:26:43 - Filter 'springSecurityFilterChain' configured for use
-2026-05-04 15:26:43 - Filter 'jwtAuthenticationFilter' configured for use
-2026-05-04 15:26:43 - Initializing Spring TestDispatcherServlet ''
-2026-05-04 15:26:43 - Initializing Servlet ''
-2026-05-04 15:26:43 - Completed initialization in 0 ms
-2026-05-04 15:26:43 - Tomcat started on port 57834 (http) with context path '/api'
-2026-05-04 15:26:43 - 
+2026-05-04 16:14:55 - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-04 16:14:55 - No authenticationProviders and no parentAuthenticationManager defined. Returning null.
+2026-05-04 16:14:55 - 10 mappings in 'requestMappingHandlerMapping'
+2026-05-04 16:14:55 - Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-05-04 16:14:55 - Exposing 3 endpoint(s) beneath base path '/actuator'
+2026-05-04 16:14:55 - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@29601d11, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@20933609, org.springframework.security.web.context.SecurityContextHolderFilter@1f4ed9e1, org.springframework.security.web.header.HeaderWriterFilter@6dc2b112, org.springframework.web.filter.CorsFilter@1df67558, org.springframework.security.web.authentication.logout.LogoutFilter@1d490b2b, com.ecobook.security.JwtAuthenticationFilter@49eca74c, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1d55170c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@52ff05a3, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@698661d8, org.springframework.security.web.session.SessionManagementFilter@3aca6405, org.springframework.security.web.access.ExceptionTranslationFilter@aa10e39, org.springframework.security.web.access.intercept.AuthorizationFilter@3c113b6e]
+2026-05-04 16:14:55 - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-05-04 16:14:55 - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-05-04 16:14:56 - Mapping filters: webMvcObservationFilter urls=[/*] order=-2147483647, springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, jwtAuthenticationFilter urls=[/*] order=2147483647
+2026-05-04 16:14:56 - Mapping servlets: 
+2026-05-04 16:14:56 - Filter 'characterEncodingFilter' configured for use
+2026-05-04 16:14:56 - Filter 'webMvcObservationFilter' configured for use
+2026-05-04 16:14:56 - Filter 'formContentFilter' configured for use
+2026-05-04 16:14:56 - Filter 'requestContextFilter' configured for use
+2026-05-04 16:14:56 - Filter 'springSecurityFilterChain' configured for use
+2026-05-04 16:14:56 - Filter 'jwtAuthenticationFilter' configured for use
+2026-05-04 16:14:56 - Initializing Spring TestDispatcherServlet ''
+2026-05-04 16:14:56 - Initializing Servlet ''
+2026-05-04 16:14:56 - Completed initialization in 0 ms
+2026-05-04 16:14:56 - Tomcat started on port 57132 (http) with context path '/api'
+2026-05-04 16:14:56 - 
 
 
 ============================
@@ -2296,29 +2296,29 @@ Unconditional classes:
 
 
 
-2026-05-04 15:26:43 - Started AuthControllerIntegrationTest in 1.33 seconds (process running for 12.15)
-2026-05-04 15:26:43 - Application availability state LivenessState changed to CORRECT
-2026-05-04 15:26:43 - Application availability state ReadinessState changed to ACCEPTING_TRAFFIC
-2026-05-04 15:26:43 - Securing POST /v1/auth/register
-2026-05-04 15:26:43 - Set SecurityContextHolder to anonymous SecurityContext
-2026-05-04 15:26:43 - Cache miss for REQUEST dispatch to '/v1/auth/register' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
-2026-05-04 15:26:43 - Secured POST /v1/auth/register
-2026-05-04 15:26:43 - Mapped to com.ecobook.controller.AuthController#register(AuthRequestDTO)
-2026-05-04 15:26:43 - Read "application/json;charset=UTF-8" to [AuthRequestDTO(googleToken=invalid-google-token)]
-2026-05-04 15:26:43 - Using @ExceptionHandler com.ecobook.exception.GlobalExceptionHandler#handleAuthenticationException(AuthenticationException, WebRequest)
-2026-05-04 15:26:43 - Authentication error: Invalid Google token
-2026-05-04 15:26:43 - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-04 15:26:43 - Writing [ErrorResponse(status=401, error=UNAUTHORIZED, message=Invalid Google token, timestamp=2026-05-04T15: (truncated)...]
-2026-05-04 15:26:43 - Resolved [org.springframework.security.authentication.BadCredentialsException: Invalid Google token]
+2026-05-04 16:14:56 - Started AuthControllerIntegrationTest in 1.907 seconds (process running for 14.399)
+2026-05-04 16:14:56 - Application availability state LivenessState changed to CORRECT
+2026-05-04 16:14:56 - Application availability state ReadinessState changed to ACCEPTING_TRAFFIC
+2026-05-04 16:14:56 - Securing POST /v1/auth/register
+2026-05-04 16:14:56 - Set SecurityContextHolder to anonymous SecurityContext
+2026-05-04 16:14:56 - Cache miss for REQUEST dispatch to '/v1/auth/register' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-05-04 16:14:56 - Secured POST /v1/auth/register
+2026-05-04 16:14:56 - Mapped to com.ecobook.controller.AuthController#register(AuthRequestDTO)
+2026-05-04 16:14:56 - Read "application/json;charset=UTF-8" to [AuthRequestDTO(googleToken=invalid-google-token)]
+2026-05-04 16:14:56 - Using @ExceptionHandler com.ecobook.exception.GlobalExceptionHandler#handleAuthenticationException(AuthenticationException, WebRequest)
+2026-05-04 16:14:56 - Authentication error: Invalid Google token
+2026-05-04 16:14:56 - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-04 16:14:56 - Writing [ErrorResponse(status=401, error=UNAUTHORIZED, message=Invalid Google token, timestamp=2026-05-04T16: (truncated)...]
+2026-05-04 16:14:56 - Resolved [org.springframework.security.authentication.BadCredentialsException: Invalid Google token]
 ]]></system-out>
   </testcase>
-  <testcase name="shouldRegisterUserWithValidGoogleToken" classname="com.ecobook.AuthControllerIntegrationTest" time="0.119">
-    <system-out><![CDATA[2026-05-04 15:26:43 - Securing POST /v1/auth/register
-2026-05-04 15:26:43 - Set SecurityContextHolder to anonymous SecurityContext
-2026-05-04 15:26:43 - Secured POST /v1/auth/register
-2026-05-04 15:26:43 - Mapped to com.ecobook.controller.AuthController#register(AuthRequestDTO)
-2026-05-04 15:26:43 - Read "application/json;charset=UTF-8" to [AuthRequestDTO(googleToken=valid-google-token)]
-2026-05-04 15:26:43 - 
+  <testcase name="shouldRegisterUserWithValidGoogleToken" classname="com.ecobook.AuthControllerIntegrationTest" time="0.129">
+    <system-out><![CDATA[2026-05-04 16:14:56 - Securing POST /v1/auth/register
+2026-05-04 16:14:56 - Set SecurityContextHolder to anonymous SecurityContext
+2026-05-04 16:14:56 - Secured POST /v1/auth/register
+2026-05-04 16:14:56 - Mapped to com.ecobook.controller.AuthController#register(AuthRequestDTO)
+2026-05-04 16:14:56 - Read "application/json;charset=UTF-8" to [AuthRequestDTO(googleToken=valid-google-token)]
+2026-05-04 16:14:56 - 
     /* <criteria> */ select
         u1_0.id,
         u1_0.atualizado_em,
@@ -2337,7 +2337,7 @@ Unconditional classes:
         usuario u1_0 
     where
         u1_0.google_id=?
-2026-05-04 15:26:43 - 
+2026-05-04 16:14:56 - 
     /* select
         u 
     from
@@ -2361,16 +2361,16 @@ Unconditional classes:
             usuario u1_0 
         where
             lower(u1_0.email)=lower(?)
-2026-05-04 15:26:43 - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-04 15:26:43 - Writing [AuthResponseDTO(id=f810effd-fb1d-46a4-b200-ba400f296c5b, email=newuser@example.com, nome=New User, p (truncated)...]
-2026-05-04 15:26:43 - 
+2026-05-04 16:14:56 - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-04 16:14:56 - Writing [AuthResponseDTO(id=2ecf1c40-3a33-4703-9ad1-15a87cb89c31, email=newuser@example.com, nome=New User, p (truncated)...]
+2026-05-04 16:14:56 - 
     /* insert for
         com.ecobook.model.Usuario */insert 
     into
         usuario (atualizado_em, bairro, cidade, consentimento_ia, criado_em, email, google_id, instituicao, nome, perfil_completo, role, whatsapp, id) 
     values
         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-2026-05-04 15:26:43 - 
+2026-05-04 16:14:56 - 
     /* select
         u 
     from

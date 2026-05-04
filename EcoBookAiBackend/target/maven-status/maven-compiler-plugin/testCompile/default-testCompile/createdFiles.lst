@@ -1,4 +1,10 @@
+com\ecobook\aspect\ProfileCompletenessAspectTest.class
 com\ecobook\config\TestDatabaseConfig.class
+com\ecobook\AuthControllerIntegrationTest.class
 com\ecobook\BaseIntegrationTest.class
+com\ecobook\UsuarioControllerTest.class
+com\ecobook\security\JwtTokenProviderTest.class
+com\ecobook\validator\WhatsAppValidatorTest.class
 com\ecobook\FirstIntegrationTest.class
+com\ecobook\UsuarioServiceTest.class
 com\ecobook\util\TestDataBuilder.class

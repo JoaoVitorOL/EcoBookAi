@@ -94,29 +94,29 @@ Phase 10: Polish & Integration
 
 ### T001–T015: Backend Skeleton Setup
 
-- [ ] **T001** [P] Create Spring Boot 3.x project with Maven structure in `EcoBookAiBackend/`
+- [x] **T001** [P] Create Spring Boot 3.x project with Maven structure in `EcoBookAiBackend/`
 - [ ] **T002** [P] Configure `pom.xml` with dependencies: Spring Web, Spring Data JPA, Spring Security, Spring Cloud, PostgreSQL driver, JWT (io.jsonwebtoken), Gemini SDK, Firebase Admin SDK, Lombok
-- [ ] **T003** [P] Create `application.yml` configuration with database URL, OAuth2 properties, JWT secret, Gemini API key placeholder, FCM service account path
-- [ ] **T004** [P] Setup database connection pooling in `src/main/java/com/ecobook/config/DataSourceConfig.java` (HikariCP, max 20, min 5, validation query)
-- [ ] **T005** [P] Create Spring Data JPA entity mappings in `src/main/java/com/ecobook/model/`:
+- [x] **T003** [P] Create `application.yml` configuration with database URL, OAuth2 properties, JWT secret, Gemini API key placeholder, FCM service account path
+- [x] **T004** [P] Setup database connection pooling in `src/main/java/com/ecobook/config/DataSourceConfig.java` (HikariCP, max 20, min 5, validation query)
+- [x] **T005** [P] Create Spring Data JPA entity mappings in `src/main/java/com/ecobook/model/`:
   - `Usuario.java` (13 fields per data-model.md)
   - `Material.java` (15 fields per data-model.md)
   - `Solicitacao.java` (8 fields per data-model.md)
-- [ ] **T006** [P] Create PostgreSQL DDL migration script `src/main/resources/db/migration/V1__initial-schema.sql` with all enums, tables, indexes, constraints from data-model.md
-- [ ] **T007** [P] Setup Flyway database migrations in `pom.xml` and `application.yml` (auto-migrate on startup)
-- [ ] **T008** [P] Create REST exception handler in `src/main/java/com/ecobook/exception/GlobalExceptionHandler.java` (400, 403, 404, 409, 422, 500 mappings)
-- [ ] **T009** [P] Create controller package structure in `src/main/java/com/ecobook/controller/` (stub controllers for Phase 2 endpoints)
+- [x] **T006** [P] Create PostgreSQL DDL migration script `src/main/resources/db/migration/V1__initial-schema.sql` with all enums, tables, indexes, constraints from data-model.md
+- [x] **T007** [P] Setup Flyway database migrations in `pom.xml` and `application.yml` (auto-migrate on startup)
+- [x] **T008** [P] Create REST exception handler in `src/main/java/com/ecobook/exception/GlobalExceptionHandler.java` (400, 403, 404, 409, 422, 500 mappings)
+- [x] **T009** [P] Create controller package structure in `src/main/java/com/ecobook/controller/` (stub controllers for Phase 2 endpoints)
 - [ ] **T010** [P] Create service package structure in `src/main/java/com/ecobook/service/` (service interfaces per module)
-- [ ] **T011** [P] Create repository package structure in `src/main/java/com/ecobook/repository/` (Spring Data JPA repository interfaces)
-- [ ] **T012** [P] Create DTO package in `src/main/java/com/ecobook/dto/` (request/response DTOs for all endpoints)
-- [ ] **T013** [P] Setup Spring Security configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (CORS, CSRF, JWT filter)
-- [ ] **T014** [P] Create actuator health endpoint at `src/main/java/com/ecobook/controller/HealthController.java` (returns HTTP 200 on startup)
+- [x] **T011** [P] Create repository package structure in `src/main/java/com/ecobook/repository/` (Spring Data JPA repository interfaces)
+- [x] **T012** [P] Create DTO package in `src/main/java/com/ecobook/dto/` (request/response DTOs for all endpoints)
+- [x] **T013** [P] Setup Spring Security configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (CORS, CSRF, JWT filter)
+- [x] **T014** [P] Create actuator health endpoint at `src/main/java/com/ecobook/controller/HealthController.java` (returns HTTP 200 on startup)
 - [ ] **T015** [P] Setup Lombok annotations in `pom.xml` and configure IDE plugin (code generation for getters/setters)
 
 ### T016–T025: Android Project Setup
 
-- [ ] **T016** [P] Create Android project in `EcoBookAiAndroid/` with minSdk=26, targetSdk=34, Kotlin language, Jetpack Compose UI
-- [ ] **T017** [P] Add dependencies to `EcoBookAiAndroid/build.gradle.kts`:
+- [x] **T016** [P] Create Android project in `EcoBookAiAndroid/` with minSdk=26, targetSdk=34, Kotlin language, Jetpack Compose UI
+- [x] **T017** [P] Add dependencies to `EcoBookAiAndroid/build.gradle.kts`:
   - Jetpack Compose (latest)
   - Jetpack Navigation Compose
   - AppAuth (OAuth2)
@@ -129,24 +129,24 @@ Phase 10: Polish & Integration
 - [ ] **T018** [P] Create `EcoBookAiAndroid/src/main/res/values/api_config.xml` with backend_url placeholder (`http://10.0.2.2:8080` for emulator, configurable per build variant)
 - [ ] **T019** [P] Download `google-services.json` from Firebase Console and place in `EcoBookAiAndroid/app/google-services.json`
 - [ ] **T020** [P] Create `EcoBookAiAndroid/local.properties` with SDK path and backend URL configuration
-- [ ] **T021** [P] Setup Hilt application component in `EcoBookAiAndroid/src/main/java/com/ecobook/EcoBookApp.kt` with @HiltAndroidApp annotation
+- [x] **T021** [P] Setup Hilt application component in `EcoBookAiAndroid/src/main/java/com/ecobook/EcoBookApp.kt` with @HiltAndroidApp annotation
 - [ ] **T022** [P] Create Retrofit API client in `EcoBookAiAndroid/src/main/java/com/ecobook/api/EcoBookApiClient.kt` (abstract base URL, authentication interceptor placeholder)
-- [ ] **T023** [P] Create Jetpack Compose navigation graph in `EcoBookAiAndroid/src/main/java/com/ecobook/navigation/NavGraph.kt` (screen routing structure)
-- [ ] **T024** [P] Create main activity in `EcoBookAiAndroid/src/main/java/com/ecobook/MainActivity.kt` (composable entry point with navigation)
-- [ ] **T025** [P] Setup EncryptedSharedPreferences in `EcoBookAiAndroid/src/main/java/com/ecobook/utils/SecureStorage.kt` for JWT token storage (read, write, delete operations)
+- [x] **T023** [P] Create Jetpack Compose navigation graph in `EcoBookAiAndroid/src/main/java/com/ecobook/navigation/NavGraph.kt` (screen routing structure)
+- [x] **T024** [P] Create main activity in `EcoBookAiAndroid/src/main/java/com/ecobook/MainActivity.kt` (composable entry point with navigation)
+- [x] **T025** [P] Setup EncryptedSharedPreferences in `EcoBookAiAndroid/src/main/java/com/ecobook/utils/SecureStorage.kt` for JWT token storage (read, write, delete operations)
 
 ### T026–T035: Integration Test Infrastructure
 
-- [ ] **T026** [P] Add test dependencies to backend `pom.xml`: JUnit 5, Mockito, TestContainers (PostgreSQL), Spring Test, REST Assured, MockMvc
+- [x] **T026** [P] Add test dependencies to backend `pom.xml`: JUnit 5, Mockito, TestContainers (PostgreSQL), Spring Test, REST Assured, MockMvc
 - [ ] **T027** [P] Create `src/test/java/com/ecobook/config/TestDatabaseConfig.java` with TestContainers PostgreSQL configuration (auto-cleanup after tests)
-- [ ] **T028** [P] Create `src/test/java/com/ecobook/BaseIntegrationTest.java` abstract class with @SpringBootTest, @AutoConfigureMockMvc, @Testcontainers, transaction rollback
-- [ ] **T029** [P] Create `src/test/java/com/ecobook/util/TestDataBuilder.java` for creating test usuarios, materials, solicitacoes with default values
-- [ ] **T030** [P] Create GitHub Actions workflow in `.github/workflows/build-and-test.yml` (Maven build, test execution, code coverage reporting)
-- [ ] **T031** [P] Setup code coverage reporting in `pom.xml` (JaCoCo, target 85% coverage for Phase 4 gate)
-- [ ] **T032** [P] Create Android test structure in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/` with Compose testing utilities
-- [ ] **T033** [P] Create mock interceptor in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/api/MockApiInterceptor.kt` for returning stub responses during testing
+- [x] **T028** [P] Create `src/test/java/com/ecobook/BaseIntegrationTest.java` abstract class with @SpringBootTest, @AutoConfigureMockMvc, @Testcontainers, transaction rollback
+- [x] **T029** [P] Create `src/test/java/com/ecobook/util/TestDataBuilder.java` for creating test usuarios, materials, solicitacoes with default values
+- [x] **T030** [P] Create GitHub Actions workflow in `.github/workflows/build-and-test.yml` (Maven build, test execution, code coverage reporting)
+- [x] **T031** [P] Setup code coverage reporting in `pom.xml` (JaCoCo, target 85% coverage for Phase 4 gate)
+- [x] **T032** [P] Create Android test structure in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/` with Compose testing utilities
+- [x] **T033** [P] Create mock interceptor in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/api/MockApiInterceptor.kt` for returning stub responses during testing
 - [ ] **T034** [P] Setup Android emulator configuration in `EcoBookAiAndroid/build.gradle.kts` (API 26+, 1GB RAM, persistent storage path)
-- [ ] **T035** [P] Create first E2E test scenario in `src/test/java/com/ecobook/FirstIntegrationTest.java` (register → health check → verify database connectivity)
+- [x] **T035** [P] Create first E2E test scenario in `src/test/java/com/ecobook/FirstIntegrationTest.java` (register → health check → verify database connectivity)
 
 ---
 
@@ -165,17 +165,17 @@ Phase 10: Polish & Integration
 
 #### Backend: OAuth2 & JWT
 
-- [ ] **T036** [US1] Implement `src/main/java/com/ecobook/config/OAuth2Config.java` (Google OAuth2 resource server configuration, JWT validation)
-- [ ] **T037** [US1] Create `src/main/java/com/ecobook/security/JwtTokenProvider.java` service:
+- [x] **T036** [US1] Implement `src/main/java/com/ecobook/config/OAuth2Config.java` (Google OAuth2 resource server configuration, JWT validation)
+- [x] **T037** [US1] Create `src/main/java/com/ecobook/security/JwtTokenProvider.java` service:
   - Generate JWT (7-day expiry, subject=email, custom claims: role, perfil_completo)
   - Validate token (signature, expiry, claims)
   - Refresh token (if refresh token endpoint needed, add in Phase 4)
-- [ ] **T038** [US1] Create `src/main/java/com/ecobook/security/JwtAuthenticationFilter.java` (extracts JWT from Authorization header, validates, sets SecurityContext)
-- [ ] **T039** [US1] Register JWT filter in `SecurityConfig.java` with `addFilterBefore(JwtAuthenticationFilter, UsernamePasswordAuthenticationFilter)`
-- [ ] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
+- [x] **T038** [US1] Create `src/main/java/com/ecobook/security/JwtAuthenticationFilter.java` (extracts JWT from Authorization header, validates, sets SecurityContext)
+- [x] **T039** [US1] Register JWT filter in `SecurityConfig.java` with `addFilterBefore(JwtAuthenticationFilter, UsernamePasswordAuthenticationFilter)`
+- [x] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
   - **POST /api/v1/auth/register**: Accepts OAuth2 token, creates Usuario if not exists, returns JWT + user info
   - Handler: Call AuthService.registerOrLoginUser(googleToken)
-- [ ] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
+- [x] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
   - `registerOrLoginUser(googleToken)`: Decode Google token, extract email, create/fetch Usuario, generate JWT
   - Validate Google OAuth2 token signature against Google's JWKS endpoint
   - Return UserDTO with id, email, role, perfil_completo, token
@@ -183,9 +183,9 @@ Phase 10: Polish & Integration
   - `findByEmail(email): Optional<Usuario>`
   - `findByGoogleId(googleId): Optional<Usuario>`
   - Custom query: `findByGoogleIdOrCreateNew(googleId, email)`
-- [ ] **T043** [US1] Create JWT validation test in `src/test/java/com/ecobook/security/JwtTokenProviderTest.java` (generate token, validate, test expiry)
+- [x] **T043** [US1] Create JWT validation test in `src/test/java/com/ecobook/security/JwtTokenProviderTest.java` (generate token, validate, test expiry)
 - [ ] **T044** [US1] Create OAuth2 flow integration test in `src/test/java/com/ecobook/AuthControllerIntegrationTest.java` (mock Google JWKS, POST /auth/register)
-- [ ] **T045** [P] [US1] Create endpoint test for invalid/expired token: POST /auth/register with invalid token → HTTP 401
+- [x] **T045** [P] [US1] Create endpoint test for invalid/expired token: POST /auth/register with invalid token → HTTP 401
 
 #### Android: OAuth2 Flow
 
@@ -205,7 +205,7 @@ Phase 10: Polish & Integration
   - Store JWT in SecureStorage after login success
   - Handle OAuth2 errors (show user-friendly messages)
   - Trigger navigation to OnboardingScreen on success
-- [ ] **T050** [P] [US1] Create JWT interceptor in `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthInterceptor.kt`:
+- [x] **T050** [P] [US1] Create JWT interceptor in `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthInterceptor.kt`:
   - Read JWT from SecureStorage
   - Inject into `Authorization: Bearer {token}` header for all requests
 - [ ] **T051** [P] [US1] Add authentication interceptor to Retrofit client in `EcoBookApiClient.kt`
@@ -219,15 +219,15 @@ Phase 10: Polish & Integration
 
 #### Backend: Protected Endpoints
 
-- [ ] **T056** [US1] Create `src/main/java/com/ecobook/controller/UsuarioController.java`:
+- [x] **T056** [US1] Create `src/main/java/com/ecobook/controller/UsuarioController.java`:
   - **GET /api/v1/usuarios/me**: Return current user (from JWT claim) with perfil_completo status
   - Response DTO: id, email, nome, whatsapp, cidade, bairro, perfil_completo, role
-- [ ] **T057** [US1] Implement `UsuarioController.getMe()` handler:
+- [x] **T057** [US1] Implement `UsuarioController.getMe()` handler:
   - Extract user email from SecurityContext
   - Fetch from database
   - Return UsuarioDTO with all fields
-- [ ] **T058** [US1] Add `@PreAuthorize("hasRole('USER')")` annotation to `getMe()` (requires valid JWT)
-- [ ] **T059** [US1] Create integration test in `src/test/java/com/ecobook/UsuarioControllerTest.java`:
+- [x] **T058** [US1] Add `@PreAuthorize("hasRole('USER')")` annotation to `getMe()` (requires valid JWT)
+- [x] **T059** [US1] Create integration test in `src/test/java/com/ecobook/UsuarioControllerTest.java`:
   - GET /usuarios/me with valid JWT → HTTP 200 with user data
   - GET /usuarios/me without JWT → HTTP 401 Unauthorized
 - [ ] **T060** [US1] Create `@FeignClient` response wrapper for all controllers (standard JSON envelope with optional error details)
@@ -236,21 +236,21 @@ Phase 10: Polish & Integration
 
 #### Backend: Profile Completion Endpoint
 
-- [ ] **T061** [US1] Implement `src/main/java/com/ecobook/service/GeoNormalizationService.java`:
+- [x] **T061** [US1] Implement `src/main/java/com/ecobook/service/GeoNormalizationService.java`:
   - `normalize(city: String, neighborhood: String): NormalizedGeo`
   - Algorithm: Uppercase + NFD decomposition + ASCII transliteration + trim
   - Test cases: "São João" → "SAO JOAO", "Ribeirão Preto" → "RIBEIRAO PRETO", "São José dos Campos" → "SAO JOSE DOS CAMPOS"
-- [ ] **T062** [US1] Implement `src/main/java/com/ecobook/validator/WhatsAppValidator.java`:
+- [x] **T062** [US1] Implement `src/main/java/com/ecobook/validator/WhatsAppValidator.java`:
   - Validate E.164 format: `^\+55\d{10,11}$` (Brazil, 10-11 digits)
   - Reject: "11991234567" (missing +55), "+551199123456" (wrong length), "+55 11 99123456" (spaces)
 - [ ] **T063** [US1] Add validation annotations to `Usuario.java`:
   - `@Pattern(regexp = "^\\+55\\d{10,11}$")` on whatsapp field
   - `@NotBlank` on nome, cidade, bairro
-- [ ] **T064** [US1] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
+- [x] **T064** [US1] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
   - **PUT /api/v1/usuarios/me**: Update user profile
   - Request body: nome, whatsapp (E.164), cidade, bairro, necessidade_academica (optional enum)
   - Response: Updated UsuarioDTO with perfil_completo status
-- [ ] **T065** [US1] Implement `UsuarioService.updateProfile()`:
+- [x] **T065** [US1] Implement `UsuarioService.updateProfile()`:
   - Normalize city + neighborhood via GeoNormalizationService
   - Validate WhatsApp format
   - Check all required fields present (nome, whatsapp, cidade, bairro)
@@ -265,13 +265,13 @@ Phase 10: Polish & Integration
 
 #### Backend: Profile Completeness Gate
 
-- [ ] **T069** [US1] Create `src/main/java/com/ecobook/aspect/ProfileCompletenessAspect.java` (AOP):
+- [x] **T069** [US1] Create `src/main/java/com/ecobook/aspect/ProfileCompletenessAspect.java` (AOP):
   - Intercept methods annotated with `@RequireCompleteProfile`
   - Check SecurityContext user's perfil_completo = true
   - Return HTTP 403 if false: `{"error": "INCOMPLETE_PROFILE", "message": "Complete your profile before..."}` 
-- [ ] **T070** [US1] Create `@RequireCompleteProfile` annotation in `src/main/java/com/ecobook/annotation/RequireCompleteProfile.java`
-- [ ] **T071** [US1] Mark future endpoints with `@RequireCompleteProfile`: POST /materiais, POST /solicitacoes, PUT /materiais/{id}, DELETE /materiais/{id}
-- [ ] **T072** [US1] Test aspect behavior in `src/test/java/com/ecobook/aspect/ProfileCompletenessAspectTest.java` (incomplete profile → 403, complete → proceed)
+- [x] **T070** [US1] Create `@RequireCompleteProfile` annotation in `src/main/java/com/ecobook/annotation/RequireCompleteProfile.java`
+- [x] **T071** [US1] Mark future endpoints with `@RequireCompleteProfile`: POST /materiais, POST /solicitacoes, PUT /materiais/{id}, DELETE /materiais/{id}
+- [x] **T072** [US1] Test aspect behavior in `src/test/java/com/ecobook/aspect/ProfileCompletenessAspectTest.java` (incomplete profile → 403, complete → proceed)
 
 #### Android: Onboarding Screen
 

@@ -115,7 +115,7 @@ public class UsuarioService {
     private void validateWhatsApp(String whatsapp) {
 <span class="fc bfc" id="L116" title="All 2 branches covered.">        if (!whatsAppValidator.isValid(whatsapp)) {</span>
 <span class="fc" id="L117">            throw new IllegalArgumentException(</span>
-<span class="fc" id="L118">                    &quot;WhatsApp must be in E.164 format (+55XXXXXXXXXX or +55XXXXXXXXXXX)&quot;);</span>
+                    &quot;WhatsApp must be in E.164 format (+55XXXXXXXXXX or +55XXXXXXXXXXX)&quot;);
         }
 <span class="fc" id="L120">    }</span>
 
