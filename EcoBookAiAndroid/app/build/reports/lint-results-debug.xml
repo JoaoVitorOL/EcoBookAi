@@ -14,7 +14,7 @@
         errorLine1="        android:name=&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot;"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml"
             line="16"
             column="23"/>
     </issue>
@@ -32,7 +32,7 @@
         errorLine1="    &lt;uses-permission android:name=&quot;android.permission.READ_MEDIA_IMAGES&quot; />"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml"
             line="14"
             column="36"/>
     </issue>
@@ -48,8 +48,8 @@
         errorLine1="    implementation(&quot;androidx.core:core-ktx:1.13.1&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="72"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="108"
             column="20"/>
     </issue>
 
@@ -64,8 +64,8 @@
         errorLine1="    implementation(&quot;androidx.appcompat:appcompat:1.7.0&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="73"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="109"
             column="20"/>
     </issue>
 
@@ -80,8 +80,8 @@
         errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-runtime-ktx:2.6.2&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="74"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="110"
             column="20"/>
     </issue>
 
@@ -96,8 +96,8 @@
         errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="75"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="111"
             column="20"/>
     </issue>
 
@@ -112,8 +112,8 @@
         errorLine1="    implementation(&quot;androidx.activity:activity-compose:1.8.0&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="76"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="112"
             column="20"/>
     </issue>
 
@@ -128,8 +128,8 @@
         errorLine1="    implementation(&quot;com.google.android.material:material:1.12.0&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="77"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="113"
             column="20"/>
     </issue>
 
@@ -144,8 +144,8 @@
         errorLine1="    implementation(&quot;androidx.navigation:navigation-compose:2.7.3&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="89"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="125"
             column="20"/>
     </issue>
 
@@ -160,8 +160,8 @@
         errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="92"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="128"
             column="20"/>
     </issue>
 
@@ -176,8 +176,8 @@
         errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-runtime-compose:2.6.2&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="93"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="129"
             column="20"/>
     </issue>
 
@@ -192,8 +192,8 @@
         errorLine1="    implementation(&quot;androidx.security:security-crypto:1.1.0-alpha06&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="96"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="132"
             column="20"/>
     </issue>
 
@@ -208,8 +208,8 @@
         errorLine1="    implementation(&quot;com.squareup.okhttp3:okhttp:4.11.0&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="101"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="137"
             column="20"/>
     </issue>
 
@@ -224,8 +224,8 @@
         errorLine1="    implementation(&quot;androidx.hilt:hilt-navigation-compose:1.1.0&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="110"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="146"
             column="20"/>
     </issue>
 
@@ -240,8 +240,8 @@
         errorLine1="    implementation(&quot;com.google.firebase:firebase-messaging:23.4.1&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="113"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="149"
             column="20"/>
     </issue>
 
@@ -256,8 +256,8 @@
         errorLine1="    androidTestImplementation(&quot;androidx.test.ext:junit:1.1.5&quot;)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="134"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="170"
             column="31"/>
     </issue>
 
@@ -272,8 +272,8 @@
         errorLine1="    androidTestImplementation(&quot;androidx.test.espresso:espresso-core:3.5.1&quot;)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
-            line="135"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts"
+            line="171"
             column="31"/>
     </issue>
 
@@ -288,7 +288,7 @@
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\kotlin\com\ecobook\fcm\EcoBookMessagingService.kt"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\kotlin\com\ecobook\fcm\EcoBookMessagingService.kt"
             line="32"
             column="13"/>
     </issue>
@@ -304,7 +304,7 @@
         errorLine1="    &lt;string name=&quot;backend_url_emulator&quot; translatable=&quot;false&quot;>http://10.0.2.2:8080/api&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
             line="4"
             column="13"/>
     </issue>
@@ -320,7 +320,7 @@
         errorLine1="    &lt;string name=&quot;backend_url_physical&quot; translatable=&quot;false&quot;>http://192.168.0.10:8080/api&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
             line="5"
             column="13"/>
     </issue>
@@ -336,7 +336,7 @@
         errorLine1="    &lt;string name=&quot;google_oauth_client_id&quot; translatable=&quot;false&quot;>YOUR_CLIENT_ID_HERE&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
             line="6"
             column="13"/>
     </issue>
@@ -352,7 +352,7 @@
         errorLine1="    &lt;string name=&quot;google_oauth_redirect_scheme&quot; translatable=&quot;false&quot;>com.ecobook&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
             line="7"
             column="13"/>
     </issue>
@@ -368,7 +368,7 @@
         errorLine1="    &lt;string name=&quot;app_tagline&quot;>IA para doacao e descoberta de materiais&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
             line="10"
             column="13"/>
     </issue>
@@ -384,7 +384,7 @@
         errorLine1="    &lt;string name=&quot;app_version&quot;>1.0.0&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
-            file="C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
+            file="C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml"
             line="11"
             column="13"/>
     </issue>

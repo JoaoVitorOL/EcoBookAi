@@ -9,10 +9,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
             line="12"
             column="23"
-            startOffset="514"
+            startOffset="525"
             endLine="12"
             endColumn="63"
-            endOffset="554"/>
+            endOffset="565"/>
         <map>
             <entry
                 name="maxSdkVersion"
@@ -31,10 +31,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
             line="16"
             column="23"
-            startOffset="713"
+            startOffset="728"
             endLine="16"
             endColumn="64"
-            endOffset="754"/>
+            endOffset="769"/>
         <map>
             <entry
                 name="maxSdkVersion"
@@ -70,17 +70,17 @@
             priority="0">
             <range
                 file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
-                startOffset="1295"
-                endOffset="1315"/>
+                startOffset="1324"
+                endOffset="1344"/>
         </fix-replace>
         <location
             file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
             line="30"
             column="9"
-            startOffset="1295"
+            startOffset="1324"
             endLine="30"
             endColumn="29"
-            endOffset="1315"/>
+            endOffset="1344"/>
         <map>
             <condition minGE="ffffffff00000000"/>
         </map>

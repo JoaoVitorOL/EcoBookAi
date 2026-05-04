@@ -1,4 +1,4 @@
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml:16: Warning: WRITE_EXTERNAL_STORAGE no longer provides write access when targeting Android 10+ [ScopedStorage]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml:16: Warning: WRITE_EXTERNAL_STORAGE no longer provides write access when targeting Android 10+ [ScopedStorage]
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -32,7 +32,7 @@ C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\m
 
    https://goo.gle/android-storage-usecases
 
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml:14: Warning: Your app is currently not handling Selected Photos Access introduced in Android 14+ [SelectedPhotoAccess]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\AndroidManifest.xml:14: Warning: Your app is currently not handling Selected Photos Access introduced in Android 14+ [SelectedPhotoAccess]
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -46,49 +46,49 @@ C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\m
 
    https://developer.android.com/about/versions/14/changes/partial-photo-video-access
 
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:72: Warning: A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.18.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:108: Warning: A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.18.0 [GradleDependency]
     implementation("androidx.core:core-ktx:1.13.1")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:73: Warning: A newer version of androidx.appcompat:appcompat than 1.7.0 is available: 1.7.1 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:109: Warning: A newer version of androidx.appcompat:appcompat than 1.7.0 is available: 1.7.1 [GradleDependency]
     implementation("androidx.appcompat:appcompat:1.7.0")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:74: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.6.2 is available: 2.10.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:110: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.6.2 is available: 2.10.0 [GradleDependency]
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:75: Warning: A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.6.2 is available: 2.10.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:111: Warning: A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.6.2 is available: 2.10.0 [GradleDependency]
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:76: Warning: A newer version of androidx.activity:activity-compose than 1.8.0 is available: 1.13.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:112: Warning: A newer version of androidx.activity:activity-compose than 1.8.0 is available: 1.13.0 [GradleDependency]
     implementation("androidx.activity:activity-compose:1.8.0")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:77: Warning: A newer version of com.google.android.material:material than 1.12.0 is available: 1.13.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:113: Warning: A newer version of com.google.android.material:material than 1.12.0 is available: 1.13.0 [GradleDependency]
     implementation("com.google.android.material:material:1.12.0")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:89: Warning: A newer version of androidx.navigation:navigation-compose than 2.7.3 is available: 2.9.8 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:125: Warning: A newer version of androidx.navigation:navigation-compose than 2.7.3 is available: 2.9.8 [GradleDependency]
     implementation("androidx.navigation:navigation-compose:2.7.3")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:92: Warning: A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.6.2 is available: 2.10.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:128: Warning: A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.6.2 is available: 2.10.0 [GradleDependency]
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:93: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-compose than 2.6.2 is available: 2.10.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:129: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-compose than 2.6.2 is available: 2.10.0 [GradleDependency]
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:96: Warning: A newer version of androidx.security:security-crypto than 1.1.0-alpha06 is available: 1.1.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:132: Warning: A newer version of androidx.security:security-crypto than 1.1.0-alpha06 is available: 1.1.0 [GradleDependency]
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:101: Warning: A newer version of com.squareup.okhttp3:okhttp than 4.11.0 is available: 4.12.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:137: Warning: A newer version of com.squareup.okhttp3:okhttp than 4.11.0 is available: 4.12.0 [GradleDependency]
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:110: Warning: A newer version of androidx.hilt:hilt-navigation-compose than 1.1.0 is available: 1.3.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:146: Warning: A newer version of androidx.hilt:hilt-navigation-compose than 1.1.0 is available: 1.3.0 [GradleDependency]
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:113: Warning: A newer version of com.google.firebase:firebase-messaging than 23.4.1 is available: 25.0.1 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:149: Warning: A newer version of com.google.firebase:firebase-messaging than 23.4.1 is available: 25.0.1 [GradleDependency]
     implementation("com.google.firebase:firebase-messaging:23.4.1")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:134: Warning: A newer version of androidx.test.ext:junit than 1.1.5 is available: 1.3.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:170: Warning: A newer version of androidx.test.ext:junit than 1.1.5 is available: 1.3.0 [GradleDependency]
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:135: Warning: A newer version of androidx.test.espresso:espresso-core than 3.5.1 is available: 3.7.0 [GradleDependency]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\build.gradle.kts:171: Warning: A newer version of androidx.test.espresso:espresso-core than 3.5.1 is available: 3.7.0 [GradleDependency]
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -99,7 +99,7 @@ C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\build
    However, you may simply not be aware that a more recent version is
    available, and that is what this lint check helps find.
 
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\kotlin\com\ecobook\fcm\EcoBookMessagingService.kt:32: Warning: Unnecessary; SDK_INT is always >= 26 [ObsoleteSdkInt]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\kotlin\com\ecobook\fcm\EcoBookMessagingService.kt:32: Warning: Unnecessary; SDK_INT is always >= 26 [ObsoleteSdkInt]
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -112,22 +112,22 @@ C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\m
    where the version qualifier is less than or equal to the minSdkVersion,
    where the contents should be merged into the best folder.
 
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:4: Warning: The resource R.string.backend_url_emulator appears to be unused [UnusedResources]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:4: Warning: The resource R.string.backend_url_emulator appears to be unused [UnusedResources]
     <string name="backend_url_emulator" translatable="false">http://10.0.2.2:8080/api</string>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:5: Warning: The resource R.string.backend_url_physical appears to be unused [UnusedResources]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:5: Warning: The resource R.string.backend_url_physical appears to be unused [UnusedResources]
     <string name="backend_url_physical" translatable="false">http://192.168.0.10:8080/api</string>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:6: Warning: The resource R.string.google_oauth_client_id appears to be unused [UnusedResources]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:6: Warning: The resource R.string.google_oauth_client_id appears to be unused [UnusedResources]
     <string name="google_oauth_client_id" translatable="false">YOUR_CLIENT_ID_HERE</string>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:7: Warning: The resource R.string.google_oauth_redirect_scheme appears to be unused [UnusedResources]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:7: Warning: The resource R.string.google_oauth_redirect_scheme appears to be unused [UnusedResources]
     <string name="google_oauth_redirect_scheme" translatable="false">com.ecobook</string>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:10: Warning: The resource R.string.app_tagline appears to be unused [UnusedResources]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:10: Warning: The resource R.string.app_tagline appears to be unused [UnusedResources]
     <string name="app_tagline">IA para doacao e descoberta de materiais</string>
             ~~~~~~~~~~~~~~~~~~
-C:\Users\vitor\OneDrive\Documentos\projetos\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:11: Warning: The resource R.string.app_version appears to be unused [UnusedResources]
+C:\Users\jvol2\OneDrive\Área de Trabalho\EcoBookAi\EcoBookAi\EcoBookAiAndroid\app\src\main\res\values\api_config.xml:11: Warning: The resource R.string.app_version appears to be unused [UnusedResources]
     <string name="app_version">1.0.0</string>
             ~~~~~~~~~~~~~~~~~~
 

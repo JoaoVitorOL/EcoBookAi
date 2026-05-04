@@ -4,6 +4,7 @@ import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,7 +30,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
-    private String id;
+    private UUID id;
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
@@ -37,13 +38,13 @@ public class Usuario {
     @Column(nullable = false, length = 255)
     private String nome;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String whatsapp;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String cidade;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String bairro;
 
     @Column(length = 255)
@@ -69,6 +70,7 @@ public class Usuario {
     @CollectionTable(name = "usuario_necessidades", joinColumns = @JoinColumn(name = "usuario_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "necessidade")
+    @Builder.Default
     private Set<NecessidadeAcademica> necessidadesAcademicas = new HashSet<>();
 
     @Column(nullable = false, updatable = false)
@@ -80,9 +82,11 @@ public class Usuario {
     private LocalDateTime atualizadoEm = LocalDateTime.now();
 
     @OneToMany(mappedBy = "doador", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Material> materiais = new ArrayList<>();
 
     @OneToMany(mappedBy = "estudante", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Solicitacao> solicitacoes = new ArrayList<>();
 
     @PreUpdate
@@ -91,7 +95,18 @@ public class Usuario {
     }
 
     public boolean isPerfilCompleto() {
-        return this.perfilCompleto && this.email != null && this.nome != null &&
-                this.whatsapp != null && this.cidade != null && this.bairro != null;
+        return hasRequiredProfileFields();
+    }
+
+    public boolean hasRequiredProfileFields() {
+        return StringUtils.hasText(this.email)
+                && StringUtils.hasText(this.nome)
+                && StringUtils.hasText(this.whatsapp)
+                && StringUtils.hasText(this.cidade)
+                && StringUtils.hasText(this.bairro);
+    }
+
+    public void refreshPerfilCompleto() {
+        this.perfilCompleto = hasRequiredProfileFields();
     }
 }

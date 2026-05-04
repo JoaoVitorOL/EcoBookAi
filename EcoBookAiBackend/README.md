@@ -4,7 +4,7 @@ Backend Spring Boot do EcoBook AI.
 
 ## Stack
 
-- Java 21
+- Java 21+
 - Spring Boot 3.2
 - PostgreSQL
 - Flyway
@@ -20,7 +20,7 @@ Backend Spring Boot do EcoBook AI.
 
 ## Requisitos
 
-- Java 21
+- Java 21+
 - Maven 3.9+ instalado no sistema
 - Docker Desktop opcional, mas recomendado para o PostgreSQL
 
@@ -60,4 +60,4 @@ http://localhost:8080/api/v1/health
 
 ## Observacao importante
 
-Neste ambiente de trabalho nao foi possivel validar a compilacao do backend porque o executavel `mvn` nao esta instalado. O projeto, porem, esta estruturado para Maven e usa Java 21 no `pom.xml`.
+Neste ambiente de trabalho a validacao local do backend foi executada com `mvn clean test` usando um JDK mais novo do que o Java 17 padrao da sessao. Para rodar os testes de infraestrutura com Docker real via Testcontainers, ainda sera necessario ter um runtime de containers disponivel na maquina.

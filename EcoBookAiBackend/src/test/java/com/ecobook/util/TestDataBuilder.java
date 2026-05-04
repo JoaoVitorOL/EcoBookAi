@@ -4,6 +4,7 @@ import com.ecobook.model.Usuario;
 import com.ecobook.model.Material;
 import com.ecobook.model.Solicitacao;
 import com.ecobook.model.enums.*;
+import java.util.UUID;
 
 /**
  * Test data builder for creating test objects
@@ -12,7 +13,7 @@ public class TestDataBuilder {
 
     public static Usuario createTestUsuario() {
         return Usuario.builder()
-                .id("test-user-1")
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
                 .email("test@example.com")
                 .nome("Test User")
                 .whatsapp("+5548991234567")
@@ -26,7 +27,7 @@ public class TestDataBuilder {
 
     public static Usuario createTestDonor() {
         return Usuario.builder()
-                .id("test-donor-1")
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000002"))
                 .email("donor@example.com")
                 .nome("Donor User")
                 .whatsapp("+5548999999999")
@@ -39,7 +40,7 @@ public class TestDataBuilder {
 
     public static Material createTestMaterial() {
         return Material.builder()
-                .id("test-material-1")
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000003"))
                 .titulo("Matemática para Iniciantes")
                 .descricao("Livro de matemática para ensino fundamental")
                 .disciplina(Disciplina.MATEMATICA)
@@ -56,7 +57,7 @@ public class TestDataBuilder {
 
     public static Solicitacao createTestSolicitacao() {
         return Solicitacao.builder()
-                .id("test-solicitacao-1")
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000004"))
                 .status(StatusSolicitacao.PENDENTE)
                 .build();
     }

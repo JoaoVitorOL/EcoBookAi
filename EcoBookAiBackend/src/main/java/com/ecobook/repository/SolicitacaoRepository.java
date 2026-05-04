@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface SolicitacaoRepository extends JpaRepository<Solicitacao, String> {
-    List<Solicitacao> findByMaterialId(String materialId);
-    List<Solicitacao> findByEstudanteId(String estudanteId);
+public interface SolicitacaoRepository extends JpaRepository<Solicitacao, UUID> {
+    List<Solicitacao> findByMaterialId(UUID materialId);
+    List<Solicitacao> findByEstudanteId(UUID estudanteId);
     List<Solicitacao> findByStatus(StatusSolicitacao status);
-    Optional<Solicitacao> findByMaterialIdAndEstudanteId(String materialId, String estudanteId);
+    Optional<Solicitacao> findByMaterialIdAndEstudanteId(UUID materialId, UUID estudanteId);
     List<Solicitacao> findByStatusAndExpiresAtIsNotNull(StatusSolicitacao status);
 }

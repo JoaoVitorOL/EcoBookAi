@@ -33,6 +33,6 @@
       applicationId="com.ecobook.debug"
       generatedSourceFolders="build\generated\source\kapt\debug;build\generated\ap_generated_sources\debug\out;build\generated\source\buildConfig\debug"
       generatedResourceFolders="build\generated\res\resValues\debug"
-      desugaredMethodsFiles="C:\Users\vitor\.gradle\caches\8.9\transforms\269f2618ea4fda2ab1aeb52ed40e2abd\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\jvol2\.gradle\caches\8.9\transforms\269f2618ea4fda2ab1aeb52ed40e2abd\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

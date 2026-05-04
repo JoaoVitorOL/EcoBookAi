@@ -15,7 +15,7 @@ O repositorio agora esta organizado em duas bases explicitas:
 
 - `EcoBookAiAndroid`: `gradlew.bat lintDebug`, `gradlew.bat assembleDebug` e `gradlew.bat testDebugUnitTest` executaram com sucesso nesta maquina.
 - `EcoBookAiAndroid`: a validacao em emulador nao foi concluida porque o AVD local ficou offline no ADB.
-- `EcoBookAiBackend`: a compilacao nao foi validada aqui porque o comando `mvn` nao esta instalado no ambiente atual.
+- `EcoBookAiBackend`: `mvn clean test` executou com sucesso nesta maquina usando um JDK mais novo do que o Java padrao da sessao.
 
 ## Proximos passos
 

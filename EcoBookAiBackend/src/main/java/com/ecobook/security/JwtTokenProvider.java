@@ -24,9 +24,16 @@ public class JwtTokenProvider {
      * Generate JWT token for authenticated user
      */
     public String generateToken(String email, String role, boolean perfilCompleto) {
+        return generateToken(email, role, perfilCompleto, null);
+    }
+
+    public String generateToken(String email, String role, boolean perfilCompleto, String userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("perfilCompleto", perfilCompleto);
+        if (userId != null) {
+            claims.put("userId", userId);
+        }
 
         return Jwts.builder()
                 .claims(claims)
@@ -53,12 +60,15 @@ public class JwtTokenProvider {
      * Extract role from token
      */
     public String getRoleFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-        return (String) claims.get("role");
+        return getAllClaimsFromToken(token).get("role", String.class);
+    }
+
+    public boolean getPerfilCompletoFromToken(String token) {
+        return Boolean.TRUE.equals(getAllClaimsFromToken(token).get("perfilCompleto", Boolean.class));
+    }
+
+    public long getExpirationInSeconds() {
+        return jwtExpiration / 1000L;
     }
 
     /**

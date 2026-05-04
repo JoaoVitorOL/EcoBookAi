@@ -24,7 +24,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideBaseUrl(@ApplicationContext context: Context): String {
-        return context.getString(R.string.backend_url).trimEnd('/') + "/"
+        val overrideUrl = BuildConfig.BACKEND_URL_OVERRIDE.trim()
+        val configuredUrl = if (overrideUrl.isNotEmpty()) {
+            overrideUrl
+        } else {
+            context.getString(R.string.backend_url)
+        }
+        return configuredUrl.trimEnd('/') + "/"
     }
 
     @Provides

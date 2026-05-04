@@ -1,9 +1,22 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
     id("com.google.dagger.hilt.android")
 }
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+
+fun localProperty(name: String, defaultValue: String = ""): String =
+    localProperties.getProperty(name, defaultValue)
 
 android {
     namespace = "com.ecobook"
@@ -15,6 +28,11 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+        buildConfigField(
+            "String",
+            "BACKEND_URL_OVERRIDE",
+            "\"${localProperty("backend.url")}\""
+        )
 
         manifestPlaceholders["appAuthRedirectScheme"] = "com.ecobook"
 
@@ -63,6 +81,24 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    testOptions {
+        animationsDisabled = true
+        managedDevices {
+            devices {
+                maybeCreate<ManagedVirtualDevice>("pixel6Api34").apply {
+                    device = "Pixel 6"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
+            groups {
+                maybeCreate("smoke").apply {
+                    targetDevices.add(devices["pixel6Api34"])
+                }
+            }
         }
     }
 }

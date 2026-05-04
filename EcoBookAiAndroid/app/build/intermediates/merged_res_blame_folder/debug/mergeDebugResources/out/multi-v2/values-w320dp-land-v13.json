@@ -4,7 +4,7 @@
             "outputFile": "com.ecobook.app-mergeDebugResources-72:/values-w320dp-land-v13/values-w320dp-land-v13.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\vitor\\.gradle\\caches\\8.9\\transforms\\0ff96439c2a06e657cc7a1d64bf2d420\\transformed\\material-1.12.0\\res\\values-w320dp-land-v13\\values-w320dp-land-v13.xml",
+                    "source": "C:\\Users\\jvol2\\.gradle\\caches\\8.9\\transforms\\0ff96439c2a06e657cc7a1d64bf2d420\\transformed\\material-1.12.0\\res\\values-w320dp-land-v13\\values-w320dp-land-v13.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

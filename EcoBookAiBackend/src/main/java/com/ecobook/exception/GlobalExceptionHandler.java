@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -88,6 +89,49 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
         log.warn("Access denied: {}", ex.getMessage());
         return ResponseEntity.status(403).body(errorResponse);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(401)
+                .error("UNAUTHORIZED")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        log.warn("Authentication error: {}", ex.getMessage());
+        return ResponseEntity.status(401).body(errorResponse);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(400)
+                .error("INVALID_FORMAT")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        log.warn("Invalid argument: {}", ex.getMessage());
+        return ResponseEntity.status(400).body(errorResponse);
+    }
+
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity<ErrorResponse> handleUnprocessableEntityException(
+            UnprocessableEntityException ex, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(422)
+                .error("UNPROCESSABLE_ENTITY")
+                .message(ex.getMessage())
+                .fieldErrors(ex.getFieldErrors())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        log.warn("Unprocessable entity: {}", ex.getMessage());
+        return ResponseEntity.status(422).body(errorResponse);
     }
 
     @Override

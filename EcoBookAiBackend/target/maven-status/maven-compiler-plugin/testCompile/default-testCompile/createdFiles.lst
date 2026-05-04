@@ -1,0 +1,4 @@
+com\ecobook\config\TestDatabaseConfig.class
+com\ecobook\BaseIntegrationTest.class
+com\ecobook\FirstIntegrationTest.class
+com\ecobook\util\TestDataBuilder.class

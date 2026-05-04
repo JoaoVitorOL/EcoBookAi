@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Usuario.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EcoBook IA Backend</a> &gt; <a href="index.source.html" class="el_package">com.ecobook.model</a> &gt; <span class="el_source">Usuario.java</span></div><h1>Usuario.java</h1><pre class="source lang-java linenums">package com.ecobook.model;
+
+import com.ecobook.model.enums.NecessidadeAcademica;
+import com.ecobook.model.enums.Role;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+@Entity
+@Table(
+    name = &quot;usuario&quot;,
+    indexes = {
+        @Index(name = &quot;idx_usuario_email&quot;, columnList = &quot;email&quot;, unique = true),
+        @Index(name = &quot;idx_usuario_google_id&quot;, columnList = &quot;google_id&quot;),
+        @Index(name = &quot;idx_usuario_perfil_completo&quot;, columnList = &quot;perfil_completo&quot;)
+    }
+)
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = {&quot;materials&quot;, &quot;requests&quot;})
+public class Usuario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
+    private UUID id;
+
+    @Column(nullable = false, unique = true, length = 255)
+    private String email;
+
+    @Column(nullable = false, length = 255)
+    private String nome;
+
+    @Column(length = 20)
+    private String whatsapp;
+
+    @Column(length = 100)
+    private String cidade;
+
+    @Column(length = 100)
+    private String bairro;
+
+    @Column(length = 255)
+    private String instituicao;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean perfilCompleto = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean consentimentoIa = false;
+
+    @Column(unique = true, length = 255)
+    private String googleId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
+
+    @ElementCollection(targetClass = NecessidadeAcademica.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = &quot;usuario_necessidades&quot;, joinColumns = @JoinColumn(name = &quot;usuario_id&quot;))
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;necessidade&quot;)
+    @Builder.Default
+    private Set&lt;NecessidadeAcademica&gt; necessidadesAcademicas = new HashSet&lt;&gt;();
+
+    @Column(nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDateTime criadoEm = LocalDateTime.now();
+
+    @Column(nullable = false)
+    @Builder.Default
+    private LocalDateTime atualizadoEm = LocalDateTime.now();
+
+    @OneToMany(mappedBy = &quot;doador&quot;, fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List&lt;Material&gt; materiais = new ArrayList&lt;&gt;();
+
+    @OneToMany(mappedBy = &quot;estudante&quot;, fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List&lt;Solicitacao&gt; solicitacoes = new ArrayList&lt;&gt;();
+
+    @PreUpdate
+    protected void onUpdate() {
+<span class="nc" id="L94">        this.atualizadoEm = LocalDateTime.now();</span>
+<span class="nc" id="L95">    }</span>
+
+    public boolean isPerfilCompleto() {
+<span class="fc" id="L98">        return hasRequiredProfileFields();</span>
+    }
+
+    public boolean hasRequiredProfileFields() {
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        return StringUtils.hasText(this.email)</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                &amp;&amp; StringUtils.hasText(this.nome)</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                &amp;&amp; StringUtils.hasText(this.whatsapp)</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                &amp;&amp; StringUtils.hasText(this.cidade)</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">                &amp;&amp; StringUtils.hasText(this.bairro);</span>
+    }
+
+    public void refreshPerfilCompleto() {
+<span class="fc" id="L110">        this.perfilCompleto = hasRequiredProfileFields();</span>
+<span class="fc" id="L111">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -31,6 +31,6 @@
       type="INSTRUMENTATION_TEST"
       applicationId="com.ecobook.debug.test"
       generatedResourceFolders="build\generated\res\resValues\androidTest\debug"
-      desugaredMethodsFiles="C:\Users\vitor\.gradle\caches\8.9\transforms\269f2618ea4fda2ab1aeb52ed40e2abd\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\jvol2\.gradle\caches\8.9\transforms\269f2618ea4fda2ab1aeb52ed40e2abd\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>
