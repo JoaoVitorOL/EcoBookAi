@@ -1,8 +1,0 @@
-ALTER TABLE usuario
-    ALTER COLUMN whatsapp DROP NOT NULL;
-
-ALTER TABLE usuario
-    ALTER COLUMN cidade DROP NOT NULL;
-
-ALTER TABLE usuario
-    ALTER COLUMN bairro DROP NOT NULL;
