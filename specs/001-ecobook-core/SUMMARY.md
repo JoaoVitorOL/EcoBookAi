@@ -1,7 +1,9 @@
 # EcoBook IA Specification - Generation Summary
 
+> Historical note (2026-05-05): this file summarizes the original specification-generation pass. It is useful as provenance, but it must not be used as the current source of truth for phase readiness or implementation status.
+
 **Date**: 2026-04-15  
-**Status**: ✅ Complete and Ready for Planning  
+**Status**: Historical artifact from the original planning handoff  
 
 ---
 
@@ -198,4 +200,4 @@ specs/
 
 ---
 
-**🎯 Status**: READY FOR PLANNING PHASE
+**🎯 Status**: HISTORICAL SPEC-GENERATION ARTIFACT

@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Builder
@@ -17,12 +18,13 @@ import lombok.NoArgsConstructor;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class LoginRequestDTO {
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email must have at most 255 characters")
+    @NotBlank(message = "Informe seu email")
+    @Email(message = "Informe um email valido")
+    @Size(max = 255, message = "O email deve ter no maximo 255 caracteres")
     private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, max = 72, message = "Password must have between 8 and 72 characters")
+    @NotBlank(message = "Informe sua senha")
+    @Size(min = 8, max = 72, message = "A senha deve ter entre 8 e 72 caracteres")
+    @ToString.Exclude
     private String password;
 }

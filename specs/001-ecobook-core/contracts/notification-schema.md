@@ -1,12 +1,15 @@
 # FCM Notification Schema
 
 **Reference**: spec.md RF-037, RF-038, notification payloads  
-**Version**: 1.0  
-**Date**: 2026-04-17
+**Version**: 1.1  
+**Date**: 2026-05-05  
+**Status**: Target contract for Phase 6+; current backend/android code does not implement this workflow end-to-end yet
 
 ---
 
 ## Overview
+
+> Implementation note: this document remains the target contract for notifications. In the current codebase, the Android app can receive and display FCM messages locally, but token association, backend dispatch, retry/DLQ flow and webhook handling are still pending.
 
 Firebase Cloud Messaging (FCM) notifications are sent for 6 key events in the donation workflow. All notifications are **best-effort** (not guaranteed delivery, acceptable for MVP), but failures are logged for retry.
 

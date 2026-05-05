@@ -15,9 +15,9 @@ Aplicativo Android nativo do EcoBook AI.
 
 - Navegacao com quatro areas: `Painel`, `Buscar`, `Doar` e `Perfil`
 - Verificacao real do backend via `GET /api/v1/health`
-- Catalogo inicial de materiais para validar a experiencia de matching
-- Fluxo visual de doacao alinhado com os contratos do projeto
-- Base pronta para integrar auth local, perfil, materiais e solicitacoes
+- Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
+- Catalogo local e fluxo visual de doacao para validar UX antes da integracao dos modulos de materiais e matching
+- Base pronta para integrar materiais, preview com IA e solicitacoes
 
 ## Requisitos
 
@@ -47,6 +47,18 @@ backend.url=http://10.0.2.2:8080/api
 ```
 
 `backend.url` em `local.properties` tem prioridade sobre `app/src/main/res/values/api_config.xml`. Isso e util quando voce roda o backend em outra porta, como `8081`.
+
+Se o backend estiver rodando dentro do WSL, `10.0.2.2` pode nao enxergar o relay corretamente. Nesse caso, use o IP atual do Linux, por exemplo:
+
+```properties
+backend.url=http://172.22.160.34:8080/api
+```
+
+Voce pode descobrir esse IP com:
+
+```powershell
+wsl.exe -e bash -lc "hostname -I"
+```
 
 ## Como abrir no Android Studio
 
@@ -89,6 +101,11 @@ http://10.0.2.2:8080/api
 
 Isso funciona para emulador Android quando o backend roda na mesma maquina host.
 
+Se o backend estiver no WSL e o app continuar mostrando `Servidor indisponivel`, a causa mais comum e esta:
+- Windows consegue abrir `http://localhost:8080`, mas nao `http://127.0.0.1:8080`
+- nesse caso o backend esta acessivel apenas por IPv6/relay local e o emulador nao consegue usar `10.0.2.2`
+- a correcao pratica e rodar o backend no host Windows ou apontar `backend.url` para o IP atual do WSL
+
 ## Regra atual de autenticacao
 
 - O fluxo alvo de entrada e `login` e `cadastro` com email e senha.
@@ -98,7 +115,7 @@ Isso funciona para emulador Android quando o backend roda na mesma maquina host.
 
 ## Observacao sobre o estado atual do codigo
 
-Parte da implementacao ainda reflete o fluxo anterior com Google. A documentacao oficial do projeto, no entanto, ja considera **email + senha + JWT** como a regra de auth a seguir nas proximas etapas.
+O fluxo legado de autenticacao com Google foi removido do app. O foco atual do modulo Android e estabilizar auth/perfil e integrar os proximos endpoints de materiais, preview com IA e solicitacoes.
 
 ## Celular fisico
 

@@ -108,7 +108,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.field_errors.cidade").value("Cidade is required"));
+                .andExpect(jsonPath("$.field_errors.cidade").value("Informe sua cidade"));
     }
 
     private String tokenFor(Usuario usuario) {

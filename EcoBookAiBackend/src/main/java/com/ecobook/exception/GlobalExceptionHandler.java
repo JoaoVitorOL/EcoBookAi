@@ -83,7 +83,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(403)
                 .error("ACCESS_DENIED")
-                .message("You do not have permission to access this resource")
+                .message("Voce nao tem permissao para acessar este recurso")
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
@@ -166,7 +166,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(400)
                 .error("VALIDATION_ERROR")
-                .message("Validation failed")
+                .message("Falha de validacao")
                 .fieldErrors(errors)
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
@@ -182,7 +182,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(500)
                 .error("INTERNAL_SERVER_ERROR")
-                .message("An unexpected error occurred")
+                .message("Ocorreu um erro inesperado")
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();

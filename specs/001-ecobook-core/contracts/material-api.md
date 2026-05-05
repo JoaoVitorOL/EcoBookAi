@@ -1,10 +1,13 @@
 # Material API Contracts
 
 **Reference**: spec.md RF-005 through RF-025, RF-044  
-**Version**: 1.0  
-**Date**: 2026-04-17
+**Version**: 1.1  
+**Date**: 2026-05-05  
+**Status**: Target contract for Phase 3+; current backend exposes route skeletons and may still return HTTP 501
 
 ---
+
+> Implementation note: this contract documents the intended runtime shape for material preview/upload. The current repository is still wiring the real service layer behind `/api/v1/materiais/preview` and `/api/v1/materiais`.
 
 ## POST /materiais
 
@@ -47,6 +50,9 @@ Authorization: Bearer <jwt_token>
 - `upload_id`: Temporary storage ID from POST /materiais/preview (links to AI classification results)
 - `image`: JPEG or PNG file, ≤ 5MB (optional if upload_id provided; in that case image from temp storage reused)
 - User must have `perfil_completo = true` (HTTP 403 if false)
+
+**Client Acquisition Note**:
+- The Android donation flow should let the user either pick an image from the gallery or capture a new photo with the camera before sending the multipart request
 
 ### Response
 
@@ -254,6 +260,11 @@ Authorization: Bearer <jwt_token>
 - Material B: Centro (same bairro) → Rank 2 (newer publication year)
 - Material C: Lagoa (same city, different bairro) → Rank 3
 - Material D: Lagoa (same city, different bairro) → Rank 4
+
+**Client Rendering Notes**:
+- Each result should render as a card in the discovery list
+- If `imagem_url` is missing or fails to load, the client should render a neutral placeholder instead of a broken image area
+- Tapping a card should open a dismissible dialog/modal with richer detail and an explicit close action
 
 ### Error Responses
 

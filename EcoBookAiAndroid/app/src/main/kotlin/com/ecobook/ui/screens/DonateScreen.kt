@@ -31,7 +31,7 @@ fun DonateScreen(
         item {
             SectionHeading(
                 title = "Fluxo de doacao",
-                subtitle = "O app agora apresenta o caminho completo para fotos, revisao de IA e publicacao, pronto para plugar nos endpoints das proximas fases."
+                subtitle = "Este modulo ainda funciona como prototipo visual do fluxo de fotos, revisao de IA e publicacao enquanto os endpoints de materiais entram em implementacao."
             )
         }
 
@@ -76,7 +76,7 @@ fun DonateScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
                 Text(
-                    text = "O backend ja valida a conectividade por /api/v1/health. Os proximos endpoints a conectar aqui sao /materiais/preview e /materiais.",
+                    text = "O backend ja responde health, auth, perfil e agora tambem reserva a rota /materiais/preview como skeleton. A logica real de preview e publicacao ainda esta pendente.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

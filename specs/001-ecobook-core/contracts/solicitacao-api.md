@@ -1,10 +1,13 @@
 # Solicitacao (Request/Solicitation) API Contracts
 
 **Reference**: spec.md RF-026 through RF-031, RF-032 through RF-035  
-**Version**: 1.0  
-**Date**: 2026-04-17
+**Version**: 1.1  
+**Date**: 2026-05-05  
+**Status**: Target contract for Phase 5+; current backend route still serves as skeleton and may return HTTP 501
 
 ---
+
+> Implementation note: this file remains the source of truth for the future request workflow, but the repository has not implemented the full request state machine yet.
 
 ## POST /solicitacoes
 
@@ -245,8 +248,9 @@ public void approveSolicitacao(String solicitacaoId) {
 
 ```json
 {
+  "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Valid JWT token required"
+  "message": "Um token JWT valido e obrigatorio"
 }
 ```
 

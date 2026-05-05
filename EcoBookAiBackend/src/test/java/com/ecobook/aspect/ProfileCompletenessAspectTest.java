@@ -64,6 +64,25 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .andExpect(status().isNotImplemented());
     }
 
+    @Test
+    @DisplayName("Material preview skeleton should already be reachable for complete profiles")
+    void shouldExposePreviewSkeletonForCompleteProfiles() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("preview@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Preview User")
+                .whatsapp("+5511991234567")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
+                .perfilCompleto(true)
+                .role(Role.USER)
+                .build());
+
+        mockMvc.perform(post("/v1/materiais/preview")
+                        .header("Authorization", "Bearer " + tokenFor(usuario)))
+                .andExpect(status().isNotImplemented());
+    }
+
     private String tokenFor(Usuario usuario) {
         return jwtTokenProvider.generateToken(
                 usuario.getEmail(),

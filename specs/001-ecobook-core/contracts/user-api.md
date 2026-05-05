@@ -1,14 +1,15 @@
 # User API Contracts
 
 **Reference**: spec.md RF-001, RF-002, RF-003, RF-004  
-**Version**: 2.0  
-**Date**: 2026-05-05
+**Version**: 2.1  
+**Date**: 2026-05-05  
+**Status**: Aligned with the current backend implementation
 
 ---
 
 ## POST /auth/register
 
-Create a new user account with local credentials.
+Create a new local account with `email + password`.
 
 ### Request
 
@@ -24,14 +25,15 @@ Content-Type: application/json
 ```
 
 **Validation Rules**:
-- `email`: Must be unique, valid RFC 5322 format
-- `password`: Minimum 8 characters
-- `nome`: 1-100 characters
+- `email`: required, valid format, max 255 characters
+- `password`: required, 8-72 characters
+- `nome`: required, max 100 characters at API boundary
 
 **Security Rules**:
-- Password is never returned in API responses
 - Backend stores only `password_hash`
-- Successful registration issues JWT immediately
+- Raw password is accepted only at register/login boundaries
+- Raw password must never appear in API responses, logs, or analytics
+- Successful registration issues a JWT immediately
 
 ### Response
 
@@ -49,37 +51,42 @@ Content-Type: application/json
   "consentimento_ia": false,
   "role": "USER",
   "token": "jwt-token-value",
-  "expires_in": 604800,
-  "created_at": "2026-05-05T10:30:00Z",
-  "updated_at": "2026-05-05T10:30:00Z"
+  "expires_in": 604800
 }
 ```
 
 ### Error Responses
 
-**HTTP 400 Bad Request** - Invalid email or password format
+**HTTP 400 Bad Request**
 ```json
 {
-  "error": "INVALID_FORMAT",
-  "message": "Password must have at least 8 characters",
-  "field": "password"
+  "status": 400,
+  "error": "VALIDATION_ERROR",
+  "message": "Falha de validacao",
+  "field_errors": {
+    "password": "A senha deve ter entre 8 e 72 caracteres"
+  }
 }
 ```
 
-**HTTP 409 Conflict** - Email already exists
+**HTTP 409 Conflict**
 ```json
 {
-  "error": "DUPLICATE_EMAIL",
-  "message": "Email already registered",
-  "field": "email"
+  "status": 409,
+  "error": "CONFLICT",
+  "message": "Este email ja esta cadastrado"
 }
 ```
+
+**Important Behavior**:
+- Existing email addresses always return `409 Conflict`
+- Legacy Google-era rows are no longer auto-claimable during register; they require manual migration or an explicit password-reset/recovery flow
 
 ---
 
 ## POST /auth/login
 
-Authenticate an existing user with email and password.
+Authenticate an existing account with `email + password`.
 
 ### Request
 
@@ -109,94 +116,18 @@ Content-Type: application/json
   "consentimento_ia": true,
   "role": "USER",
   "token": "jwt-token-value",
-  "expires_in": 604800,
-  "created_at": "2026-05-05T10:30:00Z",
-  "updated_at": "2026-05-05T11:45:00Z"
+  "expires_in": 604800
 }
 ```
 
-### Error Responses
+### Error Response
 
-**HTTP 401 Unauthorized** - Invalid credentials
+**HTTP 401 Unauthorized**
 ```json
 {
-  "error": "INVALID_CREDENTIALS",
-  "message": "Email or password is invalid"
-}
-```
-
----
-
-## PUT /usuarios/me
-
-Update the current authenticated user's profile. Sets `perfil_completo = true` when all required profile fields are present.
-
-### Request
-
-```http
-PUT /api/v1/usuarios/me
-Content-Type: application/json
-Authorization: Bearer <jwt_token>
-
-{
-  "nome": "Joao Pedro Silva",
-  "whatsapp": "+5548988888888",
-  "cidade": "sao jose",
-  "bairro": "centro",
-  "instituicao": "Escola Municipal ABC",
-  "consentimento_ia": true
-}
-```
-
-**Validation Rules**:
-- `nome`: 1-100 characters
-- `whatsapp`: E.164 format
-- `cidade`: Normalized to uppercase, NFD-decomposed, ASCII-only
-- `bairro`: Normalized to uppercase, NFD-decomposed, ASCII-only
-- `instituicao`: 0-255 characters
-- `consentimento_ia`: Boolean
-
-### Response
-
-**HTTP 200 OK**
-```json
-{
-  "id": "user-uuid-1234567890",
-  "email": "joao@example.com",
-  "nome": "Joao Pedro Silva",
-  "whatsapp": "+5548988888888",
-  "cidade": "SAO JOSE",
-  "bairro": "CENTRO",
-  "instituicao": "Escola Municipal ABC",
-  "perfil_completo": true,
-  "consentimento_ia": true,
-  "role": "USER",
-  "created_at": "2026-05-05T10:30:00Z",
-  "updated_at": "2026-05-05T11:45:00Z"
-}
-```
-
-**Rules**:
-- `perfil_completo` becomes `true` when `nome`, `whatsapp`, `cidade`, and `bairro` are present
-- Geographic normalization happens on save
-- `consentimento_ia` controls whether Gemini is called for classification
-
-### Error Responses
-
-**HTTP 401 Unauthorized** - No valid JWT token
-```json
-{
+  "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Valid JWT token required"
-}
-```
-
-**HTTP 400 Bad Request** - Invalid format or missing required field
-```json
-{
-  "error": "INVALID_FORMAT",
-  "message": "City and neighborhood are required for profile completion",
-  "field": "cidade"
+  "message": "Email ou senha invalidos"
 }
 ```
 
@@ -204,7 +135,7 @@ Authorization: Bearer <jwt_token>
 
 ## GET /usuarios/me
 
-Retrieve the current authenticated user's profile.
+Return the authenticated user's current profile.
 
 ### Request
 
@@ -220,6 +151,78 @@ Authorization: Bearer <jwt_token>
 {
   "id": "user-uuid-1234567890",
   "email": "joao@example.com",
+  "nome": "Joao Silva",
+  "whatsapp": "+5548999999999",
+  "cidade": "FLORIANOPOLIS",
+  "bairro": "CENTRO",
+  "instituicao": "Escola Municipal ABC",
+  "perfil_completo": true,
+  "consentimento_ia": true,
+  "role": "USER",
+  "necessidades_academicas": [
+    "TEXTBOOKS",
+    "TEST_PREP"
+  ],
+  "criado_em": "2026-05-05T10:30:00",
+  "atualizado_em": "2026-05-05T11:45:00"
+}
+```
+
+### Error Response
+
+**HTTP 401 Unauthorized**
+```json
+{
+  "status": 401,
+  "error": "UNAUTHORIZED",
+  "message": "Um token JWT valido e obrigatorio",
+  "path": "/api/v1/usuarios/me"
+}
+```
+
+---
+
+## PUT /usuarios/me
+
+Update the current authenticated user's profile. This endpoint is also the current way to update `consentimento_ia` after onboarding.
+
+### Request
+
+```http
+PUT /api/v1/usuarios/me
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+
+{
+  "nome": "Joao Pedro Silva",
+  "whatsapp": "+5548988888888",
+  "cidade": "sao jose",
+  "bairro": "centro",
+  "instituicao": "Escola Municipal ABC",
+  "consentimento_ia": true,
+  "necessidades_academicas": [
+    "TEXTBOOKS",
+    "TEST_PREP"
+  ]
+}
+```
+
+**Validation Rules**:
+- `nome`: required for successful profile completion
+- `whatsapp`: required for successful profile completion; must match `+55XXXXXXXXXXX`
+- `cidade`: required for successful profile completion; normalized before save
+- `bairro`: required for successful profile completion; normalized before save
+- `instituicao`: optional
+- `consentimento_ia`: optional, does not block `perfil_completo`
+- `necessidades_academicas`: optional set of enum values
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "user-uuid-1234567890",
+  "email": "joao@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
   "cidade": "SAO JOSE",
@@ -228,51 +231,106 @@ Authorization: Bearer <jwt_token>
   "perfil_completo": true,
   "consentimento_ia": true,
   "role": "USER",
-  "created_at": "2026-05-05T10:30:00Z",
-  "updated_at": "2026-05-05T11:45:00Z"
+  "necessidades_academicas": [
+    "TEXTBOOKS",
+    "TEST_PREP"
+  ],
+  "criado_em": "2026-05-05T10:30:00",
+  "atualizado_em": "2026-05-05T11:45:00"
 }
 ```
 
 ### Error Responses
 
-**HTTP 401 Unauthorized** - No valid JWT token or session expired
+**HTTP 400 Bad Request**
 ```json
 {
-  "error": "UNAUTHORIZED",
-  "message": "Valid JWT token required"
+  "status": 400,
+  "error": "INVALID_FORMAT",
+  "message": "O perfil contem campos invalidos",
+  "field_errors": {
+    "whatsapp": "Use o formato E.164 (+55XXXXXXXXXXX)"
+  }
 }
 ```
 
+**HTTP 422 Unprocessable Entity**
+```json
+{
+  "status": 422,
+  "error": "UNPROCESSABLE_ENTITY",
+  "message": "Preencha todos os campos obrigatorios do perfil",
+  "field_errors": {
+    "cidade": "Informe sua cidade",
+    "bairro": "Informe seu bairro"
+  }
+}
+```
+
+**Rules**:
+- `perfil_completo` becomes `true` only when `nome`, `whatsapp`, `cidade`, and `bairro` are present and valid
+- Geographic normalization happens on save
+- `consentimento_ia` controls whether Gemini can be called for AI classification
+- `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this same endpoint
+- The frontend should prioritize a curated Santa Catarina city list for suggestions, but the API still accepts normalized text values
+
 ---
 
-## Field Classification Reference
+## Current Endpoint Shape
 
-| Field | Source | Editable | Notes |
-|-------|--------|----------|-------|
-| `email` | User input | No (immutable after registration) | Unique login identity |
-| `password` | User input | Yes, via future password-change flow | Never returned by API |
-| `password_hash` | System | No | Internal backend field only |
-| `nome` | User input | Yes | Free text |
-| `whatsapp` | User input | Yes | E.164 format |
-| `cidade` | User input | Yes | Normalized on save |
-| `bairro` | User input | Yes | Normalized on save |
+There is currently **no dedicated** `PATCH /usuarios/me/consent` endpoint in the backend implementation.
+
+Use:
+- `PUT /api/v1/usuarios/me` to change `consentimento_ia`
+
+If a dedicated consent endpoint is introduced later, this contract should be versioned again.
+
+---
+
+## Field Reference
+
+| Field | Source | Writable by client | Notes |
+|-------|--------|--------------------|-------|
+| `id` | System | No | UUID string |
+| `email` | User input | No after register | Login identity |
+| `password` | User input | Yes, request-only | Never persisted raw |
+| `password_hash` | System | No | Internal backend storage only |
+| `nome` | User input | Yes | Required for completed profile |
+| `whatsapp` | User input | Yes | Required for completed profile |
+| `cidade` | User input | Yes | Required for completed profile |
+| `bairro` | User input | Yes | Required for completed profile |
 | `instituicao` | User input | Yes | Optional |
 | `perfil_completo` | System | No | Computed from required profile fields |
-| `consentimento_ia` | User input | Yes | Controls Gemini usage |
-| `token` | System | No | JWT issued by backend |
+| `consentimento_ia` | User input | Yes | Optional for onboarding; may change later |
+| `necessidades_academicas` | User input | Yes | Optional enum set |
+| `role` | System | No | `USER` or `ADMIN` |
+| `token` | System | No | JWT issued after register/login |
+| `expires_in` | System | No | JWT TTL in seconds |
+| `criado_em` | System | No | Persisted creation timestamp |
+| `atualizado_em` | System | No | Persisted update timestamp |
 
 ---
 
 ## Authentication Context
 
-All protected endpoints require `Authorization: Bearer <jwt_token>`.
+All protected endpoints require:
+
+```http
+Authorization: Bearer <jwt_token>
+```
 
 **JWT Token**:
 - **Expiry**: 7 days from issuance
 - **Issued by**: Backend auth service after successful register/login
-- **Claims**: `sub` (user ID), `email`, `role`, `perfil_completo`, `iat`, `exp`
+- **Claims**:
+  - `sub`: authenticated user email
+  - `role`: authorization role
+  - `perfilCompleto`: profile completion flag
+  - `userId`: user UUID
+  - `iat`: issued-at timestamp
+  - `exp`: expiry timestamp
 
 **Credential Rules**:
-- Backend verifies email + password on login
+- Backend verifies `email + password` on login
 - Backend persists only `password_hash`
-- Raw password must never appear in logs, DTO responses, or analytics
+- Raw passwords must never appear in responses, logs, or analytics

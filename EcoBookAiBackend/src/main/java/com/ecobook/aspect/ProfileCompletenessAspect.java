@@ -22,14 +22,14 @@ public class ProfileCompletenessAspect {
     public void ensureProfileIsComplete(RequireCompleteProfile requireCompleteProfile) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
-            throw new ProfileIncompleteException("Complete your profile before accessing this resource");
+            throw new ProfileIncompleteException("Conclua seu perfil antes de acessar este recurso");
         }
 
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new ProfileIncompleteException("Complete your profile before accessing this resource"));
+                .orElseThrow(() -> new ProfileIncompleteException("Conclua seu perfil antes de acessar este recurso"));
 
         if (!usuario.isPerfilCompleto()) {
-            throw new ProfileIncompleteException("Complete your profile before accessing this resource");
+            throw new ProfileIncompleteException("Conclua seu perfil antes de acessar este recurso");
         }
     }
 }

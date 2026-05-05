@@ -16,5 +16,12 @@ spring:
 
 logging:
   level:
+    root: INFO
+    com.ecobook: INFO
+    org.springframework.web: INFO
     org.springframework.security: INFO
     org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+
+server:
+  address: 0.0.0.0

@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 2–5 (Prototypes, AI Testing, Full Development, Launch)  
 **Total Tasks**: 187  
-**Status**: Ready for Phase 2 Execution (Week 5)  
+**Status**: Phase 2 checkpoint after auth rebaseline; auth/profile implemented, AI/material backlog still open  
 **Generated**: 2026-04-15
 
 ---
@@ -166,43 +166,43 @@ Phase 10: Polish & Integration
 
 #### Backend: Email/Password & JWT
 
-- [ ] **T036** [US1] Implement auth configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (PasswordEncoder, public auth endpoints, JWT validation)
+- [x] **T036** [US1] Implement auth configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (PasswordEncoder, public auth endpoints, JWT validation)
 - [x] **T037** [US1] Create `src/main/java/com/ecobook/security/JwtTokenProvider.java` service:
   - Generate JWT (7-day expiry, subject=email, custom claims: role, perfil_completo)
   - Validate token (signature, expiry, claims)
   - Refresh token (if refresh token endpoint needed, add in Phase 4)
 - [x] **T038** [US1] Create `src/main/java/com/ecobook/security/JwtAuthenticationFilter.java` (extracts JWT from Authorization header, validates, sets SecurityContext)
 - [x] **T039** [US1] Register JWT filter in `SecurityConfig.java` with `addFilterBefore(JwtAuthenticationFilter, UsernamePasswordAuthenticationFilter)`
-- [ ] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
+- [x] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
   - **POST /api/v1/auth/register**: Accepts email, password, nome; creates Usuario; returns JWT + user info
   - **POST /api/v1/auth/login**: Accepts email and password; verifies credentials; returns JWT + user info
-- [ ] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
+- [x] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
   - `registerUser(request)`: Validate email uniqueness, hash password, create Usuario, generate JWT
   - `loginUser(request)`: Verify password hash, generate JWT
   - Never return raw password or `password_hash`
-- [ ] **T042** [US1] Update `src/main/java/com/ecobook/repository/UsuarioRepository.java` (Spring Data JPA):
+- [x] **T042** [US1] Update `src/main/java/com/ecobook/repository/UsuarioRepository.java` (Spring Data JPA):
   - `findByEmail(email): Optional<Usuario>`
   - `existsByEmailIgnoreCase(email): boolean`
 - [x] **T043** [US1] Create JWT validation test in `src/test/java/com/ecobook/security/JwtTokenProviderTest.java` (generate token, validate, test expiry)
-- [ ] **T044** [US1] Create auth integration tests in `src/test/java/com/ecobook/AuthControllerIntegrationTest.java` (POST /auth/register, POST /auth/login, password hash verification)
-- [ ] **T045** [P] [US1] Create endpoint tests for invalid credentials and expired token: POST /auth/login with invalid password -> HTTP 401
+- [x] **T044** [US1] Create auth integration tests in `src/test/java/com/ecobook/AuthControllerIntegrationTest.java` (POST /auth/register, POST /auth/login, password hash verification)
+- [x] **T045** [P] [US1] Create endpoint tests for invalid credentials and expired token: POST /auth/login with invalid password -> HTTP 401
 
 #### Android: Email/Password Flow
 
-- [ ] **T046** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
+- [x] **T046** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
   - Display `Login` and `Criar conta` forms
   - Inputs: email, password, confirm password (register only), nome (register only)
   - Show loading spinner during authentication
   - Navigate to onboarding on success
-- [ ] **T047** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthValidator.kt`:
-  - Validate email format
+- [x] **T047** [P] [US1] Implement auth form validation inside `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+  - Validate email format and empty fields
   - Validate password minimum length
   - Validate password confirmation match
   - Return field-specific error messages
-- [ ] **T048** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
+- [x] **T048** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
   - `POST /api/v1/auth/register`
   - `POST /api/v1/auth/login`
-- [ ] **T049** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+- [x] **T049** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
   - Trigger register/login requests
   - Store JWT in SecureStorage after login success
   - Handle credential errors (show user-friendly messages)
@@ -270,7 +270,7 @@ Phase 10: Polish & Integration
 - [x] **T069** [US1] Create `src/main/java/com/ecobook/aspect/ProfileCompletenessAspect.java` (AOP):
   - Intercept methods annotated with `@RequireCompleteProfile`
   - Check SecurityContext user's perfil_completo = true
-  - Return HTTP 403 if false: `{"error": "INCOMPLETE_PROFILE", "message": "Complete your profile before..."}` 
+  - Return HTTP 403 if false: `{"error": "INCOMPLETE_PROFILE", "message": "Conclua seu perfil antes de acessar este recurso"}` 
 - [x] **T070** [US1] Create `@RequireCompleteProfile` annotation in `src/main/java/com/ecobook/annotation/RequireCompleteProfile.java`
 - [x] **T071** [US1] Mark future endpoints with `@RequireCompleteProfile`: POST /materiais, POST /solicitacoes, PUT /materiais/{id}, DELETE /materiais/{id}
 - [x] **T072** [US1] Test aspect behavior in `src/test/java/com/ecobook/aspect/ProfileCompletenessAspectTest.java` (incomplete profile → 403, complete → proceed)
@@ -292,9 +292,9 @@ Phase 10: Polish & Integration
   - Handle 400/422 errors: Show field-specific error messages
   - Handle 403: Show "Profile already complete" message, navigate to MainScreen
 - [x] **T075** [P] [US1] Create City autocomplete in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/CityAutocomplete.kt`:
-  - Hardcode list of major Brazilian cities (or fetch from backend if time permits)
+  - Prioritize a curated list of Santa Catarina cities for MVP autocomplete (future expansion can fetch broader coverage from backend)
   - Filter on user input, display dropdown suggestions
-- [ ] **T076** [P] [US1] Add WhatsApp formatter in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/WhatsAppFormatter.kt`:
+- [x] **T076** [P] [US1] Add WhatsApp formatter in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/WhatsAppFormatter.kt`:
   - User types: "11991234567" → automatically format to "+5511991234567"
   - Prevent typing invalid characters (only digits and +)
 
@@ -471,7 +471,7 @@ Phase 10: Polish & Integration
 #### Android: Upload Screen
 
 - [ ] **T099** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadScreen.kt` Compose screen:
-  - Display "Select Material Image" button (opens image picker or camera)
+  - Display image entry CTA that explicitly communicates both options: choose from gallery or capture with camera
   - Show preview of selected image
   - Display size and format information
   - Show "Next" button to proceed to processing screen
@@ -652,13 +652,14 @@ Phase 10: Polish & Integration
   - `search()`: call GET /api/v1/materiais with current filters
   - `loadNextPage()`: increment page, append results
 - [ ] **T126** [P] [US3] Create material list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/MaterialListItem.kt`:
-  - Display material thumbnail image
+  - Render each material as a tappable card
+  - Display material thumbnail image or a neutral gray placeholder when the image is missing/unavailable
   - Show disciplina, nivel_ensino, ano, estado_conservacao badges
   - Show city and neighborhood (proximity indicator)
   - Show upload date (relative: "2 days ago")
   - Show donor name (or "Anonymous" if privacy desired)
   - Show publication year (data_publicacao) if available
-  - Tap to view details / request material
+  - Tap to open a detail dialog before request material
 - [ ] **T127** [P] [US3] Create LazyColumn with pagination in DiscoveryScreen:
   - Load initial 20 materials on screen open
   - Detect "load more" (user scrolled to end)
@@ -676,12 +677,14 @@ Phase 10: Polish & Integration
   - Show "No materials found" message
   - Suggest adjusting filters
   - Show "Browse all materials" button to reset filters
-- [ ] **T130** [P] [US3] Create material detail screen in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/MaterialDetailScreen.kt`:
-  - Display full image
+- [ ] **T130** [P] [US3] Create material detail dialog in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/MaterialDetailDialog.kt`:
+  - Open from material card tap as a dismissible modal/dialog
+  - Display full image or fallback placeholder
   - Show all metadata (disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao)
   - Show description (if provided)
   - Show donor city and neighborhood (proximity indicator)
   - Show donor name + "Contact" button (WhatsApp link after approval)
+  - Provide explicit close action and support dismiss by back/tap outside
   - Show "Request Material" button → POST /solicitacoes/{material_id}
 
 ---
@@ -1104,12 +1107,13 @@ Phase 10: Polish & Integration
   - Two-stage consent: PLATFORM (sign-up) + AI_CLASSIFICATION (before first material upload)
 - [ ] **T193** [P] Create consent tracking in registration:
   - First consent: PLATFORM granted automatically on signup
-  - Second consent: AI_CLASSIFICATION requested before POST /materiais/preview
+  - Second consent: AI_CLASSIFICATION may be requested during onboarding or later from profile/settings before POST /materiais/preview
   - Store ConsentRecord for each grant/revocation
 - [ ] **T194** [P] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
   - **PATCH /api/v1/usuarios/me/consent**: Update consent for AI classification
   - Request: consentimento_ia (boolean)
   - Response: Updated UsuarioDto
+  - Must support enabling or disabling consent after profile creation at any time
 - [ ] **T195** [P] Implement consent enforcement:
   - If consentimento_ia = false: POST /materiais/preview returns FAILURE status immediately (no Gemini call)
   - Respect user's choice throughout session
@@ -1164,11 +1168,11 @@ Phase 10: Polish & Integration
 
 - [ ] **T204** [P] Create consent dialogs in onboarding:
   - Platform consent: "I agree to EcoBook IA's terms and conditions and privacy policy" (checkbox)
-  - AI consent (before first upload): "I consent to use of AI for analyzing material images" (checkbox)
-  - Both required before proceeding
+  - AI consent prompt: "I consent to use of AI for analyzing material images" (optional at onboarding; can be enabled later from profile)
+  - Platform consent remains required before proceeding; AI consent does not block profile completion
 - [ ] **T205** [P] Create consent management screen:
   - Show current consent status (PLATFORM: given, AI: given/not-given)
-  - Option to revoke AI consent anytime
+  - Option to grant, re-enable, or revoke AI consent anytime
   - Link to privacy policy + terms
 - [ ] **T206** [P] Create account deletion screen:
   - Button: "Delete Account Permanently"
@@ -1371,16 +1375,21 @@ Phase 10: Polish & Integration
 
 ---
 
-## Acceptance Criteria for Phase 2 Kickoff
+## Current Checkpoint After Auth Rebaseline
 
-All tasks in PHASE 1 & PHASE 2 must pass:
+What is already true in the repository:
 
-- ✅ Backend Spring Boot starts without errors
-- ✅ Android project compiles and emulator launches
-- ✅ First 35 integration tests pass (JWT, local auth, user profile, file upload)
-- ✅ Gemini API successfully classifies 5+ test images
-- ✅ Database schema created and migrations automated
-- ✅ GitHub Actions CI/CD pipeline executes on every commit
+- ✅ Backend Spring Boot boots with health, auth and profile endpoints
+- ✅ Android project compiles with login/cadastro/onboarding flow
+- ✅ Database schema and migrations support local credentials (`password_hash`)
+- ✅ JWT generation, validation and profile completeness gate are implemented
+- ✅ `/api/v1/materiais/preview` now exists as a route skeleton for the next module
+
+What still blocks formal Phase 2 closure:
+
+- ⏳ Reach or rebaseline the original `30+` automated test target
+- ⏳ Replace material preview/upload stubs with real service integration
+- ⏳ Keep backlog checkboxes synchronized with the codebase as modules land
 
 ---
 
@@ -1389,12 +1398,12 @@ All tasks in PHASE 1 & PHASE 2 must pass:
 1. **Assign Tasks**: Distribute tasks to backend dev, Android dev, QA based on user story phases
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
-4. **Start Phase 1**: Backend skeleton (T001–T015) begins immediately
-5. **Daily Standup**: 15-min sync on blockers, progress, dependencies
+4. **Close remaining Phase 2 items**: tests, preview skeleton follow-through and checklist hygiene
+5. **Begin Phase 3 implementation**: Gemini preview, temporary uploads and donation form integration
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Ready for Phase 2 (Prototypes & Integration) — Week 5 Execution  
+**Status**: Auth/profile rebaseline applied; use this file as a living backlog, not as a “ready for phase 2” snapshot  
 **Document Owner**: Product/Tech Lead  
-**Last Updated**: 2026-04-15
+**Last Updated**: 2026-05-05

@@ -41,7 +41,7 @@ fun DiscoveryScreen(
         item {
             SectionHeading(
                 title = "Descoberta de materiais",
-                subtitle = "Catalogo Android pronto para refletir as regras do matching: disciplina, nivel, sistema e proximidade."
+                subtitle = "Catalogo local usado para validar filtros e apresentacao enquanto o matching e a busca real ainda nao foram ligados ao backend."
             )
         }
 

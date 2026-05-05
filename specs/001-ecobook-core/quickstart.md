@@ -1,8 +1,8 @@
 # Quickstart Guide: EcoBook IA Development
 
-**Phase**: 1 (Design & Contracts)  
+**Phase**: 1-2 baseline  
 **Date**: 2026-05-05  
-**Purpose**: Setup local development environment and validate the first auth + profile flow
+**Purpose**: Boot the current backend and validate the implemented email/password auth flow
 
 ---
 
@@ -10,11 +10,9 @@
 
 ### Backend
 
-- Java 17+ or 21+
-- PostgreSQL 14+
-- Maven or Gradle
-- Docker (recommended for local PostgreSQL)
-- Git
+- Java 21+ compatible JDK
+- Maven
+- PostgreSQL 14+ for the main profile, or H2 for the local profile
 
 ### Android
 
@@ -26,31 +24,41 @@
 
 ## Backend Setup
 
-### 1. Start PostgreSQL
+### 1. Choose a runtime profile
 
-```bash
-docker compose up -d postgres
-```
+**PostgreSQL profile**
+- Uses Flyway migrations
+- Default server port: `8080`
+
+**Local H2 profile**
+- Uses a local file database and compatibility bootstrap
+- Useful for fast local auth testing
 
 ### 2. Configure environment
 
-Create `.env` in `EcoBookAiBackend/`:
+The current backend reads these keys directly:
 
 ```bash
-DATABASE_URL=jdbc:postgresql://localhost:5432/ecobook
-DATABASE_USER=ecobook
-DATABASE_PASSWORD=dev_password_123
-JWT_SECRET=your-super-secret-jwt-key-minimum-32-characters-long
-GEMINI_API_KEY=your-gemini-api-key
-FCM_PROJECT_ID=your-firebase-project-id
-FCM_SERVICE_ACCOUNT_JSON=/path/to/firebase-service-account.json
+DB_PASSWORD=dev_password_123
+JWT_SECRET=change-this-jwt-secret-in-production-and-keep-it-at-least-64-characters-long
+SERVER_PORT=8080
+GEMINI_API_KEY=
 ```
 
 ### 3. Run backend
 
+**PostgreSQL**
+
 ```bash
 cd EcoBookAiBackend
 mvn spring-boot:run
+```
+
+**Local H2**
+
+```bash
+cd EcoBookAiBackend
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 ### 4. Validate health
@@ -62,7 +70,9 @@ curl http://localhost:8080/api/v1/health
 Expected response:
 
 ```json
-{ "status": "UP" }
+{
+  "status": "UP"
+}
 ```
 
 ---
@@ -71,7 +81,7 @@ Expected response:
 
 ### 1. Configure local properties
 
-Create `EcoBookAiAndroid/local.properties`:
+Set the emulator override in `EcoBookAiAndroid/local.properties`:
 
 ```properties
 sdk.dir=C\:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
@@ -80,7 +90,7 @@ backend.url=http://10.0.2.2:8080/api
 
 ### 2. Firebase note
 
-`google-services.json` is only relevant for Firebase Messaging tests. Authentication no longer depends on Google sign-in.
+`google-services.json` is now relevant only for Firebase Messaging and notification tests. Authentication no longer depends on Google Sign-In.
 
 ### 3. Build app
 
@@ -130,15 +140,17 @@ curl -X PUT http://localhost:8080/api/v1/usuarios/me \
     "whatsapp": "+5548999999999",
     "cidade": "Florianopolis",
     "bairro": "Centro",
-    "consentimento_ia": true
+    "consentimento_ia": false,
+    "necessidades_academicas": ["TEXTBOOKS"]
   }'
 ```
 
 Expected result:
 - normalized geography
 - `perfil_completo = true`
+- `consentimento_ia` can remain `false` and be changed later through `PUT /api/v1/usuarios/me`
 
-### 4. Login with same credentials
+### 4. Login with the same credentials
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
@@ -155,33 +167,17 @@ Expected result:
 
 ---
 
-## First Material Preview Test
-
-After authentication and profile completion:
-
-```bash
-curl -X POST http://localhost:8080/api/v1/materiais/preview \
-  -H "Authorization: Bearer $TOKEN" \
-  -F "image=@sample-math-textbook.jpg"
-```
-
-Expected result:
-- Gemini classification response
-- `status_ia` returned
-- `upload_id` generated
-
----
-
 ## Troubleshooting
 
 ### Backend
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| `Connection refused: 5432` | PostgreSQL not running | Start Docker compose or local PostgreSQL |
+| `Connection refused: 5432` | PostgreSQL not running | Start PostgreSQL or use the `local` H2 profile |
 | `JWT validation failed` | Expired token or wrong secret | Re-login via `POST /api/v1/auth/login` |
-| `Invalid credentials` | Wrong email/password | Confirm user exists and password matches |
-| `Port 8080 already in use` | Another service using the port | Stop existing process or change `SERVER_PORT` |
+| `Email ou senha invalidos` | Wrong email/password | Confirm user exists and password matches |
+| `Port 8080 already in use` | Another service using the port | Stop the existing process or change `SERVER_PORT` |
+| `Este email ja esta cadastrado` | Existing account uses the same email | Login instead of registering, or run a manual account recovery flow |
 
 ### Android
 
@@ -189,13 +185,13 @@ Expected result:
 |-------|-------|----------|
 | Emulator cannot reach backend | Wrong host alias | Use `10.0.2.2` instead of `localhost` |
 | App returns to login after request | API responded `401` | Check JWT storage and backend secret |
-| Auth screen still shows Google flow | Codebase not fully migrated yet | Follow current docs as the target direction |
+| Auth request fails after backend change | App still points to old port | Rebuild after updating `backend.url` |
 
 ---
 
-## Next Steps
+## Current Focus
 
-1. Replace legacy Google-auth code paths with email/password screens and endpoints
-2. Add auth integration tests for register/login
-3. Update backend schema to persist `password_hash`
-4. Validate logout and 401 recovery in Android
+1. Close the remaining Phase 2 debt around checklist/status cleanup and broader automated coverage.
+2. Keep consent updates on `PUT /usuarios/me` unless a dedicated endpoint is intentionally added later.
+3. Start the real `/materiais/preview` implementation path for Phase 3.
+4. Continue the remaining MVP work on material listing, matching, and request flows.

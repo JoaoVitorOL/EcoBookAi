@@ -38,8 +38,10 @@ docker compose up -d postgres
 Na pasta `EcoBookAiBackend`:
 
 ```powershell
-mvn spring-boot:run
+mvn "-Dspring-boot.run.profiles=local" spring-boot:run
 ```
+
+Para testes com o emulador Android usando `http://10.0.2.2:8080/api`, prefira iniciar o backend no host Windows. Quando o Spring Boot roda dentro do WSL, o relay de localhost pode ficar visivel apenas em `::1`, e o emulador passa a enxergar o servidor como indisponivel.
 
 ## Como validar a saude
 
@@ -47,6 +49,12 @@ Com o backend rodando:
 
 ```text
 http://localhost:8080/api/v1/health
+```
+
+Se voce quiser confirmar que o backend tambem esta acessivel por IPv4 para o emulador, valide:
+
+```text
+http://127.0.0.1:8080/api/v1/health
 ```
 
 ## Variaveis importantes

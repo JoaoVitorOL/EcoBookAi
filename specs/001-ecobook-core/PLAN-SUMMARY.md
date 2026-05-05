@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete (Design & Contracts)  
+**Phase**: 1 Complete / 2 In Progress  
 **Date**: 2026-05-05  
-**Status**: Ready for Phase 2 Rebaseline
+**Status**: Phase 2 auth/profile checkpoint completed; Phase 2 closure still pending
 
 ---
 
@@ -95,25 +95,33 @@ All planning now aligns with Constitution v2.0.0:
 
 ---
 
-## Phase 2 Rebaseline
+## Current Phase 2 Checkpoint
 
-The next implementation phase should now focus on:
+What is already implemented in the repository:
 
-1. Backend auth rework
-   - Register endpoint with password hashing
-   - Login endpoint with credential verification
-   - User repository/model updates for `password_hash`
-   - Auth integration tests
+1. Backend auth/profile foundation
+   - `POST /api/v1/auth/register`
+   - `POST /api/v1/auth/login`
+   - `GET /api/v1/usuarios/me`
+   - `PUT /api/v1/usuarios/me`
+   - Password hashing + JWT issuance + profile completeness gate
 
-2. Android auth rework
+2. Android auth/profile foundation
    - Login/register screen with email and password
-   - Form validation and user feedback
+   - Form validation inside the auth ViewModel
    - JWT persistence and session restore
-   - Logout and 401 handling reuse
+   - Logout and `401` handling
+   - Onboarding with WhatsApp, cidade, bairro and optional `consentimento_ia`
 
-3. Documentation and contract cleanup
-   - Remove remaining Google auth assumptions
-   - Keep historical OAuth2 docs clearly marked as legacy
+3. Phase 3 handoff prep now in place
+   - `/api/v1/materiais/preview` route skeleton exists
+   - material/request/notification contracts remain target-state docs for later phases
+
+What still keeps Phase 2 from being formally closed:
+
+1. Expand automated coverage toward the original 30+ test target
+2. Implement the real preview/upload service path for materials
+3. Rebaseline the historical task checklist so it matches the codebase
 
 ---
 
@@ -131,6 +139,10 @@ What changed materially:
 - User schema for credentials
 - Android entry flow
 - Backend auth service design
+
+What is now accurate about readiness:
+- Safe to begin Phase 3 implementation work
+- Not yet accurate to declare Phase 2 fully closed
 
 ---
 

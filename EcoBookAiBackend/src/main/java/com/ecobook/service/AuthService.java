@@ -24,9 +24,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String LEGACY_ACCOUNT_PLACEHOLDER_HASH =
-            "$2a$10$zKy.OSOH8QwuPcygx3gSbeqZesX.A4MLu7YAMTLmNPfx139CWSFKW";
-
     private final UsuarioRepository usuarioRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -36,9 +33,11 @@ public class AuthService {
         String normalizedEmail = normalizeEmail(request.getEmail());
         String normalizedNome = normalizeNome(request.getNome());
 
-        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizedEmail)
-                .map(existing -> activateLegacyAccount(existing, normalizedEmail, normalizedNome, request.getPassword()))
-                .orElseGet(() -> createUser(normalizedEmail, normalizedNome, request.getPassword()));
+        if (usuarioRepository.findByEmailIgnoreCase(normalizedEmail).isPresent()) {
+            throw new ConflictException("Este email ja esta cadastrado");
+        }
+
+        Usuario usuario = createUser(normalizedEmail, normalizedNome, request.getPassword());
 
         usuario.refreshPerfilCompleto();
         Usuario savedUser = usuarioRepository.save(usuario);
@@ -69,32 +68,6 @@ public class AuthService {
                 .perfilCompleto(false)
                 .consentimentoIa(false)
                 .build();
-    }
-
-    private Usuario activateLegacyAccount(Usuario existingUser, String email, String nome, String rawPassword) {
-        if (!isLegacyAccount(existingUser)) {
-            throw new ConflictException("Email already registered");
-        }
-
-        existingUser.setEmail(email);
-        existingUser.setNome(nome);
-        existingUser.setPasswordHash(passwordEncoder.encode(rawPassword));
-
-        if (existingUser.getRole() == null) {
-            existingUser.setRole(Role.USER);
-        }
-        if (existingUser.getPerfilCompleto() == null) {
-            existingUser.setPerfilCompleto(false);
-        }
-        if (existingUser.getConsentimentoIa() == null) {
-            existingUser.setConsentimentoIa(false);
-        }
-
-        return existingUser;
-    }
-
-    private boolean isLegacyAccount(Usuario usuario) {
-        return LEGACY_ACCOUNT_PLACEHOLDER_HASH.equals(usuario.getPasswordHash());
     }
 
     private AuthResponseDTO buildAuthResponse(Usuario usuario) {
@@ -130,6 +103,6 @@ public class AuthService {
     }
 
     private BadCredentialsException invalidCredentials() {
-        return new BadCredentialsException("Email or password is invalid");
+        return new BadCredentialsException("Email ou senha invalidos");
     }
 }

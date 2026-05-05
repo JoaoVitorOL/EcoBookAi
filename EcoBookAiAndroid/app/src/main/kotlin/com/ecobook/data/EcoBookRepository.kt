@@ -170,7 +170,7 @@ class EcoBookRepository @Inject constructor(
             ),
             ProjectInsight(
                 title = "Integracao atual",
-                description = "Hoje a API funcional confirmada e o health check; auth, perfil, materiais e solicitacoes ja estao modelados e especificados para a proxima fase."
+                description = "Auth, perfil e sessao local ja funcionam. Materiais, preview com IA e solicitacoes seguem como a proxima frente de integracao."
             )
         )
     }
@@ -194,7 +194,7 @@ class EcoBookRepository @Inject constructor(
         return DonationPreview(
             aiStatus = AiAssistStatus.SUCCESS,
             confidence = 0.82,
-            description = "Simulacao do retorno esperado para /materiais/preview quando a etapa de IA estiver conectada ao backend.",
+            description = "Mock visual do retorno esperado para /materiais/preview enquanto a etapa de IA ainda esta sendo conectada no backend.",
             fields = listOf(
                 AIPreviewField("Titulo sugerido", "Colecao Anglo Matematica 7"),
                 AIPreviewField("Disciplina", "Matematica"),

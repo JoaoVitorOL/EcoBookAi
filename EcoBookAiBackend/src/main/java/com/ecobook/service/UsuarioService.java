@@ -41,14 +41,14 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public UsuarioDTO getByEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
         return toDto(usuario);
     }
 
     @Transactional
     public UsuarioDTO updateProfile(String email, UpdateProfileRequestDTO request) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
 
         validateRequiredFields(request);
         validateWhatsApp(request.getWhatsapp());
@@ -98,20 +98,20 @@ public class UsuarioService {
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
 
         if (!StringUtils.hasText(request.getNome())) {
-            fieldErrors.put("nome", "Nome is required");
+            fieldErrors.put("nome", "Informe seu nome");
         }
         if (!StringUtils.hasText(request.getWhatsapp())) {
-            fieldErrors.put("whatsapp", "WhatsApp is required");
+            fieldErrors.put("whatsapp", "Informe um WhatsApp");
         }
         if (!StringUtils.hasText(request.getCidade())) {
-            fieldErrors.put("cidade", "Cidade is required");
+            fieldErrors.put("cidade", "Informe sua cidade");
         }
         if (!StringUtils.hasText(request.getBairro())) {
-            fieldErrors.put("bairro", "Bairro is required");
+            fieldErrors.put("bairro", "Informe seu bairro");
         }
 
         if (!fieldErrors.isEmpty()) {
-            throw new UnprocessableEntityException("Profile completion requires all mandatory fields", fieldErrors);
+            throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
         }
     }
 
@@ -132,7 +132,7 @@ public class UsuarioService {
 
         if (!violations.isEmpty()) {
             throw new BadRequestException(
-                    "Profile contains invalid fields",
+                    "O perfil contem campos invalidos",
                     violations.stream().collect(Collectors.toMap(
                             violation -> violation.getPropertyPath().toString(),
                             ConstraintViolation::getMessage,
@@ -159,10 +159,10 @@ public class UsuarioService {
         }
 
         if (fieldErrors.keySet().stream().allMatch(field -> field.equals("whatsapp"))) {
-            throw new BadRequestException("Profile contains invalid fields", fieldErrors);
+            throw new BadRequestException("O perfil contem campos invalidos", fieldErrors);
         }
 
-        throw new UnprocessableEntityException("Profile completion requires all mandatory fields", fieldErrors);
+        throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
     }
 
     private Set<NecessidadeAcademica> resolveNeeds(Set<NecessidadeAcademica> necessidadesAcademicas) {

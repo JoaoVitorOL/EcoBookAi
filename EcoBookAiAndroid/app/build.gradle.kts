@@ -33,11 +33,6 @@ android {
             "BACKEND_URL_OVERRIDE",
             "\"${localProperty("backend.url")}\""
         )
-        buildConfigField(
-            "String",
-            "GOOGLE_OAUTH_CLIENT_ID_OVERRIDE",
-            "\"${localProperty("google.oauth.clientId")}\""
-        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -139,11 +134,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.10.0")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-
-    // Credential Manager + Sign in with Google
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // Hilt Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")

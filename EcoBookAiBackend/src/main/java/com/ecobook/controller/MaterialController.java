@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/materiais")
 public class MaterialController {
 
+    @PostMapping("/preview")
+    @RequireCompleteProfile
+    public ResponseEntity<Void> previewMaterial() {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
     @PostMapping
     @RequireCompleteProfile
     public ResponseEntity<Void> createMaterial() {

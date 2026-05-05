@@ -7,9 +7,9 @@ O repositorio esta organizado em duas bases explicitas:
 
 ## O que existe hoje
 
-- O backend ja tem estrutura de dominio, seguranca, DTOs, migracao inicial e `GET /api/v1/health`.
-- O Android ja tem base navegavel, telas principais e integracao com o health check do backend.
-- O projeto esta em transicao documental de auth: a direcao oficial agora e **email + senha + JWT**, substituindo o fluxo anterior com Google.
+- O backend ja tem auth local com `email + senha + JWT`, perfil de usuario, migracoes Flyway e `GET /api/v1/health`.
+- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT e integracao com o health check do backend.
+- Materiais, preview com IA, matching e solicitacoes continuam como os proximos modulos do MVP.
 
 ## Estado de validacao
 

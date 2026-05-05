@@ -42,27 +42,27 @@ public class Usuario {
     private String passwordHash;
 
     @Column(nullable = false, length = 255)
-    @NotBlank(groups = ProfileCompletionValidation.class, message = "Nome is required")
+    @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe seu nome")
     private String nome;
 
     @Column(length = 20)
-    @NotNull(groups = ProfileCompletionValidation.class, message = "WhatsApp is required")
-    @NotBlank(groups = ProfileCompletionValidation.class, message = "WhatsApp is required")
+    @NotNull(groups = ProfileCompletionValidation.class, message = "Informe um WhatsApp")
+    @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe um WhatsApp")
     @Pattern(
             regexp = "^\\+55\\d{11}$",
             groups = ProfileCompletionValidation.class,
-            message = "WhatsApp must be in E.164 format (+55XXXXXXXXXXX)"
+            message = "Use o formato E.164 (+55XXXXXXXXXXX)"
     )
     private String whatsapp;
 
     @Column(length = 100)
-    @NotNull(groups = ProfileCompletionValidation.class, message = "Cidade is required")
-    @NotBlank(groups = ProfileCompletionValidation.class, message = "Cidade is required")
+    @NotNull(groups = ProfileCompletionValidation.class, message = "Informe sua cidade")
+    @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe sua cidade")
     private String cidade;
 
     @Column(length = 100)
-    @NotNull(groups = ProfileCompletionValidation.class, message = "Bairro is required")
-    @NotBlank(groups = ProfileCompletionValidation.class, message = "Bairro is required")
+    @NotNull(groups = ProfileCompletionValidation.class, message = "Informe seu bairro")
+    @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe seu bairro")
     private String bairro;
 
     @Column(length = 255)

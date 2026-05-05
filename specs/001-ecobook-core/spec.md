@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-ecobook-core`  
 **Created**: 2026-04-15  
-**Status**: Draft  
+**Status**: Active MVP baseline (implementation in progress)  
 **Architecture**: Android Native (Kotlin, Jetpack Compose) + Spring Boot Backend + PostgreSQL
 
 ---
@@ -27,6 +27,13 @@ EcoBook IA is an AI-powered material donation matching platform designed to prom
 - Q: Performance SLA/SLO targets by endpoint type? → A: Aggressive targets for better UX: Material search P95 150ms/P99 300ms; Gemini classification P95 7s/P99 9s; Approval operations P95 50ms/P99 150ms; FCM webhooks P95 30ms/P99 75ms. Targets drive database design (indexes, partitioning), infrastructure sizing, and monitoring thresholds.
 - Q: Gemini API error handling and retry strategy? → A: HTTP 429 (rate limit): 3 retries with exponential backoff (1s-2s-4s). HTTP 5xx (server error): 3 retries with conservative backoff (2s-4s-8s). Timeout/connection: 2 retries at 1s delay. Malformed response: no retry, log and return FAILURE. Circuit breaker: pause Gemini calls for 30s after 10+ failures in 5 minutes, return FAILURE immediately. Protects against cascading failures and respects API limits.
 - Q: Logging & observability strategy (levels, format, retention)? → A: Deferred to Phase 2 (MVP focuses on core functionality; basic application logging via Spring Boot default; structured logging and centralized aggregation (ELK/Datadog) planned post-launch)
+
+### Session 2026-05-05
+
+- Q: What city options should the onboarding/profile flow prioritize for MVP geography input? → A: The frontend should prioritize a curated list of Santa Catarina cities in the city autocomplete so the initial product feels local and reduces typo-driven mismatch.
+- Q: Is AI consent required during profile completion? → A: No. `consentimento_ia` remains optional during onboarding, defaults to false, and can be granted or revoked later from profile/settings without affecting `perfil_completo`.
+- Q: How should the Buscar result blocks behave in the final UX? → A: Each result should render as a tappable card; if the image is missing or unavailable, show a neutral placeholder; tapping the card opens a dismissible detail dialog/modal with an explicit close action.
+- Q: Must the Doar image flow support only camera capture? → A: No. The product should support both camera capture and gallery selection, and the UI copy should communicate both options clearly.
 
 ---
 
@@ -62,6 +69,7 @@ A donor uploads a material image. The backend calls Google Gemini to extract met
 2. **Given** Gemini returns confidence 0.50–0.75 (LOW_CONFIDENCE), **When** the response renders in the frontend, **Then** fields display suggested values with yellow warning icons and are editable
 3. **Given** Gemini confidence < 0.50 or timeout occurs, **When** response is returned, **Then** all classification fields render empty and require manual input; status_ia displays FAILURE or LOW_CONFIDENCE
 4. **Given** consentimento_ia = false for the user, **When** they upload an image, **Then** POST /materiais/preview returns status_ia: FAILURE and no Gemini call is made
+5. **Given** a user completed onboarding with `consentimento_ia = false`, **When** they later enable AI consent from profile/settings and submit a new material preview, **Then** Gemini processing is allowed without requiring a new account or a repeated onboarding flow
 
 ---
 
@@ -83,6 +91,8 @@ A student specifies their academic needs (discipline, education level, curriculu
 6. **Given** a student provides only min_ano_publicacao=2015, **When** results are filtered, **Then** only materials with data_publicacao >= 2015 are returned
 7. **Given** a student provides only max_ano_publicacao=2000, **When** results are filtered, **Then** only materials with data_publicacao <= 2000 are returned
 8. **Given** a student provides min_ano_publicacao=2010 and max_ano_publicacao=2000 (invalid range), **When** the query is sent, **Then** the system returns HTTP 400 Bad Request with error message
+9. **Given** a discovery result has no uploaded image yet or the image cannot be loaded, **When** the list renders, **Then** the result still appears with a neutral placeholder image area instead of a broken layout
+10. **Given** a student taps a material block in the discovery list, **When** they want more context before requesting, **Then** the app opens a dismissible detail dialog/modal with richer metadata and a visible close action
 
 ---
 
@@ -150,6 +160,8 @@ Users must complete their profiles before performing restricted operations. The 
 1. **Given** a newly registered user with incomplete profile (missing city or WhatsApp), **When** they query GET /usuarios/me, **Then** the response includes `perfil_completo: false`
 2. **Given** a user with `perfil_completo: false`, **When** they attempt POST /materiais or POST /solicitacoes, **Then** the system returns HTTP 403 Forbidden
 3. **Given** a user with incomplete profile, **When** they complete all required fields via PUT /usuarios/me, **Then** `perfil_completo` transitions to true and restricted operations become available
+4. **Given** a user completes all required profile fields but leaves `consentimento_ia = false`, **When** the profile is saved, **Then** `perfil_completo` still becomes true because AI consent is not part of the completeness gate
+5. **Given** a profile-complete user later changes their mind about AI usage, **When** they update consent from profile/settings, **Then** `consentimento_ia` changes without affecting authentication state or profile completeness
 
 ---
 
@@ -178,6 +190,8 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-002**: System MUST enforce profile completeness before allowing material operations; endpoint GET /usuarios/me returns `perfil_completo: boolean`
 - **RF-003**: System MUST normalize geographic data: uppercase letters, remove accents (NFD + ASCII), trim whitespace; e.g., "são joão" → "SAO JOAO"
 - **RF-004**: System MUST track `consentimento_ia: boolean` per user to control Gemini API calls
+- **RF-004a**: Frontend city selection during onboarding/profile editing MUST prioritize a curated list of Santa Catarina cities for MVP autocomplete, while backend storage remains normalized text
+- **RF-004b**: `consentimento_ia` MUST default to false, MUST NOT block `perfil_completo`, and MUST remain editable later from profile/settings
 
 #### Material Management & Lifecycle
 
@@ -191,6 +205,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 #### Image Processing Pipeline
 
 - **RF-011**: POST /materiais accepts multipart form data with image file; backend saves temporarily to disk/S3
+- **RF-011a**: Android donation flow MUST support both gallery selection and camera capture as valid sources for the image sent to `/materiais/preview`, and the UI copy MUST communicate both options
 - **RF-012**: Backend MUST call Google Gemini API with 10-second timeout; timeout returns status_ia = FAILURE
 - **RF-013**: Backend MUST parse Gemini response and validate: JSON structure, presence of best_prediction, enum values, confidence in [0, 1]
 - **RF-014**: If any validation fails, set status_ia = LOW_CONFIDENCE or FAILURE; return to frontend with parsed/partial data
@@ -216,6 +231,8 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 
 - **RF-022**: Matching pipeline (in order): (1) Filter status = DISPONIVEL, (2) Filter disciplina (exact), (3) Filter nivel_ensino (exact), (4) Filter |ano_material - ano_student| ≤ 1 (except SUPERIOR, which ignores school year), (5) Filter sistema_ensino (exact; OUTRO matches only OUTRO), (6) Filter data_publicacao range if provided (min_ano_publicacao and/or max_ano_publicacao), (7) Sort by: same bairro > same cidade > data_publicacao DESC (newest publication first) > id
 - **RF-023**: Query endpoint: GET /materiais?disciplina=X&nivel_ensino=Y&ano=Z&sistema_ensino=W&cidade=C&bairro=B returns paginated results
+- **RF-023a**: Discovery results in the Android client MUST render each material as a tappable card and MUST use a neutral placeholder when no material image is available or the image fails to load
+- **RF-023b**: Tapping a discovery result card MUST open a dismissible dialog/modal with an explicit close action and richer material details before request submission
 - **RF-024**: Special rule: SUPERIOR level (nivel_ensino = SUPERIOR) ignores school year constraint in filtering
 - **RF-025**: Special rule: sistema_ensino = OUTRO matches ONLY materials with sistema_ensino = OUTRO (not a wildcard)
 - **RF-044**: Optional publication date range filter (min_ano_publicacao, max_ano_publicacao) allows narrowing by original publication year (1900-2100); if both provided, must satisfy min <= max; if only min provided, filters data_publicacao >= min; if only max provided, filters data_publicacao <= max; violating min > max returns HTTP 400
@@ -717,6 +734,8 @@ All error responses follow this structure:
   - Normalize cidade/bairro (uppercase, no accents)
   - Set `perfil_completo = true` if all required fields present
   - `consentimento_ia` controls Gemini API usage
+  - `consentimento_ia` is optional for onboarding completion and can be enabled later from profile/settings without requiring the user to recreate the profile
+  - Frontend UX should prioritize a curated Santa Catarina city list for city selection, while the API continues accepting normalized text
 
 #### GET /usuarios/me
 - **Method**: GET
@@ -860,7 +879,7 @@ All error responses follow this structure:
 
 ### 10-Step Image Processing Workflow
 
-1. **User Selection**: Frontend user selects image from device gallery or camera
+1. **User Selection**: Frontend user selects image from device gallery or captures a new photo with the camera; the donation UX must clearly communicate both options
 2. **Upload to Backend**: Frontend sends multipart POST /materiais/preview with image file
 3. **Temporary Storage**: Backend saves image to temporary location (disk/S3) and generates `upload_id`
 4. **Gemini Call**: Backend sends image + prompt to Google Gemini API with 10s timeout

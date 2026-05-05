@@ -1,5 +1,7 @@
 package com.ecobook;
 
+import com.ecobook.model.Usuario;
+import com.ecobook.model.enums.Role;
 import com.ecobook.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerIntegrationTest extends BaseIntegrationTest {
+
+    private static final String LEGACY_PLACEHOLDER_HASH =
+            "$2a$10$zKy.OSOH8QwuPcygx3gSbeqZesX.A4MLu7YAMTLmNPfx139CWSFKW";
 
     @Autowired
     private MockMvc mockMvc;
@@ -87,7 +92,37 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("CONFLICT"))
-                .andExpect(jsonPath("$.message").value("Email already registered"));
+                .andExpect(jsonPath("$.message").value("Este email ja esta cadastrado"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/register should reject auto-claiming a legacy placeholder account")
+    void shouldRejectLegacyPlaceholderAccountClaim() throws Exception {
+        usuarioRepository.save(Usuario.builder()
+                .email("legacy@example.com")
+                .passwordHash(LEGACY_PLACEHOLDER_HASH)
+                .nome("Legacy User")
+                .role(Role.USER)
+                .perfilCompleto(false)
+                .consentimentoIa(false)
+                .build());
+
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "legacy@example.com",
+                                  "password": "SenhaSegura123",
+                                  "nome": "Claim Attempt"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("CONFLICT"))
+                .andExpect(jsonPath("$.message").value("Este email ja esta cadastrado"));
+
+        assertThat(usuarioRepository.findByEmailIgnoreCase("legacy@example.com"))
+                .hasValueSatisfying(usuario ->
+                        assertThat(usuario.getPasswordHash()).isEqualTo(LEGACY_PLACEHOLDER_HASH));
     }
 
     @Test
@@ -142,6 +177,6 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("Email or password is invalid"));
+                .andExpect(jsonPath("$.message").value("Email ou senha invalidos"));
     }
 }

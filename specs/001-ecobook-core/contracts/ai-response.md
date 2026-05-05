@@ -201,11 +201,7 @@ Authorization: Bearer <jwt_token>
 ```json
 {
   "error": "INCOMPLETE_PROFILE",
-  "message": "Profile must be complete before uploading materials",
-  "details": {
-    "perfil_completo": false,
-    "missing_fields": ["cidade", "bairro"]
-  }
+  "message": "Conclua seu perfil antes de acessar este recurso"
 }
 ```
 
@@ -213,8 +209,9 @@ Authorization: Bearer <jwt_token>
 
 ```json
 {
+  "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Valid JWT token required"
+  "message": "Um token JWT valido e obrigatorio"
 }
 ```
 
