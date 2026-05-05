@@ -86,7 +86,6 @@ public class UsuarioService {
                 .instituicao(usuario.getInstituicao())
                 .perfilCompleto(usuario.getPerfilCompleto())
                 .consentimentoIa(usuario.getConsentimentoIa())
-                .googleId(usuario.getGoogleId())
                 .role(usuario.getRole().name())
                 .necessidadesAcademicas(usuario.getNecessidadesAcademicas() == null ? Set.of() :
                         usuario.getNecessidadesAcademicas().stream().map(Enum::name).collect(Collectors.toCollection(java.util.LinkedHashSet::new)))

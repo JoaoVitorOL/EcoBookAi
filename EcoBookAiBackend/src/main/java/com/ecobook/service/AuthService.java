@@ -1,15 +1,16 @@
 package com.ecobook.service;
 
 import com.ecobook.dto.AuthResponseDTO;
+import com.ecobook.dto.LoginRequestDTO;
+import com.ecobook.dto.RegisterRequestDTO;
+import com.ecobook.exception.ConflictException;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Role;
 import com.ecobook.repository.UsuarioRepository;
 import com.ecobook.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -17,97 +18,118 @@ import org.springframework.util.StringUtils;
 import java.util.Locale;
 
 /**
- * Authentication service for user registration and login
+ * Authentication service for local email/password registration and login.
  */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final String LEGACY_ACCOUNT_PLACEHOLDER_HASH =
+            "$2a$10$zKy.OSOH8QwuPcygx3gSbeqZesX.A4MLu7YAMTLmNPfx139CWSFKW";
+
     private final UsuarioRepository usuarioRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    @Qualifier("googleJwtDecoder")
-    private final JwtDecoder googleJwtDecoder;
+    private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Register or login user with Google OAuth2 token
-     */
     @Transactional
-    public AuthResponseDTO registerOrLoginUser(String googleToken) {
-        Jwt googleJwt = decodeGoogleToken(googleToken);
+    public AuthResponseDTO register(RegisterRequestDTO request) {
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        String normalizedNome = normalizeNome(request.getNome());
 
-        String googleId = googleJwt.getSubject();
-        String email = googleJwt.getClaimAsString("email");
-        String name = googleJwt.getClaimAsString("name");
-        Boolean emailVerified = googleJwt.getClaimAsBoolean("email_verified");
-
-        if (!StringUtils.hasText(googleId) || !StringUtils.hasText(email)) {
-            throw new BadCredentialsException("Google token is missing required identity claims");
-        }
-
-        if (emailVerified != null && !emailVerified) {
-            throw new BadCredentialsException("Google account email must be verified");
-        }
-
-        Usuario usuario = usuarioRepository.findByGoogleIdOrCreateNew(googleId, email)
-                .map(existing -> mergeGoogleIdentity(existing, googleId, email, name))
-                .orElseGet(() -> createUser(googleId, email, name));
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizedEmail)
+                .map(existing -> activateLegacyAccount(existing, normalizedEmail, normalizedNome, request.getPassword()))
+                .orElseGet(() -> createUser(normalizedEmail, normalizedNome, request.getPassword()));
 
         usuario.refreshPerfilCompleto();
         Usuario savedUser = usuarioRepository.save(usuario);
-        String token = jwtTokenProvider.generateToken(
-                savedUser.getEmail(),
-                savedUser.getRole().name(),
-                savedUser.isPerfilCompleto(),
-                savedUser.getId().toString()
-        );
-
-        return AuthResponseDTO.builder()
-                .id(savedUser.getId().toString())
-                .email(savedUser.getEmail())
-                .nome(savedUser.getNome())
-                .perfilCompleto(savedUser.getPerfilCompleto())
-                .role(savedUser.getRole().name())
-                .token(token)
-                .expiresIn(jwtTokenProvider.getExpirationInSeconds())
-                .build();
+        return buildAuthResponse(savedUser);
     }
 
-    private Jwt decodeGoogleToken(String googleToken) {
-        try {
-            return googleJwtDecoder.decode(googleToken);
-        } catch (Exception ex) {
-            throw new BadCredentialsException("Invalid Google token", ex);
+    @Transactional(readOnly = true)
+    public AuthResponseDTO login(LoginRequestDTO request) {
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseThrow(this::invalidCredentials);
+
+        if (!StringUtils.hasText(usuario.getPasswordHash()) ||
+                !passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash())) {
+            throw invalidCredentials();
         }
+
+        usuario.refreshPerfilCompleto();
+        return buildAuthResponse(usuario);
     }
 
-    private Usuario createUser(String googleId, String email, String name) {
-        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
-        String resolvedName = StringUtils.hasText(name) ? name.trim() : normalizedEmail.substring(0, normalizedEmail.indexOf('@'));
-
+    private Usuario createUser(String email, String nome, String rawPassword) {
         return Usuario.builder()
-                .email(normalizedEmail)
-                .nome(resolvedName)
-                .googleId(googleId)
+                .email(email)
+                .passwordHash(passwordEncoder.encode(rawPassword))
+                .nome(nome)
                 .role(Role.USER)
                 .perfilCompleto(false)
                 .consentimentoIa(false)
                 .build();
     }
 
-    private Usuario mergeGoogleIdentity(Usuario existingUser, String googleId, String email, String name) {
-        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
-        existingUser.setEmail(normalizedEmail);
-
-        if (!StringUtils.hasText(existingUser.getGoogleId())) {
-            existingUser.setGoogleId(googleId);
-        } else if (!existingUser.getGoogleId().equals(googleId)) {
-            throw new BadCredentialsException("Google token does not match the registered account");
+    private Usuario activateLegacyAccount(Usuario existingUser, String email, String nome, String rawPassword) {
+        if (!isLegacyAccount(existingUser)) {
+            throw new ConflictException("Email already registered");
         }
 
-        if (!StringUtils.hasText(existingUser.getNome()) && StringUtils.hasText(name)) {
-            existingUser.setNome(name.trim());
+        existingUser.setEmail(email);
+        existingUser.setNome(nome);
+        existingUser.setPasswordHash(passwordEncoder.encode(rawPassword));
+
+        if (existingUser.getRole() == null) {
+            existingUser.setRole(Role.USER);
+        }
+        if (existingUser.getPerfilCompleto() == null) {
+            existingUser.setPerfilCompleto(false);
+        }
+        if (existingUser.getConsentimentoIa() == null) {
+            existingUser.setConsentimentoIa(false);
         }
 
         return existingUser;
+    }
+
+    private boolean isLegacyAccount(Usuario usuario) {
+        return LEGACY_ACCOUNT_PLACEHOLDER_HASH.equals(usuario.getPasswordHash());
+    }
+
+    private AuthResponseDTO buildAuthResponse(Usuario usuario) {
+        String token = jwtTokenProvider.generateToken(
+                usuario.getEmail(),
+                usuario.getRole().name(),
+                usuario.isPerfilCompleto(),
+                usuario.getId().toString()
+        );
+
+        return AuthResponseDTO.builder()
+                .id(usuario.getId().toString())
+                .email(usuario.getEmail())
+                .nome(usuario.getNome())
+                .whatsapp(usuario.getWhatsapp())
+                .cidade(usuario.getCidade())
+                .bairro(usuario.getBairro())
+                .instituicao(usuario.getInstituicao())
+                .perfilCompleto(usuario.isPerfilCompleto())
+                .consentimentoIa(Boolean.TRUE.equals(usuario.getConsentimentoIa()))
+                .role(usuario.getRole().name())
+                .token(token)
+                .expiresIn(jwtTokenProvider.getExpirationInSeconds())
+                .build();
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeNome(String nome) {
+        return nome.trim();
+    }
+
+    private BadCredentialsException invalidCredentials() {
+        return new BadCredentialsException("Email or password is invalid");
     }
 }

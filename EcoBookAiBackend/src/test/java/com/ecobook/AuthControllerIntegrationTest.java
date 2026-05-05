@@ -6,17 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -33,25 +26,26 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @MockBean(name = "googleJwtDecoder")
-    private JwtDecoder googleJwtDecoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     @DisplayName("POST /api/v1/auth/register should create a user and return the platform JWT")
-    void shouldRegisterUserWithValidGoogleToken() throws Exception {
-        when(googleJwtDecoder.decode("valid-google-token")).thenReturn(validGoogleJwt());
-
+    void shouldRegisterUserWithEmailAndPassword() throws Exception {
         String responseBody = mockMvc.perform(post("/v1/auth/register")
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {
-                                  "google_token": "valid-google-token"
+                                  "email": "newuser@example.com",
+                                  "password": "SenhaSegura123",
+                                  "nome": "New User"
                                 }
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("newuser@example.com"))
                 .andExpect(jsonPath("$.nome").value("New User"))
                 .andExpect(jsonPath("$.perfil_completo").value(false))
+                .andExpect(jsonPath("$.consentimento_ia").value(false))
                 .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(jsonPath("$.token").isNotEmpty())
                 .andReturn()
@@ -59,37 +53,95 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 .getContentAsString();
 
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        assertThat(usuarioRepository.findByEmailIgnoreCase("newuser@example.com")).isPresent();
+        assertThat(usuarioRepository.findByEmailIgnoreCase("newuser@example.com"))
+                .hasValueSatisfying(usuario -> {
+                    assertThat(usuario.getPasswordHash()).isNotBlank();
+                    assertThat(usuario.getPasswordHash()).isNotEqualTo("SenhaSegura123");
+                    assertThat(passwordEncoder.matches("SenhaSegura123", usuario.getPasswordHash())).isTrue();
+                });
         assertThat(jsonNode.path("expires_in").asLong()).isPositive();
     }
 
     @Test
-    @DisplayName("POST /api/v1/auth/register should return 401 when the Google token is invalid")
-    void shouldRejectInvalidGoogleToken() throws Exception {
-        when(googleJwtDecoder.decode("invalid-google-token")).thenThrow(new JwtException("bad token"));
+    @DisplayName("POST /api/v1/auth/register should return 409 when the email is already registered")
+    void shouldRejectDuplicateEmailRegistration() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "duplicate@example.com",
+                                  "password": "SenhaSegura123",
+                                  "nome": "First User"
+                                }
+                                """))
+                .andExpect(status().isCreated());
 
         mockMvc.perform(post("/v1/auth/register")
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {
-                                  "google_token": "invalid-google-token"
+                                  "email": "duplicate@example.com",
+                                  "password": "OutraSenha123",
+                                  "nome": "Second User"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("CONFLICT"))
+                .andExpect(jsonPath("$.message").value("Email already registered"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/login should authenticate an existing user and return the platform JWT")
+    void shouldLoginWithEmailAndPassword() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "existing@example.com",
+                                  "password": "SenhaSegura123",
+                                  "nome": "Existing User"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/v1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "existing@example.com",
+                                  "password": "SenhaSegura123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("existing@example.com"))
+                .andExpect(jsonPath("$.perfil_completo").value(false))
+                .andExpect(jsonPath("$.token").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/login should return 401 when the password is invalid")
+    void shouldRejectInvalidPassword() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "login@example.com",
+                                  "password": "SenhaSegura123",
+                                  "nome": "Login User"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/v1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "login@example.com",
+                                  "password": "SenhaErrada123"
                                 }
                                 """))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
-    }
-
-    private Jwt validGoogleJwt() {
-        return Jwt.withTokenValue("valid-google-token")
-                .header("alg", "RS256")
-                .subject("google-user-123")
-                .issuer("https://accounts.google.com")
-                .claim("aud", List.of())
-                .claim("email", "newuser@example.com")
-                .claim("name", "New User")
-                .claim("email_verified", true)
-                .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusSeconds(300))
-                .build();
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("Email or password is invalid"));
     }
 }

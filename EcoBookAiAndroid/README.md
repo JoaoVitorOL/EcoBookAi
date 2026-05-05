@@ -6,7 +6,7 @@ Aplicativo Android nativo do EcoBook AI.
 
 - Kotlin
 - Jetpack Compose
-- Credential Manager + Sign in with Google
+- Email/password + JWT
 - Hilt
 - Retrofit + OkHttp
 - Firebase Messaging
@@ -17,7 +17,7 @@ Aplicativo Android nativo do EcoBook AI.
 - Verificacao real do backend via `GET /api/v1/health`
 - Catalogo inicial de materiais para validar a experiencia de matching
 - Fluxo visual de doacao alinhado com os contratos do projeto
-- Base pronta para integrar auth, perfil, materiais e solicitacoes
+- Base pronta para integrar auth local, perfil, materiais e solicitacoes
 
 ## Requisitos
 
@@ -44,11 +44,9 @@ Exemplo:
 ```properties
 sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
-google.oauth.clientId=SEU_GOOGLE_WEB_CLIENT_ID
 ```
 
-`google.oauth.clientId` deve receber o **Web client ID** do Google, que sera usado pelo Credential Manager para solicitar o Google ID token entregue ao backend.
-Nao use aqui o client ID do tipo `Android`. O client Android continua necessario no Google Cloud para validar `package name + SHA-1`, mas o valor usado em `local.properties` e no backend deve ser o client do tipo `Web application`.
+`backend.url` em `local.properties` tem prioridade sobre `app/src/main/res/values/api_config.xml`. Isso e util quando voce roda o backend em outra porta, como `8081`.
 
 ## Como abrir no Android Studio
 
@@ -90,6 +88,17 @@ http://10.0.2.2:8080/api
 ```
 
 Isso funciona para emulador Android quando o backend roda na mesma maquina host.
+
+## Regra atual de autenticacao
+
+- O fluxo alvo de entrada e `login` e `cadastro` com email e senha.
+- A API devolve JWT apos autenticacao bem-sucedida.
+- O JWT deve ficar armazenado de forma segura no dispositivo.
+- Se a API responder `401`, o app encerra a sessao local e volta para a tela de login.
+
+## Observacao sobre o estado atual do codigo
+
+Parte da implementacao ainda reflete o fluxo anterior com Google. A documentacao oficial do projeto, no entanto, ja considera **email + senha + JWT** como a regra de auth a seguir nas proximas etapas.
 
 ## Celular fisico
 

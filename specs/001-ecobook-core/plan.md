@@ -7,14 +7,14 @@
 
 ## Summary
 
-**EcoBook IA** is an AI-powered educational material donation and matching platform exclusively for Android (API 26+, Kotlin/Jetpack Compose). The core system implements deterministic student-to-material matching powered by Google Gemini 2.5 Flash for image-based material classification, with a Spring Boot backend and PostgreSQL database. The MVP supports up to 100 active users with ~500 total materials and implements the complete donation workflow: user registration (Google OAuth2), mandatory profile completion (geographic + academic needs), material upload with AI classification, intelligent matching algorithm (discipline + level + year ± 1 + system + geographic ranking), request lifecycle (PENDENTE → APROVADA → DOADO), and push notifications via Firebase Cloud Messaging.
+**EcoBook IA** is an AI-powered educational material donation and matching platform exclusively for Android (API 26+, Kotlin/Jetpack Compose). The core system implements deterministic student-to-material matching powered by Google Gemini 2.5 Flash for image-based material classification, with a Spring Boot backend and PostgreSQL database. The MVP supports up to 100 active users with ~500 total materials and implements the complete donation workflow: user registration and login with email/password, mandatory profile completion (geographic + academic needs), material upload with AI classification, intelligent matching algorithm (discipline + level + year ± 1 + system + geographic ranking), request lifecycle (PENDENTE → APROVADA → DOADO), and push notifications via Firebase Cloud Messaging.
 
 **Technical Approach**:
 - **Frontend**: Native Android (Kotlin, Jetpack Compose) with Material Design 3
 - **Backend**: Spring Boot 3.x + Java 17, Spring Data JPA for ORM
 - **Database**: PostgreSQL 14+ with connection pooling (HikariCP)
 - **AI Integration**: Google Gemini 2.5 Flash API (direct backend integration, no separate microservice)
-- **Authentication**: Google OAuth2 + JWT (7-day expiry)
+- **Authentication**: Email/password + JWT (7-day expiry)
 - **Storage**: Local server filesystem (`/uploads/{user_id}/{uuid}.ext`), no cloud storage for MVP
 - **Messaging**: Firebase Cloud Messaging (FCM) for 6 event types
 - **Testing**: JUnit 5 + Mockito (backend), Compose testing framework (Android)
@@ -66,7 +66,7 @@
 |-----------|-----------|-------|
 | **I. Social Impact & Educational Access** | ✅ | Core feature: connects students with surplus materials; reduces educational inequality |
 | **II. Android-Native Architecture (Immutable)** | ✅ | Spec commits: exclusive Android (API 26+, Kotlin/Compose); Spring Boot backend; no web/iOS |
-| **III. Security Through OAuth2 & Deterministic Processes** | ✅ | Google OAuth2 + JWT; atomic approval with SELECT...FOR UPDATE locks; no race conditions |
+| **III. Security Through Password Hashing & Deterministic Processes** | ✅ | Email/password hash + JWT; atomic approval with SELECT...FOR UPDATE locks; no race conditions |
 | **IV. Data Privacy & LGPD Compliance** | ✅ | Two-stage consent (platform + AI); image retention 2 years; soft-delete with anonymization |
 | **V. MVP Scope Discipline** | ✅ | No collaborative filtering, ML recommendations, condition automation, multi-needs, cloud storage |
 | **VI. Rule-Based Deterministic Matching** | ✅ | Structured enums only; geographic normalization (text-based, no GPS); deterministic 6-step filter + rank algorithm |
@@ -86,7 +86,7 @@ specs/001-ecobook-core/
 ├── contracts/
 │   ├── material-api.md              # POST /materiais, GET /materiais, PATCH /materiais
 │   ├── solicitacao-api.md           # POST /solicitacoes, PATCH /solicitacoes
-│   ├── user-api.md                  # POST /auth/register, PATCH /usuarios/{id}, GET /usuarios/me
+│   ├── user-api.md                  # POST /auth/register, POST /auth/login, PUT /usuarios/me, GET /usuarios/me
 │   ├── notification-schema.md       # FCM payload schemas (6 types)
 │   └── ai-response.md               # POST /materiais/preview response structure
 ├── quickstart.md                    # Phase 1 output (developer setup, running locally)
@@ -105,7 +105,7 @@ EcoBookAiAndroid/
 │   │   ├── di/                          # Dependency injection (Hilt)
 │   │   ├── ui/
 │   │   │   ├── screens/
-│   │   │   │   ├── auth/                # OAuth2 login, register
+│   │   │   │   ├── auth/                # Email/password login and register
 │   │   │   │   ├── onboarding/          # Profile completion (city, neighborhood, needs)
 │   │   │   │   ├── material/            # Upload, preview AI, confirm, list
 │   │   │   │   ├── discovery/           # Search, filter, ranking
@@ -137,12 +137,12 @@ EcoBookAiBackend/
 ├── src/main/java/com/ecobook/
 │   ├── EcoBookApplication.java          # Spring Boot entry point
 │   ├── config/
-│   │   ├── SecurityConfig.java          # OAuth2 + JWT configuration
+│   │   ├── SecurityConfig.java          # Password auth + JWT configuration
 │   │   ├── DatabaseConfig.java          # PostgreSQL connection pooling
 │   │   └── CorsConfig.java              # CORS policy
 │   ├── controller/
 │   │   ├── AuthController.java          # POST /auth/register, POST /auth/login
-│   │   ├── UsuarioController.java       # GET /usuarios/me, PATCH /usuarios/{id}
+│   │   ├── UsuarioController.java       # GET /usuarios/me, PUT /usuarios/me
 │   │   ├── MaterialController.java      # POST /materiais, GET /materiais, PATCH /materiais
 │   │   ├── MaterialPreviewController.java  # POST /materiais/preview (AI)
 │   │   ├── SolicitacaoController.java   # POST /solicitacoes, GET /solicitacoes, PATCH /solicitacoes
@@ -179,7 +179,7 @@ EcoBookAiBackend/
 │   └── job/
 │       └── ReservationExpiryJob.java    # Daily task: revert expired RESERVADO materials
 ├── src/main/resources/
-│   ├── application.yml                  # Database, OAuth2, Gemini API keys (env vars)
+│   ├── application.yml                  # Database, auth, Gemini API keys (env vars)
 │   └── schema.sql                       # PostgreSQL DDL
 ├── src/test/java/                       # JUnit 5 tests
 ├── pom.xml or build.gradle.kts          # Maven or Gradle dependencies
@@ -210,7 +210,7 @@ docs/
 | **Geographic Normalization** | Low | Text-based normalization (uppercase + NFD + ASCII); must be consistent | Unit test all variations, pre-populate reference city/neighborhood table |
 | **FCM Notifications** | Medium | 6 event types, reliable delivery required but not guaranteed, retry logic | Test in QA environment, log all delivery attempts, fallback UI indication |
 | **Concurrent Users** | Medium | Database locks, connection pooling, query optimization needed | HikariCP pooling, SERIALIZABLE isolation for critical ops, index strategy |
-| **Android Integration** | Medium | OAuth2 flow, JWT handling, image capture/compression, file permissions | Use well-tested libraries (Retrofit, OkHttp), test on 3+ device types |
+| **Android Integration** | Medium | Email/password forms, JWT handling, image capture/compression, file permissions | Use well-tested libraries (Retrofit, OkHttp), test on 3+ device types |
 
 ---
 
@@ -255,10 +255,10 @@ docs/
    - Design: Transaction isolation levels for approval operations
    - Test: Race condition scenarios (two concurrent approvals for same material)
 
-6. **OAuth2 & JWT Implementation**
-   - Research: Google OAuth2 flow for Android (AppAuth library)
-   - Design: JWT token format, 7-day expiry, refresh token strategy
-   - Integrate: Spring Security, OAuth2ResourceServer
+6. **Email/Password & JWT Implementation**
+   - Research: Android login/register flow with backend-managed credentials
+   - Design: password hashing strategy, JWT token format, 7-day expiry
+   - Integrate: Spring Security, PasswordEncoder, backend-issued JWT
 
 7. **Storage Architecture Validation**
    - Research: Local filesystem vs cloud storage trade-offs (Constitution V constraint)
@@ -291,7 +291,7 @@ docs/
 2. **API Contracts** (in `/contracts/`)
    - **material-api.md**: POST /materiais, GET /materiais, PATCH /materiais (methods, payloads, status codes)
    - **solicitacao-api.md**: POST /solicitacoes, PATCH /solicitacoes (approval/decline/cancel), GET /solicitacoes
-   - **user-api.md**: POST /auth/register, PATCH /usuarios/{id}, GET /usuarios/me
+   - **user-api.md**: POST /auth/register, POST /auth/login, PUT /usuarios/me, GET /usuarios/me
    - **ai-response.md**: POST /materiais/preview response (status_ia, best_prediction, upload_id)
    - **notification-schema.md**: 6 FCM payloads (SOLICITACAO_RECEBIDA, APROVADA, RECUSADA, CANCELADA, MATERIAL_DOADO, MATERIAL_CANCELADO)
    - Each contract includes: HTTP method, path, request body, response body (with types), status codes, business rules
@@ -299,7 +299,7 @@ docs/
 3. **Quickstart Guide** (`quickstart.md`)
    - Prerequisites: Java 17, Kotlin 1.9, Android SDK 26+, PostgreSQL 14, Docker
    - Backend setup:
-     - Clone repo, create `.env` with OAuth2 credentials + Gemini API key
+     - Clone repo, create `.env` with auth, database, and Gemini settings
      - `docker-compose up` (PostgreSQL)
      - `./gradlew bootRun` or `mvn spring-boot:run`
      - Verify: http://localhost:8080/actuator/health
@@ -310,7 +310,7 @@ docs/
      - Run emulator: `./gradlew connectedAndroidTest`
    - First test:
      - Start backend, start Android emulator
-     - Register user via OAuth2
+     - Register user via email/password
      - Upload test image, verify Gemini parsing
      - Create search needs, verify matching algorithm
 
@@ -337,7 +337,7 @@ docs/
 
 1. **Backend Skeleton**
    - Spring Boot project setup (Spring Boot 3.1, Spring Data JPA, PostgreSQL driver)
-   - OAuth2 + JWT configuration (Spring Security)
+   - Email/password + JWT configuration (Spring Security)
    - Controllers for 15+ endpoints (stubs returning mock data)
    - Repository layer with custom queries for matching algorithm
    - Service layer structure (UsuarioService, MaterialService, SolicitacaoService, GeminiService, MatchingService)
@@ -346,7 +346,7 @@ docs/
 
 2. **Android Skeleton**
    - Jetpack Compose project setup (minSdk=26, targetSdk=34)
-   - OAuth2 login screen (using AppAuth library)
+   - Email/password auth screen (login + register)
    - Onboarding flow (profile completion: city, neighborhood, academic needs)
    - Material upload screen (image picker, file validation, preview)
    - Discovery/search screen (basic filter, results list)
@@ -370,7 +370,7 @@ docs/
 
 **Output**: 
 - Runnable Spring Boot backend (API stubs, ready for Phase 3 Gemini integration)
-- Runnable Android app (UI screens, OAuth2 flow, mock API calls)
+- Runnable Android app (UI screens, email/password flow, mock API calls)
 - Integration test suite (30+ tests)
 - CI/CD workflows (GitHub Actions)
 
@@ -592,7 +592,7 @@ docs/
 
 **Team Allocation** (suggested):
 - **Backend Lead**: Phases 0–5 (architect, implement GeminiService, MatchingService, state machines)
-- **Android Lead**: Phases 0–5 (UI architect, implement screens, OAuth2, FCM)
+- **Android Lead**: Phases 0–5 (UI architect, implement screens, auth, FCM)
 - **QA Lead**: Phases 3–5 (test plan, image collection, performance testing, monitoring)
 - **DevOps**: Phase 2–5 (infrastructure, CI/CD, Docker, monitoring)
 

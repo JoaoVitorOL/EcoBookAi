@@ -42,7 +42,7 @@ A user (teacher, student, organization, or individual) registers on the platform
 
 **Acceptance Scenarios**:
 
-1. **Given** an unregistered user accesses the app, **When** they select "Register", **Then** they see a registration form requesting name, email, WhatsApp (E.164 format), city, neighborhood, and optional institution affiliation
+1. **Given** an unregistered user accesses the app, **When** they select "Criar conta", **Then** they see a registration form requesting name, email, password, and password confirmation before proceeding to onboarding
 2. **Given** a registered user with incomplete profile, **When** they attempt POST /materiais, **Then** the system returns HTTP 403 Forbidden with field `perfil_completo: false`
 3. **Given** a user with complete profile selects a book image to donate, **When** they confirm the system's AI suggestions, **Then** the material is persisted with status DISPONIVEL and becomes available to other users searching for materials
 
@@ -149,7 +149,7 @@ Users must complete their profiles before performing restricted operations. The 
 
 1. **Given** a newly registered user with incomplete profile (missing city or WhatsApp), **When** they query GET /usuarios/me, **Then** the response includes `perfil_completo: false`
 2. **Given** a user with `perfil_completo: false`, **When** they attempt POST /materiais or POST /solicitacoes, **Then** the system returns HTTP 403 Forbidden
-3. **Given** a user with incomplete profile, **When** they complete all required fields via PATCH /usuarios/{id}, **Then** `perfil_completo` transitions to true and restricted operations become available
+3. **Given** a user with incomplete profile, **When** they complete all required fields via PUT /usuarios/me, **Then** `perfil_completo` transitions to true and restricted operations become available
 
 ---
 
@@ -174,7 +174,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 
 #### User Management & Onboarding
 
-- **RF-001**: System MUST support user registration with email and WhatsApp (E.164 format: +5548999999999)
+- **RF-001**: System MUST support user registration and login with email and password; backend stores only `password_hash` and issues JWT on successful authentication
 - **RF-002**: System MUST enforce profile completeness before allowing material operations; endpoint GET /usuarios/me returns `perfil_completo: boolean`
 - **RF-003**: System MUST normalize geographic data: uppercase letters, remove accents (NFD + ASCII), trim whitespace; e.g., "são joão" → "SAO JOAO"
 - **RF-004**: System MUST track `consentimento_ia: boolean` per user to control Gemini API calls
@@ -333,6 +333,7 @@ Represents a registered user who can simultaneously act as both material donor a
 **Attributes**:
 - `id` (UUID): Unique identifier
 - `email` (String): Unique email address
+- `password_hash` (String, internal): Strong one-way hash stored by backend; never exposed by API
 - `nome` (String): User's full name
 - `whatsapp` (String): E.164 format (+55XXXXXXXXXXX)
 - `cidade` (String): Normalized to uppercase, no accents
@@ -687,15 +688,27 @@ All error responses follow this structure:
 - **Method**: POST
 - **RFC**: RF-001, RF-002
 - **Description**: Register new user
-- **Request**: `{ email, nome, whatsapp }`
-- **Response**: User entity (HTTP 201)
+- **Request**: `{ email, password, nome }`
+- **Response**: Auth response with user entity + JWT (HTTP 201)
 - **Rules**: 
-  - WhatsApp must be E.164 format
   - Email must be unique
-  - Initial `perfil_completo = false` until city/neighborhood added
+  - Password must satisfy minimum policy
+  - Backend stores only `password_hash`
+  - Initial `perfil_completo = false` until onboarding fields are completed
 
-#### PATCH /usuarios/{id}
-- **Method**: PATCH
+#### POST /auth/login
+- **Method**: POST
+- **RFC**: RF-001
+- **Description**: Authenticate existing user
+- **Request**: `{ email, password }`
+- **Response**: Auth response with user entity + JWT (HTTP 200)
+- **Rules**:
+  - Email and password must match stored credentials
+  - Invalid credentials return HTTP 401
+  - Raw password is never returned
+
+#### PUT /usuarios/me
+- **Method**: PUT
 - **RFC**: RF-002, RF-003, RF-004
 - **Description**: Update user profile
 - **Request**: `{ nome, whatsapp, cidade, bairro, instituicao, consentimento_ia }`
@@ -991,7 +1004,7 @@ Rules:
 3. **Gemini Availability**: Google Gemini API is available and responsive within 10 seconds for ~95% of requests; timeouts trigger fallback
 4. **Image Storage**: Persistent image storage (S3, CDN) is available and responds within SLA; temporary storage is local disk or separate staging bucket
 5. **Database Consistency**: PostgreSQL SERIALIZABLE isolation level available for approval locking; or explicit SELECT ... FOR UPDATE used
-6. **User Authentication**: Separate authentication service (Firebase, JWT-based) handles login/token issuance; this spec assumes authenticated requests
+6. **User Authentication**: Spring backend handles login/token issuance directly using email/password hash verification and JWT
 7. **Reservation Expiry Job**: Background job runs daily to check and revert expired RESERVADO materials; failures are logged but don't block operations
 8. **FCM Reliability**: Firebase Cloud Messaging failures are logged and retried; not guaranteed delivery (acceptable for non-critical notifications)
 9. **WhatsApp Format**: All WhatsApp numbers are Brazilian (+55 prefix); international numbers not supported in MVP

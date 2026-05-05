@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import com.ecobook.ui.components.StatusBadge
 
 @Composable
 fun OnboardingScreen(
+    onLogout: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,7 +80,7 @@ fun OnboardingScreen(
                         contentColor = Color(0xFF205447)
                     )
                     StatusBadge(
-                        text = uiState.email.ifBlank { "Conta Google" },
+                        text = uiState.email.ifBlank { "Conta atual" },
                         containerColor = Color(0xFFFCE7D8),
                         contentColor = Color(0xFF8A4C1F)
                     )
@@ -92,6 +94,13 @@ fun OnboardingScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                OutlinedButton(
+                    onClick = onLogout,
+                    enabled = !uiState.isSubmitting,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Sair da conta")
+                }
             }
 
             when (uiState.currentStep) {

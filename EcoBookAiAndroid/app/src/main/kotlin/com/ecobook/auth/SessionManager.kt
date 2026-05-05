@@ -29,6 +29,11 @@ class SessionManager @Inject constructor(
         secureStorage.saveUserEmail(response.email)
         secureStorage.saveUserRole(response.role)
         secureStorage.saveProfileComplete(response.perfilCompleto)
+        secureStorage.saveUserWhatsapp(response.whatsapp)
+        secureStorage.saveUserCidade(response.cidade)
+        secureStorage.saveUserBairro(response.bairro)
+        secureStorage.saveUserInstituicao(response.instituicao)
+        secureStorage.saveConsentimentoIa(response.consentimentoIa)
 
         _sessionState.value = SessionUiState(
             isAuthenticated = true,

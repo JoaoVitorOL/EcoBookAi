@@ -1,5 +1,7 @@
 # Phase 1 Implementation Summary - Setup & Foundational
 
+> Historical note (2026-05-05): this summary records the earlier Google OAuth2-based direction used during a previous implementation pass. The active project rule is now email + password + JWT. Legacy OAuth2 references below should not be treated as the current target architecture.
+
 **Date**: 2026-04-17  
 **Status**: ✅ COMPLETE  
 **Total Tasks Completed**: 35/35 (T001-T035)

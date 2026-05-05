@@ -1,14 +1,14 @@
 # User API Contracts
 
 **Reference**: spec.md RF-001, RF-002, RF-003, RF-004  
-**Version**: 1.0  
-**Date**: 2026-04-17
+**Version**: 2.0  
+**Date**: 2026-05-05
 
 ---
 
 ## POST /auth/register
 
-Register a new user on the platform.
+Create a new user account with local credentials.
 
 ### Request
 
@@ -18,15 +18,20 @@ Content-Type: application/json
 
 {
   "email": "joao@example.com",
-  "nome": "João Silva",
-  "whatsapp": "+5548999999999"
+  "password": "SenhaSegura123",
+  "nome": "Joao Silva"
 }
 ```
 
 **Validation Rules**:
 - `email`: Must be unique, valid RFC 5322 format
+- `password`: Minimum 8 characters
 - `nome`: 1-100 characters
-- `whatsapp`: Must be E.164 format (e.g., +5548999999999)
+
+**Security Rules**:
+- Password is never returned in API responses
+- Backend stores only `password_hash`
+- Successful registration issues JWT immediately
 
 ### Response
 
@@ -35,27 +40,29 @@ Content-Type: application/json
 {
   "id": "user-uuid-1234567890",
   "email": "joao@example.com",
-  "nome": "João Silva",
-  "whatsapp": "+5548999999999",
+  "nome": "Joao Silva",
+  "whatsapp": null,
   "cidade": null,
   "bairro": null,
   "instituicao": null,
   "perfil_completo": false,
   "consentimento_ia": false,
-  "google_id": null,
-  "created_at": "2026-04-17T10:30:00Z",
-  "updated_at": "2026-04-17T10:30:00Z"
+  "role": "USER",
+  "token": "jwt-token-value",
+  "expires_in": 604800,
+  "created_at": "2026-05-05T10:30:00Z",
+  "updated_at": "2026-05-05T10:30:00Z"
 }
 ```
 
 ### Error Responses
 
-**HTTP 400 Bad Request** - Invalid email or WhatsApp format
+**HTTP 400 Bad Request** - Invalid email or password format
 ```json
 {
   "error": "INVALID_FORMAT",
-  "message": "WhatsApp must be in E.164 format (e.g., +5548999999999)",
-  "field": "whatsapp"
+  "message": "Password must have at least 8 characters",
+  "field": "password"
 }
 ```
 
@@ -70,34 +77,21 @@ Content-Type: application/json
 
 ---
 
-## PATCH /usuarios/{id}
+## POST /auth/login
 
-Update user profile information. Sets `perfil_completo = true` when all required fields are present.
+Authenticate an existing user with email and password.
 
 ### Request
 
 ```http
-PATCH /api/v1/usuarios/user-uuid-1234567890
+POST /api/v1/auth/login
 Content-Type: application/json
-Authorization: Bearer <jwt_token>
 
 {
-  "nome": "João Pedro Silva",
-  "whatsapp": "+5548988888888",
-  "cidade": "são joão",
-  "bairro": "criciúma",
-  "instituicao": "Escola Municipal ABC",
-  "consentimento_ia": true
+  "email": "joao@example.com",
+  "password": "SenhaSegura123"
 }
 ```
-
-**Validation Rules**:
-- `nome`: 1-100 characters
-- `whatsapp`: E.164 format
-- `cidade`: Will be normalized to uppercase, NFD decomposed, ASCII-only (e.g., "são joão" → "SAO JOAO")
-- `bairro`: Will be normalized to uppercase, NFD decomposed, ASCII-only (e.g., "criciúma" → "CRICIUMA")
-- `instituicao`: 0-255 characters (optional)
-- `consentimento_ia`: Boolean (controls Gemini API usage)
 
 ### Response
 
@@ -106,24 +100,86 @@ Authorization: Bearer <jwt_token>
 {
   "id": "user-uuid-1234567890",
   "email": "joao@example.com",
-  "nome": "João Pedro Silva",
-  "whatsapp": "+5548988888888",
-  "cidade": "SAO JOAO",
-  "bairro": "CRICIUMA",
+  "nome": "Joao Silva",
+  "whatsapp": "+5548999999999",
+  "cidade": "FLORIANOPOLIS",
+  "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
   "perfil_completo": true,
   "consentimento_ia": true,
-  "google_id": null,
-  "created_at": "2026-04-17T10:30:00Z",
-  "updated_at": "2026-04-17T11:45:00Z"
+  "role": "USER",
+  "token": "jwt-token-value",
+  "expires_in": 604800,
+  "created_at": "2026-05-05T10:30:00Z",
+  "updated_at": "2026-05-05T11:45:00Z"
+}
+```
+
+### Error Responses
+
+**HTTP 401 Unauthorized** - Invalid credentials
+```json
+{
+  "error": "INVALID_CREDENTIALS",
+  "message": "Email or password is invalid"
+}
+```
+
+---
+
+## PUT /usuarios/me
+
+Update the current authenticated user's profile. Sets `perfil_completo = true` when all required profile fields are present.
+
+### Request
+
+```http
+PUT /api/v1/usuarios/me
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+
+{
+  "nome": "Joao Pedro Silva",
+  "whatsapp": "+5548988888888",
+  "cidade": "sao jose",
+  "bairro": "centro",
+  "instituicao": "Escola Municipal ABC",
+  "consentimento_ia": true
+}
+```
+
+**Validation Rules**:
+- `nome`: 1-100 characters
+- `whatsapp`: E.164 format
+- `cidade`: Normalized to uppercase, NFD-decomposed, ASCII-only
+- `bairro`: Normalized to uppercase, NFD-decomposed, ASCII-only
+- `instituicao`: 0-255 characters
+- `consentimento_ia`: Boolean
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "user-uuid-1234567890",
+  "email": "joao@example.com",
+  "nome": "Joao Pedro Silva",
+  "whatsapp": "+5548988888888",
+  "cidade": "SAO JOSE",
+  "bairro": "CENTRO",
+  "instituicao": "Escola Municipal ABC",
+  "perfil_completo": true,
+  "consentimento_ia": true,
+  "role": "USER",
+  "created_at": "2026-05-05T10:30:00Z",
+  "updated_at": "2026-05-05T11:45:00Z"
 }
 ```
 
 **Rules**:
-- `perfil_completo` automatically transitions to `true` if `cidade` and `bairro` are both present
-- `perfil_completo` transitions to `false` if `cidade` or `bairro` are cleared
-- Geographic normalization happens on save: accents removed, uppercase applied
-- `consentimento_ia` determines whether backend calls Gemini API for material classification
+- `perfil_completo` becomes `true` when `nome`, `whatsapp`, `cidade`, and `bairro` are present
+- Geographic normalization happens on save
+- `consentimento_ia` controls whether Gemini is called for classification
 
 ### Error Responses
 
@@ -144,28 +200,11 @@ Authorization: Bearer <jwt_token>
 }
 ```
 
-**HTTP 403 Forbidden** - User attempting to modify another user's profile
-```json
-{
-  "error": "FORBIDDEN",
-  "message": "Cannot modify another user's profile"
-}
-```
-
-**HTTP 404 Not Found** - User does not exist
-```json
-{
-  "error": "NOT_FOUND",
-  "message": "User not found",
-  "field": "id"
-}
-```
-
 ---
 
 ## GET /usuarios/me
 
-Retrieve current authenticated user's profile.
+Retrieve the current authenticated user's profile.
 
 ### Request
 
@@ -181,23 +220,18 @@ Authorization: Bearer <jwt_token>
 {
   "id": "user-uuid-1234567890",
   "email": "joao@example.com",
-  "nome": "João Pedro Silva",
+  "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
-  "cidade": "SAO JOAO",
-  "bairro": "CRICIUMA",
+  "cidade": "SAO JOSE",
+  "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
   "perfil_completo": true,
   "consentimento_ia": true,
-  "google_id": "google_oauth_id_123",
-  "created_at": "2026-04-17T10:30:00Z",
-  "updated_at": "2026-04-17T11:45:00Z"
+  "role": "USER",
+  "created_at": "2026-05-05T10:30:00Z",
+  "updated_at": "2026-05-05T11:45:00Z"
 }
 ```
-
-**Key Field Descriptions**:
-- `perfil_completo`: Indicates if user can perform restricted operations (POST /materiais, POST /solicitacoes)
-- `consentimento_ia`: If `false`, Gemini API will not be called for material classification
-- `google_id`: OAuth2 identifier (if authentication method used)
 
 ### Error Responses
 
@@ -213,62 +247,32 @@ Authorization: Bearer <jwt_token>
 
 ## Field Classification Reference
 
-| Field | Auto-Populated | Editable | Notes |
-|-------|---|---|---|
-| `email` | User input | No (immutable after registration) | Unique identifier |
+| Field | Source | Editable | Notes |
+|-------|--------|----------|-------|
+| `email` | User input | No (immutable after registration) | Unique login identity |
+| `password` | User input | Yes, via future password-change flow | Never returned by API |
+| `password_hash` | System | No | Internal backend field only |
 | `nome` | User input | Yes | Free text |
-| `whatsapp` | User input | Yes | E.164 format, normalized |
-| `cidade` | User input | Yes | Normalized: uppercase + NFD + ASCII |
-| `bairro` | User input | Yes | Normalized: uppercase + NFD + ASCII |
-| `instituicao` | User input | Yes | Optional affiliation |
-| `perfil_completo` | System | No | Computed from presence of cidade + bairro |
+| `whatsapp` | User input | Yes | E.164 format |
+| `cidade` | User input | Yes | Normalized on save |
+| `bairro` | User input | Yes | Normalized on save |
+| `instituicao` | User input | Yes | Optional |
+| `perfil_completo` | System | No | Computed from required profile fields |
 | `consentimento_ia` | User input | Yes | Controls Gemini usage |
-| `google_id` | OAuth2 provider | No (set once) | Google OAuth identifier |
-
----
-
-## Normalization Algorithm
-
-**Geographic fields** (`cidade`, `bairro`) undergo this transformation:
-
-1. **Uppercase**: "são joão" → "SAO JOAO"
-2. **NFD Decomposition**: Decompose accented characters ("ã" → "a" + combining accent)
-3. **ASCII Encoding**: Remove combining accents ("a" + combining accent → "a")
-4. **Trim**: Remove leading/trailing whitespace
-
-**Examples**:
-- "são joão" → "SAO JOAO"
-- "florianópolis" → "FLORIANOPOLIS"
-- "criciúma" → "CRICIUMA"
-- " centro " → "CENTRO"
-
-**Implementation** (Java pseudocode):
-```java
-String normalized = Normalizer.normalize(input, Form.NFD)
-    .replaceAll("[^\\p{ASCII}]", "")
-    .toUpperCase()
-    .trim();
-```
+| `token` | System | No | JWT issued by backend |
 
 ---
 
 ## Authentication Context
 
-All protected endpoints require `Authorization: Bearer <jwt_token>` header.
+All protected endpoints require `Authorization: Bearer <jwt_token>`.
 
 **JWT Token**:
 - **Expiry**: 7 days from issuance
-- **Issued by**: Auth service (Google OAuth2 or custom JWT issuer)
-- **Claims**: `sub` (user ID), `email`, `iat` (issued at), `exp` (expiration)
+- **Issued by**: Backend auth service after successful register/login
+- **Claims**: `sub` (user ID), `email`, `role`, `perfil_completo`, `iat`, `exp`
 
-**Example JWT Validation** (Spring Security):
-```java
-@RestController
-public class UserController {
-    @GetMapping("/usuarios/me")
-    public UserDTO getCurrentUser(@AuthenticationPrincipal JwtAuthenticationToken token) {
-        String userId = token.getName(); // Subject (user ID)
-        // Retrieve and return user
-    }
-}
-```
+**Credential Rules**:
+- Backend verifies email + password on login
+- Backend persists only `password_hash`
+- Raw password must never appear in logs, DTO responses, or analytics

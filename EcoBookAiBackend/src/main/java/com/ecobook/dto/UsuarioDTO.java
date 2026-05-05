@@ -25,7 +25,6 @@ public class UsuarioDTO {
     private String instituicao;
     private Boolean perfilCompleto;
     private Boolean consentimentoIa;
-    private String googleId;
     private String role;
     private Set<String> necessidadesAcademicas;
     private LocalDateTime criadoEm;

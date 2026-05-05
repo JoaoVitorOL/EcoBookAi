@@ -15,7 +15,7 @@ This research document addresses critical technical unknowns identified during s
 2. **Image Quality is the Primary Variable** affecting AI confidence; user guidance and client-side validation critical
 3. **Rate Limits Pose No MVP Risk** (250 req/day covers ~16 avg, 12 peak daily usage)
 4. **State Machine Atomicity** achievable with PostgreSQL SERIALIZABLE isolation or explicit locking
-5. **Android/Spring Boot Stack** is well-supported with mature libraries for OAuth2, JWT, Jetpack Compose
+5. **Android/Spring Boot Stack** is well-supported with mature libraries for password hashing, JWT, and Jetpack Compose
 
 ---
 
@@ -427,55 +427,50 @@ Verify: Material.status = RESERVADO, only 1 APROVADA solicitacao
 
 ---
 
-## 7. Android OAuth2 + JWT Implementation
+## 7. Android Email/Password + JWT Implementation
 
 ### Research Question
-Which OAuth2 library for Android? How to manage JWT tokens (store, refresh, expiry)?
+What is the simplest secure authentication architecture for the Android MVP now that auth is local to the backend?
 
 ### Decision
-**✅ Use AppAuth library + custom JWT token provider** in Spring Backend.
+**✅ Use native email/password forms on Android, strong password hashes on the backend, and backend-issued JWT tokens.**
 
 ### Rationale
 
-**AppAuth Library**:
-- Industry-standard, maintained by Google
-- Handles OAuth2 flow complexity (state parameter, PKCE, refresh tokens)
-- Secure credential storage (Android Keystore)
-- Well-tested across Android versions (API 26+)
+**Why local credentials fit this MVP better**:
+- Removes dependency on device Google accounts, SHA-1 setup, and external identity console steps
+- Works consistently in emulator and physical device flows
+- Keeps the backend as the single source of truth for identity and session rules
+- Reuses the JWT-based protected-endpoint model already planned across the app
 
-**JWT Flow**:
-1. User initiates OAuth2 login (OAuth2 button)
-2. AppAuth launches Google OAuth2 consent screen
-3. User approves, Google returns `authorization_code`
-4. App sends code to backend POST /auth/register
-5. Backend exchanges code for Google `id_token` (server-side)
-6. Backend validates `id_token`, creates our JWT token (7-day expiry)
-7. Backend returns JWT to app
-8. App stores JWT in Android Keystore
-9. App includes JWT in Authorization header for all API calls (Bearer token)
+**Credential flow**:
+1. User opens an auth screen with `Login` and `Criar conta`
+2. Register sends `POST /auth/register { email, password, nome }`
+3. Backend validates uniqueness, hashes password, stores only `password_hash`, and returns JWT
+4. Login sends `POST /auth/login { email, password }`
+5. Backend verifies the stored hash and returns JWT
+6. Android stores JWT in encrypted local storage
+7. All protected API requests use `Authorization: Bearer <jwt>`
+8. If API returns `401`, the app clears local session and returns to login
 
-**Token Refresh**:
-- JWT expiry: 7 days
-- When API returns 401 (token expired), refresh via POST /auth/refresh
-- Backend validates previous JWT, issues new one
-- App silently retries original request with new token
+**Password handling**:
+- Raw passwords are never persisted
+- Backend must use a dedicated password hashing algorithm such as BCrypt or Argon2
+- Password reset and email verification are follow-on hardening work, not assumed complete in the MVP baseline
 
 **Storage**:
-- Android EncryptedSharedPreferences or Android Keystore (via Jetpack Security)
-- Not in SharedPreferences (unencrypted)
-- Not hardcoded
+- Android: EncryptedSharedPreferences or Android Keystore-backed secure storage
+- Backend: `password_hash` in `usuario`, never serialized in responses
 
 ### Libraries
 
 **Android**:
-- `net.openid:appauth` (AppAuth for OAuth2)
 - `androidx.security:security-crypto` (EncryptedSharedPreferences)
-- `com.squareup.okhttp3:okhttp` (Retrofit HTTP client)
+- `com.squareup.okhttp3:okhttp` (HTTP client)
 - `com.squareup.retrofit2:retrofit` (REST client)
 
 **Backend**:
-- `org.springframework.security:spring-security-oauth2-resource-server` (JWT validation)
-- `org.springframework.security:spring-security-oauth2-client` (OAuth2 client for Google integration)
+- `org.springframework.security:spring-security-crypto` (BCrypt/PasswordEncoder)
 - `io.jsonwebtoken:jjwt` (JWT creation/parsing)
 
 ---
@@ -797,7 +792,7 @@ How reliable is Firebase Cloud Messaging? Should we implement retry logic for fa
 | **Image Validation** | Client-side MIME+size+quality checks; accept all on server | Medium | Over-validation may reject good images (mitigated by Phase 3 tuning) |
 | **Rate Limiting** | Free tier sufficient for MVP (250/day); monitor; upgrade if needed | High | Spike in usage could approach limit (mitigated by graceful degradation) |
 | **State Machine Locking** | PostgreSQL SERIALIZABLE + SELECT...FOR UPDATE | High | Slight latency overhead acceptable for safety |
-| **OAuth2 + JWT** | AppAuth library + custom JWT backend provider | High | Token refresh complexity manageable with tested library |
+| **Email/password + JWT** | Native auth form + backend password hash + JWT | High | Requires password hardening work, but removes OAuth2 setup friction |
 | **Image Storage** | Local filesystem per Constitution V | High | Not scalable post-MVP; acceptable as technical debt (mitigated by migration path to S3) |
 | **Geographic Normalization** | NFD + uppercase + ASCII | High | Edge cases (hyphenated names) handled correctly by algorithm |
 | **Gemini Prompting** | Structured JSON prompt + strict parsing | Medium | Prompt may need tuning based on Phase 3 results |
@@ -829,7 +824,7 @@ How reliable is Firebase Cloud Messaging? Should we implement retry logic for fa
 
 **Phase 2 (Weeks 5–7)**:
 - [ ] Implement backend skeleton (controllers, services, exceptions)
-- [ ] Implement Android skeleton (screens, navigation, OAuth2 flow)
+- [ ] Implement Android skeleton (screens, navigation, email/password auth flow)
 - [ ] Integration test infrastructure (TestContainers, Retrofit mock)
 
 **Phase 3 (Weeks 8–10)**:

@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -76,11 +76,15 @@ fun ProfileScreen(
 
         item {
             GlassCard {
+                SectionHeading(
+                    title = "Sessao e seguranca",
+                    subtitle = "Use esta opcao para encerrar a sessao atual e entrar com outra conta neste dispositivo."
+                )
                 Text(
                     text = "Consentimento para IA: ${if (uiState.profile.consentimentoIa) "ativo" else "desativado"}",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Button(
+                OutlinedButton(
                     onClick = onLogout,
                     modifier = Modifier.fillMaxWidth()
                 ) {

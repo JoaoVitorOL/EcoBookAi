@@ -3,8 +3,9 @@ package com.ecobook.data
 import com.ecobook.api.AuthApiService
 import com.ecobook.auth.SessionManager
 import com.ecobook.dto.ApiErrorResponseDTO
-import com.ecobook.dto.AuthRequestDTO
 import com.ecobook.dto.AuthResponseDTO
+import com.ecobook.dto.LoginRequestDTO
+import com.ecobook.dto.RegisterRequestDTO
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UsuarioDTO
 import com.google.gson.Gson
@@ -19,8 +20,26 @@ class AuthRepository @Inject constructor(
     private val gson: Gson
 ) {
 
-    suspend fun registerWithGoogleToken(googleToken: String): AuthResponseDTO {
-        val response = authApiService.register(AuthRequestDTO(googleToken))
+    suspend fun register(email: String, password: String, nome: String): AuthResponseDTO {
+        val response = authApiService.register(
+            RegisterRequestDTO(
+                email = email,
+                password = password,
+                nome = nome
+            )
+        )
+        val body = requireBody(response)
+        sessionManager.onAuthSuccess(body)
+        return body
+    }
+
+    suspend fun login(email: String, password: String): AuthResponseDTO {
+        val response = authApiService.login(
+            LoginRequestDTO(
+                email = email,
+                password = password
+            )
+        )
         val body = requireBody(response)
         sessionManager.onAuthSuccess(body)
         return body

@@ -1,5 +1,7 @@
 # Phase 1 Audit
 
+> Historical note (2026-05-05): this audit reflects the codebase while authentication was still being planned around Google OAuth2. The current source of truth for auth is now email + password + JWT. Treat older OAuth2 references in this document as legacy context only.
+
 **Date**: 2026-05-04  
 **Scope**: Revalidation of `T001-T035` from `specs/001-ecobook-core/TASKS.md`
 

@@ -1,578 +1,201 @@
 # Quickstart Guide: EcoBook IA Development
 
 **Phase**: 1 (Design & Contracts)  
-**Date**: 2026-04-15  
-**Purpose**: Setup local development environment and run first integration test
+**Date**: 2026-05-05  
+**Purpose**: Setup local development environment and validate the first auth + profile flow
 
 ---
 
 ## Prerequisites
 
-### Backend (Spring Boot)
-- **Java**: JDK 17+ (LTS recommended)
-  - Verify: `java -version`
-  - Install: [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://jdk.java.net)
+### Backend
 
-- **PostgreSQL**: 14+ (database)
-  - Verify: `psql --version`
-  - Install: [PostgreSQL Downloads](https://www.postgresql.org/download/)
-  - OR use Docker (see below)
+- Java 17+ or 21+
+- PostgreSQL 14+
+- Maven or Gradle
+- Docker (recommended for local PostgreSQL)
+- Git
 
-- **Maven** or **Gradle**: Build tool
-  - Maven 3.8+: `mvn --version`
-  - Gradle 7.x+: `gradle --version`
+### Android
 
-- **Docker** (optional, recommended for PostgreSQL):
-  - Verify: `docker --version`
-  - Install: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-- **Git**: Version control
-  - Verify: `git --version`
-
-### Android (Kotlin/Jetpack Compose)
-- **Android Studio**: 2023.1 or newer
-  - Download: [Android Studio](https://developer.android.com/studio)
-  - Install: Follow wizard, accept all SDK components
-
-- **Android SDK**: minSdk=26 (Android 8.0), targetSdk=34
-  - Via Android Studio: Settings → SDK Manager → ensure API 26, 34 installed
-
-- **Emulator or Physical Device**: For testing
-  - Emulator: Android Studio → Device Manager → Create device (Pixel 6, API 34)
-  - Physical: Enable USB debugging, connect via USB
+- Android Studio
+- Android SDK 34
+- Emulator or physical device
 
 ---
 
-## Project Setup
+## Backend Setup
 
-### 1. Clone Repository
+### 1. Start PostgreSQL
 
 ```bash
-cd ~/projects
-git clone https://github.com/yourepo/ecobook-ia.git
-cd ecobook-ia
-git checkout 001-ecobook-core
+docker compose up -d postgres
 ```
 
-### 2. Backend Environment Setup
+### 2. Configure environment
 
-#### Option A: Docker (Recommended)
-
-```bash
-# Create docker-compose.yml in project root
-cat > docker-compose.yml << 'EOF'
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: ecobook-db
-    environment:
-      POSTGRES_DB: ecobook
-      POSTGRES_USER: ecobook
-      POSTGRES_PASSWORD: dev_password_123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ecobook"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
-EOF
-
-# Start PostgreSQL
-docker-compose up -d postgres
-
-# Verify connection
-sleep 5
-psql -h localhost -U ecobook -d ecobook -c "SELECT 1;"
-```
-
-#### Option B: Local PostgreSQL Installation
+Create `.env` in `EcoBookAiBackend/`:
 
 ```bash
-# macOS (Homebrew)
-brew install postgresql@15
-brew services start postgresql@15
-
-# Linux (Ubuntu)
-sudo apt-get install postgresql postgresql-contrib
-sudo systemctl start postgresql
-
-# Windows
-# Use PostgreSQL installer or Windows Subsystem for Linux (WSL)
-
-# Create database and user
-psql postgres
-CREATE DATABASE ecobook;
-CREATE USER ecobook WITH PASSWORD 'dev_password_123';
-ALTER ROLE ecobook WITH CREATEDB;
-\q
-```
-
-#### 3. Backend Configuration
-
-```bash
-cd EcoBookAiBackend
-
-# Create .env file with secrets
-cat > .env << 'EOF'
-# Database
 DATABASE_URL=jdbc:postgresql://localhost:5432/ecobook
 DATABASE_USER=ecobook
 DATABASE_PASSWORD=dev_password_123
-
-# Google OAuth2
-GOOGLE_CLIENT_ID=<your-google-client-id>.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=<your-google-client-secret>
-
-# Google Gemini API
-GEMINI_API_KEY=<your-gemini-api-key>
-
-# Firebase Cloud Messaging
-FCM_PROJECT_ID=<your-firebase-project-id>
-FCM_SERVICE_ACCOUNT_JSON=$(cat /path/to/firebase-service-account.json)
-
-# JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-minimum-32-characters-long
-EOF
-
-# Setup Google OAuth2 credentials
-# 1. Go to https://console.cloud.google.com/
-# 2. Create new project "EcoBook IA"
-# 3. APIs & Services → Credentials → Create OAuth 2.0 Client ID
-# 4. Application type: Desktop (for testing)
-# 5. Copy Client ID and Secret to .env
-
-# Setup Gemini API
-# 1. Go to https://makersuite.google.com/app/apikey
-# 2. Create new API key
-# 3. Copy to .env
-
-# Setup Firebase
-# 1. Go to https://console.firebase.google.com/
-# 2. Create new project "EcoBook IA"
-# 3. Enable Cloud Messaging (Messaging tab)
-# 4. Service Accounts tab → Generate service account key (JSON)
-# 5. Save JSON file, copy path to .env
+GEMINI_API_KEY=your-gemini-api-key
+FCM_PROJECT_ID=your-firebase-project-id
+FCM_SERVICE_ACCOUNT_JSON=/path/to/firebase-service-account.json
 ```
 
-#### 4. Build & Run Backend
+### 3. Run backend
 
 ```bash
-# Navigate to backend directory
 cd EcoBookAiBackend
-
-# Using Maven
-mvn clean install
 mvn spring-boot:run
-
-# OR using Gradle
-gradle clean build
-gradle bootRun
-
-# Verify backend is running
-curl http://localhost:8080/actuator/health
-# Expected: {"status":"UP"}
 ```
 
-**If error**: Check logs for database connection issues
+### 4. Validate health
+
 ```bash
-# Debug database connection
-psql -h localhost -U ecobook -d ecobook -c "SELECT NOW();"
+curl http://localhost:8080/api/v1/health
+```
+
+Expected response:
+
+```json
+{ "status": "UP" }
 ```
 
 ---
 
-### 5. Android Environment Setup
+## Android Setup
 
-#### Google Services JSON
+### 1. Configure local properties
 
-```bash
-cd EcoBookAiAndroid/app
+Create `EcoBookAiAndroid/local.properties`:
 
-# Download google-services.json from Firebase Console
-# Project Settings → Your Apps → Android → Download google-services.json
-# Place in: EcoBookAiAndroid/app/
-
-ls -la google-services.json  # Verify file exists
+```properties
+sdk.dir=C\:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
+backend.url=http://10.0.2.2:8080/api
 ```
 
-#### Local Build Properties
+### 2. Firebase note
+
+`google-services.json` is only relevant for Firebase Messaging tests. Authentication no longer depends on Google sign-in.
+
+### 3. Build app
 
 ```bash
 cd EcoBookAiAndroid
-
-# Create local.properties
-cat > local.properties << 'EOF'
-sdk.dir=/Users/yourname/Library/Android/sdk
-EOF
-
-# On Linux:
-cat > local.properties << 'EOF'
-sdk.dir=/home/yourname/Android/Sdk
-EOF
-
-# On Windows:
-cat > local.properties << 'EOF'
-sdk.dir=C:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
-EOF
-```
-
-#### API Configuration
-
-```bash
-cat > app/src/main/res/values/api_config.xml << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="backend_url">http://10.0.2.2:8080</string>
-    <!-- Note: 10.0.2.2 is the special alias for localhost from Android emulator -->
-</resources>
-EOF
-```
-
-#### Build & Run Android App
-
-```bash
-cd EcoBookAiAndroid
-
-# Build debug APK
 ./gradlew assembleDebug
-
-# Start emulator
-emulator -avd Pixel6_API34 &  # Replace with your emulator name
-
-# Install and run app
-./gradlew installDebugAndroidTest
-adb shell am instrument -w com.ecobook.test/androidx.test.runner.AndroidJUnitRunner
 ```
-
-**Or use Android Studio**:
-1. Open Android Studio
-2. File → Open → select `ecobook-ia/android`
-3. Click green "Run" button
-4. Select emulator or device
-5. App will build, install, and launch
 
 ---
 
-## First Integration Test: Material Upload & Search
+## First Authentication Flow Test
 
-### Test Scenario
-1. Register user via OAuth2
-2. Upload a textbook image
-3. View AI classification
-4. Confirm upload
-5. Search for material
-6. Verify ranking
-
-### Step-by-Step
-
-#### Step 1: Start Backend & Database
+### 1. Register account
 
 ```bash
-# Terminal 1: PostgreSQL (if not already running)
-docker-compose up postgres
-
-# Terminal 2: Spring Boot backend
-cd EcoBookAiBackend
-mvn spring-boot:run
-# Wait for: "Started EcoBookApplication in X seconds"
-```
-
-#### Step 2: Create Test Data
-
-```bash
-# Create test user (via API call)
-curl -X POST http://localhost:8080/auth/register \
+curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
-    "nome": "Test User",
-    "whatsapp": "+5548999999999"
+    "password": "SenhaSegura123",
+    "nome": "Test User"
   }'
+```
 
-# Response:
-# {
-#   "id": "user-uuid",
-#   "email": "test@example.com",
-#   "perfil_completo": false,
-#   "token": "eyJhbGc..."
-# }
+Expected result:
+- user created
+- `perfil_completo = false`
+- JWT returned
 
-# Complete profile
-BEARER_TOKEN="eyJhbGc..."  # Copy from response above
-curl -X PATCH http://localhost:8080/usuarios/user-uuid \
-  -H "Authorization: Bearer $BEARER_TOKEN" \
+### 2. Save token and inspect profile
+
+```bash
+TOKEN="jwt-token-value"
+
+curl -X GET http://localhost:8080/api/v1/usuarios/me \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 3. Complete onboarding fields
+
+```bash
+curl -X PUT http://localhost:8080/api/v1/usuarios/me \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "cidade": "Florianópolis",
+    "nome": "Test User",
+    "whatsapp": "+5548999999999",
+    "cidade": "Florianopolis",
     "bairro": "Centro",
     "consentimento_ia": true
   }'
 ```
 
-#### Step 3: Upload Material Image
+Expected result:
+- normalized geography
+- `perfil_completo = true`
+
+### 4. Login with same credentials
 
 ```bash
-# Prepare test image (or download a sample textbook cover)
-# For testing, use: https://example.com/sample-math-textbook.jpg
-
-curl -X POST http://localhost:8080/materiais/preview \
-  -H "Authorization: Bearer $BEARER_TOKEN" \
-  -F "image=@sample-math-textbook.jpg" \
-  -F "cidade=Florianópolis" \
-  -F "bairro=Centro"
-
-# Response:
-# {
-#   "status_ia": "SUCCESS",
-#   "upload_id": "temp-upload-abc123",
-#   "best_prediction": {
-#     "titulo": { "value": "Matemática 7º Ano - Anglo", "confidence": 0.92 },
-#     "disciplina": { "value": "MATEMATICA", "confidence": 0.95 },
-#     "nivel_ensino": { "value": "FUNDAMENTAL", "confidence": 0.88 },
-#     "ano": { "value": 7, "confidence": 0.75 },
-#     "sistema_ensino": { "value": "ANGLO", "confidence": 0.92 },
-#     "estado_conservacao": { "value": "BOM", "confidence": 0.81 },
-#     "data_publicacao": { "value": 2010, "confidence": 0.70 }
-#   }
-# }
-```
-
-#### Step 4: Confirm & Persist Material
-
-```bash
-curl -X POST http://localhost:8080/materiais \
-  -H "Authorization: Bearer $BEARER_TOKEN" \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "titulo": "Matemática 7º Ano - Anglo",
-    "descricao": "Livro usado, bem conservado",
-    "disciplina": "MATEMATICA",
-    "nivel_ensino": "FUNDAMENTAL",
-    "ano": 7,
-    "sistema_ensino": "ANGLO",
-    "estado_conservacao": "BOM",
-    "cidade": "Florianópolis",
-    "bairro": "Centro",
-    "upload_id": "temp-upload-abc123"
+    "email": "test@example.com",
+    "password": "SenhaSegura123"
   }'
-
-# Response:
-# {
-#   "id": "material-uuid-1",
-#   "titulo": "Matemática 7º Ano - Anglo",
-#   "status": "DISPONIVEL",
-#   "imagem_url": "/uploads/u12345678/m87654321.jpg",
-#   "doador_id": "user-uuid",
-#   ...
-# }
 ```
 
-#### Step 5: Search Materials
+Expected result:
+- JWT returned
+- same user profile loaded
 
-**Note**: This example demonstrates the workflow with a second user in the "student capacity", but the same user could both donate materials AND request materials. All users simultaneously have both donor and student capabilities.
+---
+
+## First Material Preview Test
+
+After authentication and profile completion:
 
 ```bash
-# Create second user (for this demo, acting as a student who searches/requests)
-# In production, the same user could do both: upload materials AND request materials
-curl -X POST http://localhost:8080/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "student@example.com",
-    "nome": "Another User",
-    "whatsapp": "+5548988888888"
-  }'
-
-# Update student profile
-STUDENT_TOKEN="eyJhbGc..."
-curl -X PATCH http://localhost:8080/usuarios/student-uuid \
-  -H "Authorization: Bearer $STUDENT_TOKEN" \
-  -d '{
-    "cidade": "Florianópolis",
-    "bairro": "Centro"
-  }'
-
-# Search materials (matching student needs)
-curl -X GET "http://localhost:8080/materiais?disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=Florianópolis&bairro=Centro" \
-  -H "Authorization: Bearer $STUDENT_TOKEN"
-
-# Response:
-# {
-#   "content": [
-#     {
-#       "id": "material-uuid-1",
-#       "titulo": "Matemática 7º Ano - Anglo",
-#       "status": "DISPONIVEL",
-#       "doador": {
-#         "nome": "Test User",
-#         "whatsapp": "+5548999999999",
-#         "cidade": "FLORIANOPOLIS",
-#         "bairro": "CENTRO"
-#       }
-#     }
-#   ],
-#   "totalElements": 1
-# }
+curl -X POST http://localhost:8080/api/v1/materiais/preview \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "image=@sample-math-textbook.jpg"
 ```
 
-#### Step 6: Submit Request
-
-```bash
-curl -X POST http://localhost:8080/solicitacoes \
-  -H "Authorization: Bearer $STUDENT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "material_id": "material-uuid-1",
-    "estudante_id": "student-uuid"
-  }'
-
-# Response:
-# {
-#   "id": "solicitacao-uuid-1",
-#   "material_id": "material-uuid-1",
-#   "estudante_id": "student-uuid",
-#   "status": "PENDENTE",
-#   "created_at": "2026-04-15T10:30:00Z"
-# }
-```
-
-#### Step 7: Approve Request (as Donor)
-
-```bash
-curl -X PATCH http://localhost:8080/solicitacoes/solicitacao-uuid-1 \
-  -H "Authorization: Bearer $BEARER_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "APROVADA"}'
-
-# Response:
-# {
-#   "id": "solicitacao-uuid-1",
-#   "status": "APROVADA",
-#   "contato_doador": {
-#     "nome": "Test User",
-#     "whatsapp": "+5548999999999"
-#   },
-#   "approved_at": "2026-04-15T10:35:00Z",
-#   "expires_at": "2026-04-29T10:35:00Z"
-# }
-```
-
-#### Verify Success
-
-```bash
-# Check material status changed to RESERVADO
-curl -X GET http://localhost:8080/materiais/material-uuid-1 \
-  -H "Authorization: Bearer $BEARER_TOKEN"
-
-# Should show: "status": "RESERVADO"
-
-# Check request status is APROVADA
-curl -X GET http://localhost:8080/solicitacoes/solicitacao-uuid-1 \
-  -H "Authorization: Bearer $STUDENT_TOKEN"
-
-# Should show: "status": "APROVADA", "contato_doador": { ... }
-```
+Expected result:
+- Gemini classification response
+- `status_ia` returned
+- `upload_id` generated
 
 ---
 
 ## Troubleshooting
 
-### Backend Issues
+### Backend
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| `Connection refused: 5432` | PostgreSQL not running | Run `docker-compose up postgres` or check local PostgreSQL service |
-| `Invalid API key for Gemini` | Missing or incorrect API key in .env | Verify GEMINI_API_KEY in .env; regenerate if needed |
-| `Port 8080 already in use` | Another service using port 8080 | Kill existing process: `lsof -i :8080` + `kill -9 <PID>` |
-| `JWT validation failed` | Expired token or wrong secret | Tokens expire in 7 days; create new one via POST /auth/register |
+| `Connection refused: 5432` | PostgreSQL not running | Start Docker compose or local PostgreSQL |
+| `JWT validation failed` | Expired token or wrong secret | Re-login via `POST /api/v1/auth/login` |
+| `Invalid credentials` | Wrong email/password | Confirm user exists and password matches |
+| `Port 8080 already in use` | Another service using the port | Stop existing process or change `SERVER_PORT` |
 
-### Android Issues
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `Failed to resolve: com.google.firebase:firebase-messaging` | Dependency not in gradle | Ensure `google-services.json` in `app/` and gradle synced |
-| `Emulator can't reach localhost:8080` | Emulator network isolation | Use `10.0.2.2` instead of `localhost` in api_config.xml |
-| `OAuth2 login fails` | Invalid Google OAuth2 credentials | Verify CLIENT_ID and CLIENT_SECRET in Google Cloud Console |
-
-### Database Issues
+### Android
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| `ERROR: database "ecobook" does not exist` | Database not created | Run: `createdb -U ecobook ecobook` |
-| `FATAL: Ident authentication failed` | PostgreSQL auth method | Edit `pg_hba.conf`: change `ident` to `md5` or `trust` for dev |
-| `Tables not created` | Migration not run | Backend will auto-create on startup with Flyway; check logs |
-
----
-
-## Development Workflow
-
-### Making Changes
-
-**Backend**:
-```bash
-cd EcoBookAiBackend
-# Edit src/main/java or src/main/resources
-
-# Rebuild
-mvn compile
-
-# Restart (Ctrl+C to stop, then):
-mvn spring-boot:run
-
-# Or enable hot-reload: add spring-boot-devtools to pom.xml
-```
-
-**Android**:
-```bash
-cd EcoBookAiAndroid
-# Edit app/src/main/kotlin or app/src/main/res
-
-# Rebuild and reinstall on emulator/device
-./gradlew installDebug
-adb shell am start -n com.ecobook/.MainActivity
-```
-
-### Running Tests
-
-**Backend**:
-```bash
-cd EcoBookAiBackend
-mvn test
-# Or in IDE: right-click test file → Run
-```
-
-**Android**:
-```bash
-cd EcoBookAiAndroid
-./gradlew connectedAndroidTest
-# Or in Android Studio: Run → Run Tests
-```
+| Emulator cannot reach backend | Wrong host alias | Use `10.0.2.2` instead of `localhost` |
+| App returns to login after request | API responded `401` | Check JWT storage and backend secret |
+| Auth screen still shows Google flow | Codebase not fully migrated yet | Follow current docs as the target direction |
 
 ---
 
 ## Next Steps
 
-After completing this quickstart:
-
-1. **Phase 2**: Implement full API endpoints and UI screens
-2. **Phase 3**: Collect test images, validate Gemini integration
-3. **Phase 4**: Complete all features, integration testing
-4. **Phase 5**: Deploy MVP, monitor in production
-
----
-
-## Useful Resources
-
-- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
-- [Jetpack Compose Documentation](https://developer.android.com/jetpack/compose)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Google Gemini API Documentation](https://ai.google.dev/)
-- [Firebase Cloud Messaging Documentation](https://firebase.google.com/docs/cloud-messaging)
-
+1. Replace legacy Google-auth code paths with email/password screens and endpoints
+2. Add auth integration tests for register/login
+3. Update backend schema to persist `password_hash`
+4. Validate logout and 401 recovery in Android

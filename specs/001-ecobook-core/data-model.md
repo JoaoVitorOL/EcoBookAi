@@ -46,35 +46,36 @@
 | Field | Type | Constraint | Validation | Notes |
 |-------|------|-----------|-----------|-------|
 | `id` | UUID | PRIMARY KEY | Not null | Auto-generated |
-| `email` | VARCHAR(255) | UNIQUE, NOT NULL | Valid email format | Used for Google OAuth2 |
-| `nome` | VARCHAR(255) | NOT NULL | 1–255 chars | User's full name |
-| `whatsapp` | VARCHAR(20) | NOT NULL | E.164 format (e.g., +5548999999999) | Donor contact method |
-| `cidade` | VARCHAR(100) | NOT NULL | Normalized (uppercase, no accents) | Geographic location |
-| `bairro` | VARCHAR(100) | NOT NULL | Normalized (uppercase, no accents) | Geographic location |
-| `instituicao` | VARCHAR(255) | NULLABLE | 0–255 chars | School/organization affiliation |
+| `email` | VARCHAR(255) | UNIQUE, NOT NULL | Valid email format | Login identity |
+| `password_hash` | VARCHAR(255) | NOT NULL | Strong one-way hash | Backend only; raw password never stored |
+| `nome` | VARCHAR(255) | NOT NULL | 1-255 chars | User's full name |
+| `whatsapp` | VARCHAR(20) | NULLABLE | E.164 format (e.g., +5548999999999) | Filled during onboarding |
+| `cidade` | VARCHAR(100) | NULLABLE | Normalized (uppercase, no accents) | Filled during onboarding |
+| `bairro` | VARCHAR(100) | NULLABLE | Normalized (uppercase, no accents) | Filled during onboarding |
+| `instituicao` | VARCHAR(255) | NULLABLE | 0-255 chars | School/organization affiliation |
 | `perfil_completo` | BOOLEAN | DEFAULT false | Not null | Profile completion flag |
 | `consentimento_ia` | BOOLEAN | DEFAULT false | Not null | Consent for Gemini API usage |
-| `google_id` | VARCHAR(255) | NULLABLE | Unique per user | OAuth2 Google ID for authentication |
 | `created_at` | TIMESTAMP | DEFAULT now() | Not null | Creation timestamp |
 | `updated_at` | TIMESTAMP | DEFAULT now() | Not null | Last modification timestamp |
 
 **Indexes**:
 ```sql
 CREATE UNIQUE INDEX idx_usuario_email ON usuario(email);
-CREATE INDEX idx_usuario_google_id ON usuario(google_id);
 CREATE INDEX idx_usuario_perfil_completo ON usuario(perfil_completo);
 ```
 
 **Validation Rules**:
 - Email must be RFC 5322 compliant
-- WhatsApp must match E.164 format (regex: `^\+\d{1,15}$`)
+- `password_hash` must be present on every persisted user
+- Raw passwords are accepted only at register/login boundaries and never stored
+- WhatsApp must match E.164 format when present
 - `cidade` and `bairro` normalized via GeoNormalizationService before insert/update
 - `perfil_completo` = true if email, nome, whatsapp, cidade, bairro all non-null and non-empty
 - `consentimento_ia` = false by default; user must explicitly opt-in on first upload
 
 **State Transitions**:
-- Profile: incomplete → complete (one-way transition, can remain incomplete indefinitely)
-- Consent: false → true (user can toggle on/off in settings)
+- Profile: incomplete -> complete (can remain incomplete until onboarding ends)
+- Consent: false -> true (user can toggle on/off in settings)
 
 ---
 
@@ -301,20 +302,19 @@ CREATE TYPE status_solicitacao_enum AS ENUM (
 CREATE TABLE usuario (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     nome VARCHAR(255) NOT NULL,
-    whatsapp VARCHAR(20) NOT NULL CHECK (whatsapp ~ '^\+\d{1,15}$'),
-    cidade VARCHAR(100) NOT NULL,
-    bairro VARCHAR(100) NOT NULL,
+    whatsapp VARCHAR(20) CHECK (whatsapp IS NULL OR whatsapp ~ '^\+\d{1,15}$'),
+    cidade VARCHAR(100),
+    bairro VARCHAR(100),
     instituicao VARCHAR(255),
     perfil_completo BOOLEAN DEFAULT false NOT NULL,
     consentimento_ia BOOLEAN DEFAULT false NOT NULL,
-    google_id VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT now() NOT NULL,
     updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE UNIQUE INDEX idx_usuario_email ON usuario(email);
-CREATE INDEX idx_usuario_google_id ON usuario(google_id);
 CREATE INDEX idx_usuario_perfil_completo ON usuario(perfil_completo);
 
 -- Material table
@@ -405,7 +405,7 @@ CREATE INDEX idx_auditlog_created_at ON auditlog(created_at);
 **Incomplete Profile** (perfil_completo = false):
 - Missing any of: email, nome, whatsapp, cidade, bairro
 - Blocks: POST /materiais (HTTP 403), POST /solicitacoes (HTTP 403)
-- Allowed: GET operations, profile update (PATCH /usuarios/{id})
+- Allowed: GET operations, profile update (PUT /usuarios/me)
 
 **Complete Profile** (perfil_completo = true):
 - All required fields: email, nome, whatsapp (E.164), cidade (normalized), bairro (normalized)

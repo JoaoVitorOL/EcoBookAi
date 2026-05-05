@@ -16,6 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class ProfileCompletenessAspectTest extends BaseIntegrationTest {
 
+    private static final String SEEDED_PASSWORD_HASH =
+            "$2a$10$7EqJtq98hPqEX7fNZaFWoOHiPpclJ3DgA6hfa/vw/jemjL5V6cO9e";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -30,8 +33,8 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
     void shouldBlockIncompleteProfiles() throws Exception {
         Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("blocked@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Blocked User")
-                .googleId("google-blocked")
                 .perfilCompleto(false)
                 .role(Role.USER)
                 .build());
@@ -47,6 +50,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
     void shouldAllowCompleteProfiles() throws Exception {
         Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("allowed@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Allowed User")
                 .whatsapp("+5511991234567")
                 .cidade("SAO PAULO")

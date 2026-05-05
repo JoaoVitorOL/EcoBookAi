@@ -38,13 +38,6 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
   
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${GOOGLE_OAUTH_ISSUER_URI:https://accounts.google.com}
-          jwk-set-uri: ${GOOGLE_OAUTH_JWK_SET_URI:https://www.googleapis.com/oauth2/v3/certs}
-  
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -76,12 +69,6 @@ jwt:
   secret: ${JWT_SECRET:change-this-jwt-secret-in-production-and-keep-it-at-least-64-characters-long}
   expiration: ${JWT_EXPIRATION:604800000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
-
-google:
-  oauth:
-    # Use the Google Web client ID that matches the Android Credential Manager configuration.
-    client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
-    client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
 
 gemini:
   api-key: ${GEMINI_API_KEY:}

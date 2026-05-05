@@ -16,7 +16,12 @@ public class AuthResponseDTO {
     private String id;
     private String email;
     private String nome;
+    private String whatsapp;
+    private String cidade;
+    private String bairro;
+    private String instituicao;
     private Boolean perfilCompleto;
+    private Boolean consentimentoIa;
     private String role;
     private String token;
     private Long expiresIn;

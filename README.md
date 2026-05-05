@@ -1,15 +1,15 @@
 # EcoBook AI
 
-O repositorio agora esta organizado em duas bases explicitas:
+O repositorio esta organizado em duas bases explicitas:
 
-- `EcoBookAiBackend`: backend Spring Boot, PostgreSQL, Flyway e seguranca JWT.
+- `EcoBookAiBackend`: backend Spring Boot, PostgreSQL, Flyway, auth local por email e senha, e seguranca JWT.
 - `EcoBookAiAndroid`: aplicativo Android nativo em Kotlin + Jetpack Compose + Hilt + Retrofit.
 
 ## O que existe hoje
 
 - O backend ja tem estrutura de dominio, seguranca, DTOs, migracao inicial e `GET /api/v1/health`.
-- O Android que existia antes era apenas um placeholder. Agora ele virou uma base navegavel com telas de painel, descoberta, doacao e perfil, conectada ao health check real do backend.
-- O wrapper do Gradle para Windows foi adicionado em `EcoBookAiAndroid`, entao o projeto pode ser aberto e executado pelo Android Studio com menos atrito.
+- O Android ja tem base navegavel, telas principais e integracao com o health check do backend.
+- O projeto esta em transicao documental de auth: a direcao oficial agora e **email + senha + JWT**, substituindo o fluxo anterior com Google.
 
 ## Estado de validacao
 

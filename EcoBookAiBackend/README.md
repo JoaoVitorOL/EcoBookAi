@@ -9,6 +9,7 @@ Backend Spring Boot do EcoBook AI.
 - PostgreSQL
 - Flyway
 - Spring Security + JWT
+- Auth local por email e senha com hash forte no servidor
 
 ## O que existe hoje
 
@@ -53,10 +54,15 @@ http://localhost:8080/api/v1/health
 - `DB_PASSWORD`
 - `JWT_SECRET`
 - `SERVER_PORT`
-- `GOOGLE_OAUTH_CLIENT_ID`
-- `GOOGLE_OAUTH_CLIENT_SECRET`
 - `GEMINI_API_KEY`
 - `FIREBASE_SERVICE_ACCOUNT_PATH`
+
+## Regra atual de autenticacao
+
+- Cadastro e login usam `email + senha`.
+- A senha nunca deve ser salva em texto puro; o backend deve persistir apenas `password_hash`.
+- O backend emite JWT apos `register` e `login`.
+- O app deve limpar a sessao local ao receber `401`.
 
 ## Observacao importante
 

@@ -1,0 +1,23 @@
+ALTER TABLE IF EXISTS usuario
+    ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+
+UPDATE usuario
+SET password_hash = '$2a$10$zKy.OSOH8QwuPcygx3gSbeqZesX.A4MLu7YAMTLmNPfx139CWSFKW'
+WHERE password_hash IS NULL;
+
+ALTER TABLE IF EXISTS usuario
+    ALTER COLUMN password_hash SET NOT NULL;
+
+ALTER TABLE IF EXISTS usuario
+    ALTER COLUMN whatsapp DROP NOT NULL;
+
+ALTER TABLE IF EXISTS usuario
+    ALTER COLUMN cidade DROP NOT NULL;
+
+ALTER TABLE IF EXISTS usuario
+    ALTER COLUMN bairro DROP NOT NULL;
+
+DROP INDEX IF EXISTS idx_usuario_google_id;
+
+ALTER TABLE IF EXISTS usuario
+    DROP COLUMN IF EXISTS google_id;

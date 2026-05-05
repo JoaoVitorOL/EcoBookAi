@@ -81,7 +81,7 @@ Missing, invalid, or expired authentication token.
 | Error Code | Message | Details |
 |---|---|---|
 | `UNAUTHORIZED` | No valid JWT token provided | `{ "header": "Authorization", "format": "Bearer <jwt_token>" }` |
-| `TOKEN_EXPIRED` | JWT token has expired | `{ "expired_at": "2026-04-17T16:00:00Z", "action": "Refresh token and retry" }` |
+| `TOKEN_EXPIRED` | JWT token has expired | `{ "expired_at": "2026-04-17T16:00:00Z", "action": "Login again" }` |
 | `TOKEN_INVALID` | JWT token is invalid or forged | `{ "reason": "Signature verification failed" }` |
 | `SESSION_EXPIRED` | Session has timed out | `{ "session_ttl_seconds": 604800 }` |
 
@@ -93,7 +93,7 @@ Missing, invalid, or expired authentication token.
   "details": {
     "header": "Authorization",
     "format": "Bearer <jwt_token>",
-    "auth_service": "https://oauth.ecobook.com"
+    "login_endpoint": "/api/v1/auth/login"
   },
   "timestamp": "2026-04-17T16:30:00Z",
   "path": "/api/v1/usuarios/me"

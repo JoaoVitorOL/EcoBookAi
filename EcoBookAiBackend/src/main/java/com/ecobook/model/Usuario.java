@@ -18,7 +18,6 @@ import java.util.*;
     name = "usuario",
     indexes = {
         @Index(name = "idx_usuario_email", columnList = "email", unique = true),
-        @Index(name = "idx_usuario_google_id", columnList = "google_id"),
         @Index(name = "idx_usuario_perfil_completo", columnList = "perfil_completo")
     }
 )
@@ -28,7 +27,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"materiais", "solicitacoes"})
+@ToString(exclude = {"passwordHash", "materiais", "solicitacoes"})
 public class Usuario {
 
     @Id
@@ -38,6 +37,9 @@ public class Usuario {
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
+
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
 
     @Column(nullable = false, length = 255)
     @NotBlank(groups = ProfileCompletionValidation.class, message = "Nome is required")
@@ -73,9 +75,6 @@ public class Usuario {
     @Column(nullable = false)
     @Builder.Default
     private Boolean consentimentoIa = false;
-
-    @Column(unique = true, length = 255)
-    private String googleId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

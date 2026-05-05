@@ -1,7 +1,8 @@
 package com.ecobook.controller;
 
-import com.ecobook.dto.AuthRequestDTO;
 import com.ecobook.dto.AuthResponseDTO;
+import com.ecobook.dto.LoginRequestDTO;
+import com.ecobook.dto.RegisterRequestDTO;
 import com.ecobook.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody AuthRequestDTO request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerOrLoginUser(request.getGoogleToken()));
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 }

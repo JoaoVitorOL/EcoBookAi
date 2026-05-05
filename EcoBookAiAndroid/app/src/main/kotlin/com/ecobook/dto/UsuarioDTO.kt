@@ -10,6 +10,5 @@ data class UsuarioDTO(
     val instituicao: String? = null,
     val perfilCompleto: Boolean,
     val consentimentoIa: Boolean = false,
-    val googleId: String? = null,
     val role: String = "USER"
 )

@@ -41,7 +41,7 @@ Phase 1: Setup & Foundational
 └─ [All parallelizable via [P] marker]
 
 Phase 2: User Story 1 (US1) — Registration & Profile
-├─ T036–T055: Authentication module (OAuth2, JWT, User endpoints)
+├─ T036–T055: Authentication module (email/password, JWT, User endpoints)
 ├─ T056–T075: Onboarding module (profile completion, validation)
 └─ [Depends on: Phase 1 complete]
 
@@ -49,7 +49,7 @@ Phase 3: User Story 2 (US2) — AI-Assisted Classification
 ├─ T076–T110: Material upload module (upload UI, endpoint, storage)
 ├─ T111–T140: Gemini integration (service, parsing, fallback rules)
 ├─ T141–T160: Classification UI (preview screens, confidence indicators)
-└─ [Depends on: Phase 2 (OAuth2 required)]
+└─ [Depends on: Phase 2 (authentication required)]
 
 Phase 4: User Story 3 (US3) — Material Discovery
 ├─ T161–T175: Matching algorithm module (7-step filter: 5 core + 1 optional publication range, ranking)
@@ -96,7 +96,7 @@ Phase 10: Polish & Integration
 
 - [x] **T001** [P] Create Spring Boot 3.x project with Maven structure in `EcoBookAiBackend/`
 - [ ] **T002** [P] Configure `pom.xml` with dependencies: Spring Web, Spring Data JPA, Spring Security, Spring Cloud, PostgreSQL driver, JWT (io.jsonwebtoken), Gemini SDK, Firebase Admin SDK, Lombok
-- [x] **T003** [P] Create `application.yml` configuration with database URL, OAuth2 properties, JWT secret, Gemini API key placeholder, FCM service account path
+- [x] **T003** [P] Create `application.yml` configuration with database URL, auth properties, JWT secret, Gemini API key placeholder, FCM service account path
 - [x] **T004** [P] Setup database connection pooling in `src/main/java/com/ecobook/config/DataSourceConfig.java` (HikariCP, max 20, min 5, validation query)
 - [x] **T005** [P] Create Spring Data JPA entity mappings in `src/main/java/com/ecobook/model/`:
   - `Usuario.java` (13 fields per data-model.md)
@@ -119,7 +119,7 @@ Phase 10: Polish & Integration
 - [x] **T017** [P] Add dependencies to `EcoBookAiAndroid/build.gradle.kts`:
   - Jetpack Compose (latest)
   - Jetpack Navigation Compose
-  - AppAuth (OAuth2)
+  - AndroidX Security Crypto
   - Retrofit 2 (HTTP client)
   - OkHttp3 (HTTP logging)
   - Hilt (dependency injection)
@@ -152,10 +152,11 @@ Phase 10: Polish & Integration
 
 ## PHASE 2: USER STORY 1 — Registration & Profile (Weeks 8–9)
 
-**Story Goal**: User can register with Google OAuth2, complete profile (city, neighborhood, WhatsApp), and be verified before accessing material uploads.
+**Story Goal**: User can create an account with email and password, complete profile (city, neighborhood, WhatsApp), and be verified before accessing material uploads.
 
 **Independent Test Criteria**:
-- ✅ Unregistered user completes OAuth2 flow
+- ✅ Unregistered user completes register flow
+- ✅ Registered user completes login flow
 - ✅ Profile completion blocking enforcement (403 on restricted operations)
 - ✅ Geographic normalization applied consistently
 - ✅ JWT token generation and validation working
@@ -163,56 +164,57 @@ Phase 10: Polish & Integration
 
 ### Module 1: Authentication (RF-001)
 
-#### Backend: OAuth2 & JWT
+#### Backend: Email/Password & JWT
 
-- [x] **T036** [US1] Implement `src/main/java/com/ecobook/config/OAuth2Config.java` (Google OAuth2 resource server configuration, JWT validation)
+- [ ] **T036** [US1] Implement auth configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (PasswordEncoder, public auth endpoints, JWT validation)
 - [x] **T037** [US1] Create `src/main/java/com/ecobook/security/JwtTokenProvider.java` service:
   - Generate JWT (7-day expiry, subject=email, custom claims: role, perfil_completo)
   - Validate token (signature, expiry, claims)
   - Refresh token (if refresh token endpoint needed, add in Phase 4)
 - [x] **T038** [US1] Create `src/main/java/com/ecobook/security/JwtAuthenticationFilter.java` (extracts JWT from Authorization header, validates, sets SecurityContext)
 - [x] **T039** [US1] Register JWT filter in `SecurityConfig.java` with `addFilterBefore(JwtAuthenticationFilter, UsernamePasswordAuthenticationFilter)`
-- [x] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
-  - **POST /api/v1/auth/register**: Accepts OAuth2 token, creates Usuario if not exists, returns JWT + user info
-  - Handler: Call AuthService.registerOrLoginUser(googleToken)
-- [x] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
-  - `registerOrLoginUser(googleToken)`: Decode Google token, extract email, create/fetch Usuario, generate JWT
-  - Validate Google OAuth2 token signature against Google's JWKS endpoint
-  - Return UserDTO with id, email, role, perfil_completo, token
-- [x] **T042** [US1] Create `src/main/java/com/ecobook/repository/UsuarioRepository.java` (Spring Data JPA):
+- [ ] **T040** [US1] Create `src/main/java/com/ecobook/controller/AuthController.java`:
+  - **POST /api/v1/auth/register**: Accepts email, password, nome; creates Usuario; returns JWT + user info
+  - **POST /api/v1/auth/login**: Accepts email and password; verifies credentials; returns JWT + user info
+- [ ] **T041** [US1] Create `src/main/java/com/ecobook/service/AuthService.java`:
+  - `registerUser(request)`: Validate email uniqueness, hash password, create Usuario, generate JWT
+  - `loginUser(request)`: Verify password hash, generate JWT
+  - Never return raw password or `password_hash`
+- [ ] **T042** [US1] Update `src/main/java/com/ecobook/repository/UsuarioRepository.java` (Spring Data JPA):
   - `findByEmail(email): Optional<Usuario>`
-  - `findByGoogleId(googleId): Optional<Usuario>`
-  - Custom query: `findByGoogleIdOrCreateNew(googleId, email)`
+  - `existsByEmailIgnoreCase(email): boolean`
 - [x] **T043** [US1] Create JWT validation test in `src/test/java/com/ecobook/security/JwtTokenProviderTest.java` (generate token, validate, test expiry)
-- [ ] **T044** [US1] Create OAuth2 flow integration test in `src/test/java/com/ecobook/AuthControllerIntegrationTest.java` (mock Google JWKS, POST /auth/register)
-- [x] **T045** [P] [US1] Create endpoint test for invalid/expired token: POST /auth/register with invalid token → HTTP 401
+- [ ] **T044** [US1] Create auth integration tests in `src/test/java/com/ecobook/AuthControllerIntegrationTest.java` (POST /auth/register, POST /auth/login, password hash verification)
+- [ ] **T045** [P] [US1] Create endpoint tests for invalid credentials and expired token: POST /auth/login with invalid password -> HTTP 401
 
-#### Android: OAuth2 Flow
+#### Android: Email/Password Flow
 
-- [x] **T046** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
-  - Display "Login with Google" button (AppAuth)
-  - Handle OAuth2 flow initiation
+- [ ] **T046** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthScreen.kt` Compose screen:
+  - Display `Login` and `Criar conta` forms
+  - Inputs: email, password, confirm password (register only), nome (register only)
   - Show loading spinner during authentication
   - Navigate to onboarding on success
-- [x] **T047** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/GoogleAuthClient.kt`:
-  - Initialize AppAuth with Google OAuth2 config
-  - Launch OAuth2 flow (initiate sign-in)
-  - Handle sign-in result (success, cancel, error)
-  - Extract authorization code, exchange for access token
-- [x] **T048** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
-  - `POST /api/v1/auth/register(googleToken): AuthResponse` (returns token + user)
-- [x] **T049** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+- [ ] **T047** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthValidator.kt`:
+  - Validate email format
+  - Validate password minimum length
+  - Validate password confirmation match
+  - Return field-specific error messages
+- [ ] **T048** [P] [US1] Create `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthApiService.kt` Retrofit interface:
+  - `POST /api/v1/auth/register`
+  - `POST /api/v1/auth/login`
+- [ ] **T049** [P] [US1] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
+  - Trigger register/login requests
   - Store JWT in SecureStorage after login success
-  - Handle OAuth2 errors (show user-friendly messages)
+  - Handle credential errors (show user-friendly messages)
   - Trigger navigation to OnboardingScreen on success
 - [x] **T050** [P] [US1] Create JWT interceptor in `EcoBookAiAndroid/src/main/java/com/ecobook/api/AuthInterceptor.kt`:
   - Read JWT from SecureStorage
   - Inject into `Authorization: Bearer {token}` header for all requests
 - [x] **T051** [P] [US1] Add authentication interceptor to Retrofit client in `EcoBookApiClient.kt`
-- [ ] **T052** [P] [US1] Create `EcoBookAiAndroid/src/test/java/com/ecobook/auth/GoogleAuthClientTest.kt` (mock OAuth2 flow, verify token extraction)
-- [ ] **T053** [P] [US1] Create integration test for OAuth2 + backend in `src/test/java/com/ecobook/AuthE2ETest.java`:
-  - Mock Google JWKS server
-  - POST /auth/register with valid token
+- [ ] **T052** [P] [US1] Create `EcoBookAiAndroid/src/test/java/com/ecobook/auth/AuthValidatorTest.kt` (email, password, confirm password validation)
+- [ ] **T053** [P] [US1] Create integration test for email/password + backend in `src/test/java/com/ecobook/AuthE2ETest.java`:
+  - POST /auth/register with valid credentials
+  - POST /auth/login with valid credentials
   - Verify JWT returned and stored in Android SecureStorage
 - [x] **T054** [US1] Create logout functionality in `EcoBookAiAndroid/src/main/java/com/ecobook/auth/LogoutViewModel.kt` (clear JWT from SecureStorage, navigate to login)
 - [x] **T055** [US1] Create 401 error handling in `AuthInterceptor.kt` (if token invalid, clear storage and redirect to login)
@@ -1084,7 +1086,7 @@ Phase 10: Polish & Integration
   - Ensures deleted records never appear in queries
 - [ ] **T189** [P] Create account deletion endpoint:
   - **POST /api/v1/usuarios/delete**: Delete current user account
-  - Request: password confirmation (or OAuth2 re-auth)
+  - Request: password confirmation
   - Response: HTTP 204 No Content
   - Error: 403 (invalid password), 404 (user not found)
 - [ ] **T190** [P] Implement `UserController.deleteAccount()`:
@@ -1347,7 +1349,7 @@ Phase 10: Polish & Integration
 
 | User Story | Task Count | Focus Area |
 |-----------|-----------|-----------|
-| **US1: Registration & Profile** | 30 | Auth, OAuth2, JWT, validation |
+| **US1: Registration & Profile** | 30 | Auth, email/password, JWT, validation |
 | **US2: Material Classification** | 35 | Upload, Gemini, confidence levels, storage |
 | **US3: Material Discovery** | 25 | Matching algorithm, search, ranking |
 | **US4: Request Workflow** | 50 | State machines, approval, atomic locking, notifications |
@@ -1375,7 +1377,7 @@ All tasks in PHASE 1 & PHASE 2 must pass:
 
 - ✅ Backend Spring Boot starts without errors
 - ✅ Android project compiles and emulator launches
-- ✅ First 35 integration tests pass (JWT, OAuth2, user profile, file upload)
+- ✅ First 35 integration tests pass (JWT, local auth, user profile, file upload)
 - ✅ Gemini API successfully classifies 5+ test images
 - ✅ Database schema created and migrations automated
 - ✅ GitHub Actions CI/CD pipeline executes on every commit

@@ -16,6 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class UsuarioServiceTest extends BaseIntegrationTest {
 
+    private static final String SEEDED_PASSWORD_HASH =
+            "$2a$10$7EqJtq98hPqEX7fNZaFWoOHiPpclJ3DgA6hfa/vw/jemjL5V6cO9e";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -30,8 +33,8 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     void shouldUpdateProfile() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("profile@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Profile User")
-                .googleId("google-profile-123")
                 .perfilCompleto(false)
                 .role(Role.USER)
                 .build()));
@@ -61,8 +64,8 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     void shouldRejectInvalidWhatsApp() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("invalid-whatsapp@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Invalid WhatsApp")
-                .googleId("google-invalid-whatsapp")
                 .perfilCompleto(false)
                 .role(Role.USER)
                 .build()));
@@ -88,8 +91,8 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     void shouldRejectIncompletePayload() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("incomplete@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Incomplete User")
-                .googleId("google-incomplete")
                 .perfilCompleto(false)
                 .role(Role.USER)
                 .build()));

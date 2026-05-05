@@ -77,7 +77,7 @@ class EcoBookRepository @Inject constructor(
                         state = BackendConnectionState.OFFLINE,
                         headline = "Backend indisponivel",
                         detail = error.message
-                            ?: "Nao foi possivel acessar o endpoint /api/v1/health. Verifique a porta 8080 e a URL configurada no app."
+                            ?: "Nao foi possivel acessar o endpoint /api/v1/health. Verifique a URL e a porta configuradas no app."
                     )
                 }
             )

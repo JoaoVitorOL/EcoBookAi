@@ -126,10 +126,17 @@ fun NavGraph() {
                     modifier = Modifier.padding(innerPadding)
                 ) {
                     composable(AppDestination.Auth.route) {
-                        AuthScreen(sessionMessage = uiState.session.lastErrorMessage)
+                        AuthScreen(
+                            sessionMessage = uiState.session.lastErrorMessage,
+                            backendStatus = uiState.backendStatus,
+                            onRefreshBackend = viewModel::refreshBackendStatus
+                        )
                     }
                     composable(AppDestination.Onboarding.route) {
-                        OnboardingScreen()
+                        val logoutViewModel: LogoutViewModel = hiltViewModel()
+                        OnboardingScreen(
+                            onLogout = logoutViewModel::logout
+                        )
                     }
                     composable(AppDestination.Home.route) {
                         HomeScreen(
