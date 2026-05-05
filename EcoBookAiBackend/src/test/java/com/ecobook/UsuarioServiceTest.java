@@ -111,6 +111,70 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.field_errors.cidade").value("Informe sua cidade"));
     }
 
+    @Test
+    @DisplayName("PUT /api/v1/usuarios/me should trim optional institution and default optional profile flags")
+    void shouldTrimInstitutionAndDefaultOptionalProfileFlags() throws Exception {
+        String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("institution@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Institution User")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build()));
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Institution User",
+                                  "whatsapp": "+5511991234567",
+                                  "cidade": "Campinas",
+                                  "bairro": "Centro",
+                                  "instituicao": "  IFSP Campinas  "
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.instituicao").value("IFSP Campinas"))
+                .andExpect(jsonPath("$.consentimento_ia").value(false))
+                .andExpect(jsonPath("$.necessidades_academicas").isArray())
+                .andExpect(jsonPath("$.necessidades_academicas").isEmpty());
+
+        usuarioRepository.findByEmailIgnoreCase("institution@example.com")
+                .ifPresent(usuario -> {
+                    org.assertj.core.api.Assertions.assertThat(usuario.getInstituicao()).isEqualTo("IFSP Campinas");
+                    org.assertj.core.api.Assertions.assertThat(usuario.getConsentimentoIa()).isFalse();
+                    org.assertj.core.api.Assertions.assertThat(usuario.getNecessidadesAcademicas()).isEmpty();
+                });
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/usuarios/me should reject blank required fields after trimming")
+    void shouldRejectBlankRequiredFields() throws Exception {
+        String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("blank-fields@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Blank Fields User")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build()));
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "   ",
+                                  "whatsapp": "+5511991234567",
+                                  "cidade": "Campinas",
+                                  "bairro": "Centro"
+                                }
+                                """))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.error").value("UNPROCESSABLE_ENTITY"))
+                .andExpect(jsonPath("$.field_errors.nome").value("Informe seu nome"));
+    }
+
     private String tokenFor(Usuario usuario) {
         return jwtTokenProvider.generateToken(
                 usuario.getEmail(),

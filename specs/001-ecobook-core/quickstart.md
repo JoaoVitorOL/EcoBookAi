@@ -191,7 +191,7 @@ Expected result:
 
 ## Current Focus
 
-1. Close the remaining Phase 2 debt around checklist/status cleanup and broader automated coverage.
+1. Start the real `/materiais/preview` implementation path for Phase 3.
 2. Keep consent updates on `PUT /usuarios/me` unless a dedicated endpoint is intentionally added later.
-3. Start the real `/materiais/preview` implementation path for Phase 3.
-4. Continue the remaining MVP work on material listing, matching, and request flows.
+3. Continue the remaining MVP work on material listing, matching, and request flows.
+4. Keep manual/environment backlog items (Firebase provisioning, emulator tuning) synchronized outside the core phase gates.

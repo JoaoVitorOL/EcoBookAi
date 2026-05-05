@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,6 +81,61 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .build());
 
         mockMvc.perform(post("/v1/materiais/preview")
+                        .header("Authorization", "Bearer " + tokenFor(usuario)))
+                .andExpect(status().isNotImplemented());
+    }
+
+    @Test
+    @DisplayName("Material preview should reject users with incomplete profile")
+    void shouldBlockIncompleteProfilesFromPreviewEndpoint() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("blocked-preview@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Blocked Preview")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build());
+
+        mockMvc.perform(post("/v1/materiais/preview")
+                        .header("Authorization", "Bearer " + tokenFor(usuario)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("INCOMPLETE_PROFILE"));
+    }
+
+    @Test
+    @DisplayName("Protected material update skeleton should proceed when the profile is complete")
+    void shouldAllowCompleteProfilesToReachUpdateSkeleton() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("update@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Update User")
+                .whatsapp("+5511991234567")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
+                .perfilCompleto(true)
+                .role(Role.USER)
+                .build());
+
+        mockMvc.perform(put("/v1/materiais/material-123")
+                        .header("Authorization", "Bearer " + tokenFor(usuario)))
+                .andExpect(status().isNotImplemented());
+    }
+
+    @Test
+    @DisplayName("Protected material delete skeleton should proceed when the profile is complete")
+    void shouldAllowCompleteProfilesToReachDeleteSkeleton() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("delete@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Delete User")
+                .whatsapp("+5511991234567")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
+                .perfilCompleto(true)
+                .role(Role.USER)
+                .build());
+
+        mockMvc.perform(delete("/v1/materiais/material-123")
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isNotImplemented());
     }

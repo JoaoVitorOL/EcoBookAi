@@ -63,4 +63,21 @@ class UsuarioControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
     }
+
+    @Test
+    @DisplayName("GET /api/v1/usuarios/me should return 404 when the token email no longer exists")
+    void shouldReturnNotFoundWhenTokenEmailDoesNotExist() throws Exception {
+        String token = jwtTokenProvider.generateToken(
+                "missing@example.com",
+                Role.USER.name(),
+                true,
+                "missing-user"
+        );
+
+        mockMvc.perform(get("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Usuario nao encontrado"));
+    }
 }

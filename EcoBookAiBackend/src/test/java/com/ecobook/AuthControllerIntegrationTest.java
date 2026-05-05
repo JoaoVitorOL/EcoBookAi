@@ -179,4 +179,85 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").value("Email ou senha invalidos"));
     }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/register should normalize email casing and trim the user name")
+    void shouldNormalizeRegistrationFields() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "MixedCase@Example.COM",
+                                  "password": "SenhaSegura123",
+                                  "nome": "  Mixed User  "
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("mixedcase@example.com"))
+                .andExpect(jsonPath("$.nome").value("Mixed User"));
+
+        assertThat(usuarioRepository.findByEmailIgnoreCase("mixedcase@example.com"))
+                .hasValueSatisfying(usuario -> assertThat(usuario.getNome()).isEqualTo("Mixed User"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/login should accept the same email with different casing")
+    void shouldLoginWithCaseInsensitiveEmail() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "caseuser@example.com",
+                                  "password": "SenhaSegura123",
+                                  "nome": "Case User"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/v1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "CASEUSER@EXAMPLE.COM",
+                                  "password": "SenhaSegura123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("caseuser@example.com"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/register should reject invalid payloads before reaching the service layer")
+    void shouldRejectInvalidRegistrationPayload() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "invalid-email",
+                                  "password": "123",
+                                  "nome": " "
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.field_errors.email").value("Informe um email valido"))
+                .andExpect(jsonPath("$.field_errors.password").value("A senha deve ter entre 8 e 72 caracteres"))
+                .andExpect(jsonPath("$.field_errors.nome").value("Informe seu nome"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/login should reject malformed payloads with validation errors")
+    void shouldRejectInvalidLoginPayload() throws Exception {
+        mockMvc.perform(post("/v1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "existing@example.com",
+                                  "password": "123"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.field_errors.password").value("A senha deve ter entre 8 e 72 caracteres"));
+    }
 }
