@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backend_url" translatable="false">http://10.0.2.2:8080/api</string>
+    <string name="backend_url_emulator" translatable="false">http://10.0.2.2:8080/api</string>
+    <string name="backend_url_physical" translatable="false">http://192.168.0.10:8080/api</string>
+    <string name="google_oauth_client_id" translatable="false">YOUR_WEB_CLIENT_ID_HERE</string>
+    <string name="firebase_database_url" translatable="false">https://your-project.firebaseio.com</string>
+    <string name="app_name">EcoBook</string>
+    <string name="app_tagline">IA para doacao e descoberta de materiais</string>
+    <string name="app_version">1.0.0</string>
+</resources>

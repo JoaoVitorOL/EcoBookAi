@@ -1,0 +1,23 @@
+# Android / Gradle
+EcoBookAiAndroid/.gradle/
+EcoBookAiAndroid/**/build/
+EcoBookAiAndroid/local.properties
+EcoBookAiAndroid/.idea/
+EcoBookAiAndroid/*.iml
+
+# Backend / Maven
+EcoBookAiBackend/target/
+EcoBookAiBackend/logs/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+#Databse e logs
+EcoBookAiBackend/data/
+EcoBookAiBackend/logs/
+*.mv.db
+*.log

@@ -1,0 +1,130 @@
+spring:
+  application:
+    name: ecobook-ia-backend
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ecobook
+    username: ecobook
+    password: ${DB_PASSWORD:dev_password_123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      auto-commit: true
+      connection-test-query: SELECT 1
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+    show-sql: false
+    open-in-view: false
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${GOOGLE_OAUTH_ISSUER_URI:https://accounts.google.com}
+          jwk-set-uri: ${GOOGLE_OAUTH_JWK_SET_URI:https://www.googleapis.com/oauth2/v3/certs}
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+  
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+jwt:
+  secret: ${JWT_SECRET:change-this-jwt-secret-in-production-and-keep-it-at-least-64-characters-long}
+  expiration: ${JWT_EXPIRATION:604800000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
+
+google:
+  oauth:
+    # Use the Google Web client ID that matches the Android Credential Manager configuration.
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+    client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-2.5-flash}
+  max-retries: ${GEMINI_MAX_RETRIES:3}
+  timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:10}
+  rate-limit-window-minutes: ${GEMINI_RATE_LIMIT_WINDOW_MINUTES:5}
+  rate-limit-threshold: ${GEMINI_RATE_LIMIT_THRESHOLD:10}
+  circuit-breaker-pause-seconds: ${GEMINI_CIRCUIT_BREAKER_PAUSE_SECONDS:30}
+
+firebase:
+  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+  database-url: ${FIREBASE_DATABASE_URL:}
+
+storage:
+  upload-dir: ${STORAGE_UPLOAD_DIR:./uploads}
+  max-file-size-mb: ${STORAGE_MAX_FILE_SIZE_MB:5}
+  retention-days: ${STORAGE_RETENTION_DAYS:730}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ecobook-ia
+
+logging:
+  level:
+    root: INFO
+    com.ecobook: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/ecobook.log
+    max-size: 10MB
+    max-history: 7
