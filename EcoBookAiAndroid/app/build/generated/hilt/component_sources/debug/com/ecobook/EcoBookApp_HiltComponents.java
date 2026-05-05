@@ -1,6 +1,9 @@
 package com.ecobook;
 
+import com.ecobook.auth.AuthViewModel_HiltModules;
+import com.ecobook.auth.LogoutViewModel_HiltModules;
 import com.ecobook.di.NetworkModule;
+import com.ecobook.onboarding.OnboardingViewModel_HiltModules;
 import com.ecobook.ui.EcoBookViewModel_HiltModules;
 import dagger.Binds;
 import dagger.Component;
@@ -152,10 +155,13 @@ public final class EcoBookApp_HiltComponents {
 
   @Subcomponent(
       modules = {
+          AuthViewModel_HiltModules.KeyModule.class,
           ActivityCBuilderModule.class,
           ViewModelCBuilderModule.class,
           EcoBookViewModel_HiltModules.KeyModule.class,
-          HiltWrapper_ActivityRetainedComponentManager_LifecycleModule.class
+          HiltWrapper_ActivityRetainedComponentManager_LifecycleModule.class,
+          LogoutViewModel_HiltModules.KeyModule.class,
+          OnboardingViewModel_HiltModules.KeyModule.class
       }
   )
   @ActivityRetainedScoped
@@ -191,8 +197,11 @@ public final class EcoBookApp_HiltComponents {
 
   @Subcomponent(
       modules = {
+          AuthViewModel_HiltModules.BindsModule.class,
           EcoBookViewModel_HiltModules.BindsModule.class,
-          HiltWrapper_HiltViewModelFactory_ViewModelModule.class
+          HiltWrapper_HiltViewModelFactory_ViewModelModule.class,
+          LogoutViewModel_HiltModules.BindsModule.class,
+          OnboardingViewModel_HiltModules.BindsModule.class
       }
   )
   @ViewModelScoped

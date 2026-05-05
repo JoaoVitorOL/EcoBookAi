@@ -1,5 +1,6 @@
 package com.ecobook.api;
 
+import com.ecobook.auth.SessionManager;
 import com.ecobook.utils.SecureStorage;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -24,20 +25,26 @@ import javax.inject.Provider;
 public final class AuthInterceptor_Factory implements Factory<AuthInterceptor> {
   private final Provider<SecureStorage> secureStorageProvider;
 
-  public AuthInterceptor_Factory(Provider<SecureStorage> secureStorageProvider) {
+  private final Provider<SessionManager> sessionManagerProvider;
+
+  public AuthInterceptor_Factory(Provider<SecureStorage> secureStorageProvider,
+      Provider<SessionManager> sessionManagerProvider) {
     this.secureStorageProvider = secureStorageProvider;
+    this.sessionManagerProvider = sessionManagerProvider;
   }
 
   @Override
   public AuthInterceptor get() {
-    return newInstance(secureStorageProvider.get());
+    return newInstance(secureStorageProvider.get(), sessionManagerProvider.get());
   }
 
-  public static AuthInterceptor_Factory create(Provider<SecureStorage> secureStorageProvider) {
-    return new AuthInterceptor_Factory(secureStorageProvider);
+  public static AuthInterceptor_Factory create(Provider<SecureStorage> secureStorageProvider,
+      Provider<SessionManager> sessionManagerProvider) {
+    return new AuthInterceptor_Factory(secureStorageProvider, sessionManagerProvider);
   }
 
-  public static AuthInterceptor newInstance(SecureStorage secureStorage) {
-    return new AuthInterceptor(secureStorage);
+  public static AuthInterceptor newInstance(SecureStorage secureStorage,
+      SessionManager sessionManager) {
+    return new AuthInterceptor(secureStorage, sessionManager);
   }
 }

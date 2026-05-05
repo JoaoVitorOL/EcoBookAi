@@ -19,7 +19,13 @@ import dagger.hilt.processor.internal.definecomponent.codegen._dagger_hilt_andro
 import dagger.hilt.processor.internal.definecomponent.codegen._dagger_hilt_components_SingletonComponent;
 import hilt_aggregated_deps._com_ecobook_EcoBookApp_GeneratedInjector;
 import hilt_aggregated_deps._com_ecobook_MainActivity_GeneratedInjector;
+import hilt_aggregated_deps._com_ecobook_auth_AuthViewModel_HiltModules_BindsModule;
+import hilt_aggregated_deps._com_ecobook_auth_AuthViewModel_HiltModules_KeyModule;
+import hilt_aggregated_deps._com_ecobook_auth_LogoutViewModel_HiltModules_BindsModule;
+import hilt_aggregated_deps._com_ecobook_auth_LogoutViewModel_HiltModules_KeyModule;
 import hilt_aggregated_deps._com_ecobook_di_NetworkModule;
+import hilt_aggregated_deps._com_ecobook_onboarding_OnboardingViewModel_HiltModules_BindsModule;
+import hilt_aggregated_deps._com_ecobook_onboarding_OnboardingViewModel_HiltModules_KeyModule;
 import hilt_aggregated_deps._com_ecobook_ui_EcoBookViewModel_HiltModules_BindsModule;
 import hilt_aggregated_deps._com_ecobook_ui_EcoBookViewModel_HiltModules_KeyModule;
 import hilt_aggregated_deps._dagger_hilt_android_flags_FragmentGetContextFix_FragmentGetContextFixEntryPoint;
@@ -63,7 +69,13 @@ import hilt_aggregated_deps._dagger_hilt_android_internal_modules_HiltWrapper_Ac
     aggregatedDeps = {
         _com_ecobook_EcoBookApp_GeneratedInjector.class,
         _com_ecobook_MainActivity_GeneratedInjector.class,
+        _com_ecobook_auth_AuthViewModel_HiltModules_BindsModule.class,
+        _com_ecobook_auth_AuthViewModel_HiltModules_KeyModule.class,
+        _com_ecobook_auth_LogoutViewModel_HiltModules_BindsModule.class,
+        _com_ecobook_auth_LogoutViewModel_HiltModules_KeyModule.class,
         _com_ecobook_di_NetworkModule.class,
+        _com_ecobook_onboarding_OnboardingViewModel_HiltModules_BindsModule.class,
+        _com_ecobook_onboarding_OnboardingViewModel_HiltModules_KeyModule.class,
         _com_ecobook_ui_EcoBookViewModel_HiltModules_BindsModule.class,
         _com_ecobook_ui_EcoBookViewModel_HiltModules_KeyModule.class,
         _dagger_hilt_android_flags_FragmentGetContextFix_FragmentGetContextFixEntryPoint.class,

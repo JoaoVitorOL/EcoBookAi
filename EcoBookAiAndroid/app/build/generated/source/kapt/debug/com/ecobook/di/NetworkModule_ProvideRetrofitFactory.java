@@ -1,5 +1,6 @@
 package com.ecobook.di;
 
+import com.google.gson.Gson;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
@@ -28,23 +29,26 @@ public final class NetworkModule_ProvideRetrofitFactory implements Factory<Retro
 
   private final Provider<OkHttpClient> okHttpClientProvider;
 
+  private final Provider<Gson> gsonProvider;
+
   public NetworkModule_ProvideRetrofitFactory(Provider<String> baseUrlProvider,
-      Provider<OkHttpClient> okHttpClientProvider) {
+      Provider<OkHttpClient> okHttpClientProvider, Provider<Gson> gsonProvider) {
     this.baseUrlProvider = baseUrlProvider;
     this.okHttpClientProvider = okHttpClientProvider;
+    this.gsonProvider = gsonProvider;
   }
 
   @Override
   public Retrofit get() {
-    return provideRetrofit(baseUrlProvider.get(), okHttpClientProvider.get());
+    return provideRetrofit(baseUrlProvider.get(), okHttpClientProvider.get(), gsonProvider.get());
   }
 
   public static NetworkModule_ProvideRetrofitFactory create(Provider<String> baseUrlProvider,
-      Provider<OkHttpClient> okHttpClientProvider) {
-    return new NetworkModule_ProvideRetrofitFactory(baseUrlProvider, okHttpClientProvider);
+      Provider<OkHttpClient> okHttpClientProvider, Provider<Gson> gsonProvider) {
+    return new NetworkModule_ProvideRetrofitFactory(baseUrlProvider, okHttpClientProvider, gsonProvider);
   }
 
-  public static Retrofit provideRetrofit(String baseUrl, OkHttpClient okHttpClient) {
-    return Preconditions.checkNotNullFromProvides(NetworkModule.INSTANCE.provideRetrofit(baseUrl, okHttpClient));
+  public static Retrofit provideRetrofit(String baseUrl, OkHttpClient okHttpClient, Gson gson) {
+    return Preconditions.checkNotNullFromProvides(NetworkModule.INSTANCE.provideRetrofit(baseUrl, okHttpClient, gson));
   }
 }

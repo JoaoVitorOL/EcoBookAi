@@ -6,6 +6,7 @@ Aplicativo Android nativo do EcoBook AI.
 
 - Kotlin
 - Jetpack Compose
+- Credential Manager + Sign in with Google
 - Hilt
 - Retrofit + OkHttp
 - Firebase Messaging
@@ -42,7 +43,12 @@ Exemplo:
 
 ```properties
 sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
+backend.url=http://10.0.2.2:8080/api
+google.oauth.clientId=SEU_GOOGLE_WEB_CLIENT_ID
 ```
+
+`google.oauth.clientId` deve receber o **Web client ID** do Google, que sera usado pelo Credential Manager para solicitar o Google ID token entregue ao backend.
+Nao use aqui o client ID do tipo `Android`. O client Android continua necessario no Google Cloud para validar `package name + SHA-1`, mas o valor usado em `local.properties` e no backend deve ser o client do tipo `Web application`.
 
 ## Como abrir no Android Studio
 

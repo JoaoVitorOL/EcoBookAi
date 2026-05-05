@@ -6,17 +6,29 @@ import android.view.View;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
+import com.ecobook.api.AuthApiService;
 import com.ecobook.api.AuthInterceptor;
 import com.ecobook.api.EcoBookApiClient;
+import com.ecobook.auth.AuthViewModel;
+import com.ecobook.auth.AuthViewModel_HiltModules_KeyModule_ProvideFactory;
+import com.ecobook.auth.LogoutViewModel;
+import com.ecobook.auth.LogoutViewModel_HiltModules_KeyModule_ProvideFactory;
+import com.ecobook.auth.SessionManager;
+import com.ecobook.data.AuthRepository;
 import com.ecobook.data.EcoBookRepository;
 import com.ecobook.di.NetworkModule;
+import com.ecobook.di.NetworkModule_ProvideAuthApiServiceFactory;
 import com.ecobook.di.NetworkModule_ProvideBaseUrlFactory;
 import com.ecobook.di.NetworkModule_ProvideEcoBookApiClientFactory;
+import com.ecobook.di.NetworkModule_ProvideGsonFactory;
 import com.ecobook.di.NetworkModule_ProvideOkHttpClientFactory;
 import com.ecobook.di.NetworkModule_ProvideRetrofitFactory;
+import com.ecobook.onboarding.OnboardingViewModel;
+import com.ecobook.onboarding.OnboardingViewModel_HiltModules_KeyModule_ProvideFactory;
 import com.ecobook.ui.EcoBookViewModel;
 import com.ecobook.ui.EcoBookViewModel_HiltModules_KeyModule_ProvideFactory;
 import com.ecobook.utils.SecureStorage;
+import com.google.gson.Gson;
 import dagger.hilt.android.ActivityRetainedLifecycle;
 import dagger.hilt.android.ViewModelLifecycle;
 import dagger.hilt.android.flags.HiltWrapper_FragmentGetContextFix_FragmentGetContextFixModule;
@@ -34,7 +46,9 @@ import dagger.hilt.android.internal.modules.ApplicationContextModule;
 import dagger.hilt.android.internal.modules.ApplicationContextModule_ProvideContextFactory;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.DoubleCheck;
+import dagger.internal.MapBuilder;
 import dagger.internal.Preconditions;
+import dagger.internal.SetBuilder;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -383,7 +397,7 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
 
     @Override
     public Set<String> getViewModelKeys() {
-      return Collections.<String>singleton(EcoBookViewModel_HiltModules_KeyModule_ProvideFactory.provide());
+      return SetBuilder.<String>newSetBuilder(4).add(AuthViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(EcoBookViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(LogoutViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(OnboardingViewModel_HiltModules_KeyModule_ProvideFactory.provide()).build();
     }
 
     @Override
@@ -409,7 +423,13 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
 
     private final ViewModelCImpl viewModelCImpl = this;
 
+    private Provider<AuthViewModel> authViewModelProvider;
+
     private Provider<EcoBookViewModel> ecoBookViewModelProvider;
+
+    private Provider<LogoutViewModel> logoutViewModelProvider;
+
+    private Provider<OnboardingViewModel> onboardingViewModelProvider;
 
     private ViewModelCImpl(SingletonCImpl singletonCImpl,
         ActivityRetainedCImpl activityRetainedCImpl, SavedStateHandle savedStateHandleParam,
@@ -424,12 +444,15 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
     @SuppressWarnings("unchecked")
     private void initialize(final SavedStateHandle savedStateHandleParam,
         final ViewModelLifecycle viewModelLifecycleParam) {
-      this.ecoBookViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 0);
+      this.authViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 0);
+      this.ecoBookViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 1);
+      this.logoutViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 2);
+      this.onboardingViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 3);
     }
 
     @Override
     public Map<String, Provider<ViewModel>> getHiltViewModelMap() {
-      return Collections.<String, Provider<ViewModel>>singletonMap("com.ecobook.ui.EcoBookViewModel", ((Provider) ecoBookViewModelProvider));
+      return MapBuilder.<String, Provider<ViewModel>>newMapBuilder(4).put("com.ecobook.auth.AuthViewModel", ((Provider) authViewModelProvider)).put("com.ecobook.ui.EcoBookViewModel", ((Provider) ecoBookViewModelProvider)).put("com.ecobook.auth.LogoutViewModel", ((Provider) logoutViewModelProvider)).put("com.ecobook.onboarding.OnboardingViewModel", ((Provider) onboardingViewModelProvider)).build();
     }
 
     private static final class SwitchingProvider<T> implements Provider<T> {
@@ -453,8 +476,17 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
       @Override
       public T get() {
         switch (id) {
-          case 0: // com.ecobook.ui.EcoBookViewModel 
-          return (T) new EcoBookViewModel(singletonCImpl.ecoBookRepositoryProvider.get());
+          case 0: // com.ecobook.auth.AuthViewModel 
+          return (T) new AuthViewModel(singletonCImpl.authRepositoryProvider.get());
+
+          case 1: // com.ecobook.ui.EcoBookViewModel 
+          return (T) new EcoBookViewModel(singletonCImpl.ecoBookRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.sessionManagerProvider.get());
+
+          case 2: // com.ecobook.auth.LogoutViewModel 
+          return (T) new LogoutViewModel(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.sessionManagerProvider.get());
+
+          case 3: // com.ecobook.onboarding.OnboardingViewModel 
+          return (T) new OnboardingViewModel(singletonCImpl.authRepositoryProvider.get(), singletonCImpl.sessionManagerProvider.get());
 
           default: throw new AssertionError(id);
         }
@@ -539,9 +571,17 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
 
     private Provider<SecureStorage> secureStorageProvider;
 
+    private Provider<SessionManager> sessionManagerProvider;
+
     private Provider<OkHttpClient> provideOkHttpClientProvider;
 
+    private Provider<Gson> provideGsonProvider;
+
     private Provider<Retrofit> provideRetrofitProvider;
+
+    private Provider<AuthApiService> provideAuthApiServiceProvider;
+
+    private Provider<AuthRepository> authRepositoryProvider;
 
     private Provider<EcoBookApiClient> provideEcoBookApiClientProvider;
 
@@ -554,17 +594,21 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
     }
 
     private AuthInterceptor authInterceptor() {
-      return new AuthInterceptor(secureStorageProvider.get());
+      return new AuthInterceptor(secureStorageProvider.get(), sessionManagerProvider.get());
     }
 
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
       this.provideBaseUrlProvider = DoubleCheck.provider(new SwitchingProvider<String>(singletonCImpl, 3));
       this.secureStorageProvider = DoubleCheck.provider(new SwitchingProvider<SecureStorage>(singletonCImpl, 5));
+      this.sessionManagerProvider = DoubleCheck.provider(new SwitchingProvider<SessionManager>(singletonCImpl, 6));
       this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 4));
+      this.provideGsonProvider = DoubleCheck.provider(new SwitchingProvider<Gson>(singletonCImpl, 7));
       this.provideRetrofitProvider = DoubleCheck.provider(new SwitchingProvider<Retrofit>(singletonCImpl, 2));
-      this.provideEcoBookApiClientProvider = DoubleCheck.provider(new SwitchingProvider<EcoBookApiClient>(singletonCImpl, 1));
-      this.ecoBookRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<EcoBookRepository>(singletonCImpl, 0));
+      this.provideAuthApiServiceProvider = DoubleCheck.provider(new SwitchingProvider<AuthApiService>(singletonCImpl, 1));
+      this.authRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 0));
+      this.provideEcoBookApiClientProvider = DoubleCheck.provider(new SwitchingProvider<EcoBookApiClient>(singletonCImpl, 9));
+      this.ecoBookRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<EcoBookRepository>(singletonCImpl, 8));
     }
 
     @Override
@@ -600,14 +644,14 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
       @Override
       public T get() {
         switch (id) {
-          case 0: // com.ecobook.data.EcoBookRepository 
-          return (T) new EcoBookRepository(singletonCImpl.provideEcoBookApiClientProvider.get(), singletonCImpl.secureStorageProvider.get());
+          case 0: // com.ecobook.data.AuthRepository 
+          return (T) new AuthRepository(singletonCImpl.provideAuthApiServiceProvider.get(), singletonCImpl.sessionManagerProvider.get(), singletonCImpl.provideGsonProvider.get());
 
-          case 1: // com.ecobook.api.EcoBookApiClient 
-          return (T) NetworkModule_ProvideEcoBookApiClientFactory.provideEcoBookApiClient(singletonCImpl.provideRetrofitProvider.get());
+          case 1: // com.ecobook.api.AuthApiService 
+          return (T) NetworkModule_ProvideAuthApiServiceFactory.provideAuthApiService(singletonCImpl.provideRetrofitProvider.get());
 
           case 2: // retrofit2.Retrofit 
-          return (T) NetworkModule_ProvideRetrofitFactory.provideRetrofit(singletonCImpl.provideBaseUrlProvider.get(), singletonCImpl.provideOkHttpClientProvider.get());
+          return (T) NetworkModule_ProvideRetrofitFactory.provideRetrofit(singletonCImpl.provideBaseUrlProvider.get(), singletonCImpl.provideOkHttpClientProvider.get(), singletonCImpl.provideGsonProvider.get());
 
           case 3: // java.lang.String 
           return (T) NetworkModule_ProvideBaseUrlFactory.provideBaseUrl(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
@@ -617,6 +661,18 @@ public final class DaggerEcoBookApp_HiltComponents_SingletonC {
 
           case 5: // com.ecobook.utils.SecureStorage 
           return (T) new SecureStorage(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+
+          case 6: // com.ecobook.auth.SessionManager 
+          return (T) new SessionManager(singletonCImpl.secureStorageProvider.get());
+
+          case 7: // com.google.gson.Gson 
+          return (T) NetworkModule_ProvideGsonFactory.provideGson();
+
+          case 8: // com.ecobook.data.EcoBookRepository 
+          return (T) new EcoBookRepository(singletonCImpl.provideEcoBookApiClientProvider.get(), singletonCImpl.secureStorageProvider.get());
+
+          case 9: // com.ecobook.api.EcoBookApiClient 
+          return (T) NetworkModule_ProvideEcoBookApiClientFactory.provideEcoBookApiClient(singletonCImpl.provideRetrofitProvider.get());
 
           default: throw new AssertionError(id);
         }
