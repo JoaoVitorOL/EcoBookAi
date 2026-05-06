@@ -68,7 +68,7 @@ A donor uploads a material image. The backend calls Google Gemini to extract met
 1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all AI-assisted fields (titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao) are auto-populated with editable inputs and a green checkmark indicator
 2. **Given** Gemini returns confidence 0.50–0.75 (LOW_CONFIDENCE), **When** the response renders in the frontend, **Then** fields display suggested values with yellow warning icons and are editable
 3. **Given** Gemini confidence < 0.50 or timeout occurs, **When** response is returned, **Then** all classification fields render empty and require manual input; status_ia displays FAILURE or LOW_CONFIDENCE
-4. **Given** consentimento_ia = false for the user, **When** they upload an image, **Then** POST /materiais/preview returns status_ia: FAILURE and no Gemini call is made
+4. **Given** consentimento_ia = false for the user, **When** they upload an image, **Then** POST /materiais/preview returns `status_ia = FAILURE`, a reusable `upload_id`, and no Gemini call is made
 5. **Given** a user completed onboarding with `consentimento_ia = false`, **When** they later enable AI consent from profile/settings and submit a new material preview, **Then** Gemini processing is allowed without requiring a new account or a repeated onboarding flow
 
 ---
@@ -200,25 +200,25 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-007**: Material MUST be discoverable only in DISPONIVEL state
 - **RF-008**: Material creation requires: titulo, descricao, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, imagem (JPEG/PNG, ≤ 5MB), doador_id, cidade, bairro, data_publicacao
 - **RF-009**: Material images MUST be validated for MIME type (JPEG/PNG only); invalid types rejected with HTTP 400
-- **RF-010**: Image uploads MUST return `upload_id` in POST /materiais response for tracking and promotion from temporary to permanent storage
+- **RF-010**: Image preview uploads MUST return `upload_id` in POST /materiais/preview for tracking and later promotion from temporary to permanent storage
 
 #### Image Processing Pipeline
 
-- **RF-011**: POST /materiais accepts multipart form data with image file; backend saves temporarily to disk/S3
+- **RF-011**: POST /materiais/preview accepts multipart form data with image file; backend saves the file temporarily before the final POST /materiais confirmation
 - **RF-011a**: Android donation flow MUST support both gallery selection and camera capture as valid sources for the image sent to `/materiais/preview`, and the UI copy MUST communicate both options
-- **RF-012**: Backend MUST call Google Gemini API with 10-second timeout; timeout returns status_ia = FAILURE
+- **RF-012**: Backend MUST call Google Gemini API with 10-second timeout; timeout returns HTTP 200 with `status_ia = FAILURE`, `error_details.timeout = true`, and a reusable `upload_id`
 - **RF-013**: Backend MUST parse Gemini response and validate: JSON structure, presence of best_prediction, enum values, confidence in [0, 1]
 - **RF-014**: If any validation fails, set status_ia = LOW_CONFIDENCE or FAILURE; return to frontend with parsed/partial data
-- **RF-015**: After user confirmation (PATCH /materiais/{id}), backend MUST validate all enum values and persist material with status = DISPONIVEL
+- **RF-015**: After user confirmation (POST /materiais with `upload_id`), backend MUST validate all enum values and persist material with status = DISPONIVEL
 - **RF-016**: Temporary image file MUST be promoted to permanent storage after successful persistence
 
 #### AI Confidence & Fallback Rules
 
 - **RF-017**: Gemini confidence ≥ 0.75 → fields auto-filled with green checkmark, editable, status_ia = SUCCESS
 - **RF-018**: Gemini confidence 0.50–0.75 → fields auto-filled with yellow warning icon, editable, status_ia = LOW_CONFIDENCE
-- **RF-019**: Gemini confidence < 0.50 → all fields empty, manual entry required, status_ia = LOW_CONFIDENCE
+- **RF-019**: Gemini confidence < 0.50 → all fields empty, manual entry required, status_ia = LOW_CONFIDENCE, and a reusable `upload_id`
 - **RF-020**: Gemini FAILURE or timeout → all fields empty, manual entry required, status_ia = FAILURE
-- **RF-021**: If consentimento_ia = false, backend skips Gemini call and returns status_ia = FAILURE
+- **RF-021**: If consentimento_ia = false, backend skips Gemini call and returns `status_ia = FAILURE` with a reusable `upload_id`
 
 #### Gemini Error Handling & Resilience
 
@@ -893,7 +893,7 @@ All error responses follow this structure:
 7. **User Review**: Frontend displays:
    - If SUCCESS: auto-filled fields with green checkmark, editable, upload_id in form
    - If LOW_CONFIDENCE: auto-filled with yellow warning icon, editable, upload_id in form
-   - If FAILURE: empty fields, manual entry required, no upload_id
+   - If FAILURE: empty fields, manual entry required, upload_id preserved so the manual flow can continue without reupload
 8. **Confirmation Submission**: User reviews/edits, confirms; frontend sends full data + `upload_id` to POST /materiais
 9. **Backend Validation**: Backend validates all enums, matches upload_id, persists Material with status = DISPONIVEL
 10. **Image Promotion**: Temporary image is moved/renamed to permanent storage location (S3/CDN); imagem_url populated; upload_id retained for audit trail

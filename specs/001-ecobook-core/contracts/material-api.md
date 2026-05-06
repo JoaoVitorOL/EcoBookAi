@@ -1,23 +1,29 @@
 # Material API Contracts
 
 **Reference**: spec.md RF-005 through RF-025, RF-044  
-**Version**: 1.1  
+**Version**: 1.2  
 **Date**: 2026-05-05  
-**Status**: Target contract for Phase 3+; current backend exposes route skeletons and may still return HTTP 501
+**Status**: Current runtime contract for Phase 3 create/preview flow; search/detail/update sections remain target-state docs for later phases
 
 ---
 
-> Implementation note: this contract documents the intended runtime shape for material preview/upload. The current repository is still wiring the real service layer behind `/api/v1/materiais/preview` and `/api/v1/materiais`.
+> Implementation note: the current backend already exposes working Phase 3 endpoints for `/api/v1/materiais/preview` and `/api/v1/materiais`. Later sections in this file (`GET /materiais`, `GET /materiais/{id}`, `PATCH /materiais/{id}`) still describe future Phase 4+ behavior.
 
 ## POST /materiais
 
-Create a new material with image upload. This is a full material creation combining preview classification with final form submission.
+Create a new material from a previously generated `upload_id`. In the current Phase 3 runtime the image is uploaded in `POST /materiais/preview`, stored temporarily, and then reused during the final creation call below.
 
 ### Request
 
+Current runtime override:
+- Phase 3 currently accepts `application/json` with `upload_id` plus the reviewed metadata fields.
+- The image itself is uploaded only in `POST /materiais/preview` and is reused from temporary storage here.
+- `cidade` and `bairro` are inherited from the authenticated donor profile instead of being resent by the Android app.
+- The illustrative body below still contains historical fields from the earlier target contract; when integrating with the current backend, send only the JSON fields accepted by `CreateMaterialRequestDTO`.
+
 ```http
 POST /api/v1/materiais
-Content-Type: multipart/form-data
+Content-Type: application/json
 Authorization: Bearer <jwt_token>
 
 {
@@ -44,17 +50,21 @@ Authorization: Bearer <jwt_token>
 - `ano`: 1-12 for FUNDAMENTAL/MEDIO; null for SUPERIOR
 - `sistema_ensino`: ANGLO | OBJETIVO | COC | POSITIVO | OUTRO
 - `estado_conservacao`: NOVO | BOM | USADO | DANIFICADO
-- `cidade`: Will be normalized to uppercase, NFD-decomposed, ASCII-only (max 100 chars)
-- `bairro`: Will be normalized to uppercase, NFD-decomposed, ASCII-only (max 100 chars)
+- `cidade`: In current Phase 3 runtime this is inherited from the authenticated donor profile and normalized server-side
+- `bairro`: In current Phase 3 runtime this is inherited from the authenticated donor profile and normalized server-side
 - `data_publicacao`: Optional integer (1900-2100) representing year material was originally published
 - `upload_id`: Temporary storage ID from POST /materiais/preview (links to AI classification results)
-- `image`: JPEG or PNG file, ≤ 5MB (optional if upload_id provided; in that case image from temp storage reused)
+- `image`: Not accepted in the current Phase 3 runtime; the image must already have been uploaded in POST /materiais/preview
 - User must have `perfil_completo = true` (HTTP 403 if false)
 
 **Client Acquisition Note**:
-- The Android donation flow should let the user either pick an image from the gallery or capture a new photo with the camera before sending the multipart request
+- The Android donation flow lets the user pick an image from the gallery or capture a new photo with the camera before sending the preview multipart request
 
 ### Response
+
+Current runtime override:
+- The backend response also includes `status_ia` and `confianca_ia`.
+- Timestamp fields currently use `criado_em` / `atualizado_em` naming.
 
 **HTTP 201 Created**
 ```json
@@ -80,21 +90,28 @@ Authorization: Bearer <jwt_token>
   "cidade": "FLORIANOPOLIS",
   "bairro": "CENTRO",
   "data_publicacao": 2010,
-  "created_at": "2026-04-17T14:30:00Z",
-  "updated_at": "2026-04-17T14:30:00Z"
+  "status_ia": "LOW_CONFIDENCE",
+  "confianca_ia": 0.68,
+  "criado_em": "2026-04-17T14:30:00Z",
+  "atualizado_em": "2026-04-17T14:30:00Z"
 }
 ```
 
 **Processing Steps**:
 1. Validate user has `perfil_completo = true` → HTTP 403 if false
-2. Retrieve temporary image via `upload_id` (or accept new image file)
-3. Validate MIME type (JPEG/PNG only) → HTTP 400 if not
-4. Validate file size (≤ 5MB) → HTTP 400 if exceeded
+2. Retrieve temporary image via `upload_id`
+3. Validate `upload_id` ownership and expiration → HTTP 404 if not found or expired
+4. Ensure the staged file still exists before promotion
 5. Validate all enum values → HTTP 400 if invalid
 6. Normalize geographic data (cidade, bairro)
 7. Persist Material with status = DISPONIVEL
 8. Promote temporary image to permanent storage (imagem_url)
 9. Return Material entity with HTTP 201
+
+Current runtime override:
+1. Validate `upload_id` ownership and expiration.
+2. Promote the staged file from `/uploads/{user_id}/temp/` to `/uploads/{user_id}/`.
+3. Persist the material and keep the upload tracking row linked for audit instead of deleting it.
 
 ### Error Responses
 

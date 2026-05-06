@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Ready  
+**Phase**: 1 Complete / 2 Complete / 3 Complete  
 **Date**: 2026-05-05  
-**Status**: Phase 2 closed after auth rebaseline; Phase 3 implementation can begin
+**Status**: Phase 3 core flow delivered across backend and Android; Phase 4 can begin
 
 ---
 
@@ -95,7 +95,7 @@ All planning now aligns with Constitution v2.0.0:
 
 ---
 
-## Current Phase 2 Closeout
+## Current Phase 3 Closeout
 
 What is already implemented in the repository:
 
@@ -113,15 +113,17 @@ What is already implemented in the repository:
    - Logout and `401` handling
    - Onboarding with WhatsApp, cidade, bairro and optional `consentimento_ia`
 
-3. Phase 3 handoff prep now in place
-   - `/api/v1/materiais/preview` route skeleton exists
-   - material/request/notification contracts remain target-state docs for later phases
+3. Phase 3 material + IA flow
+   - `/api/v1/materiais/preview` validates JPEG/PNG, stores temporary upload, applies consent gate and returns AI/manual fallback payloads
+   - `/api/v1/materiais` now persists the reviewed material from `upload_id`, promotes the image and records donor/location metadata
+   - temporary upload tracking and scheduled cleanup are active in the backend
+   - Android donation flow now supports gallery/camera, processing state, AI review and final publish
 
-What closed Phase 2 formally:
+What closed Phase 3 formally:
 
-1. Automated coverage now exceeds the original gate with `34` passing backend tests via `mvn test`
-2. The historical checklist has been rebased to distinguish repo-controlled work from manual/environment setup tasks
-3. Material preview/upload remains explicit Phase 3 scope; the Phase 2 requirement was the runnable skeleton route, which is already in place
+1. Backend automated coverage now includes preview/create material scenarios and passes with `46` tests via `mvn test`
+2. Android donation flow compiles and its JVM validation task stays green with `app:compileDebugKotlin` + `app:testDebugUnitTest`
+3. Material preview/upload is no longer a skeleton; contracts were rebased to distinguish the current runtime shape from later Phase 4+ endpoints
 
 ---
 
@@ -141,8 +143,8 @@ What changed materially:
 - Backend auth service design
 
 What is now accurate about readiness:
-- Accurate to declare Phase 2 closed
-- Safe to begin Phase 3 implementation work
+- Accurate to declare Phase 3 core delivered
+- Safe to begin Phase 4 matching/discovery work
 
 ---
 

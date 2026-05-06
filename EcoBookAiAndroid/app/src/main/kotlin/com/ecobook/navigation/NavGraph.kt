@@ -157,10 +157,7 @@ fun NavGraph() {
                         )
                     }
                     composable(AppDestination.Donate.route) {
-                        DonateScreen(
-                            uiState = uiState,
-                            onRefreshBackend = viewModel::refreshBackendStatus
-                        )
+                        DonateScreen()
                     }
                     composable(AppDestination.Profile.route) {
                         val logoutViewModel: LogoutViewModel = hiltViewModel()

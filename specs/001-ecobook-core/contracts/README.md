@@ -36,10 +36,17 @@ Material endpoints:
 - `GET /materiais/{id}`
 - `PATCH /materiais/{id}`
 
+Current note:
+- Phase 3 runtime already implements `POST /materiais` and `POST /materiais/preview`
+- Search/detail/update endpoints remain target-state docs for later phases
+
 ### [ai-response.md](ai-response.md)
 
 AI preview contract:
 - `POST /materiais/preview`
+
+Current note:
+- Phase 3 runtime always returns an `upload_id` on successful preview transport, even when `status_ia = FAILURE`, so the manual form can continue without reuploading the image
 
 ### [solicitacao-api.md](solicitacao-api.md)
 

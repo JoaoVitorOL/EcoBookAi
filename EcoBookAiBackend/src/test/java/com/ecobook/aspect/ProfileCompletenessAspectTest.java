@@ -8,9 +8,17 @@ import com.ecobook.security.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,6 +50,8 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .build());
 
         mockMvc.perform(post("/v1/materiais")
+                        .contentType(APPLICATION_JSON)
+                        .content(validCreatePayload("temp-upload-123"))
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("INCOMPLETE_PROFILE"));
@@ -62,8 +72,10 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .build());
 
         mockMvc.perform(post("/v1/materiais")
+                        .contentType(APPLICATION_JSON)
+                        .content(validCreatePayload("temp-upload-123"))
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -80,9 +92,11 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .role(Role.USER)
                 .build());
 
-        mockMvc.perform(post("/v1/materiais/preview")
+        mockMvc.perform(multipart("/v1/materiais/preview")
+                        .file(validPreviewFile())
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.upload_id").isNotEmpty());
     }
 
     @Test
@@ -96,7 +110,8 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .role(Role.USER)
                 .build());
 
-        mockMvc.perform(post("/v1/materiais/preview")
+        mockMvc.perform(multipart("/v1/materiais/preview")
+                        .file(validPreviewFile())
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("INCOMPLETE_PROFILE"));
@@ -147,5 +162,33 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 usuario.isPerfilCompleto(),
                 usuario.getId().toString()
         );
+    }
+
+    private String validCreatePayload(String uploadId) {
+        return """
+                {
+                  "upload_id": "%s",
+                  "titulo": "Livro de teste",
+                  "descricao": "Descricao valida para testar o gate de perfil completo.",
+                  "disciplina": "MATEMATICA",
+                  "nivel_ensino": "FUNDAMENTAL",
+                  "ano": 7,
+                  "sistema_ensino": "ANGLO",
+                  "estado_conservacao": "BOM"
+                }
+                """.formatted(uploadId);
+    }
+
+    private MockMultipartFile validPreviewFile() throws Exception {
+        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                image.setRGB(x, y, 0x00574B);
+            }
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", outputStream);
+        return new MockMultipartFile("file", "preview.png", IMAGE_PNG_VALUE, outputStream.toByteArray());
     }
 }

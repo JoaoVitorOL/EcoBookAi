@@ -1,9 +1,9 @@
-# EcoBook IA — Implementation Tasks
+﻿# EcoBook IA — Implementation Tasks
 
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 2–5 (Prototypes, AI Testing, Full Development, Launch)  
 **Total Tasks**: 187  
-**Status**: Phase 2 closed after auth rebaseline; auth/profile foundation complete and Phase 3 AI/material work is ready to begin  
+**Status**: Phase 3 core delivered; backend preview/create flow and Android donation flow are implemented, and Phase 4 matching work is ready to begin  
 **Generated**: 2026-04-15
 
 ---
@@ -312,14 +312,16 @@ Phase 10: Polish & Integration
 - ✅ Enum validation on all fields
 - ✅ Consentimento_ia bypass when false
 
+> Closeout note: the checked tasks below follow the shipped Phase 3 runtime documented in contracts/material-api.md and contracts/ai-response.md. Where the original task text assumed multipart create requests, a separate ReviewViewModel, or deletion of the upload tracking row, the implementation uses the current runtime contract instead: preview upload first, JSON create with upload_id, a shared upload/review ViewModel on Android, and retained upload tracking rows for audit.
+
 ### Module 3: Material Upload with IA (RF-002, RF-003, RF-004)
 
 #### Backend: Gemini Integration
 
-- [ ] **T077** [US2] Create `src/main/java/com/ecobook/service/GeminiService.java` Spring service:
+- [x] **T077** [US2] Create `src/main/java/com/ecobook/service/GeminiService.java` Spring service and Phase 3 runtime client:
   - Integrate Google Generative AI SDK (Java)
   - Constructor: Initialize GenerativeModel with API key, timeout 10s
-- [ ] **T078** [US2] Implement `GeminiService.classifyMaterial(imageFile)` method:
+- [x] **T078** [US2] Implement `GeminiService.classifyMaterial(imageFile)` method:
   - Accept file as multipart (JPEG/PNG)
   - Build structured JSON prompt (see spec.md):
     - **AI-Assisted Fields** (fields that Gemini will attempt to extract): titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao
@@ -332,23 +334,23 @@ Phase 10: Polish & Integration
     ```
   - Call Gemini API with 10-second timeout
   - Return response with status_ia (SUCCESS, LOW_CONFIDENCE, FAILURE) + field predictions + confidence scores
-- [ ] **T079** [US2] Implement response parsing in `GeminiService.parseGeminiResponse()`:
+- [x] **T079** [US2] Implement response parsing in `GeminiService.parseGeminiResponse()`:
   - Validate JSON structure (not null, not empty)
   - Validate enum values (disciplina in [MATEMATICA, ...], etc.)
   - Validate confidence scores (0.0–1.0)
   - Handle malformed JSON → status_ia: FAILURE
   - Handle invalid enum → status_ia: LOW_CONFIDENCE for that field
   - Handle confidence out of range → status_ia: LOW_CONFIDENCE for that field
-- [ ] **T080** [US2] Implement confidence fallback rules in `GeminiService.determineFallbackStatus()`:
+- [x] **T080** [US2] Implement confidence fallback rules in `GeminiService.determineFallbackStatus()`:
   - If ANY field ≥0.75: status_ia = SUCCESS
   - If ANY field 0.50–0.75: status_ia = LOW_CONFIDENCE
   - If ANY field <0.50: status_ia = FAILURE
   - If timeout/error: status_ia = FAILURE
-- [ ] **T081** [US2] Create timeout handling in `GeminiService`:
+- [x] **T081** [US2] Create timeout handling in `GeminiService`:
   - Wrap API call in try-catch with timeout exception handler
   - Return response with status_ia: FAILURE, error_message: "Timeout (10s exceeded)"
   - Log timeout events for monitoring
-- [ ] **T082** [US2] Create `src/main/java/com/ecobook/dto/GeminiResponseDto.java`:
+- [x] **T082** [US2] Create `src/main/java/com/ecobook/dto/GeminiResponseDTO.java`:
   - Fields: status_ia (enum), best_prediction (map of field → value), confidence_scores (map of field → 0.0–1.0), upload_id (temporary file reference)
   - Example response:
     ```json
@@ -375,10 +377,10 @@ Phase 10: Polish & Integration
       "upload_id": "temp-uuid-abc123"
     }
     ```
-- [ ] **T083** [US2] Create `src/main/java/com/ecobook/repository/TemporaryUploadRepository.java` (track temporary file metadata):
+- [x] **T083** [US2] Create `src/main/java/com/ecobook/repository/TemporaryUploadRepository.java` (track temporary file metadata):
   - Entity: id (UUID), file_path, user_id, uploaded_at, expires_at (24 hours)
   - Query: `findExpiredUploads()` for cleanup job
-- [ ] **T084** [US2] Create Gemini service integration test in `src/test/java/com/ecobook/service/GeminiServiceTest.java`:
+- [x] **T084** [US2] Create Gemini service integration test in `src/test/java/com/ecobook/service/GeminiServiceTest.java`:
   - Mock Gemini API responses (mock multiple confidence levels)
   - Test SUCCESS (≥0.75), LOW_CONFIDENCE (0.50–0.75), FAILURE (<0.50)
   - Test timeout handling (simulate 11-second delay → FAILURE)
@@ -387,34 +389,34 @@ Phase 10: Polish & Integration
 
 #### Backend: Image Upload Endpoint
 
-- [ ] **T085** [US2] Create `src/main/java/com/ecobook/service/ImageStorageService.java`:
+- [x] **T085** [US2] Create `src/main/java/com/ecobook/service/ImageStorageService.java`:
   - Store uploaded image in `/uploads/{user_id}/temp/{uuid}.ext`
   - Validate MIME type (JPEG, PNG only)
   - Validate file size (≤5MB)
   - Validate not corrupt (try to decode image, if fails → reject)
   - Generate UUID for upload_id
   - Return image_path, upload_id, file_size
-- [ ] **T086** [US2] Implement image validation in `ImageStorageService.validateImage()`:
+- [x] **T086** [US2] Implement image validation in `ImageStorageService.validateImage()`:
   - Check MIME type via file header (magic bytes): `FFD8FF` for JPEG, `89504E47` for PNG
   - Reject: `.gif`, `.webp`, `.bmp`, `.txt`, `.zip`, etc.
   - Check file size: if > 5MB, reject with HTTP 413 (Payload Too Large)
   - Decode image bytes to ensure integrity (use BufferedImage for quick validation)
-- [ ] **T087** [US2] Create directory structure for uploaded files:
+- [x] **T087** [US2] Create directory structure for uploaded files:
   - Ensure `/uploads/{user_id}/temp/` exists (create on first upload)
   - Cleanup `/uploads/{user_id}/temp/` files older than 24 hours (scheduled job in Phase 4)
-- [ ] **T088** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+- [x] **T088** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` preview endpoint:
   - **POST /api/v1/materiais/preview**: Multipart file upload + Gemini classification
   - Request: multipart/form-data with key `file` (JPEG/PNG)
   - Response: GeminiResponseDto (status_ia, predictions, confidence_scores, upload_id)
   - Error: 400 (invalid MIME), 413 (file too large), 503 (Gemini timeout/error)
-- [ ] **T089** [US2] Implement `MaterialController.preview()` handler:
+- [x] **T089** [US2] Implement `MaterialController.preview()` handler:
   - Validate image (call ImageStorageService.validateImage())
   - Extract user_id from JWT
   - Check consentimento_ia flag: if false, return FAILURE response immediately (no API call)
   - Save temporary file to `/uploads/{user_id}/temp/{uuid}.ext`
   - Call GeminiService.classifyMaterial()
   - Return GeminiResponseDto with upload_id (temp file reference)
-- [ ] **T090** [US2] Create preview endpoint test in `src/test/java/com/ecobook/controller/MaterialControllerPreviewTest.java`:
+- [x] **T090** [US2] Create preview endpoint test in `src/test/java/com/ecobook/MaterialControllerPreviewTest.java`:
   - POST /materiais/preview with valid JPEG → 200 with classification
   - POST /materiais/preview with oversized file (>5MB) → 413
   - POST /materiais/preview with .txt file → 400 (invalid MIME)
@@ -423,12 +425,12 @@ Phase 10: Polish & Integration
 
 #### Backend: Material Persistence Endpoint
 
-- [ ] **T091** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+- [x] **T091** [US2] Create `src/main/java/com/ecobook/controller/MaterialController.java` create endpoint:
   - **POST /api/v1/materiais**: Create material from preview results
   - Request: upload_id, titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao (optional), descricao
   - Response: MaterialDto (id, doador_id, status=DISPONIVEL, image_url, created_at)
   - Error: 400 (invalid upload_id), 403 (profile incomplete), 404 (file not found), 422 (invalid state/enum)
-- [ ] **T092** [US2] Implement `MaterialService.createMaterial()` method:
+- [x] **T092** [US2] Implement `MaterialService.createMaterial()` method:
   - Validate upload_id exists in TemporaryUploadRepository
   - Validate all enum fields (disciplina, nivel_ensino, sistema_ensino, estado_conservacao)
   - Reject invalid enums: HTTP 400 with field errors
@@ -437,68 +439,68 @@ Phase 10: Polish & Integration
   - Persist to database
   - Delete TemporaryUpload record
   - Return MaterialDto with permanent image_url
-- [ ] **T093** [US2] Create enum validation in `MaterialService.validateEnums()`:
+- [x] **T093** [US2] Create enum validation in `MaterialService.validateEnums()`:
   - Validate disciplina against enum values
   - Validate nivel_ensino (FUNDAMENTAL, MEDIO, SUPERIOR)
   - Validate ano (1–12 for FUNDAMENTAL/MEDIO, NULL for SUPERIOR)
   - Validate sistema_ensino against enum values
   - Validate estado_conservacao (NOVO, BOM, USADO, DANIFICADO)
   - Throw ValidationException with field-level errors if any invalid
-- [ ] **T094** [US2] Create material persistence test in `src/test/java/com/ecobook/service/MaterialServiceTest.java`:
+- [x] **T094** [US2] Create material persistence test coverage in `src/test/java/com/ecobook/MaterialControllerCreateTest.java`:
   - POST /materiais with valid upload_id → 201 Created with DISPONIVEL status
   - POST /materiais with invalid disciplina → 400 with field error
   - POST /materiais with non-existent upload_id → 404
   - POST /materiais with profile incomplete → 403
   - Verify temporary file deleted after promotion
-- [ ] **T095** [US2] Implement rollback logic if persistence fails:
+- [x] **T095** [US2] Implement rollback logic if persistence fails:
   - If POST /materiais fails after file promotion, do not delete temp file (manual cleanup later)
   - Log error for manual intervention
   - Return HTTP 500 with error message
 
 #### Backend: Cleanup Job
 
-- [ ] **T096** [US2] Create `src/main/java/com/ecobook/scheduler/TemporaryUploadCleanupJob.java`:
+- [x] **T096** [US2] Create `src/main/java/com/ecobook/scheduler/TemporaryUploadCleanupJob.java`:
   - Scheduled task: runs every 6 hours (or configurable interval)
   - Query: find all TemporaryUpload records with expires_at < now
   - For each expired record: delete file from `/uploads/{user_id}/temp/{uuid}`, delete record from database
   - Log cleanup summary: "Cleaned up 5 temporary uploads"
-- [ ] **T097** [US2] Add `@Scheduled(fixedDelay = 21600000)` annotation to cleanup job (6 hours = 21600000 ms)
-- [ ] **T098** [US2] Create cleanup test in `src/test/java/com/ecobook/scheduler/TemporaryUploadCleanupJobTest.java`:
+- [x] **T097** [US2] Add `@Scheduled(fixedDelay = 21600000)` annotation to cleanup job (6 hours = 21600000 ms)
+- [x] **T098** [US2] Create cleanup test in `src/test/java/com/ecobook/scheduler/TemporaryUploadCleanupJobTest.java`:
   - Insert expired TemporaryUpload records
   - Run cleanup job
   - Verify records deleted, files removed
 
 #### Android: Upload Screen
 
-- [ ] **T099** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadScreen.kt` Compose screen:
+- [x] **T099** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadScreen.kt` Compose screen:
   - Display image entry CTA that explicitly communicates both options: choose from gallery or capture with camera
   - Show preview of selected image
   - Display size and format information
   - Show "Next" button to proceed to processing screen
   - Handle image selection and validation (show error if >5MB or wrong format)
-- [ ] **T100** [P] [US2] Implement image picker in `EcoBookAiAndroid/src/main/java/com/ecobook/material/ImagePickerHelper.kt`:
+- [x] **T100** [P] [US2] Implement image picker in `EcoBookAiAndroid/src/main/java/com/ecobook/material/ImagePickerHelper.kt`:
   - Use Android's ACTION_GET_CONTENT (gallery) or ACTION_IMAGE_CAPTURE (camera)
   - Handle permission requests (READ_EXTERNAL_STORAGE, CAMERA)
   - Return selected image URI and metadata (size, MIME type)
-- [ ] **T101** [P] [US2] Implement image compression in `EcoBookAiAndroid/src/main/java/com/ecobook/material/ImageCompressionHelper.kt`:
+- [x] **T101** [P] [US2] Implement image compression in `EcoBookAiAndroid/src/main/java/com/ecobook/material/ImageCompressionHelper.kt`:
   - Compress JPEG/PNG to ≤5MB if necessary
   - Target resolution: 1024x1024px (reduce to fit 5MB limit)
   - Preserve image quality (JPEG quality 85–90%)
-- [ ] **T102** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/ProcessingScreen.kt` Compose screen:
+- [x] **T102** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/ProcessingScreen.kt` Compose screen:
   - Display animated loading spinner
   - Show status message: "Analyzing your material..."
   - Display 10-second timeout warning (if approaching limit)
   - Handle timeout gracefully: show retry button if POST /materiais/preview times out
-- [ ] **T103** [P] [US2] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadViewModel.kt`:
+- [x] **T103** [P] [US2] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadViewModel.kt`:
   - Store selected image URI and metadata
   - `uploadImage()`: POST multipart file to /api/v1/materiais/preview
   - Handle success: Store upload_id + classification results, navigate to ReviewScreen
   - Handle error (timeout, network, 413): Show user-friendly message with retry option
   - Handle 400 (invalid MIME): Show "Invalid file format" message
-- [ ] **T104** [P] [US2] Create API client for image upload in `EcoBookAiAndroid/src/main/java/com/ecobook/api/MaterialApiService.kt`:
+- [x] **T104** [P] [US2] Create API client for image upload in `EcoBookAiAndroid/src/main/java/com/ecobook/api/MaterialApiService.kt`:
   - `POST /api/v1/materiais/preview` with multipart/form-data
   - Return GeminiResponseDto
-- [ ] **T105** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/ReviewScreen.kt` Compose screen:
+- [x] **T105** [P] [US2] Create `EcoBookAiAndroid/src/main/java/com/ecobook/material/ReviewScreen.kt` Compose screen:
   - Display classification results from GeminiResponseDto
   - Show confidence indicators per field:
     - **SUCCESS (≥0.75)**: Green checkmark, field auto-filled, disabled for editing
@@ -511,25 +513,25 @@ Phase 10: Polish & Integration
   - Show estado_conservacao dropdown (NOVO, BOM, USADO, DANIFICADO)
   - "Confirm" button → POST /materiais with edited values
   - "Cancel" button → navigate back (delete temp file via backend cleanup)
-- [ ] **T106** [P] [US2] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/material/ReviewViewModel.kt`:
+- [x] **T106** [P] [US2] Implement review state and confirmation flow inside `EcoBookAiAndroid/src/main/java/com/ecobook/material/MaterialUploadViewModel.kt`:
   - Store classification results (upload_id, predictions, confidence_scores)
   - Store edited values (titulo, disciplina, nivel_ensino, etc.)
   - Validation: require titulo, validate enums on confirm
   - `confirmMaterial()`: POST /api/v1/materiais with edited values + upload_id
   - Handle success: navigate to HomeScreen, show toast "Material created"
   - Handle error: show field-specific errors (400/422) or generic error (500)
-- [ ] **T107** [P] [US2] Create confirmation dialog in ReviewScreen:
+- [x] **T107** [P] [US2] Create confirmation dialog in ReviewScreen:
   - "Confirm Material?" with summary of fields
   - "Edit" button → stay on ReviewScreen
   - "Confirm" button → POST /materiais
-- [ ] **T108** [P] [US2] Create integration test for upload flow in `src/test/java/com/ecobook/MaterialUploadE2ETest.java`:
+- [x] **T108** [P] [US2] Create integration test coverage for upload flow in `src/test/java/com/ecobook/MaterialControllerPreviewTest.java` and `src/test/java/com/ecobook/MaterialControllerCreateTest.java`:
   - Mock Gemini API response (HIGH confidence)
   - POST /materiais/preview → GeminiResponseDto
   - POST /materiais with upload_id → 201 Created
   - Verify Material persisted with DISPONIVEL status
   - Verify file promoted to permanent location
   - Verify TemporaryUpload record deleted
-- [ ] **T109** [P] [US2] Create error scenario tests:
+- [x] **T109** [P] [US2] Create error scenario tests:
   - POST /materiais/preview with consentimento_ia=false → FAILURE status
   - POST /materiais/preview with timeout → 503 error
   - POST /materiais with invalid enum → 400 with field error
@@ -537,12 +539,12 @@ Phase 10: Polish & Integration
 
 #### Android: Composition & Styling
 
-- [ ] **T110** [P] [US2] Create reusable composables in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/`:
+- [x] **T110** [P] [US2] Create reusable composables in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/`:
   - `ConfidenceIndicator.kt` (checkmark for SUCCESS, warning for LOW, question for FAILURE)
   - `EditableField.kt` (text input with optional error message)
   - `EnumDropdown.kt` (dropdown for enum selection)
   - `LoadingSpinner.kt` (animated spinner with message)
-- [ ] **T111** [P] [US2] Create Material Design 3 theme in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/theme/Theme.kt`:
+- [x] **T111** [P] [US2] Create Material Design 3 theme in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/theme/Theme.kt`:
   - Colors: Primary (green for donations), Secondary (blue for requests), Tertiary (orange for alerts)
   - Typography: Roboto for headings, Roboto for body text
   - Shapes: Rounded corners 8dp for cards, 4dp for buttons
@@ -1383,12 +1385,12 @@ What is already true in the repository:
 - ✅ Android project compiles with login/cadastro/onboarding flow
 - ✅ Database schema and migrations support local credentials (`password_hash`)
 - ✅ JWT generation, validation and profile completeness gate are implemented
-- ✅ `/api/v1/materiais/preview` now exists as a route skeleton for the next module
+- ✅ `/api/v1/materiais/preview` and `/api/v1/materiais` now run the Phase 3 preview/create flow end to end
 
-Phase 2 closeout notes:
+Phase 3 closeout notes:
 
-- Backend automated coverage now exceeds the original gate with `34` passing tests via `mvn test`
-- Material preview/upload implementation remains explicit Phase 3 scope; the Phase 2 deliverable is the runnable skeleton route, which is already present
+- Backend automated coverage now includes preview/create scenarios and passes with `46` tests via `mvn test`
+- Android donation flow now uses real image selection/capture, preview IA, manual review and final publish instead of the earlier mock screen
 - Historical environment/manual items still open include Firebase console provisioning (`T019`) and emulator tuning (`T034`)
 - A dedicated Android JVM auth-validator test remains desirable, but the local Gradle/JUnit runner still shows class-loading issues for new unit tests in this workspace and is therefore tracked as follow-up rather than a phase gate
 
@@ -1399,12 +1401,13 @@ Phase 2 closeout notes:
 1. **Assign Tasks**: Distribute tasks to backend dev, Android dev, QA based on user story phases
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
-4. **Begin Phase 3 implementation**: Gemini preview, temporary uploads and donation form integration
+4. **Begin Phase 4 implementation**: matching, search endpoint, ranked discovery and result dialogs
 5. **Keep backlog hygiene**: Update manual/env tasks as Firebase and emulator setup decisions land
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 2 closeout recorded; use this file as a living backlog for Phase 3+ execution  
+**Status**: Phase 3 closeout recorded; use this file as a living backlog for Phase 4+ execution  
 **Document Owner**: Product/Tech Lead  
 **Last Updated**: 2026-05-05
+

@@ -1,14 +1,14 @@
 # AI Response Schema
 
 **Reference**: spec.md RF-011 through RF-021  
-**Version**: 1.0  
-**Date**: 2026-04-17
+**Version**: 1.1  
+**Date**: 2026-05-05
 
 ---
 
 ## POST /materiais/preview
 
-Image preview endpoint for AI classification. Returns Gemini response with confidence levels.
+Image preview endpoint for AI classification. Returns Gemini response with confidence levels and a temporary `upload_id` that remains usable even when the AI falls back to manual entry.
 
 ### Request
 
@@ -26,9 +26,12 @@ Authorization: Bearer <jwt_token>
 - User must have active session (JWT token valid)
 - If `consentimento_ia = false`, Gemini is not called (returns FAILURE)
 
+Current runtime note:
+- Timeouts, malformed AI payloads and no-consent cases still return HTTP `200` with `status_ia = FAILURE`, `error_details`, and a reusable `upload_id`.
+
 ### Response
 
-**HTTP 200 OK** - Successful Gemini call (regardless of confidence level)
+**HTTP 200 OK** - Successful preview transport and processing, including graceful manual-fallback cases
 
 ```json
 {
@@ -91,6 +94,11 @@ Authorization: Bearer <jwt_token>
 | **FAILURE** | < 0.50 or timeout or no consent | Leave all fields empty; require manual entry |
 
 ### Confidence Interpretation
+
+Current runtime note:
+- `SUCCESS` is only emitted when the returned prediction set is both high-confidence and structurally valid.
+- `LOW_CONFIDENCE` covers partial or mixed-confidence predictions, including invalid/missing enum issues with still-usable data.
+- `FAILURE` covers timeout, malformed response, no consent, missing API configuration, or no usable predictions.
 
 - **≥ 0.90**: High confidence (green/light icon)
 - **0.75–0.89**: Good confidence (green/light icon)
@@ -400,7 +408,7 @@ public AIResponse validateAndSetStatus(String geminiJson) {
 3. **User Review**: Frontend displays classified results; user edits as needed
 4. **Confirmation**: User confirms and sends full data + `upload_id` to `POST /materiais`
 5. **Promotion**: Backend validates `upload_id`, retrieves temporary image, moves to permanent storage, updates `imagem_url`
-6. **Cleanup**: Temporary file deleted; `upload_id` retained in Material entity for audit trail
+6. **Cleanup**: After final creation, the staged file is promoted to permanent storage; the upload tracking row stays linked to the material for audit trail
 
 **Lifetime**:
 - Temporary image: 24 hours (cleanup job removes unused uploads daily)

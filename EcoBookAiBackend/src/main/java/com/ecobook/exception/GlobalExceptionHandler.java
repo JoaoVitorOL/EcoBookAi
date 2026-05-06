@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -132,6 +133,37 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
         log.warn("Bad request: {}", ex.getMessage());
         return ResponseEntity.status(400).body(errorResponse);
+    }
+
+    @ExceptionHandler(PayloadTooLargeException.class)
+    public ResponseEntity<ErrorResponse> handlePayloadTooLargeException(
+            PayloadTooLargeException ex, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(413)
+                .error("PAYLOAD_TOO_LARGE")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        log.warn("Payload too large: {}", ex.getMessage());
+        return ResponseEntity.status(413).body(errorResponse);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(413)
+                .error("PAYLOAD_TOO_LARGE")
+                .message("A imagem excede o limite de 5MB")
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        log.warn("Multipart payload too large");
+        return ResponseEntity.status(413).body(errorResponse);
     }
 
     @ExceptionHandler(UnprocessableEntityException.class)

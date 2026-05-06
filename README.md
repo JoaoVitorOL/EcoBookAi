@@ -7,15 +7,15 @@ O repositorio esta organizado em duas bases explicitas:
 
 ## O que existe hoje
 
-- O backend ja tem auth local com `email + senha + JWT`, perfil de usuario, migracoes Flyway e `GET /api/v1/health`.
-- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT e integracao com o health check do backend.
-- Materiais, preview com IA, matching e solicitacoes continuam como os proximos modulos do MVP.
+- O backend ja tem auth local com `email + senha + JWT`, perfil de usuario, migracoes Flyway, `GET /api/v1/health`, `POST /api/v1/materiais/preview` e `POST /api/v1/materiais`.
+- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT e agora tambem um fluxo real de doacao com galeria/camera, preview IA, revisao manual e publicacao final.
+- Matching, solicitacoes e notificacoes continuam como os proximos modulos do MVP.
 
 ## Estado de validacao
 
-- `EcoBookAiAndroid`: `gradlew.bat lintDebug`, `gradlew.bat assembleDebug` e `gradlew.bat testDebugUnitTest` executaram com sucesso nesta maquina.
+- `EcoBookAiAndroid`: `gradlew.bat app:compileDebugKotlin` e `gradlew.bat app:testDebugUnitTest` executaram com sucesso nesta maquina.
 - `EcoBookAiAndroid`: a validacao em emulador nao foi concluida porque o AVD local ficou offline no ADB.
-- `EcoBookAiBackend`: `mvn clean test` executou com sucesso nesta maquina usando um JDK mais novo do que o Java padrao da sessao.
+- `EcoBookAiBackend`: `mvn test` executou com sucesso nesta maquina usando Java 21 no WSL.
 
 ## Proximos passos
 

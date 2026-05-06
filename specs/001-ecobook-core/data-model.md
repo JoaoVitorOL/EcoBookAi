@@ -144,7 +144,17 @@ Material (0..1) - MaterialUploadTracking (many attempts over time)
 | `upload_id` | VARCHAR(100) | UNIQUE, NOT NULL | Tracking identifier |
 | `material_id` | UUID | FK -> `material.id` | Nullable until final material exists |
 | `status` | VARCHAR(50) | NOT NULL | Upload processing status |
+| `usuario_id` | UUID | FK -> `usuario.id` | Owner of the temporary upload |
+| `file_path` | VARCHAR(1000) | NULLABLE | Filesystem path for temp/permanent image |
+| `mime_type` | VARCHAR(100) | NULLABLE | Validated MIME type |
+| `file_size` | BIGINT | NULLABLE | Image size in bytes |
+| `expires_at` | TIMESTAMP | NULLABLE | Cleanup deadline for unused uploads |
+| `status_ia` | ENUM | NULLABLE | SUCCESS / LOW_CONFIDENCE / FAILURE / NOT_ATTEMPTED |
+| `confianca_ia` | DECIMAL(3,2) | NULLABLE | Highest recorded confidence for audit |
 | `criado_em` | TIMESTAMP | NOT NULL | Insert timestamp |
+
+Retention note:
+- After successful material creation, the tracking row is retained and linked to `material_id`; only expired unused uploads are deleted by the cleanup job.
 
 ---
 

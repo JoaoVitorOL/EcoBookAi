@@ -75,6 +75,7 @@ gemini:
   model: ${GEMINI_MODEL:gemini-2.5-flash}
   max-retries: ${GEMINI_MAX_RETRIES:3}
   timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:10}
+  mock-enabled: ${GEMINI_MOCK_ENABLED:false}
   rate-limit-window-minutes: ${GEMINI_RATE_LIMIT_WINDOW_MINUTES:5}
   rate-limit-threshold: ${GEMINI_RATE_LIMIT_THRESHOLD:10}
   circuit-breaker-pause-seconds: ${GEMINI_CIRCUIT_BREAKER_PAUSE_SECONDS:30}

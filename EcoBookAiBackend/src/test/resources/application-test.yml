@@ -17,3 +17,10 @@ spring:
 jwt:
   secret: test-secret-key-for-testing-only-and-long-enough-for-hmac-sha512-signing
   expiration: 3600000
+
+gemini:
+  mock-enabled: true
+
+storage:
+  upload-dir: ./target/test-uploads
+  max-file-size-mb: 5
