@@ -3,6 +3,8 @@ package com.ecobook.dto
 data class MaterialDTO(
     val id: String,
     val titulo: String,
+    val autor: String?,
+    val editora: String?,
     val descricao: String,
     val disciplina: String,
     val nivelEnsino: String,

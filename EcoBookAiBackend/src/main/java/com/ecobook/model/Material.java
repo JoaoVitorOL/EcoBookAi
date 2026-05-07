@@ -46,6 +46,12 @@ public class Material {
     @Column(nullable = false, length = 255)
     private String titulo;
 
+    @Column(length = 255)
+    private String autor;
+
+    @Column(length = 255)
+    private String editora;
+
     @Column(length = 2000)
     private String descricao;
 

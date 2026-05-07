@@ -40,11 +40,12 @@ public class GeminiService {
 
     private static final List<String> EXPECTED_FIELDS = List.of(
             "titulo",
+            "autor",
+            "editora",
             "disciplina",
             "nivel_ensino",
             "ano",
             "sistema_ensino",
-            "estado_conservacao",
             "data_publicacao"
     );
 
@@ -72,6 +73,9 @@ public class GeminiService {
 
     @Value("${gemini.mock-enabled:false}")
     private boolean mockEnabled;
+
+    @Value("${gemini.google-search-enabled:true}")
+    private boolean googleSearchEnabled;
 
     private final Object circuitBreakerMonitor = new Object();
     private final Deque<Instant> recentFailures = new ArrayDeque<>();
@@ -291,6 +295,9 @@ public class GeminiService {
                 )
         );
         request.put("contents", List.of(Map.of("parts", List.of(textPart, imagePart))));
+        if (googleSearchEnabled) {
+            request.put("tools", List.of(Map.of("google_search", Map.of())));
+        }
         request.put("generationConfig", Map.of(
                 "temperature", 0.2,
                 "responseMimeType", "application/json"
@@ -299,18 +306,40 @@ public class GeminiService {
     }
 
     private String prompt() {
+        if (googleSearchEnabled || !googleSearchEnabled) {
+            return String.join("\n",
+                    "Analise a imagem de um material educacional brasileiro.",
+                    "Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.",
+                    "Cada campo deve seguir o formato {\"value\": \"...\", \"confidence\": 0.0}.",
+                    "Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.",
+                    "Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
+                    "Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.",
+                    "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.",
+                    "Para campos nao identificados, use value null e confidence null.",
+                    "Nunca invente descricao. Nunca retorne texto fora do JSON.",
+                    "Autor e editora devem ser extraidos da capa, lombada ou outras partes visiveis da imagem sempre que possivel.",
+                    "Se autor ou editora nao estiverem claramente visiveis, voce pode usar Google Search grounding para tentar confirmar essas informacoes com base no titulo e no contexto visual do livro.",
+                    "So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.",
+                    "Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.",
+                    "Seja conservador nas predicoes e priorize a precisao da informacao."
+            );
+        }
         return """
                 Analise a imagem de um material educacional brasileiro.
                 Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.
                 Cada campo deve seguir o formato {"value": "...", "confidence": 0.0}.
-                Campos aceitos: titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao.
+                Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.
                 Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.
                 Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.
                 Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.
-                Valores de estado_conservacao: NOVO, BOM, USADO, DANIFICADO.
                 Para campos nao identificados, use value null e confidence null.
                 Nunca invente descricao. Nunca retorne texto fora do JSON.
-                Você pode pesquisar na internet as informacoes do livro a partir da imagem fornecida caso não estejam explicitas na foto, mas se tiver duvida, deixe o campo como null. Seja conservador nas predicoes e priorize a precisao.
+                Autor e editora devem ser extraidos da capa, lombada ou outras partes visiveis da imagem sempre que possivel.
+                Se autor ou editora nao estiverem claramente visiveis, voce pode usar Google Search grounding para tentar confirmar essas informacoes com base no titulo e no contexto visual do livro.
+                So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.
+                Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.
+                Seja conservador nas predicoes e priorize a precisao da informacao.
+                Você pode pesquisar na internet as informacoes do livro a partir da imagem fornecida caso não estejam explicitas na foto, mas se tiver duvida, deixe o campo como null. Seja conservador nas predicoes e priorize a precisao da informação.
                 """;
     }
 
@@ -355,7 +384,7 @@ public class GeminiService {
     }
 
     private boolean isEnumField(String field) {
-        return List.of("disciplina", "nivel_ensino", "sistema_ensino", "estado_conservacao").contains(field);
+        return List.of("disciplina", "nivel_ensino", "sistema_ensino").contains(field);
     }
 
     private List<String> allowedValues(String field) {
@@ -363,7 +392,6 @@ public class GeminiService {
             case "disciplina" -> List.of("MATEMATICA", "PORTUGUES", "HISTORIA", "GEOGRAFIA", "CIENCIAS", "LITERATURA");
             case "nivel_ensino" -> List.of("FUNDAMENTAL", "MEDIO", "SUPERIOR");
             case "sistema_ensino" -> List.of("ANGLO", "OBJETIVO", "COC", "POSITIVO", "OUTRO");
-            case "estado_conservacao" -> List.of("NOVO", "BOM", "USADO", "DANIFICADO");
             default -> List.of();
         };
     }
@@ -388,11 +416,12 @@ public class GeminiService {
         String inferredTitle = inferTitle(originalFilename);
         Map<String, PredictionFieldDTO> predictions = new LinkedHashMap<>();
         predictions.put("titulo", PredictionFieldDTO.builder().value(inferredTitle).confidence(0.68).build());
+        predictions.put("autor", PredictionFieldDTO.builder().value("Autor de Exemplo").confidence(0.57).build());
+        predictions.put("editora", PredictionFieldDTO.builder().value("Editora Exemplo").confidence(0.54).build());
         predictions.put("disciplina", PredictionFieldDTO.builder().value("MATEMATICA").confidence(0.66).build());
         predictions.put("nivel_ensino", PredictionFieldDTO.builder().value("FUNDAMENTAL").confidence(0.61).build());
         predictions.put("ano", PredictionFieldDTO.builder().value(7).confidence(0.58).build());
         predictions.put("sistema_ensino", PredictionFieldDTO.builder().value("OUTRO").confidence(0.55).build());
-        predictions.put("estado_conservacao", PredictionFieldDTO.builder().value("BOM").confidence(0.62).build());
         predictions.put("data_publicacao", PredictionFieldDTO.builder().value(2020).confidence(0.51).build());
 
         return GeminiResponseDTO.builder()

@@ -65,7 +65,7 @@ A donor uploads a material image. The backend calls Google Gemini to extract met
 
 **Acceptance Scenarios**:
 
-1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all AI-assisted fields (titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao) are auto-populated with editable inputs and a green checkmark indicator
+1. **Given** a donor selects an image of a math textbook via POST /materiais/preview, **When** the Gemini API returns confidence ≥ 0.75, **Then** all AI-assisted fields (titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao) are auto-populated with editable inputs and a green checkmark indicator, while `estado_conservacao` remains manual
 2. **Given** Gemini returns confidence 0.50–0.75 (LOW_CONFIDENCE), **When** the response renders in the frontend, **Then** fields display suggested values with yellow warning icons and are editable
 3. **Given** Gemini confidence < 0.50 or timeout occurs, **When** response is returned, **Then** all classification fields render empty and require manual input; status_ia displays FAILURE or LOW_CONFIDENCE
 4. **Given** consentimento_ia = false for the user, **When** they upload an image, **Then** POST /materiais/preview returns `status_ia = FAILURE`, a reusable `upload_id`, and no Gemini call is made
@@ -198,7 +198,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-005**: Material lifecycle states are: DISPONIVEL (initially), RESERVADO (approved request), DOADO (completed donation), CANCELADO (donor-initiated cancellation); no other states allowed
 - **RF-006**: System MUST reject invalid state transitions with HTTP 422 Unprocessable Entity
 - **RF-007**: Material MUST be discoverable only in DISPONIVEL state
-- **RF-008**: Material creation requires: titulo, descricao, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, imagem (JPEG/PNG, ≤ 5MB), doador_id, cidade, bairro, data_publicacao
+- **RF-008**: Material creation requires: titulo, descricao, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, imagem (JPEG/PNG, ≤ 5MB), doador_id, cidade, bairro, data_publicacao; optional metadata includes `autor` and `editora`
 - **RF-009**: Material images MUST be validated for MIME type (JPEG/PNG only); invalid types rejected with HTTP 400
 - **RF-010**: Image preview uploads MUST return `upload_id` in POST /materiais/preview for tracking and later promotion from temporary to permanent storage
 
@@ -370,12 +370,14 @@ Represents a donated educational resource.
 **Attributes**:
 - `id` (UUID): Unique identifier
 - `titulo` (String): Material title; can be auto-populated by Gemini via OCR (confidence typically 0.85-0.95); always editable by user
+- `autor` (String, optional): Book author; can be auto-populated by Gemini when visible on the material or strongly supported by Google Search grounding
+- `editora` (String, optional): Publisher; can be auto-populated by Gemini when visible on the material or strongly supported by Google Search grounding
 - `descricao` (String): Detailed description; **manual-only field** (never auto-populated to prevent hallucinations)
 - `disciplina` (Enum: MATEMATICA | PORTUGUES | HISTORIA | GEOGRAFIA | CIENCIAS | LITERATURA)
 - `nivel_ensino` (Enum: FUNDAMENTAL | MEDIO | SUPERIOR)
 - `ano` (Integer): Target grade/year (1–12 for FUNDAMENTAL/MEDIO, null for SUPERIOR)
 - `sistema_ensino` (Enum: ANGLO | OBJETIVO | COC | POSITIVO | OUTRO)
-- `estado_conservacao` (Enum: NOVO | BOM | USADO | DANIFICADO)
+- `estado_conservacao` (Enum: NOVO | BOM | USADO | DANIFICADO): Always selected manually by the donor after reviewing the item
 - `status` (Enum: DISPONIVEL | RESERVADO | DOADO | CANCELADO)
 - `imagem_url` (String): URL to permanent storage
 - `upload_id` (String, optional): Temporary upload tracking ID
@@ -440,9 +442,19 @@ Represents a student's expressed learning requirements for discovery.
   "status_ia": "SUCCESS|LOW_CONFIDENCE|FAILURE",
   "upload_id": "temp-upload-uuid-12345",
   "best_prediction": {
+    "autor": { "value": "Autor Exemplo", "confidence": 0.83 },
+    "editora": { "value": "Editora Exemplo", "confidence": 0.79 },
     "titulo": {
       "value": "Geometria Plana 7º Ano",
       "confidence": 0.92
+    },
+    "autor": {
+      "value": "Autor Exemplo",
+      "confidence": 0.83
+    },
+    "editora": {
+      "value": "Editora Exemplo",
+      "confidence": 0.79
     },
     "disciplina": {
       "value": "MATEMATICA",
@@ -459,10 +471,6 @@ Represents a student's expressed learning requirements for discovery.
     "sistema_ensino": {
       "value": "ANGLO",
       "confidence": 0.92
-    },
-    "estado_conservacao": {
-      "value": "BOM",
-      "confidence": 0.81
     },
     "data_publicacao": {
       "value": 2010,
@@ -491,6 +499,8 @@ Represents a student's expressed learning requirements for discovery.
 ```json
 {
   "titulo": "Livro de Matemática 7º Ano",
+  "autor": "Autor Exemplo",
+  "editora": "Editora Exemplo",
   "descricao": "Usado em colégios do sistema Anglo, bem conservado",
   "disciplina": "MATEMATICA",
   "nivel_ensino": "FUNDAMENTAL",
@@ -521,6 +531,8 @@ Represents a student's expressed learning requirements for discovery.
 {
   "id": "material-uuid-1",
   "titulo": "Livro de Matemática 7º Ano",
+  "autor": "Autor Exemplo",
+  "editora": "Editora Exemplo",
   "descricao": "Usado em colégios do sistema Anglo, bem conservado",
   "disciplina": "MATEMATICA",
   "nivel_ensino": "FUNDAMENTAL",

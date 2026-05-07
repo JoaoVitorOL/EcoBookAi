@@ -96,6 +96,8 @@ class MaterialUploadViewModel @Inject constructor(
     }
 
     fun updateTitulo(value: String) = updateDraft { draft -> draft.copy(titulo = value) }
+    fun updateAutor(value: String) = updateDraft { draft -> draft.copy(autor = value) }
+    fun updateEditora(value: String) = updateDraft { draft -> draft.copy(editora = value) }
     fun updateDescricao(value: String) = updateDraft { draft -> draft.copy(descricao = value) }
     fun updateAno(value: String) = updateDraft { draft -> draft.copy(ano = value.filter(Char::isDigit)) }
     fun updateDataPublicacao(value: String) = updateDraft { draft -> draft.copy(dataPublicacao = value.filter(Char::isDigit)) }
@@ -174,6 +176,8 @@ class MaterialUploadViewModel @Inject constructor(
                 backendMessage = null,
                 validationErrors = state.validationErrors.toMutableMap().apply {
                     remove("titulo")
+                    remove("autor")
+                    remove("editora")
                     remove("descricao")
                     remove("disciplina")
                     remove("nivel_ensino")
@@ -190,12 +194,13 @@ class MaterialUploadViewModel @Inject constructor(
         val predictions = response.bestPrediction
         val draft = MaterialDraft(
             titulo = predictions["titulo"].stringValue(),
+            autor = predictions["autor"].stringValue(),
+            editora = predictions["editora"].stringValue(),
             descricao = "",
             disciplina = predictions["disciplina"].enumValue(Disciplina::valueOf),
             nivelEnsino = predictions["nivel_ensino"].enumValue(NivelEnsino::valueOf),
             ano = predictions["ano"].intValue()?.toString().orEmpty(),
             sistemaEnsino = predictions["sistema_ensino"].enumValue(SistemaEnsino::valueOf),
-            estadoConservacao = predictions["estado_conservacao"].enumValue(EstadoConservacao::valueOf),
             dataPublicacao = predictions["data_publicacao"].intValue()?.toString().orEmpty()
         )
 
@@ -233,6 +238,14 @@ class MaterialUploadViewModel @Inject constructor(
             errors["titulo"] = "Informe um titulo para o material."
         } else if (draft.titulo.length > 255) {
             errors["titulo"] = "O titulo precisa ter no maximo 255 caracteres."
+        }
+
+        if (draft.autor.length > 255) {
+            errors["autor"] = "O autor precisa ter no maximo 255 caracteres."
+        }
+
+        if (draft.editora.length > 255) {
+            errors["editora"] = "A editora precisa ter no maximo 255 caracteres."
         }
 
         if (draft.descricao.isBlank()) {
@@ -281,6 +294,8 @@ class MaterialUploadViewModel @Inject constructor(
         return CreateMaterialRequestDTO(
             uploadId = uploadId,
             titulo = draft.titulo.trim(),
+            autor = draft.autor.trim().ifBlank { null },
+            editora = draft.editora.trim().ifBlank { null },
             descricao = draft.descricao.trim(),
             disciplina = draft.disciplina?.name ?: return null,
             nivelEnsino = draft.nivelEnsino?.name ?: return null,

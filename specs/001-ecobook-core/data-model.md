@@ -79,6 +79,8 @@ Material (0..1) - MaterialUploadTracking (many attempts over time)
 | `id` | UUID | PK | Auto-generated |
 | `doador_id` | UUID | FK -> `usuario.id`, NOT NULL | Donor owner |
 | `titulo` | VARCHAR(255) | NOT NULL | Editable even after AI suggestion |
+| `autor` | VARCHAR(255) | NULLABLE | Optional; AI-assisted when visible or strongly grounded |
+| `editora` | VARCHAR(255) | NULLABLE | Optional; AI-assisted when visible or strongly grounded |
 | `descricao` | TEXT | NULLABLE | Manual-only field |
 | `disciplina` | `disciplina_enum` | NOT NULL | Subject |
 | `nivel_ensino` | `nivel_ensino_enum` | NOT NULL | Education level |
@@ -104,6 +106,8 @@ Material (0..1) - MaterialUploadTracking (many attempts over time)
 
 **Key Rules**:
 - `descricao` is never auto-populated
+- `estado_conservacao` is always selected manually by the donor
+- `autor` and `editora` may be suggested by Gemini when visible on the material or strongly supported by search grounding
 - `cidade` and `bairro` are normalized before persistence
 - `consentimento_ia = false` must short-circuit Gemini usage
 

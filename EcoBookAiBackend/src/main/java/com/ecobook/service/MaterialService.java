@@ -111,6 +111,8 @@ public class MaterialService {
             Material material = materialRepository.save(Material.builder()
                     .doador(usuario)
                     .titulo(validated.titulo())
+                    .autor(validated.autor())
+                    .editora(validated.editora())
                     .descricao(validated.descricao())
                     .disciplina(validated.disciplina())
                     .nivelEnsino(validated.nivelEnsino())
@@ -144,6 +146,8 @@ public class MaterialService {
         return MaterialDTO.builder()
                 .id(material.getId().toString())
                 .titulo(material.getTitulo())
+                .autor(material.getAutor())
+                .editora(material.getEditora())
                 .descricao(material.getDescricao())
                 .disciplina(material.getDisciplina().name())
                 .nivelEnsino(material.getNivelEnsino().name())
@@ -211,6 +215,16 @@ public class MaterialService {
             errors.put("titulo", "O titulo deve ter no maximo 255 caracteres");
         }
 
+        String autor = trimToNull(request.getAutor());
+        if (autor != null && autor.length() > 255) {
+            errors.put("autor", "O autor deve ter no maximo 255 caracteres");
+        }
+
+        String editora = trimToNull(request.getEditora());
+        if (editora != null && editora.length() > 255) {
+            errors.put("editora", "A editora deve ter no maximo 255 caracteres");
+        }
+
         String descricao = trimToNull(request.getDescricao());
         if (descricao == null) {
             errors.put("descricao", "Informe a descricao do material");
@@ -246,6 +260,8 @@ public class MaterialService {
         return new ValidatedMaterialRequest(
                 uploadId,
                 titulo,
+                autor,
+                editora,
                 descricao,
                 disciplina,
                 nivelEnsino,
@@ -293,6 +309,8 @@ public class MaterialService {
     private record ValidatedMaterialRequest(
             String uploadId,
             String titulo,
+            String autor,
+            String editora,
             String descricao,
             Disciplina disciplina,
             NivelEnsino nivelEnsino,

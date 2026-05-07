@@ -108,6 +108,8 @@ fun MaterialUploadScreen(
                 MaterialFlowStage.REVIEW -> ReviewScreen(
                     uiState = uiState,
                     onTituloChange = viewModel::updateTitulo,
+                    onAutorChange = viewModel::updateAutor,
+                    onEditoraChange = viewModel::updateEditora,
                     onDescricaoChange = viewModel::updateDescricao,
                     onAnoChange = viewModel::updateAno,
                     onDataPublicacaoChange = viewModel::updateDataPublicacao,

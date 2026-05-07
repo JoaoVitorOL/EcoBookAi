@@ -34,6 +34,8 @@ import com.ecobook.ui.components.StatusBadge
 fun ReviewScreen(
     uiState: MaterialUploadUiState,
     onTituloChange: (String) -> Unit,
+    onAutorChange: (String) -> Unit,
+    onEditoraChange: (String) -> Unit,
     onDescricaoChange: (String) -> Unit,
     onAnoChange: (String) -> Unit,
     onDataPublicacaoChange: (String) -> Unit,
@@ -108,6 +110,24 @@ fun ReviewScreen(
                 errorMessage = uiState.validationErrors["titulo"]
             )
 
+            ConfidenceIndicator(confidence = uiState.confidenceByField["autor"])
+            EditableField(
+                value = uiState.draft.autor,
+                onValueChange = onAutorChange,
+                label = "Autor (opcional)",
+                modifier = Modifier.fillMaxWidth(),
+                errorMessage = uiState.validationErrors["autor"]
+            )
+
+            ConfidenceIndicator(confidence = uiState.confidenceByField["editora"])
+            EditableField(
+                value = uiState.draft.editora,
+                onValueChange = onEditoraChange,
+                label = "Editora (opcional)",
+                modifier = Modifier.fillMaxWidth(),
+                errorMessage = uiState.validationErrors["editora"]
+            )
+
             ConfidenceIndicator(confidence = null)
             EditableField(
                 value = uiState.draft.descricao,
@@ -161,7 +181,7 @@ fun ReviewScreen(
                 errorMessage = uiState.validationErrors["sistema_ensino"]
             )
 
-            ConfidenceIndicator(confidence = uiState.confidenceByField["estado_conservacao"])
+            ConfidenceIndicator(confidence = null)
             EnumDropdown(
                 label = "Estado de conservacao",
                 selectedValue = uiState.draft.estadoConservacao,

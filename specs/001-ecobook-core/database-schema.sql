@@ -106,6 +106,8 @@ CREATE TABLE material (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     doador_id UUID NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
     titulo VARCHAR(255) NOT NULL,
+    autor VARCHAR(255),
+    editora VARCHAR(255),
     descricao TEXT,
     disciplina disciplina_enum NOT NULL,
     nivel_ensino nivel_ensino_enum NOT NULL,

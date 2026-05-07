@@ -1,0 +1,3 @@
+ALTER TABLE material
+ADD COLUMN autor VARCHAR(255),
+ADD COLUMN editora VARCHAR(255);

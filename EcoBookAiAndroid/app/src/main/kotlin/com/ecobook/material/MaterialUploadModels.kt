@@ -30,6 +30,8 @@ data class SelectedImageUiModel(
 
 data class MaterialDraft(
     val titulo: String = "",
+    val autor: String = "",
+    val editora: String = "",
     val descricao: String = "",
     val disciplina: Disciplina? = null,
     val nivelEnsino: NivelEnsino? = null,

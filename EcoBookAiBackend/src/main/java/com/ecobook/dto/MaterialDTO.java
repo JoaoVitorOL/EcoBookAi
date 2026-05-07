@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 public class MaterialDTO {
     private String id;
     private String titulo;
+    private String autor;
+    private String editora;
     private String descricao;
     private String disciplina;
     private String nivelEnsino;
