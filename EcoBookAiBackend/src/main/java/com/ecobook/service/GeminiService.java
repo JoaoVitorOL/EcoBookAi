@@ -221,15 +221,24 @@ public class GeminiService {
     }
 
     private GeminiResponseDTO doGeminiCall(byte[] imageBytes, String mimeType) throws IOException {
+        boolean includeGoogleSearchTool = shouldUseGoogleSearchTool();
+
+        return executeGeminiCall(imageBytes, mimeType, includeGoogleSearchTool);
+    }
+
+    private GeminiResponseDTO executeGeminiCall(byte[] imageBytes,
+                                                String mimeType,
+                                                boolean includeGoogleSearchTool) throws IOException {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(timeoutSeconds))
                 .readTimeout(Duration.ofSeconds(timeoutSeconds))
                 .writeTimeout(Duration.ofSeconds(timeoutSeconds))
                 .build();
 
-        String body = objectMapper.writeValueAsString(buildRequestBody(imageBytes, mimeType));
+        String body = objectMapper.writeValueAsString(buildRequestBody(imageBytes, mimeType, includeGoogleSearchTool));
         Request request = new Request.Builder()
-                .url("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey)
+                .url("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent")
+                .addHeader("x-goog-api-key", apiKey)
                 .post(RequestBody.create(body, JSON))
                 .build();
 
@@ -251,7 +260,21 @@ public class GeminiService {
                 );
             }
             if (!response.isSuccessful()) {
-                return failureResponse("Gemini retornou erro HTTP " + response.code(), false, false, List.of(), List.of());
+                String errorPayload = response.body() != null ? response.body().string() : "";
+                if (response.code() == 400
+                        && includeGoogleSearchTool
+                        && isStructuredOutputToolConflict(errorPayload)) {
+                    log.warn("Gemini rejeitou o uso de google_search com JSON mode no modelo {}; tentando novamente sem grounding", model);
+                    return executeGeminiCall(imageBytes, mimeType, false);
+                }
+
+                return failureResponse(
+                        buildGeminiHttpErrorMessage(response.code(), errorPayload),
+                        false,
+                        false,
+                        List.of(),
+                        List.of()
+                );
             }
 
             String payload = response.body() != null ? response.body().string() : "";
@@ -285,9 +308,14 @@ public class GeminiService {
         }
     }
 
-    private Map<String, Object> buildRequestBody(byte[] imageBytes, String mimeType) {
+    private Map<String, Object> buildRequestBody(byte[] imageBytes,
+                                                 String mimeType,
+                                                 boolean includeGoogleSearchTool) {
         Map<String, Object> request = new LinkedHashMap<>();
-        Map<String, Object> textPart = Map.of("text", prompt());
+        Map<String, Object> textPart = Map.of(
+                "text",
+                includeGoogleSearchTool ? prompt(true) : promptWithoutGoogleSearchTool()
+        );
         Map<String, Object> imagePart = Map.of(
                 "inlineData", Map.of(
                         "mimeType", mimeType,
@@ -295,7 +323,7 @@ public class GeminiService {
                 )
         );
         request.put("contents", List.of(Map.of("parts", List.of(textPart, imagePart))));
-        if (googleSearchEnabled) {
+        if (includeGoogleSearchTool) {
             request.put("tools", List.of(Map.of("google_search", Map.of())));
         }
         request.put("generationConfig", Map.of(
@@ -305,8 +333,8 @@ public class GeminiService {
         return request;
     }
 
-    private String prompt() {
-        if (googleSearchEnabled || !googleSearchEnabled) {
+    private String prompt(boolean includeGoogleSearchTool) {
+        if (includeGoogleSearchTool) {
             return String.join("\n",
                     "Analise a imagem de um material educacional brasileiro.",
                     "Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.",
@@ -341,6 +369,73 @@ public class GeminiService {
                 Seja conservador nas predicoes e priorize a precisao da informacao.
                 Você pode pesquisar na internet as informacoes do livro a partir da imagem fornecida caso não estejam explicitas na foto, mas se tiver duvida, deixe o campo como null. Seja conservador nas predicoes e priorize a precisao da informação.
                 """;
+    }
+
+    private String promptWithoutGoogleSearchTool() {
+        return String.join("\n",
+                "Analise a imagem de um material educacional brasileiro.",
+                "Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.",
+                "Cada campo deve seguir o formato {\"value\": \"...\", \"confidence\": 0.0}.",
+                "Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.",
+                "Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
+                "Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.",
+                "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.",
+                "Para campos nao identificados, use value null e confidence null.",
+                "Nunca invente descricao. Nunca retorne texto fora do JSON.",
+                "Autor e editora devem ser extraidos da capa, lombada ou outras partes visiveis da imagem sempre que possivel.",
+                "So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.",
+                "Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.",
+                "Seja conservador nas predicoes e priorize a precisao da informacao."
+        );
+    }
+
+    private boolean shouldUseGoogleSearchTool() {
+        if (!googleSearchEnabled) {
+            return false;
+        }
+
+        if (supportsStructuredOutputsWithTools(model)) {
+            return true;
+        }
+
+        log.info("Google Search grounding desativado para o modelo {} porque esta integracao exige JSON mode e essa combinacao so e habilitada aqui para modelos Gemini 3", model);
+        return false;
+    }
+
+    private boolean supportsStructuredOutputsWithTools(String modelName) {
+        if (!StringUtils.hasText(modelName)) {
+            return false;
+        }
+
+        return modelName.trim().toLowerCase(Locale.ROOT).startsWith("gemini-3");
+    }
+
+    private boolean isStructuredOutputToolConflict(String payload) {
+        String errorMessage = extractGeminiErrorMessage(payload);
+        return errorMessage.toLowerCase(Locale.ROOT).contains("tool use with a response mime type");
+    }
+
+    private String buildGeminiHttpErrorMessage(int statusCode, String payload) {
+        String apiMessage = extractGeminiErrorMessage(payload);
+        if (!StringUtils.hasText(apiMessage)) {
+            return "Gemini retornou erro HTTP " + statusCode;
+        }
+
+        return "Gemini retornou erro HTTP " + statusCode + ": " + apiMessage;
+    }
+
+    private String extractGeminiErrorMessage(String payload) {
+        if (!StringUtils.hasText(payload)) {
+            return "";
+        }
+
+        try {
+            JsonNode root = objectMapper.readTree(payload);
+            return root.path("error").path("message").asText("");
+        } catch (JsonProcessingException ex) {
+            log.debug("Nao foi possivel extrair a mensagem de erro do Gemini a partir do payload: {}", payload, ex);
+            return "";
+        }
     }
 
     private Object parseFieldValue(String field, JsonNode valueNode) {

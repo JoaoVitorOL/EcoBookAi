@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,5 +97,73 @@ class GeminiServiceTest {
         );
 
         assertThat(geminiService.determineFallbackStatus(predictions).name()).isEqualTo("SUCCESS");
+    }
+
+    @Test
+    @DisplayName("buildRequestBody should skip google_search for Gemini 2.5 JSON-mode requests")
+    @SuppressWarnings("unchecked")
+    void shouldSkipGoogleSearchToolForGemini25() {
+        ReflectionTestUtils.setField(geminiService, "googleSearchEnabled", true);
+        ReflectionTestUtils.setField(geminiService, "model", "gemini-2.5-flash");
+
+        boolean includeGoogleSearchTool = (boolean) ReflectionTestUtils.invokeMethod(geminiService, "shouldUseGoogleSearchTool");
+        Map<String, Object> requestBody = (Map<String, Object>) ReflectionTestUtils.invokeMethod(
+                geminiService,
+                "buildRequestBody",
+                new byte[]{1, 2, 3},
+                "image/png",
+                includeGoogleSearchTool
+        );
+
+        assertThat(includeGoogleSearchTool).isFalse();
+        assertThat(requestBody).doesNotContainKey("tools");
+
+        List<Map<String, Object>> contents = (List<Map<String, Object>>) requestBody.get("contents");
+        List<Map<String, Object>> parts = (List<Map<String, Object>>) contents.get(0).get("parts");
+        String prompt = (String) parts.get(0).get("text");
+        assertThat(prompt).doesNotContain("Google Search grounding");
+    }
+
+    @Test
+    @DisplayName("buildRequestBody should keep google_search available for Gemini 3 models")
+    @SuppressWarnings("unchecked")
+    void shouldKeepGoogleSearchToolForGemini3() {
+        ReflectionTestUtils.setField(geminiService, "googleSearchEnabled", true);
+        ReflectionTestUtils.setField(geminiService, "model", "gemini-3-flash-preview");
+
+        boolean includeGoogleSearchTool = (boolean) ReflectionTestUtils.invokeMethod(geminiService, "shouldUseGoogleSearchTool");
+        Map<String, Object> requestBody = (Map<String, Object>) ReflectionTestUtils.invokeMethod(
+                geminiService,
+                "buildRequestBody",
+                new byte[]{1, 2, 3},
+                "image/png",
+                includeGoogleSearchTool
+        );
+
+        assertThat(includeGoogleSearchTool).isTrue();
+        assertThat(requestBody).containsKey("tools");
+
+        List<Map<String, Object>> tools = (List<Map<String, Object>>) requestBody.get("tools");
+        assertThat(tools).containsExactly(Map.of("google_search", Map.of()));
+    }
+
+    @Test
+    @DisplayName("buildGeminiHttpErrorMessage should expose the API message when Gemini rejects the request")
+    void shouldExposeGeminiApiErrorMessage() {
+        String payload = """
+                {
+                  "error": {
+                    "code": 400,
+                    "message": "Tool use with a response mime type: 'application/json' is unsupported",
+                    "status": "INVALID_ARGUMENT"
+                  }
+                }
+                """;
+
+        String message = ReflectionTestUtils.invokeMethod(geminiService, "buildGeminiHttpErrorMessage", 400, payload);
+
+        assertThat(message).isEqualTo(
+                "Gemini retornou erro HTTP 400: Tool use with a response mime type: 'application/json' is unsupported"
+        );
     }
 }

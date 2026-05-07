@@ -87,6 +87,7 @@ Importante:
 
 - definir `GEMINI_API_KEY=...` sem `export` no shell do WSL nao basta; o Maven e o Spring nao herdam essa variavel
 - uma chave configurada no WSL nao aparece automaticamente no `PowerShell` do Windows
+- o modelo padrao `gemini-2.5-flash` nao aceita `google_search` combinado com `responseMimeType=application/json` nesse fluxo; por isso o backend passa a desligar grounding automaticamente fora dos modelos `gemini-3*` para evitar `HTTP 400` da API
 
 ## Regra atual de autenticacao
 
