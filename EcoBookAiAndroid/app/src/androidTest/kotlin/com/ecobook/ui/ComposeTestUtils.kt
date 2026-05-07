@@ -1,8 +1,8 @@
 package com.ecobook.ui
 
-import androidx.compose.ui.test.ComposeContentTestRule
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
 
 object ComposeTestUtils {
 
@@ -14,7 +14,7 @@ object ComposeTestUtils {
     }
 
     fun assertAuthenticationVisible(rule: ComposeContentTestRule) {
-        rule.onNodeWithText("Continuar com Google").assertIsDisplayed()
         rule.onNodeWithText("Entrar no EcoBook").assertIsDisplayed()
+        rule.onNodeWithText("Ainda nao tem conta? Criar conta").assertIsDisplayed()
     }
 }

@@ -46,14 +46,14 @@ class MaterialControllerPreviewTest extends BaseIntegrationTest {
                 validPng()
         );
 
-        mockMvc.perform(multipart("/v1/materiais/preview")
+                mockMvc.perform(multipart("/v1/materiais/preview")
                         .file(file)
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status_ia").value("LOW_CONFIDENCE"))
-                .andExpect(jsonPath("$.upload_id").isNotEmpty())
-                .andExpect(jsonPath("$.best_prediction.titulo.value").value("matematica 7 ano"))
-                .andExpect(jsonPath("$.best_prediction.disciplina.value").value("MATEMATICA"));
+                .andExpect(jsonPath("$.data.status_ia").value("LOW_CONFIDENCE"))
+                .andExpect(jsonPath("$.data.upload_id").isNotEmpty())
+                .andExpect(jsonPath("$.data.best_prediction.titulo.value").value("matematica 7 ano"))
+                .andExpect(jsonPath("$.data.best_prediction.disciplina.value").value("MATEMATICA"));
     }
 
     @Test
@@ -67,14 +67,14 @@ class MaterialControllerPreviewTest extends BaseIntegrationTest {
                 validPng()
         );
 
-        mockMvc.perform(multipart("/v1/materiais/preview")
+                mockMvc.perform(multipart("/v1/materiais/preview")
                         .file(file)
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status_ia").value("FAILURE"))
-                .andExpect(jsonPath("$.upload_id").isNotEmpty())
-                .andExpect(jsonPath("$.best_prediction").isEmpty())
-                .andExpect(jsonPath("$.error_details.missing_fields[0]").value("consentimento_ia"));
+                .andExpect(jsonPath("$.data.status_ia").value("FAILURE"))
+                .andExpect(jsonPath("$.data.upload_id").isNotEmpty())
+                .andExpect(jsonPath("$.data.best_prediction").isEmpty())
+                .andExpect(jsonPath("$.data.error_details.missing_fields[0]").value("consentimento_ia"));
     }
 
     @Test

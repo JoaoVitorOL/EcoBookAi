@@ -18,9 +18,35 @@ val localProperties = Properties().apply {
 fun localProperty(name: String, defaultValue: String = ""): String =
     localProperties.getProperty(name, defaultValue)
 
+val googleServicesConfigFile = file("google-services.json")
+val expectedGoogleServicesPackage = "com.ecobook"
+
+if (
+    googleServicesConfigFile.exists() &&
+    googleServicesConfigFile.readText().contains("\"package_name\": \"$expectedGoogleServicesPackage\"")
+) {
+    // Keep Firebase wiring scoped to FCM and only apply the plugin when the
+    // project-specific config file is present and matches this app id.
+    apply(plugin = "com.google.gms.google-services")
+} else if (googleServicesConfigFile.exists()) {
+    logger.warn(
+        "Skipping com.google.gms.google-services: google-services.json does not " +
+            "contain a client for $expectedGoogleServicesPackage."
+    )
+}
+
 android {
     namespace = "com.ecobook"
     compileSdk = 34
+
+    sourceSets {
+        getByName("test") {
+            java.srcDirs("src/test/java", "src/test/kotlin")
+        }
+        getByName("androidTest") {
+            java.srcDirs("src/androidTest/java", "src/androidTest/kotlin")
+        }
+    }
 
     defaultConfig {
         applicationId = "com.ecobook"
@@ -42,7 +68,6 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
         release {
@@ -86,6 +111,11 @@ android {
         animationsDisabled = true
         managedDevices {
             devices {
+                // ManagedVirtualDevice in this workspace exposes the stable knobs we use
+                // here: device/apiLevel/systemImageSource. The Pixel 6 profile keeps the
+                // managed AVD comfortably above the 1GB RAM floor from the original
+                // checklist, while AGP handles persistent AVD storage automatically in
+                // its managed-device workspace.
                 maybeCreate<ManagedVirtualDevice>("pixel6Api34").apply {
                     device = "Pixel 6"
                     apiLevel = 34
@@ -141,7 +171,8 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Firebase
-    implementation("com.google.firebase:firebase-messaging:23.4.1")
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
     // Image Loading
     implementation("io.coil-kt:coil-compose:2.5.0")

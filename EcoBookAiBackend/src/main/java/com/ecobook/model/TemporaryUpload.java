@@ -22,6 +22,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -71,7 +73,8 @@ public class TemporaryUpload {
     private LocalDateTime expiresAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status_ia")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status_ia", columnDefinition = "status_ia_enum")
     private StatusIA statusIa;
 
     @Column(name = "confianca_ia", precision = 3, scale = 2)

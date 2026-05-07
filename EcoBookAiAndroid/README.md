@@ -16,8 +16,8 @@ Aplicativo Android nativo do EcoBook AI.
 - Navegacao com quatro areas: `Painel`, `Buscar`, `Doar` e `Perfil`
 - Verificacao real do backend via `GET /api/v1/health`
 - Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
-- Catalogo local e fluxo visual de doacao para validar UX antes da integracao dos modulos de materiais e matching
-- Base pronta para integrar materiais, preview com IA e solicitacoes
+- Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual e `POST /materiais`
+- Base pronta para evoluir matching, solicitacoes e notificacoes de negocio
 
 ## Requisitos
 
@@ -38,6 +38,7 @@ Aplicativo Android nativo do EcoBook AI.
    - Android Emulator
 3. Crie o arquivo `local.properties` na raiz de `EcoBookAiAndroid`.
 4. Use `local.properties.example` como base.
+5. Para ativar Firebase Cloud Messaging real, baixe `google-services.json` do Firebase Console e coloque em `app/google-services.json`.
 
 Exemplo:
 
@@ -85,11 +86,38 @@ Validacao atual nesta maquina:
 
 Esses comandos passam com o SDK configurado em `local.properties`.
 
+Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, catalogo, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
+
 ## Como rodar pelo Android Studio
 
 1. Crie um emulador com Android 14 / API 34 ou conecte um celular com depuracao USB.
 2. Clique em `Run`.
 3. Escolha o dispositivo.
+
+## Managed device do Gradle
+
+O projeto tambem inclui o managed device `pixel6Api34` em `app/build.gradle.kts` para smoke tests automatizados.
+
+- Perfil: `Pixel 6`
+- API: `34`
+- System image: `aosp-atd`
+
+O Android Gradle Plugin gerencia automaticamente a criacao e a persistencia desse AVD no workspace de managed devices. A DSL oficial do `ManagedVirtualDevice` nao expoe campos dedicados para RAM manual ou caminho customizado de storage; por isso a configuracao usa o hardware profile do Pixel 6 como baseline acima de 1 GB de memoria.
+
+Para listar ou executar as tasks relacionadas, use:
+
+```powershell
+.\gradlew.bat tasks --all
+```
+
+Comandos confirmados nesta workspace:
+
+```powershell
+.\gradlew.bat app:pixel6Api34DebugAndroidTest
+.\gradlew.bat app:smokeGroupDebugAndroidTest
+```
+
+Para testar FCM real, prefira um dispositivo fisico Android ou um emulador com Google Play services. O managed device `aosp-atd` continua util para smoke tests gerais, mas nao e o alvo ideal para push real.
 
 ## Backend local no emulador
 
@@ -115,7 +143,7 @@ Se o backend estiver no WSL e o app continuar mostrando `Servidor indisponivel`,
 
 ## Observacao sobre o estado atual do codigo
 
-O fluxo legado de autenticacao com Google foi removido do app. O foco atual do modulo Android e estabilizar auth/perfil e integrar os proximos endpoints de materiais, preview com IA e solicitacoes.
+O fluxo legado de autenticacao com Google foi removido do app. O foco atual do modulo Android e consolidar o que ja esta integrado em auth/perfil/materiais e avancar nos proximos endpoints de matching, solicitacoes e notificacoes.
 
 ## Celular fisico
 

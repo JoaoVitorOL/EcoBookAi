@@ -28,6 +28,6 @@ class MockApiInterceptor : Interceptor {
 
     private companion object {
         const val HEALTH_RESPONSE =
-            """{"status":"UP","application":"EcoBook IA Backend","version":"test","timestamp":"2026-05-04T00:00:00"}"""
+            """{"status":200,"message":"Backend online","timestamp":"2026-05-04T00:00:00","path":"/api/v1/health","data":{"status":"UP","application":"EcoBook IA Backend","version":"test","timestamp":"2026-05-04T00:00:00"}}"""
     }
 }

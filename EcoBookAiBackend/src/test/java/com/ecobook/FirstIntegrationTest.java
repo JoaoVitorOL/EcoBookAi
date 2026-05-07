@@ -43,23 +43,23 @@ public class FirstIntegrationTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.perfil_completo").value(false))
+                .andExpect(jsonPath("$.data.perfil_completo").value(false))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         JsonNode registerJson = objectMapper.readTree(registerResponse);
-        String appToken = registerJson.path("token").asText();
+        String appToken = registerJson.path("data").path("token").asText();
 
         mockMvc.perform(get("/v1/usuarios/me")
                         .header("Authorization", "Bearer " + appToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("flow@example.com"))
-                .andExpect(jsonPath("$.perfil_completo").value(false));
+                .andExpect(jsonPath("$.data.email").value("flow@example.com"))
+                .andExpect(jsonPath("$.data.perfil_completo").value(false));
 
         mockMvc.perform(get("/v1/health"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"));
+                .andExpect(jsonPath("$.data.status").value("UP"));
 
         Integer databaseProbe = jdbcTemplate.queryForObject("SELECT 1", Integer.class);
         assertThat(databaseProbe).isEqualTo(1);

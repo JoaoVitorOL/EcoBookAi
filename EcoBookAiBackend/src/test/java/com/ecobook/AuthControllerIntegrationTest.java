@@ -47,12 +47,12 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("newuser@example.com"))
-                .andExpect(jsonPath("$.nome").value("New User"))
-                .andExpect(jsonPath("$.perfil_completo").value(false))
-                .andExpect(jsonPath("$.consentimento_ia").value(false))
-                .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.data.email").value("newuser@example.com"))
+                .andExpect(jsonPath("$.data.nome").value("New User"))
+                .andExpect(jsonPath("$.data.perfil_completo").value(false))
+                .andExpect(jsonPath("$.data.consentimento_ia").value(false))
+                .andExpect(jsonPath("$.data.role").value("USER"))
+                .andExpect(jsonPath("$.data.token").isNotEmpty())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -64,7 +64,7 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                     assertThat(usuario.getPasswordHash()).isNotEqualTo("SenhaSegura123");
                     assertThat(passwordEncoder.matches("SenhaSegura123", usuario.getPasswordHash())).isTrue();
                 });
-        assertThat(jsonNode.path("expires_in").asLong()).isPositive();
+        assertThat(jsonNode.path("data").path("expires_in").asLong()).isPositive();
     }
 
     @Test
@@ -148,9 +148,9 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("existing@example.com"))
-                .andExpect(jsonPath("$.perfil_completo").value(false))
-                .andExpect(jsonPath("$.token").isNotEmpty());
+                .andExpect(jsonPath("$.data.email").value("existing@example.com"))
+                .andExpect(jsonPath("$.data.perfil_completo").value(false))
+                .andExpect(jsonPath("$.data.token").isNotEmpty());
     }
 
     @Test
@@ -193,8 +193,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("mixedcase@example.com"))
-                .andExpect(jsonPath("$.nome").value("Mixed User"));
+                .andExpect(jsonPath("$.data.email").value("mixedcase@example.com"))
+                .andExpect(jsonPath("$.data.nome").value("Mixed User"));
 
         assertThat(usuarioRepository.findByEmailIgnoreCase("mixedcase@example.com"))
                 .hasValueSatisfying(usuario -> assertThat(usuario.getNome()).isEqualTo("Mixed User"));
@@ -223,7 +223,7 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("caseuser@example.com"));
+                .andExpect(jsonPath("$.data.email").value("caseuser@example.com"));
     }
 
     @Test

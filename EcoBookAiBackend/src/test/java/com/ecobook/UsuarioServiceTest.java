@@ -53,10 +53,10 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.perfil_completo").value(true))
-                .andExpect(jsonPath("$.cidade").value("SAO JOSE DOS CAMPOS"))
-                .andExpect(jsonPath("$.bairro").value("CENTRO"))
-                .andExpect(jsonPath("$.consentimento_ia").value(true));
+                .andExpect(jsonPath("$.data.perfil_completo").value(true))
+                .andExpect(jsonPath("$.data.cidade").value("SAO JOSE DOS CAMPOS"))
+                .andExpect(jsonPath("$.data.bairro").value("CENTRO"))
+                .andExpect(jsonPath("$.data.consentimento_ia").value(true));
     }
 
     @Test
@@ -135,10 +135,10 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.instituicao").value("IFSP Campinas"))
-                .andExpect(jsonPath("$.consentimento_ia").value(false))
-                .andExpect(jsonPath("$.necessidades_academicas").isArray())
-                .andExpect(jsonPath("$.necessidades_academicas").isEmpty());
+                .andExpect(jsonPath("$.data.instituicao").value("IFSP Campinas"))
+                .andExpect(jsonPath("$.data.consentimento_ia").value(false))
+                .andExpect(jsonPath("$.data.necessidades_academicas").isArray())
+                .andExpect(jsonPath("$.data.necessidades_academicas").isEmpty());
 
         usuarioRepository.findByEmailIgnoreCase("institution@example.com")
                 .ifPresent(usuario -> {

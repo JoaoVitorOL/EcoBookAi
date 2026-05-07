@@ -1,5 +1,6 @@
 package com.ecobook.api
 
+import com.ecobook.dto.ApiEnvelopeDTO
 import com.ecobook.dto.CreateMaterialRequestDTO
 import com.ecobook.dto.GeminiResponseDTO
 import com.ecobook.dto.MaterialDTO
@@ -14,8 +15,8 @@ interface MaterialApiService {
 
     @Multipart
     @POST("v1/materiais/preview")
-    suspend fun previewMaterial(@Part file: MultipartBody.Part): Response<GeminiResponseDTO>
+    suspend fun previewMaterial(@Part file: MultipartBody.Part): Response<ApiEnvelopeDTO<GeminiResponseDTO>>
 
     @POST("v1/materiais")
-    suspend fun createMaterial(@Body request: CreateMaterialRequestDTO): Response<MaterialDTO>
+    suspend fun createMaterial(@Body request: CreateMaterialRequestDTO): Response<ApiEnvelopeDTO<MaterialDTO>>
 }

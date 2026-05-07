@@ -7,6 +7,10 @@
 
 ---
 
+Current runtime note:
+- Successful responses are wrapped in the standard envelope `{ status, message, timestamp, path, data }`.
+- The JSON objects shown in the success examples below represent the `data` payload for readability.
+
 ## POST /auth/register
 
 Create a new local account with `email + password`.

@@ -75,14 +75,14 @@ class MaterialControllerCreateTest extends BaseIntegrationTest {
                                 }
                                 """.formatted(uploadId)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.titulo").value("Colecao Anglo Matematica 7"))
-                .andExpect(jsonPath("$.descricao").value("Livro em bom estado, usado em 2024 e pronto para nova doacao."))
-                .andExpect(jsonPath("$.status").value("DISPONIVEL"))
-                .andExpect(jsonPath("$.upload_id").value(uploadId))
-                .andExpect(jsonPath("$.imagem_url").value(org.hamcrest.Matchers.containsString("/api/uploads/")))
-                .andExpect(jsonPath("$.doador.nome").value("Create User"))
-                .andExpect(jsonPath("$.cidade").value("FLORIANOPOLIS"))
-                .andExpect(jsonPath("$.bairro").value("CENTRO"));
+                .andExpect(jsonPath("$.data.titulo").value("Colecao Anglo Matematica 7"))
+                .andExpect(jsonPath("$.data.descricao").value("Livro em bom estado, usado em 2024 e pronto para nova doacao."))
+                .andExpect(jsonPath("$.data.status").value("DISPONIVEL"))
+                .andExpect(jsonPath("$.data.upload_id").value(uploadId))
+                .andExpect(jsonPath("$.data.imagem_url").value(org.hamcrest.Matchers.containsString("/api/uploads/")))
+                .andExpect(jsonPath("$.data.doador.nome").value("Create User"))
+                .andExpect(jsonPath("$.data.cidade").value("FLORIANOPOLIS"))
+                .andExpect(jsonPath("$.data.bairro").value("CENTRO"));
 
         assertThat(materialRepository.findAll()).hasSize(1);
         assertThat(temporaryUploadRepository.findByUploadId(uploadId))
@@ -188,7 +188,7 @@ class MaterialControllerCreateTest extends BaseIntegrationTest {
                 .getContentAsString();
 
         JsonNode json = objectMapper.readTree(body);
-        return json.path("upload_id").asText();
+        return json.path("data").path("upload_id").asText();
     }
 
     private String tokenFor(Usuario usuario) {

@@ -1,5 +1,8 @@
 package com.ecobook.controller;
 
+import com.ecobook.dto.ApiEnvelope;
+import com.ecobook.dto.ApiEnvelopeResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +18,12 @@ import java.util.Map;
 public class HealthController {
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> health() {
+    public ResponseEntity<ApiEnvelope<Map<String, Object>>> health(HttpServletRequest servletRequest) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("timestamp", LocalDateTime.now());
         response.put("application", "EcoBook IA Backend");
         response.put("version", "1.0.0-SNAPSHOT");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ApiEnvelopeResponses.ok(servletRequest, "Backend online", response);
     }
 }

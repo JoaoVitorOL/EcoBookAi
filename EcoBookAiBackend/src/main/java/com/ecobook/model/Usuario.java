@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -68,6 +70,9 @@ public class Usuario {
     @Column(length = 255)
     private String instituicao;
 
+    @Column(name = "fcm_token", length = 512)
+    private String fcmToken;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean perfilCompleto = false;
@@ -77,14 +82,16 @@ public class Usuario {
     private Boolean consentimentoIa = false;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "role_enum")
     @Builder.Default
     private Role role = Role.USER;
 
     @ElementCollection(targetClass = NecessidadeAcademica.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "usuario_necessidades", joinColumns = @JoinColumn(name = "usuario_id"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "necessidade")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "necessidade", columnDefinition = "necessidade_academica_enum")
     @Builder.Default
     private Set<NecessidadeAcademica> necessidadesAcademicas = new HashSet<>();
 

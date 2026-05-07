@@ -62,7 +62,12 @@ class EcoBookRepository @Inject constructor(
     suspend fun loadBackendStatus(): BackendStatus {
         return runCatching { apiClient.getHealth() }
             .fold(
-                onSuccess = { response ->
+                onSuccess = { envelope ->
+                    val response = envelope.data ?: return@fold BackendStatus(
+                        state = BackendConnectionState.OFFLINE,
+                        headline = "Backend indisponivel",
+                        detail = envelope.message
+                    )
                     BackendStatus(
                         state = BackendConnectionState.ONLINE,
                         headline = "Backend online",
@@ -170,7 +175,7 @@ class EcoBookRepository @Inject constructor(
             ),
             ProjectInsight(
                 title = "Integracao atual",
-                description = "Auth, perfil e sessao local ja funcionam. Materiais, preview com IA e solicitacoes seguem como a proxima frente de integracao."
+                description = "Auth, perfil, sessao local, upload com camera/galeria, preview com IA e publicacao final de materiais ja funcionam ponta a ponta. Solicitacoes e notificacoes de negocio seguem como a proxima frente."
             )
         )
     }
@@ -194,7 +199,7 @@ class EcoBookRepository @Inject constructor(
         return DonationPreview(
             aiStatus = AiAssistStatus.SUCCESS,
             confidence = 0.82,
-            description = "Mock visual do retorno esperado para /materiais/preview enquanto a etapa de IA ainda esta sendo conectada no backend.",
+            description = "Exemplo visual alinhado ao retorno atual de /materiais/preview para revisar os campos antes da publicacao final.",
             fields = listOf(
                 AIPreviewField("Titulo sugerido", "Colecao Anglo Matematica 7"),
                 AIPreviewField("Disciplina", "Matematica"),

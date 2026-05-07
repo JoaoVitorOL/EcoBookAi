@@ -3,6 +3,7 @@ package com.ecobook.data
 import android.content.Context
 import android.net.Uri
 import com.ecobook.api.MaterialApiService
+import com.ecobook.dto.ApiEnvelopeDTO
 import com.ecobook.dto.ApiErrorResponseDTO
 import com.ecobook.dto.CreateMaterialRequestDTO
 import com.ecobook.dto.GeminiResponseDTO
@@ -37,16 +38,17 @@ class MaterialRepository @Inject constructor(
         val preparedImage = ImageCompressionHelper.prepareForUpload(context, image.uri, image.fileName)
         val requestBody = preparedImage.bytes.toRequestBody(preparedImage.mimeType.toMediaType())
         val filePart = MultipartBody.Part.createFormData("file", preparedImage.fileName, requestBody)
-        requireBody(materialApiService.previewMaterial(filePart))
+        requireData(materialApiService.previewMaterial(filePart))
     }
 
     suspend fun createMaterial(request: CreateMaterialRequestDTO): MaterialDTO {
-        return requireBody(materialApiService.createMaterial(request))
+        return requireData(materialApiService.createMaterial(request))
     }
 
-    private fun <T> requireBody(response: Response<T>): T {
+    private fun <T> requireData(response: Response<ApiEnvelopeDTO<T>>): T {
         if (response.isSuccessful) {
-            return response.body() ?: throw ApiException(response.code(), "Resposta vazia do servidor")
+            val envelope = response.body() ?: throw ApiException(response.code(), "Resposta vazia do servidor")
+            return envelope.data ?: throw ApiException(response.code(), envelope.message)
         }
 
         val error = response.errorBody()?.string()?.takeIf { it.isNotBlank() }?.let { payload ->

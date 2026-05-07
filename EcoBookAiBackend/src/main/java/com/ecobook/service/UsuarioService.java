@@ -75,6 +75,20 @@ public class UsuarioService {
         return toDto(savedUser);
     }
 
+    @Transactional
+    public void updateFcmToken(String email, String token) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+
+        String normalizedToken = token.trim();
+        if (normalizedToken.equals(usuario.getFcmToken())) {
+            return;
+        }
+
+        usuario.setFcmToken(normalizedToken);
+        usuarioRepository.save(usuario);
+    }
+
     public UsuarioDTO toDto(Usuario usuario) {
         return UsuarioDTO.builder()
                 .id(usuario.getId().toString())

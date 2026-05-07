@@ -96,7 +96,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                         .file(validPreviewFile())
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.upload_id").isNotEmpty());
+                .andExpect(jsonPath("$.data.upload_id").isNotEmpty());
     }
 
     @Test

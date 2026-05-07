@@ -6,6 +6,10 @@
 
 ---
 
+Current runtime note:
+- Successful preview responses are wrapped in `{ status, message, timestamp, path, data }`.
+- The JSON objects below describe the inner `data` payload returned by the current backend.
+
 ## POST /materiais/preview
 
 Image preview endpoint for AI classification. Returns Gemini response with confidence levels and a temporary `upload_id` that remains usable even when the AI falls back to manual entry.

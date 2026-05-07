@@ -1,9 +1,12 @@
 package com.ecobook.controller;
 
+import com.ecobook.dto.ApiEnvelope;
+import com.ecobook.dto.ApiEnvelopeResponses;
 import com.ecobook.dto.AuthResponseDTO;
 import com.ecobook.dto.LoginRequestDTO;
 import com.ecobook.dto.RegisterRequestDTO;
 import com.ecobook.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,12 +24,22 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+    public ResponseEntity<ApiEnvelope<AuthResponseDTO>> register(@Valid @RequestBody RegisterRequestDTO request,
+                                                                HttpServletRequest servletRequest) {
+        return ApiEnvelopeResponses.created(
+                servletRequest,
+                "Conta criada com sucesso",
+                authService.register(request)
+        );
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<ApiEnvelope<AuthResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request,
+                                                             HttpServletRequest servletRequest) {
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Autenticacao realizada com sucesso",
+                authService.login(request)
+        );
     }
 }

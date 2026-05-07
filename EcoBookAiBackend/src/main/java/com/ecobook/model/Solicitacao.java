@@ -44,7 +44,8 @@ public class Solicitacao {
     private Usuario estudante;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "status_solicitacao_enum")
     @Builder.Default
     private StatusSolicitacao status = StatusSolicitacao.PENDENTE;
 

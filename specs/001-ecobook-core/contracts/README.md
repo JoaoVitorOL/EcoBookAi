@@ -23,6 +23,7 @@ Core rules:
 - `perfil_completo` gates material and request operations
 - WhatsApp uses E.164 format
 - Geographic normalization remains uppercase + NFD + ASCII
+- Successful responses are currently wrapped in a standard JSON envelope with `status`, `message`, `timestamp`, `path`, and `data`
 
 ---
 
@@ -72,6 +73,7 @@ Shared assumptions across contracts:
 
 - Authentication uses backend-issued JWT tokens
 - Registration and login are local email/password flows
+- Successful responses use the shared envelope `{ status, message, timestamp, path, data }`
 - `password_hash` is internal and never exposed by the API
 - `perfil_completo` stays separate from authentication success
 - Gemini, matching, and FCM flows remain unchanged by the auth pivot

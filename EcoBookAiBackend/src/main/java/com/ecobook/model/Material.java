@@ -3,6 +3,8 @@ package com.ecobook.model;
 import com.ecobook.model.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,26 +50,31 @@ public class Material {
     private String descricao;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "disciplina_enum")
     private Disciplina disciplina;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "nivel_ensino_enum")
     private NivelEnsino nivelEnsino;
 
     @Column
     private Integer ano;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "sistema_ensino_enum")
     private SistemaEnsino sistemaEnsino;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "estado_conservacao_enum")
     private EstadoConservacao estadoConservacao;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "status_material_enum")
     @Builder.Default
     private StatusMaterial status = StatusMaterial.DISPONIVEL;
 
@@ -87,7 +94,8 @@ public class Material {
     private Integer dataPublicacao;
 
     @Enumerated(EnumType.STRING)
-    @Column
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(columnDefinition = "status_ia_enum")
     private StatusIA statusIa;
 
     @Column(precision = 3, scale = 2)

@@ -111,6 +111,22 @@ class SecureStorage @Inject constructor(
         return runStorageOperation { encryptedSharedPreferences.getBoolean("user_consentimento_ia", false) } ?: false
     }
 
+    fun saveDiscoveredFcmToken(token: String) {
+        runStorageOperation { encryptedSharedPreferences.edit().putString("discovered_fcm_token", token).apply() }
+    }
+
+    fun getDiscoveredFcmToken(): String? {
+        return runStorageOperation { encryptedSharedPreferences.getString("discovered_fcm_token", null) }
+    }
+
+    fun saveLastSyncedFcmToken(token: String) {
+        runStorageOperation { encryptedSharedPreferences.edit().putString("last_synced_fcm_token", token).apply() }
+    }
+
+    fun getLastSyncedFcmToken(): String? {
+        return runStorageOperation { encryptedSharedPreferences.getString("last_synced_fcm_token", null) }
+    }
+
     fun hasToken(): Boolean {
         return !getToken().isNullOrBlank()
     }
@@ -123,6 +139,7 @@ class SecureStorage @Inject constructor(
                 .remove("user_bairro")
                 .remove("user_instituicao")
                 .remove("user_consentimento_ia")
+                .remove("last_synced_fcm_token")
                 .apply()
         }
     }

@@ -8,6 +8,7 @@
 ---
 
 > Implementation note: the current backend already exposes working Phase 3 endpoints for `/api/v1/materiais/preview` and `/api/v1/materiais`. Later sections in this file (`GET /materiais`, `GET /materiais/{id}`, `PATCH /materiais/{id}`) still describe future Phase 4+ behavior.
+> Successful runtime responses are wrapped in `{ status, message, timestamp, path, data }`; the JSON examples below focus on the inner `data` payload unless stated otherwise.
 
 ## POST /materiais
 

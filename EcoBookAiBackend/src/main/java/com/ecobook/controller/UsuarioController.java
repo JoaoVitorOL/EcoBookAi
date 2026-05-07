@@ -1,8 +1,11 @@
 package com.ecobook.controller;
 
+import com.ecobook.dto.ApiEnvelope;
+import com.ecobook.dto.ApiEnvelopeResponses;
 import com.ecobook.dto.UpdateProfileRequestDTO;
 import com.ecobook.dto.UsuarioDTO;
 import com.ecobook.service.UsuarioService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +26,24 @@ public class UsuarioController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UsuarioDTO> getMe(Authentication authentication) {
-        return ResponseEntity.ok(usuarioService.getByEmail(authentication.getName()));
+    public ResponseEntity<ApiEnvelope<UsuarioDTO>> getMe(Authentication authentication,
+                                                         HttpServletRequest servletRequest) {
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Perfil carregado com sucesso",
+                usuarioService.getByEmail(authentication.getName())
+        );
     }
 
     @PutMapping("/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UsuarioDTO> updateMe(Authentication authentication,
-                                               @Valid @RequestBody UpdateProfileRequestDTO request) {
-        return ResponseEntity.ok(usuarioService.updateProfile(authentication.getName(), request));
+    public ResponseEntity<ApiEnvelope<UsuarioDTO>> updateMe(Authentication authentication,
+                                                            @Valid @RequestBody UpdateProfileRequestDTO request,
+                                                            HttpServletRequest servletRequest) {
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Perfil atualizado com sucesso",
+                usuarioService.updateProfile(authentication.getName(), request)
+        );
     }
 }

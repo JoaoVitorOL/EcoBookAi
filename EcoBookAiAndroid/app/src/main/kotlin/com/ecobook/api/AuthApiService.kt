@@ -1,5 +1,6 @@
 package com.ecobook.api
 
+import com.ecobook.dto.ApiEnvelopeDTO
 import com.ecobook.dto.AuthResponseDTO
 import com.ecobook.dto.LoginRequestDTO
 import com.ecobook.dto.RegisterRequestDTO
@@ -14,14 +15,14 @@ import retrofit2.http.PUT
 interface AuthApiService {
 
     @POST("v1/auth/register")
-    suspend fun register(@Body request: RegisterRequestDTO): Response<AuthResponseDTO>
+    suspend fun register(@Body request: RegisterRequestDTO): Response<ApiEnvelopeDTO<AuthResponseDTO>>
 
     @POST("v1/auth/login")
-    suspend fun login(@Body request: LoginRequestDTO): Response<AuthResponseDTO>
+    suspend fun login(@Body request: LoginRequestDTO): Response<ApiEnvelopeDTO<AuthResponseDTO>>
 
     @GET("v1/usuarios/me")
-    suspend fun getMe(): Response<UsuarioDTO>
+    suspend fun getMe(): Response<ApiEnvelopeDTO<UsuarioDTO>>
 
     @PUT("v1/usuarios/me")
-    suspend fun updateProfile(@Body request: UpdateProfileRequestDTO): Response<UsuarioDTO>
+    suspend fun updateProfile(@Body request: UpdateProfileRequestDTO): Response<ApiEnvelopeDTO<UsuarioDTO>>
 }

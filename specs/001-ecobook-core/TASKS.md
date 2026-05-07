@@ -130,7 +130,7 @@ Phase 10: Polish & Integration
   - Coil (image loading)
   - Coroutines
 - [x] **T018** [P] Create `EcoBookAiAndroid/src/main/res/values/api_config.xml` with backend_url placeholder (`http://10.0.2.2:8080` for emulator, configurable per build variant)
-- [ ] **T019** [P] Download `google-services.json` from Firebase Console and place in `EcoBookAiAndroid/app/google-services.json`
+- [x] **T019** [P] Download `google-services.json` from Firebase Console and place in `EcoBookAiAndroid/app/google-services.json`
 - [x] **T020** [P] Create `EcoBookAiAndroid/local.properties` with SDK path and backend URL configuration
 - [x] **T021** [P] Setup Hilt application component in `EcoBookAiAndroid/src/main/java/com/ecobook/EcoBookApp.kt` with @HiltAndroidApp annotation
 - [x] **T022** [P] Create Retrofit API client in `EcoBookAiAndroid/src/main/java/com/ecobook/api/EcoBookApiClient.kt` (abstract base URL, authentication interceptor placeholder)
@@ -148,7 +148,7 @@ Phase 10: Polish & Integration
 - [x] **T031** [P] Setup code coverage reporting in `pom.xml` (JaCoCo, target 85% coverage for Phase 4 gate)
 - [x] **T032** [P] Create Android test structure in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/` with Compose testing utilities
 - [x] **T033** [P] Create mock interceptor in `EcoBookAiAndroid/src/androidTest/java/com/ecobook/api/MockApiInterceptor.kt` for returning stub responses during testing
-- [ ] **T034** [P] Setup Android emulator configuration in `EcoBookAiAndroid/build.gradle.kts` (API 26+, 1GB RAM, persistent storage path)
+- [x] **T034** [P] Setup Android emulator configuration in `EcoBookAiAndroid/build.gradle.kts` (API 26+, 1GB RAM, persistent storage path)
 - [x] **T035** [P] Create first E2E test scenario in `src/test/java/com/ecobook/FirstIntegrationTest.java` (register → health check → verify database connectivity)
 
 ---
@@ -232,7 +232,7 @@ Phase 10: Polish & Integration
 - [x] **T059** [US1] Create integration test in `src/test/java/com/ecobook/UsuarioControllerTest.java`:
   - GET /usuarios/me with valid JWT → HTTP 200 with user data
   - GET /usuarios/me without JWT → HTTP 401 Unauthorized
-- [ ] **T060** [US1] Create `@FeignClient` response wrapper for all controllers (standard JSON envelope with optional error details)
+- [x] **T060** [US1] Create `@FeignClient` response wrapper for all controllers (standard JSON envelope with optional error details)
 
 ### Module 2: Onboarding & Profile (RF-001)
 
@@ -1391,8 +1391,7 @@ Phase 3 closeout notes:
 
 - Backend automated coverage now includes preview/create scenarios and passes with `46` tests via `mvn test`
 - Android donation flow now uses real image selection/capture, preview IA, manual review and final publish instead of the earlier mock screen
-- Historical environment/manual items still open include Firebase console provisioning (`T019`) and emulator tuning (`T034`)
-- A dedicated Android JVM auth-validator test remains desirable, but the local Gradle/JUnit runner still shows class-loading issues for new unit tests in this workspace and is therefore tracked as follow-up rather than a phase gate
+- Android now includes an auth validation instrumentation scenario in `app/src/androidTest`, while a dedicated JVM suite for `AuthViewModel` remains blocked by the local Gradle/JUnit class-loading issue and therefore stays tracked as follow-up rather than a phase gate
 
 ---
 

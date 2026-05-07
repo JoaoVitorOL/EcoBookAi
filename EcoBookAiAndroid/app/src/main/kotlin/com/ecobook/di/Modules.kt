@@ -6,6 +6,7 @@ import com.ecobook.R
 import com.ecobook.api.AuthInterceptor
 import com.ecobook.api.AuthApiService
 import com.ecobook.api.EcoBookApiClient
+import com.ecobook.api.FcmApiService
 import com.ecobook.api.MaterialApiService
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
@@ -96,5 +97,11 @@ object NetworkModule {
     @Singleton
     fun provideMaterialApiService(retrofit: Retrofit): MaterialApiService {
         return retrofit.create(MaterialApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFcmApiService(retrofit: Retrofit): FcmApiService {
+        return retrofit.create(FcmApiService::class.java)
     }
 }

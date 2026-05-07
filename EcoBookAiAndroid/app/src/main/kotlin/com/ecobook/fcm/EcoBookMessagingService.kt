@@ -7,21 +7,34 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import timber.log.Timber
 
+@AndroidEntryPoint
 class EcoBookMessagingService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var fcmTokenSyncManager: FcmTokenSyncManager
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Timber.d("Message received from: ${remoteMessage.from}")
 
-        remoteMessage.notification?.let {
-            sendNotification(it.title ?: "EcoBook", it.body ?: "")
+        val title = remoteMessage.notification?.title
+            ?: remoteMessage.data["title"]
+            ?: "EcoBook"
+        val body = remoteMessage.notification?.body
+            ?: remoteMessage.data["body"]
+            ?: remoteMessage.data["message"]
+
+        body?.takeIf { it.isNotBlank() }?.let {
+            sendNotification(title, it)
         }
     }
 
     override fun onNewToken(token: String) {
         Timber.d("Refreshed token: $token")
-        // Save token and send to backend for user association
+        fcmTokenSyncManager.syncTokenAsync(token)
     }
 
     private fun sendNotification(title: String, messageBody: String) {

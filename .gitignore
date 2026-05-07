@@ -2,6 +2,7 @@
 EcoBookAiAndroid/.gradle/
 EcoBookAiAndroid/**/build/
 EcoBookAiAndroid/local.properties
+EcoBookAiAndroid/app/google-services.json
 EcoBookAiAndroid/.idea/
 EcoBookAiAndroid/*.iml
 

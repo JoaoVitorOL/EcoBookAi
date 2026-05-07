@@ -51,9 +51,9 @@ class UsuarioControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/v1/usuarios/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("reader@example.com"))
-                .andExpect(jsonPath("$.perfil_completo").value(true))
-                .andExpect(jsonPath("$.cidade").value("SAO PAULO"));
+                .andExpect(jsonPath("$.data.email").value("reader@example.com"))
+                .andExpect(jsonPath("$.data.perfil_completo").value(true))
+                .andExpect(jsonPath("$.data.cidade").value("SAO PAULO"));
     }
 
     @Test
