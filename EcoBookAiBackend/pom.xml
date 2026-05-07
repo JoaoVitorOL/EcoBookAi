@@ -131,7 +131,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Gemini SDK - Currently disabled due to unavailable version, will be added later -->
+        <!-- Gemini uses direct HTTP calls via OkHttp in the current local integration. -->
         <!-- 
         <dependency>
             <groupId>com.google.ai.client.generativeai</groupId>

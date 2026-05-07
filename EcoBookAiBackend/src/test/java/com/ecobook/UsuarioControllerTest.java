@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,5 +81,41 @@ class UsuarioControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("Usuario nao encontrado"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/usuarios/me/consentimento-ia should update AI consent without rewriting the rest of the profile")
+    void shouldUpdateAiConsent() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("consent@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Consent User")
+                .whatsapp("+5511991234567")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
+                .perfilCompleto(true)
+                .consentimentoIa(false)
+                .role(Role.USER)
+                .build());
+
+        String token = jwtTokenProvider.generateToken(
+                usuario.getEmail(),
+                usuario.getRole().name(),
+                usuario.isPerfilCompleto(),
+                usuario.getId().toString()
+        );
+
+        mockMvc.perform(patch("/v1/usuarios/me/consentimento-ia")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "consentimento_ia": true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("consent@example.com"))
+                .andExpect(jsonPath("$.data.consentimento_ia").value(true))
+                .andExpect(jsonPath("$.data.cidade").value("SAO PAULO"));
     }
 }

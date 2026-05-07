@@ -1,10 +1,10 @@
 package com.ecobook.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> EnumDropdown(
     label: String,
@@ -26,24 +27,32 @@ fun <T> EnumDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier.fillMaxWidth()
+    ) {
         OutlinedTextField(
             value = selectedValue?.let(optionLabel).orEmpty(),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true },
+                .menuAnchor()
+                .fillMaxWidth(),
             isError = errorMessage != null,
+            singleLine = true,
             supportingText = {
                 if (errorMessage != null) {
                     Text(errorMessage)
                 }
+            },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             }
         )
 
-        DropdownMenu(
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {

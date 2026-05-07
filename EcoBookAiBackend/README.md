@@ -65,6 +65,29 @@ http://127.0.0.1:8080/api/v1/health
 - `GEMINI_API_KEY`
 - `FIREBASE_SERVICE_ACCOUNT_PATH`
 
+## Gemini no ambiente local
+
+O backend so habilita a classificacao assistida quando `GEMINI_API_KEY` existe no processo que inicia o Spring Boot.
+
+Se voce rodar no Windows host:
+
+```powershell
+$env:GEMINI_API_KEY="sua-chave"
+mvn spring-boot:run
+```
+
+Se voce rodar no WSL:
+
+```bash
+export GEMINI_API_KEY="sua-chave"
+mvn spring-boot:run
+```
+
+Importante:
+
+- definir `GEMINI_API_KEY=...` sem `export` no shell do WSL nao basta; o Maven e o Spring nao herdam essa variavel
+- uma chave configurada no WSL nao aparece automaticamente no `PowerShell` do Windows
+
 ## Regra atual de autenticacao
 
 - Cadastro e login usam `email + senha`.

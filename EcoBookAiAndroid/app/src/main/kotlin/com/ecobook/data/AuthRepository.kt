@@ -7,6 +7,7 @@ import com.ecobook.dto.ApiErrorResponseDTO
 import com.ecobook.dto.AuthResponseDTO
 import com.ecobook.dto.LoginRequestDTO
 import com.ecobook.dto.RegisterRequestDTO
+import com.ecobook.dto.UpdateAiConsentRequestDTO
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UsuarioDTO
 import com.ecobook.fcm.FcmTokenSyncManager
@@ -59,6 +60,15 @@ class AuthRepository @Inject constructor(
 
     suspend fun updateProfile(request: UpdateProfileRequestDTO): UsuarioDTO {
         val response = authApiService.updateProfile(request)
+        val body = requireData(response)
+        sessionManager.onUserLoaded(body)
+        return body
+    }
+
+    suspend fun updateAiConsent(consentimentoIa: Boolean): UsuarioDTO {
+        val response = authApiService.updateAiConsent(
+            UpdateAiConsentRequestDTO(consentimentoIa = consentimentoIa)
+        )
         val body = requireData(response)
         sessionManager.onUserLoaded(body)
         return body

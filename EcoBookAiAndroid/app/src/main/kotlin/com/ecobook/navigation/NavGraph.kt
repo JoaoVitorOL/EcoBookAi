@@ -163,6 +163,7 @@ fun NavGraph() {
                         val logoutViewModel: LogoutViewModel = hiltViewModel()
                         ProfileScreen(
                             uiState = uiState,
+                            onToggleAiConsent = viewModel::updateAiConsent,
                             onLogout = logoutViewModel::logout
                         )
                     }

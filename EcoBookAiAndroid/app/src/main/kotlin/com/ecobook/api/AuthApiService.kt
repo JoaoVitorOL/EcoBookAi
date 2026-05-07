@@ -4,11 +4,13 @@ import com.ecobook.dto.ApiEnvelopeDTO
 import com.ecobook.dto.AuthResponseDTO
 import com.ecobook.dto.LoginRequestDTO
 import com.ecobook.dto.RegisterRequestDTO
+import com.ecobook.dto.UpdateAiConsentRequestDTO
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UsuarioDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 
@@ -25,4 +27,7 @@ interface AuthApiService {
 
     @PUT("v1/usuarios/me")
     suspend fun updateProfile(@Body request: UpdateProfileRequestDTO): Response<ApiEnvelopeDTO<UsuarioDTO>>
+
+    @PATCH("v1/usuarios/me/consentimento-ia")
+    suspend fun updateAiConsent(@Body request: UpdateAiConsentRequestDTO): Response<ApiEnvelopeDTO<UsuarioDTO>>
 }

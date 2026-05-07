@@ -3,12 +3,17 @@ package com.ecobook.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecobook.auth.SessionManager
+import com.ecobook.data.ApiException
 import com.ecobook.data.AuthRepository
 import com.ecobook.data.EcoBookRepository
 import com.ecobook.model.BackendStatus
 import com.ecobook.model.Disciplina
 import com.ecobook.model.NivelEnsino
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -106,6 +111,50 @@ class EcoBookViewModel @Inject constructor(
         }
     }
 
+    fun updateAiConsent(enabled: Boolean) {
+        if (_uiState.value.isUpdatingAiConsent) {
+            return
+        }
+
+        _uiState.update { state ->
+            state.copy(
+                isUpdatingAiConsent = true,
+                pendingAiConsent = enabled,
+                profileMessage = null,
+                profileMessageIsError = false
+            )
+        }
+
+        viewModelScope.launch {
+            runCatching { authRepository.updateAiConsent(enabled) }
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(
+                            profile = repository.buildProfileDraft(),
+                            isUpdatingAiConsent = false,
+                            pendingAiConsent = null,
+                            profileMessage = if (enabled) {
+                                "Consentimento para IA ativado."
+                            } else {
+                                "Consentimento para IA desativado."
+                            },
+                            profileMessageIsError = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { state ->
+                        state.copy(
+                            isUpdatingAiConsent = false,
+                            pendingAiConsent = null,
+                            profileMessage = resolveProfileError(error),
+                            profileMessageIsError = true
+                        )
+                    }
+                }
+        }
+    }
+
     private fun observeSession() {
         viewModelScope.launch {
             sessionManager.sessionState.collectLatest { session ->
@@ -129,6 +178,23 @@ class EcoBookViewModel @Inject constructor(
                 .onFailure {
                     _uiState.update { state -> state.copy(profile = repository.buildProfileDraft()) }
                 }
+        }
+    }
+
+    private fun resolveProfileError(error: Throwable): String {
+        return when (error) {
+            is ApiException -> when (error.statusCode) {
+                400, 422 -> error.message
+                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                403 -> "Conclua o onboarding antes de alterar o consentimento."
+                else -> "Nao foi possivel atualizar o consentimento agora."
+            }
+
+            is SocketTimeoutException -> "A atualizacao demorou demais. Tente novamente."
+            is ConnectException,
+            is UnknownHostException,
+            is IOException -> "Nao foi possivel falar com o backend para atualizar o consentimento."
+            else -> error.message ?: "Falha inesperada ao atualizar o consentimento."
         }
     }
 }

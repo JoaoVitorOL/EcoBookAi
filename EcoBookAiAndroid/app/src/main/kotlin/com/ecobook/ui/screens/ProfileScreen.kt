@@ -2,11 +2,13 @@ package com.ecobook.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,8 +21,11 @@ import com.ecobook.ui.components.StatusBadge
 @Composable
 fun ProfileScreen(
     uiState: EcoBookUiState,
+    onToggleAiConsent: (Boolean) -> Unit,
     onLogout: () -> Unit
 ) {
+    val consentimentoIa = uiState.pendingAiConsent ?: uiState.profile.consentimentoIa
+
     LazyColumn(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
@@ -81,12 +86,46 @@ fun ProfileScreen(
                     subtitle = "Use esta opcao para encerrar a sessao atual e entrar com outra conta neste dispositivo."
                 )
                 Text(
-                    text = "Consentimento para IA: ${if (uiState.profile.consentimentoIa) "ativo" else "desativado"}",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "Controle aqui se suas imagens podem passar pela classificacao assistida com Gemini durante o fluxo de doacao.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (consentimentoIa) "Consentimento para IA ativo" else "Consentimento para IA desativado",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Switch(
+                        checked = consentimentoIa,
+                        enabled = !uiState.isUpdatingAiConsent,
+                        onCheckedChange = onToggleAiConsent
+                    )
+                }
+                if (uiState.isUpdatingAiConsent) {
+                    Text(
+                        text = "Salvando preferencia...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (!uiState.profileMessage.isNullOrBlank()) {
+                    Text(
+                        text = uiState.profileMessage.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (uiState.profileMessageIsError) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            androidx.compose.ui.graphics.Color(0xFF205447)
+                        }
+                    )
+                }
                 OutlinedButton(
                     onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !uiState.isUpdatingAiConsent
                 ) {
                     Text("Sair da conta")
                 }

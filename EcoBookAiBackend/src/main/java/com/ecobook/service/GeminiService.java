@@ -83,8 +83,14 @@ public class GeminiService {
         }
 
         if (!StringUtils.hasText(apiKey)) {
-            log.warn("Gemini API key is not configured; returning manual fallback");
-            return failureResponse("Integracao Gemini indisponivel no ambiente atual", false, false, List.of(), List.of());
+            log.warn("Gemini API key is not configured in the backend process; returning manual fallback");
+            return failureResponse(
+                    "Integracao Gemini indisponivel: GEMINI_API_KEY ausente no processo do backend",
+                    false,
+                    false,
+                    List.of(),
+                    List.of()
+            );
         }
 
         return callGeminiWithRetry(imageBytes, mimeType);
@@ -295,7 +301,7 @@ public class GeminiService {
     private String prompt() {
         return """
                 Analise a imagem de um material educacional brasileiro.
-                Retorne SOMENTE JSON valido com a chave best_prediction.
+                Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.
                 Cada campo deve seguir o formato {"value": "...", "confidence": 0.0}.
                 Campos aceitos: titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao.
                 Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.
@@ -304,6 +310,7 @@ public class GeminiService {
                 Valores de estado_conservacao: NOVO, BOM, USADO, DANIFICADO.
                 Para campos nao identificados, use value null e confidence null.
                 Nunca invente descricao. Nunca retorne texto fora do JSON.
+                Você pode pesquisar na internet as informacoes do livro a partir da imagem fornecida caso não estejam explicitas na foto, mas se tiver duvida, deixe o campo como null. Seja conservador nas predicoes e priorize a precisao.
                 """;
     }
 

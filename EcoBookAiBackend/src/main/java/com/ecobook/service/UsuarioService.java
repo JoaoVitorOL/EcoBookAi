@@ -89,6 +89,20 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    @Transactional
+    public UsuarioDTO updateAiConsent(String email, boolean consentimentoIa) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+
+        if (Boolean.valueOf(consentimentoIa).equals(usuario.getConsentimentoIa())) {
+            return toDto(usuario);
+        }
+
+        usuario.setConsentimentoIa(consentimentoIa);
+        Usuario savedUser = usuarioRepository.save(usuario);
+        return toDto(savedUser);
+    }
+
     public UsuarioDTO toDto(Usuario usuario) {
         return UsuarioDTO.builder()
                 .id(usuario.getId().toString())
