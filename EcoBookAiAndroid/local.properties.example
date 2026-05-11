@@ -1,3 +1,2 @@
 sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
-google.oauth.clientId=YOUR_GOOGLE_WEB_CLIENT_ID

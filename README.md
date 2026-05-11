@@ -13,9 +13,9 @@ O repositorio esta organizado em duas bases explicitas:
 
 ## Estado de validacao
 
-- `EcoBookAiAndroid`: `gradlew.bat app:compileDebugKotlin` e `gradlew.bat app:testDebugUnitTest` executaram com sucesso nesta maquina.
+- `EcoBookAiAndroid`: `gradlew.bat app:compileDebugKotlin` e `.\EcoBookAiAndroid\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin` executaram com sucesso nesta maquina.
 - `EcoBookAiAndroid`: a validacao em emulador nao foi concluida porque o AVD local ficou offline no ADB.
-- `EcoBookAiBackend`: `mvn test` executou com sucesso nesta maquina usando Java 21 no WSL.
+- `EcoBookAiBackend`: `mvn test` executou com sucesso nesta maquina usando Java 21 no WSL, com PostgreSQL real de teste.
 
 ## Proximos passos
 

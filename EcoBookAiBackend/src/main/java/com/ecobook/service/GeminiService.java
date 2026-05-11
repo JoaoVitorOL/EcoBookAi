@@ -229,11 +229,7 @@ public class GeminiService {
     private GeminiResponseDTO executeGeminiCall(byte[] imageBytes,
                                                 String mimeType,
                                                 boolean includeGoogleSearchTool) throws IOException {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(Duration.ofSeconds(timeoutSeconds))
-                .readTimeout(Duration.ofSeconds(timeoutSeconds))
-                .writeTimeout(Duration.ofSeconds(timeoutSeconds))
-                .build();
+        OkHttpClient client = createHttpClient();
 
         String body = objectMapper.writeValueAsString(buildRequestBody(imageBytes, mimeType, includeGoogleSearchTool));
         Request request = new Request.Builder()
@@ -306,6 +302,14 @@ public class GeminiService {
                     ex
             );
         }
+    }
+
+    OkHttpClient createHttpClient() {
+        return new OkHttpClient.Builder()
+                .connectTimeout(Duration.ofSeconds(timeoutSeconds))
+                .readTimeout(Duration.ofSeconds(timeoutSeconds))
+                .writeTimeout(Duration.ofSeconds(timeoutSeconds))
+                .build();
     }
 
     private Map<String, Object> buildRequestBody(byte[] imageBytes,
@@ -560,7 +564,7 @@ public class GeminiService {
                 .build();
     }
 
-    private void sleepQuietly(Duration duration) {
+    void sleepQuietly(Duration duration) {
         try {
             Thread.sleep(duration.toMillis());
         } catch (InterruptedException ex) {

@@ -3,10 +3,14 @@ package com.ecobook.service;
 import com.ecobook.dto.GeminiResponseDTO;
 import com.ecobook.dto.PredictionFieldDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -84,6 +88,45 @@ class GeminiServiceTest {
         assertThat(response.getStatusIa()).isEqualTo("FAILURE");
         assertThat(response.getErrorDetails().isMalformedResponse()).isTrue();
         assertThat(response.getBestPrediction()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("classifyMaterial should return FAILURE with timeout details when Gemini keeps timing out")
+    void shouldReturnFailureForTimeouts() {
+        GeminiService timeoutService = new GeminiService(new ObjectMapper()) {
+            @Override
+            OkHttpClient createHttpClient() {
+                Interceptor timeoutInterceptor = chain -> {
+                    throw new SocketTimeoutException("simulated timeout");
+                };
+                return new OkHttpClient.Builder()
+                        .addInterceptor(timeoutInterceptor)
+                        .connectTimeout(Duration.ofMillis(100))
+                        .readTimeout(Duration.ofMillis(100))
+                        .writeTimeout(Duration.ofMillis(100))
+                        .build();
+            }
+
+            @Override
+            void sleepQuietly(Duration duration) {
+                // Skip retry backoff in the test so timeout handling remains deterministic and fast.
+            }
+        };
+
+        ReflectionTestUtils.setField(timeoutService, "mockEnabled", false);
+        ReflectionTestUtils.setField(timeoutService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(timeoutService, "model", "gemini-2.5-flash");
+
+        GeminiResponseDTO response = timeoutService.classifyMaterial(
+                "matematica-7-ano.png",
+                new byte[]{1, 2, 3},
+                "image/png"
+        );
+
+        assertThat(response.getStatusIa()).isEqualTo("FAILURE");
+        assertThat(response.getErrorDetails().isTimeout()).isTrue();
+        assertThat(response.getErrorDetails().isMalformedResponse()).isFalse();
+        assertThat(response.getErrorDetails().getMessage()).contains("Timeout do Gemini");
     }
 
     @Test

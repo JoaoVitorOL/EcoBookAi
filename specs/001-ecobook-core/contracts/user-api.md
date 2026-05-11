@@ -188,7 +188,7 @@ Authorization: Bearer <jwt_token>
 
 ## PUT /usuarios/me
 
-Update the current authenticated user's profile. This endpoint is also the current way to update `consentimento_ia` after onboarding.
+Update the current authenticated user's profile. This endpoint still accepts `consentimento_ia` during full profile updates.
 
 ### Request
 
@@ -275,19 +275,64 @@ Authorization: Bearer <jwt_token>
 - `perfil_completo` becomes `true` only when `nome`, `whatsapp`, `cidade`, and `bairro` are present and valid
 - Geographic normalization happens on save
 - `consentimento_ia` controls whether Gemini can be called for AI classification
-- `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this same endpoint
+- `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this endpoint or the dedicated consent endpoint below
 - The frontend should prioritize a curated Santa Catarina city list for suggestions, but the API still accepts normalized text values
 
 ---
 
-## Current Endpoint Shape
+## PATCH /usuarios/me/consentimento-ia
 
-There is currently **no dedicated** `PATCH /usuarios/me/consent` endpoint in the backend implementation.
+Toggle AI consent without resending the full profile payload.
 
-Use:
-- `PUT /api/v1/usuarios/me` to change `consentimento_ia`
+### Request
 
-If a dedicated consent endpoint is introduced later, this contract should be versioned again.
+```http
+PATCH /api/v1/usuarios/me/consentimento-ia
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+
+{
+  "consentimento_ia": true
+}
+```
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "user-uuid-1234567890",
+  "email": "joao@example.com",
+  "nome": "Joao Pedro Silva",
+  "whatsapp": "+5548988888888",
+  "cidade": "SAO JOSE",
+  "bairro": "CENTRO",
+  "instituicao": "Escola Municipal ABC",
+  "perfil_completo": true,
+  "consentimento_ia": true,
+  "role": "USER",
+  "necessidades_academicas": [
+    "TEXTBOOKS",
+    "TEST_PREP"
+  ],
+  "criado_em": "2026-05-05T10:30:00",
+  "atualizado_em": "2026-05-05T11:45:00"
+}
+```
+
+### Error Response
+
+**HTTP 400 Bad Request**
+```json
+{
+  "status": 400,
+  "error": "VALIDATION_ERROR",
+  "message": "Falha de validacao",
+  "field_errors": {
+    "consentimento_ia": "Informe se o consentimento de IA deve ficar ativo ou nao"
+  }
+}
+```
 
 ---
 

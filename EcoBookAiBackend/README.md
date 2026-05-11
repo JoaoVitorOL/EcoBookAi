@@ -38,7 +38,7 @@ docker compose up -d postgres
 Na pasta `EcoBookAiBackend`:
 
 ```powershell
-mvn "-Dspring-boot.run.profiles=local" spring-boot:run
+mvn spring-boot:run
 ```
 
 Para testes com o emulador Android usando `http://10.0.2.2:8080/api`, prefira iniciar o backend no host Windows. Quando o Spring Boot roda dentro do WSL, o relay de localhost pode ficar visivel apenas em `::1`, e o emulador passa a enxergar o servidor como indisponivel.
@@ -98,4 +98,10 @@ Importante:
 
 ## Observacao importante
 
-Neste ambiente de trabalho a validacao local do backend foi executada com `mvn clean test` usando um JDK mais novo do que o Java 17 padrao da sessao. Para rodar os testes de infraestrutura com Docker real via Testcontainers, ainda sera necessario ter um runtime de containers disponivel na maquina.
+Neste ambiente de trabalho a validacao local do backend foi executada com `mvn test` usando Java 21 no WSL.
+
+Detalhe importante sobre a infraestrutura de teste:
+
+- a suite tenta usar Testcontainers PostgreSQL primeiro
+- se o Docker engine local estiver novo demais para a versao atual do cliente Testcontainers do projeto, o bootstrap cai automaticamente para um banco `ecobook_test` criado no PostgreSQL do `docker compose`
+- por isso, antes de `mvn test`, mantenha `docker compose up -d postgres` ativo na raiz do repositorio

@@ -1,18 +1,11 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;INIT=RUNSCRIPT FROM 'classpath:db/test/h2-enums.sql'
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: false
   
   flyway:
-    enabled: false
+    enabled: true
 
 jwt:
   secret: test-secret-key-for-testing-only-and-long-enough-for-hmac-sha512-signing

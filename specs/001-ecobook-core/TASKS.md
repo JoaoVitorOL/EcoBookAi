@@ -98,7 +98,7 @@ Phase 10: Polish & Integration
 ### T001–T015: Backend Skeleton Setup
 
 - [x] **T001** [P] Create Spring Boot 3.x project with Maven structure in `EcoBookAiBackend/`
-- [ ] **T002** [P] Configure `pom.xml` with dependencies: Spring Web, Spring Data JPA, Spring Security, Spring Cloud, PostgreSQL driver, JWT (io.jsonwebtoken), Gemini SDK, Firebase Admin SDK, Lombok
+- [x] **T002** [P] Configure `pom.xml` with dependencies: Spring Web, Spring Data JPA, Spring Security, Spring Cloud, PostgreSQL driver, JWT (io.jsonwebtoken), Gemini integration client, Firebase Admin SDK, Lombok
 - [x] **T003** [P] Create `application.yml` configuration with database URL, auth properties, JWT secret, Gemini API key placeholder, FCM service account path
 - [x] **T004** [P] Setup database connection pooling in `src/main/java/com/ecobook/config/DataSourceConfig.java` (HikariCP, max 20, min 5, validation query)
 - [x] **T005** [P] Create Spring Data JPA entity mappings in `src/main/java/com/ecobook/model/`:
@@ -114,7 +114,7 @@ Phase 10: Polish & Integration
 - [x] **T012** [P] Create DTO package in `src/main/java/com/ecobook/dto/` (request/response DTOs for all endpoints)
 - [x] **T013** [P] Setup Spring Security configuration in `src/main/java/com/ecobook/config/SecurityConfig.java` (CORS, CSRF, JWT filter)
 - [x] **T014** [P] Create actuator health endpoint at `src/main/java/com/ecobook/controller/HealthController.java` (returns HTTP 200 on startup)
-- [ ] **T015** [P] Setup Lombok annotations in `pom.xml` and configure IDE plugin (code generation for getters/setters)
+- [x] **T015** [P] Setup Lombok annotations in `pom.xml` (IDE plugin remains a workstation prerequisite outside version control)
 
 ### T016–T025: Android Project Setup
 
@@ -141,7 +141,7 @@ Phase 10: Polish & Integration
 ### T026–T035: Integration Test Infrastructure
 
 - [x] **T026** [P] Add test dependencies to backend `pom.xml`: JUnit 5, Mockito, TestContainers (PostgreSQL), Spring Test, REST Assured, MockMvc
-- [x] **T027** [P] Create `src/test/java/com/ecobook/config/TestDatabaseConfig.java` with TestContainers PostgreSQL configuration (auto-cleanup after tests)
+- [x] **T027** [P] Create `src/test/java/com/ecobook/config/TestDatabaseConfig.java` with TestContainers PostgreSQL configuration and local PostgreSQL fallback for environments where the Docker/Testcontainers client pair is incompatible
 - [x] **T028** [P] Create `src/test/java/com/ecobook/BaseIntegrationTest.java` abstract class with @SpringBootTest, @AutoConfigureMockMvc, @Testcontainers, transaction rollback
 - [x] **T029** [P] Create `src/test/java/com/ecobook/util/TestDataBuilder.java` for creating test usuarios, materials, solicitacoes with default values
 - [x] **T030** [P] Create GitHub Actions workflow in `.github/workflows/build-and-test.yml` (Maven build, test execution, code coverage reporting)
@@ -214,8 +214,8 @@ Phase 10: Polish & Integration
   - Read JWT from SecureStorage
   - Inject into `Authorization: Bearer {token}` header for all requests
 - [x] **T051** [P] [US1] Add authentication interceptor to Retrofit client in `EcoBookApiClient.kt`
-- [ ] **T052** [P] [US1] Add dedicated Android JVM validation tests for `AuthViewModel` once the local Gradle/JUnit class-loading issue is resolved
-- [ ] **T053** [P] [US1] Reintroduce a dedicated cross-runtime auth E2E test if Android JVM/instrumentation coverage expands beyond the current backend integration suite + Compose smoke coverage
+- [x] **T052** [P] [US1] Add dedicated Android JVM validation tests for `AuthViewModel`
+- [x] **T053** [P] [US1] Reintroduce a dedicated cross-runtime auth E2E test if Android JVM/instrumentation coverage expands beyond the current backend integration suite + Compose smoke coverage
 - [x] **T054** [US1] Create logout functionality in `EcoBookAiAndroid/src/main/java/com/ecobook/auth/LogoutViewModel.kt` (clear JWT from SecureStorage, navigate to login)
 - [x] **T055** [US1] Create 401 error handling in `AuthInterceptor.kt` (if token invalid, clear storage and redirect to login)
 
@@ -232,7 +232,7 @@ Phase 10: Polish & Integration
 - [x] **T059** [US1] Create integration test in `src/test/java/com/ecobook/UsuarioControllerTest.java`:
   - GET /usuarios/me with valid JWT → HTTP 200 with user data
   - GET /usuarios/me without JWT → HTTP 401 Unauthorized
-- [x] **T060** [US1] Create `@FeignClient` response wrapper for all controllers (standard JSON envelope with optional error details)
+- [x] **T060** [US1] Create standard JSON response wrapper for all controllers (envelope with optional error details)
 
 ### Module 2: Onboarding & Profile (RF-001)
 
@@ -1389,9 +1389,9 @@ What is already true in the repository:
 
 Phase 3 closeout notes:
 
-- Backend automated coverage now includes preview/create scenarios and passes with `46` tests via `mvn test`
+- Backend automated coverage now includes preview/create scenarios and passes with `57` tests via `mvn test`
 - Android donation flow now uses real image selection/capture, preview IA, manual review and final publish instead of the earlier mock screen
-- Android now includes an auth validation instrumentation scenario in `app/src/androidTest`, while a dedicated JVM suite for `AuthViewModel` remains blocked by the local Gradle/JUnit class-loading issue and therefore stays tracked as follow-up rather than a phase gate
+- Android now includes dedicated `AuthViewModel` JVM validation in `app/src/test`, a dedicated auth instrumentation E2E in `app/src/androidTest/kotlin/com/ecobook/auth/AuthFlowE2ETest.kt`, and Windows paths with accents/spaces are handled through `scripts/Invoke-GradleAsciiPath.ps1` so both `testDebugUnitTest` and targeted `connectedDebugAndroidTest` runs can execute through an ASCII drive alias when needed
 
 ---
 

@@ -8,6 +8,7 @@ import com.ecobook.api.AuthApiService
 import com.ecobook.api.EcoBookApiClient
 import com.ecobook.api.FcmApiService
 import com.ecobook.api.MaterialApiService
+import com.ecobook.api.RuntimeBackendUrlOverride
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -30,7 +31,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideBaseUrl(@ApplicationContext context: Context): String {
-        val overrideUrl = BuildConfig.BACKEND_URL_OVERRIDE.trim()
+        val runtimeOverride = RuntimeBackendUrlOverride.current(context)
+        val overrideUrl = if (!runtimeOverride.isNullOrBlank()) {
+            runtimeOverride
+        } else {
+            BuildConfig.BACKEND_URL_OVERRIDE.trim()
+        }
         val configuredUrl = if (overrideUrl.isNotEmpty()) {
             overrideUrl
         } else {

@@ -68,6 +68,18 @@ wsl.exe -e bash -lc "hostname -I"
 3. Selecione a pasta `EcoBookAiAndroid`.
 4. Aguarde o sync do Gradle.
 
+Se quiser executar `testDebugUnitTest` pelo Android Studio nesta mesma workspace Windows, abra o projeto por um alias ASCII temporario:
+
+```powershell
+subst X: "C:\caminho\real\para\EcoBookAiAndroid"
+```
+
+Depois abra `X:\` no Android Studio. Quando terminar, remova o alias:
+
+```powershell
+subst X: /d
+```
+
 ## Como rodar via terminal
 
 Na pasta `EcoBookAiAndroid`:
@@ -76,15 +88,26 @@ Na pasta `EcoBookAiAndroid`:
 .\gradlew.bat assembleDebug
 ```
 
+Se a pasta local do projeto estiver em um caminho Windows com espacos/acentos, como esta workspace do OneDrive, o runner de `testDebugUnitTest` pode falhar com `ClassNotFoundException` apesar de a classe ter compilado corretamente. Nessa situacao, execute o Gradle pelo wrapper ASCII:
+
+```powershell
+.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
+```
+
 Validacao atual nesta maquina:
 
 ```powershell
-.\gradlew.bat lintDebug
-.\gradlew.bat assembleDebug
-.\gradlew.bat testDebugUnitTest
+.\gradlew.bat app:compileDebugKotlin
+.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin
 ```
 
 Esses comandos passam com o SDK configurado em `local.properties`.
+
+Com um emulador Android ja iniciado, o fluxo auth E2E tambem pode ser validado por instrumentacao:
+
+```powershell
+.\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest
+```
 
 Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, catalogo, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
 

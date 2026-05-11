@@ -39,15 +39,6 @@ android {
     namespace = "com.ecobook"
     compileSdk = 34
 
-    sourceSets {
-        getByName("test") {
-            java.srcDirs("src/test/java", "src/test/kotlin")
-        }
-        getByName("androidTest") {
-            java.srcDirs("src/androidTest/java", "src/androidTest/kotlin")
-        }
-    }
-
     defaultConfig {
         applicationId = "com.ecobook"
         minSdk = 26
@@ -60,7 +51,7 @@ android {
             "\"${localProperty("backend.url")}\""
         )
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.ecobook.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -157,7 +148,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
     // Jetpack Security
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.security:security-crypto:1.1.0")
 
     // Retrofit & HTTP Client
     implementation("com.squareup.retrofit2:retrofit:2.10.0")
@@ -193,8 +184,12 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
     // Integration Tests
+    androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.48")
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.11.0")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.48")
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.compose.ui:ui-test-manifest")

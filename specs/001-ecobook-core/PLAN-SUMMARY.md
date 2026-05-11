@@ -121,8 +121,8 @@ What is already implemented in the repository:
 
 What closed Phase 3 formally:
 
-1. Backend automated coverage now includes preview/create material scenarios and passes with `46` tests via `mvn test`
-2. Android donation flow compiles and its JVM validation task stays green with `app:compileDebugKotlin` + `app:testDebugUnitTest`
+1. Backend automated coverage now includes preview/create material scenarios and passes with `57` tests via `mvn test` on Java 21, using a real PostgreSQL test database
+2. Android donation flow compiles and its JVM validation task stays green with `app:compileDebugKotlin` + `.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`, and auth now also has a dedicated instrumentation E2E via `.\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest` for Windows workspaces that need an ASCII path alias
 3. Material preview/upload is no longer a skeleton; contracts were rebased to distinguish the current runtime shape from later Phase 4+ endpoints
 
 ---
