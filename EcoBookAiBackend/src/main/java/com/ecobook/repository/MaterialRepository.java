@@ -11,6 +11,7 @@ import java.util.UUID;
 @Repository
 public interface MaterialRepository extends JpaRepository<Material, UUID> {
     List<Material> findByDoadorId(UUID doadorId);
+    List<Material> findByDoadorIdOrderByCriadoEmDesc(UUID doadorId);
     List<Material> findByStatus(StatusMaterial status);
     List<Material> findByCidadeAndBairro(String cidade, String bairro);
 }

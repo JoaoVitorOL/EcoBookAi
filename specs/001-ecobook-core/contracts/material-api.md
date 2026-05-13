@@ -1,13 +1,13 @@
 # Material API Contracts
 
 **Reference**: spec.md RF-005 through RF-025, RF-044  
-**Version**: 1.2  
-**Date**: 2026-05-05  
-**Status**: Current runtime contract for Phase 3 create/preview flow; search/detail/update sections remain target-state docs for later phases
+**Version**: 1.3  
+**Date**: 2026-05-12  
+**Status**: Current runtime contract for Phase 3 create/preview flow plus Phase 4 search; detail/update sections remain target-state docs for later phases
 
 ---
 
-> Implementation note: the current backend already exposes working Phase 3 endpoints for `/api/v1/materiais/preview` and `/api/v1/materiais`. Later sections in this file (`GET /materiais`, `GET /materiais/{id}`, `PATCH /materiais/{id}`) still describe future Phase 4+ behavior.
+> Implementation note: the current backend already exposes working runtime endpoints for `/api/v1/materiais/preview`, `/api/v1/materiais` and `GET /api/v1/materiais`. The `GET /materiais/{id}` and mutation sections below still describe later phases.
 > Successful runtime responses are wrapped in `{ status, message, timestamp, path, data }`; the JSON examples below focus on the inner `data` payload unless stated otherwise.
 
 ## POST /materiais
@@ -116,6 +116,11 @@ Current runtime override:
 
 ### Error Responses
 
+Current runtime override:
+- Delivered backend errors for this endpoint follow `contracts/error-response.md`.
+- Typical runtime codes here are `INVALID_FORMAT`, `INCOMPLETE_PROFILE`, and `NOT_FOUND`.
+- The historical examples below are kept as target-state references for richer metadata, not as the guaranteed Phase 4 payload shape.
+
 **HTTP 400 Bad Request** - Invalid enum value
 
 ```json
@@ -173,12 +178,12 @@ Current runtime override:
 
 ## GET /materiais
 
-Search for available materials using deterministic matching algorithm.
+Search for available materials using the current deterministic matching algorithm.
 
 ### Request
 
 ```http
-GET /api/v1/materiais?disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=florianópolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=1&limit=20
+GET /api/v1/materiais?query=algebra&disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=florianopolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=0&size=20
 Authorization: Bearer <jwt_token>
 ```
 
@@ -186,23 +191,25 @@ Authorization: Bearer <jwt_token>
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `disciplina` | String | Yes | Filter by discipline (exact match) |
-| `nivel_ensino` | String | Yes | Filter by education level (exact match) |
-| `ano` | Integer | Yes | Target grade year (1-12 for FUNDAMENTAL/MEDIO; null or omitted for SUPERIOR) |
-| `sistema_ensino` | String | Yes | Curriculum system (exact match; OUTRO matches only OUTRO) |
-| `cidade` | String | Yes | City (will be normalized for matching) |
-| `bairro` | String | No | Neighborhood (if omitted, entire city searched) |
+| `query` | String | No | Accent-insensitive text search across title, description, author, editor and location |
+| `disciplina` | String | No | Filter by discipline (exact match when provided) |
+| `nivel_ensino` | String | No | Filter by education level (exact match when provided) |
+| `ano` | Integer | No | Target grade year (1-12 for FUNDAMENTAL/MEDIO; ignored for SUPERIOR materials) |
+| `sistema_ensino` | String | No | Curriculum system filter (`OUTRO` matches only `OUTRO`; named systems also accept `OUTRO`) |
+| `cidade` | String | No | City anchor used for ranking and optional filtering |
+| `bairro` | String | No | Neighborhood anchor used for ranking and optional filtering |
 | `min_ano_publicacao` | Integer | No | Filter materials published on or after this year (1900-2100) |
 | `max_ano_publicacao` | Integer | No | Filter materials published on or before this year (1900-2100) |
-| `page` | Integer | No | Page number (default 1) |
-| `limit` | Integer | No | Results per page (default 20, max 100) |
+| `page` | Integer | No | Zero-based page number (default 0) |
+| `size` | Integer | No | Results per page (default 20, max 100) |
 
 **Validation Rules**:
-- All fields except `min_ano_publicacao`, `max_ano_publicacao`, `bairro`, `page`, `limit` are required
-- If `min_ano_publicacao` and `max_ano_publicacao` both provided: must satisfy min ≤ max
+- All filters are optional
+- If `ano` is provided, it must be in `[1, 12]`
+- If `min_ano_publicacao` and `max_ano_publicacao` are both provided: `min <= max`
 - If either publication year outside [1900, 2100]: HTTP 400
-- City/neighborhood normalized before query (user input "são joão" → "SAO JOAO")
-- Geographic search returns exact matches only (no fuzzy matching)
+- City/neighborhood are normalized before ranking comparisons (for example `sao joao` → `SAO JOAO`)
+- `page` must be `>= 0`; `size` must be in `[1, 100]`
 
 ### Response
 
@@ -210,13 +217,10 @@ Authorization: Bearer <jwt_token>
 
 ```json
 {
-  "total": 45,
-  "page": 1,
-  "limit": 20,
   "results": [
     {
       "id": "material-uuid-1",
-      "titulo": "Geometria Plana 7º Ano",
+      "titulo": "Geometria Plana 7o Ano",
       "descricao": "Livro em bom estado",
       "disciplina": "MATEMATICA",
       "nivel_ensino": "FUNDAMENTAL",
@@ -227,7 +231,7 @@ Authorization: Bearer <jwt_token>
       "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-1.jpg",
       "doador": {
         "id": "user-uuid-1",
-        "nome": "João Silva",
+        "nome": "Joao Silva",
         "whatsapp": "+5548999999999",
         "cidade": "FLORIANOPOLIS",
         "bairro": "CENTRO"
@@ -235,34 +239,15 @@ Authorization: Bearer <jwt_token>
       "cidade": "FLORIANOPOLIS",
       "bairro": "CENTRO",
       "data_publicacao": 2010,
-      "created_at": "2026-04-15T10:00:00Z",
-      "updated_at": "2026-04-15T10:00:00Z"
-    },
-    {
-      "id": "material-uuid-2",
-      "titulo": "Álgebra Fundamental",
-      "descricao": "Livro novo, nunca usado",
-      "disciplina": "MATEMATICA",
-      "nivel_ensino": "FUNDAMENTAL",
-      "ano": 7,
-      "sistema_ensino": "ANGLO",
-      "estado_conservacao": "NOVO",
-      "status": "DISPONIVEL",
-      "imagem_url": "https://cdn.ecobook.com/materiais/material-uuid-2.jpg",
-      "doador": {
-        "id": "user-uuid-2",
-        "nome": "Maria Santos",
-        "whatsapp": "+5548988888888",
-        "cidade": "FLORIANOPOLIS",
-        "bairro": "CENTRO"
-      },
-      "cidade": "FLORIANOPOLIS",
-      "bairro": "CENTRO",
-      "data_publicacao": 2015,
-      "created_at": "2026-04-12T14:00:00Z",
-      "updated_at": "2026-04-12T14:00:00Z"
+      "criado_em": "2026-04-15T10:00:00Z",
+      "atualizado_em": "2026-04-15T10:00:00Z"
     }
-  ]
+  ],
+  "page": 0,
+  "size": 20,
+  "total": 45,
+  "total_pages": 3,
+  "has_next": true
 }
 ```
 
@@ -273,18 +258,18 @@ Authorization: Bearer <jwt_token>
 3. **Within matching results**: Sort by `data_publicacao DESC` (newest first)
 4. **Tiebreaker**: Sort by `id` (deterministic order)
 
-**Example Ranking**:
-- Material A: Centro (same bairro) → Rank 1
-- Material B: Centro (same bairro) → Rank 2 (newer publication year)
-- Material C: Lagoa (same city, different bairro) → Rank 3
-- Material D: Lagoa (same city, different bairro) → Rank 4
-
 **Client Rendering Notes**:
 - Each result should render as a card in the discovery list
 - If `imagem_url` is missing or fails to load, the client should render a neutral placeholder instead of a broken image area
 - Tapping a card should open a dismissible dialog/modal with richer detail and an explicit close action
+- The discovery dialog may already show a request CTA, but the actual solicitation transaction begins in Phase 5
 
 ### Error Responses
+
+Current runtime override:
+- Delivered backend errors for this endpoint follow `contracts/error-response.md`.
+- Typical runtime codes here are `INVALID_FORMAT` and `INCOMPLETE_PROFILE`.
+- The historical examples below are kept as target-state references for richer metadata, not as the guaranteed Phase 4 payload shape.
 
 **HTTP 400 Bad Request** - Invalid enum value
 

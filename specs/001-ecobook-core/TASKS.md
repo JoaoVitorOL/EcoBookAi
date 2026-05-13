@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 2–5 (Prototypes, AI Testing, Full Development, Launch)  
 **Total Tasks**: 187  
-**Status**: Phase 3 core delivered; backend preview/create flow and Android donation flow are implemented, and Phase 4 matching work is ready to begin  
+**Status**: Phase 4 discovery delivered across backend and Android; request workflow is the next implementation front  
 **Generated**: 2026-04-15
 
 ---
@@ -566,7 +566,7 @@ Phase 10: Polish & Integration
 
 #### Backend: Matching Algorithm
 
-- [ ] **T112** [US3] Create `src/main/java/com/ecobook/service/MatchingService.java`:
+- [x] **T112** [US3] Create `src/main/java/com/ecobook/service/MatchingService.java`:
   - Implement 7-step filtering pipeline (5 core + 1 optional publication range; deterministic, not ML)
   - Step 1: Filter status=DISPONIVEL only
   - Step 2: Filter disciplina matches exactly
@@ -574,64 +574,63 @@ Phase 10: Polish & Integration
   - Step 4: Filter ano range (±1 year for FUNDAMENTAL/MEDIO, NULL for SUPERIOR)
   - Step 5: Filter sistema_ensino matches exactly (special rule: OUTRO only matches OUTRO)
   - Step 6: Sort results by ranking order (neighborhood > city > data_publicacao DESC > id)
-- [ ] **T113** [US3] Implement geographic matching in `MatchingService.filterByGeography()`:
+- [x] **T113** [US3] Implement geographic ranking anchors in `MatchingService.normalize()` + comparator:
   - Normalize student's city + neighborhood via GeoNormalizationService
-  - Compare normalized values against normalized Material records
-  - Return exact matches only (case-insensitive, accent-insensitive)
-- [ ] **T114** [US3] Implement ano range logic in `MatchingService.filterByYear()`:
+  - Compare normalized values against Material records for same-neighborhood and same-city ranking
+  - Keep matching accent-insensitive and deterministic (no fuzzy matching)
+- [x] **T114** [US3] Implement ano range logic in `MatchingService.matchesYear()`:
   - If nivel_ensino = SUPERIOR: ignore ano constraint (include all SUPERIOR materials)
   - If nivel_ensino = FUNDAMENTAL/MEDIO: filter ano to [student_ano-1, student_ano+1]
   - Example: student year 5 → accept materials for years 4, 5, 6
-- [ ] **T115** [US3] Implement sistema_ensino special rule in `MatchingService.filterBySystem()`:
+- [x] **T115** [US3] Implement sistema_ensino special rule in `MatchingService.matchesSystem()`:
   - If student sistema_ensino = OUTRO: only return OUTRO materials
   - If student sistema_ensino = ANGLO/OBJETIVO/COC/POSITIVO: return exact system matches + OUTRO materials
   - Rationale: OUTRO system not affiliated with specific curriculum
-- [ ] **T116** [US3] Create ranking comparator in `MatchingService.createComparator()`:
+- [x] **T116** [US3] Create ranking comparator in `MatchingService.createComparator()`:
   - Comparator: (mat1, mat2) → int
   - Primary: Same neighborhood as student? (true > false)
   - Secondary: Same city as student? (true > false)
   - Tertiary: data_publicacao DESC (most recent publication first)
   - Quaternary: id ASC (UUID tiebreaker for stability)
-- [ ] **T117** [US3] Create `src/main/java/com/ecobook/dto/SearchCriteriaDto.java`:
-  - Fields: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro
+- [x] **T117** [US3] Create `src/main/java/com/ecobook/dto/SearchCriteriaDto.java`:
+  - Fields: query, disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, min_ano_publicacao, max_ano_publicacao
   - All fields optional (nullable)
   - Validation: enums validated if provided
-- [ ] **T118** [US3] Create MatchingService integration test in `src/test/java/com/ecobook/service/MatchingServiceTest.java`:
+- [x] **T118** [US3] Create MatchingService integration test in `src/test/java/com/ecobook/service/MatchingServiceTest.java`:
   - Create 10+ materials with varying disciplinas, levels, years, systems, locations
-  - Query for MATEMATICA + FUNDAMENTAL + year 5 + OTRO system + city "São Paulo" + neighborhood "Centro"
+  - Query for MATEMATICA + FUNDAMENTAL + year 5 + OUTRO system + city "Sao Paulo" + neighborhood "Centro"
   - Verify results: only matching materials returned, correct ordering (neighborhood first, then city, then newest)
   - Test SUPERIOR year constraint ignored
   - Test OUTRO system rule (OUTRO matches only OUTRO, ANGLO matches ANGLO + OUTRO)
 
 #### Backend: Search Endpoint
 
-- [ ] **T119** [US3] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+- [x] **T119** [US3] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
   - **GET /api/v1/materiais**: Query matching materials
   - Query parameters: disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, min_ano_publicacao (optional), max_ano_publicacao (optional), page (default 0), size (default 20)
-  - Response: Page<MaterialDto> with paginated results
+  - Response: `PagedResponseDTO<MaterialDTO>` wrapped by the standard API envelope
   - Error: 400 (invalid enum value, invalid publication range), 403 (profile incomplete)
-- [ ] **T120** [US3] Implement `MaterialController.search()` handler:
+- [x] **T120** [US3] Implement `MaterialController.search()` handler:
   - Extract query parameters
   - Validate enums (if provided)
   - Validate publication date range: if both min and max provided, check min <= max; if either provided, check bounds in [1900, 2100]
   - Return HTTP 400 if validation fails
   - Build SearchCriteriaDto (including min_ano_publicacao, max_ano_publicacao)
   - Call MatchingService.findMatching(criteria, pageable)
-  - Return Page<MaterialDto> with paginated results
-- [ ] **T121** [US3] Implement pagination in `MatchingService.findMatching()`:
+  - Return `PagedResponseDTO<MaterialDTO>` with paginated results
+- [x] **T121** [US3] Implement pagination in `MatchingService.findMatching()`:
   - Support Spring's Pageable (page, size, sort)
   - Fixed sort order: AVAILABLE only, then ranking comparator
-  - Return Page<Material> with total count, page number, has_next
-- [ ] **T122** [US3] Create database indexes for fast queries in `src/main/resources/db/migration/V2__add-indexes.sql`:
-  - `CREATE INDEX idx_material_status ON material(status)` (filter DISPONIVEL)
-  - `CREATE INDEX idx_material_disciplina_nivel ON material(disciplina, nivel_ensino)` (composite)
-  - `CREATE INDEX idx_material_cidade_bairro ON material(cidade_normalizado, bairro_normalizado)` (geo)
-  - `CREATE INDEX idx_material_data_publicacao ON material(data_publicacao DESC)` (sorting)
-- [ ] **T123** [US3] Create search endpoint test in `src/test/java/com/ecobook/controller/MaterialControllerSearchTest.java`:
+  - Return `PagedResponseDTO<MaterialDTO>` with total count, page number, total_pages and has_next
+- [x] **T122** [US3] Create database indexes for fast queries in `src/main/resources/db/migration/V8__add_phase4_search_indexes.sql`:
+  - `CREATE INDEX idx_material_status_disciplina_nivel ON material(status, disciplina, nivel_ensino)` (filter + composite)
+  - `CREATE INDEX idx_material_status_cidade_bairro ON material(status, cidade, bairro)` (geo ranking support)
+  - `CREATE INDEX idx_material_status_data_publicacao ON material(status, data_publicacao DESC)` (sorting)
+- [x] **T123** [US3] Create search endpoint test in `src/test/java/com/ecobook/controller/MaterialControllerSearchTest.java`:
   - GET /materiais?disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL → 200 with paginated results
   - GET /materiais?disciplina=INVALID → 400 (invalid enum)
   - GET /materiais?page=0&size=10 → 200 with 10 results max
-  - GET /materiais?page=2&size=10 → 200 with page 2 results (if exists)
+  - GET /materiais?page=1&size=10 → 200 with a non-first page slice (zero-based pagination)
   - Verify ranking order (neighborhood first, then city, then newest)
   - GET /materiais?min_ano_publicacao=2000&max_ano_publicacao=2015 → 200, returns only materials with data_publicacao in [2000, 2015]
   - GET /materiais?min_ano_publicacao=2015 → 200, returns only materials with data_publicacao >= 2015
@@ -642,18 +641,18 @@ Phase 10: Polish & Integration
 
 #### Android: Discovery Screen
 
-- [ ] **T124** [P] [US3] Create `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/DiscoveryScreen.kt` Compose screen:
+- [x] **T124** [P] [US3] Create `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/DiscoveryScreen.kt` Compose screen:
   - Display search filters (dropdown menus for disciplina, nivel_ensino, ano, sistema_ensino)
   - Display city and neighborhood (pre-populated from user profile or editable)
   - "Search" button → GET /api/v1/materiais with criteria
   - "Reset" button → clear filters, show all DISPONIVEL materials
-- [ ] **T125** [P] [US3] Implement filter state in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/DiscoveryViewModel.kt`:
+- [x] **T125** [P] [US3] Implement filter state in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/DiscoveryViewModel.kt`:
   - Store current filters (disciplina, nivel_ensino, ano, etc.)
   - Track search results (list of MaterialDto)
   - Track pagination (page, size, hasNext)
   - `search()`: call GET /api/v1/materiais with current filters
   - `loadNextPage()`: increment page, append results
-- [ ] **T126** [P] [US3] Create material list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/MaterialListItem.kt`:
+- [x] **T126** [P] [US3] Create material list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/MaterialListItem.kt`:
   - Render each material as a tappable card
   - Display material thumbnail image or a neutral gray placeholder when the image is missing/unavailable
   - Show disciplina, nivel_ensino, ano, estado_conservacao badges
@@ -662,12 +661,12 @@ Phase 10: Polish & Integration
   - Show donor name (or "Anonymous" if privacy desired)
   - Show publication year (data_publicacao) if available
   - Tap to open a detail dialog before request material
-- [ ] **T127** [P] [US3] Create LazyColumn with pagination in DiscoveryScreen:
+- [x] **T127** [P] [US3] Create LazyColumn with pagination in DiscoveryScreen:
   - Load initial 20 materials on screen open
   - Detect "load more" (user scrolled to end)
   - Load next page automatically
   - Show loading spinner at bottom while fetching
-- [ ] **T128** [P] [US3] Implement search filters UI:
+- [x] **T128** [P] [US3] Implement search filters UI:
   - Disciplina dropdown (MATEMATICA, PORTUGUES, ...) with "All" option
   - Nivel ensino dropdown (FUNDAMENTAL, MEDIO, SUPERIOR) with "All" option
   - Ano text input (optional, validated as 1–12)
@@ -675,19 +674,24 @@ Phase 10: Polish & Integration
   - Min publication year input (optional, 1900-2100, labeled "Publication year from:")
   - Max publication year input (optional, 1900-2100, labeled "Publication year to:")
   - Validation: if both min and max provided, min must be <= max; show error toast if violated
-- [ ] **T129** [P] [US3] Create empty state UI when no results found:
+- [x] **T129** [P] [US3] Create empty state UI when no results found:
   - Show "No materials found" message
   - Suggest adjusting filters
   - Show "Browse all materials" button to reset filters
-- [ ] **T130** [P] [US3] Create material detail dialog in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/MaterialDetailDialog.kt`:
+- [x] **T130** [P] [US3] Create material detail dialog in `EcoBookAiAndroid/src/main/java/com/ecobook/discovery/MaterialDetailDialog.kt`:
   - Open from material card tap as a dismissible modal/dialog
   - Display full image or fallback placeholder
   - Show all metadata (disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao)
   - Show description (if provided)
   - Show donor city and neighborhood (proximity indicator)
-  - Show donor name + "Contact" button (WhatsApp link after approval)
+  - Show donor name + contact handoff button clarifying that WhatsApp contact becomes actionable after approval
   - Provide explicit close action and support dismiss by back/tap outside
-  - Show "Request Material" button → POST /solicitacoes/{material_id}
+  - Show "Request Material" button with a clear UI handoff to the Phase 5 solicitation flow
+
+Phase 4 closeout note (2026-05-12):
+- Backend discovery now serves live matching through `GET /api/v1/materiais` with pagination, ranking and publication-range filtering.
+- Android discovery now uses the real backend endpoint with filter state, empty state, pagination and material detail dialog.
+- The request CTA is present in the detail dialog, but the actual `POST /solicitacoes/{material_id}` workflow starts in Phase 5.
 
 ---
 
@@ -1400,13 +1404,13 @@ Phase 3 closeout notes:
 1. **Assign Tasks**: Distribute tasks to backend dev, Android dev, QA based on user story phases
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
-4. **Begin Phase 4 implementation**: matching, search endpoint, ranked discovery and result dialogs
+4. **Begin Phase 5 implementation**: solicitation endpoints, approval lifecycle and donor/student request inboxes
 5. **Keep backlog hygiene**: Update manual/env tasks as Firebase and emulator setup decisions land
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 3 closeout recorded; use this file as a living backlog for Phase 4+ execution  
+**Status**: Phase 4 discovery closeout recorded; use this file as a living backlog for Phase 5+ execution  
 **Document Owner**: Product/Tech Lead  
-**Last Updated**: 2026-05-05
+**Last Updated**: 2026-05-12
 

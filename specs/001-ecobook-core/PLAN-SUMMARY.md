@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
 **Phase**: 1 Complete / 2 Complete / 3 Complete  
-**Date**: 2026-05-05  
-**Status**: Phase 3 core flow delivered across backend and Android; Phase 4 can begin
+**Date**: 2026-05-12  
+**Status**: Phase 4 discovery delivered across backend and Android; Phase 5 can begin
 
 ---
 
@@ -95,7 +95,7 @@ All planning now aligns with Constitution v2.0.0:
 
 ---
 
-## Current Phase 3 Closeout
+## Current Closeout Snapshot
 
 What is already implemented in the repository:
 
@@ -121,9 +121,15 @@ What is already implemented in the repository:
 
 What closed Phase 3 formally:
 
-1. Backend automated coverage now includes preview/create material scenarios and passes with `57` tests via `mvn test` on Java 21, using a real PostgreSQL test database
+1. Backend automated coverage at the end of the Phase 3 closeout included preview/create material scenarios and passed with `57` tests via `mvn test` on Java 21, using a real PostgreSQL test database
 2. Android donation flow compiles and its JVM validation task stays green with `app:compileDebugKotlin` + `.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`, and auth now also has a dedicated instrumentation E2E via `.\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest` for Windows workspaces that need an ASCII path alias
 3. Material preview/upload is no longer a skeleton; contracts were rebased to distinguish the current runtime shape from later Phase 4+ endpoints
+
+What closed Phase 4 formally:
+
+1. Backend discovery now exposes `GET /api/v1/materiais` with deterministic matching, geo-aware ranking, pagination and publication-range validation, and the backend regression suite now passes with `66` tests via `mvn test`
+2. Android discovery now uses the live search endpoint with prefilled location filters, infinite scroll, empty state, detail dialog and JVM validation through `.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin`
+3. The material detail dialog already surfaces the request CTA, while the actual solicitation transaction remains intentionally deferred to Phase 5
 
 ---
 
@@ -134,7 +140,8 @@ What remains valid from the original plan:
 - JWT-based session handling
 - Onboarding and `perfil_completo` gate
 - AI-assisted material classification
-- Matching, request, and FCM modules
+- Deterministic matching rules
+- Request and FCM modules
 
 What changed materially:
 - Auth source of truth
@@ -144,7 +151,8 @@ What changed materially:
 
 What is now accurate about readiness:
 - Accurate to declare Phase 3 core delivered
-- Safe to begin Phase 4 matching/discovery work
+- Accurate to declare Phase 4 discovery delivered
+- Safe to begin Phase 5 request workflow work
 
 ---
 

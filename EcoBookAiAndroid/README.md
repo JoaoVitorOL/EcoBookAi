@@ -17,7 +17,8 @@ Aplicativo Android nativo do EcoBook AI.
 - Verificacao real do backend via `GET /api/v1/health`
 - Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
 - Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual e `POST /materiais`
-- Base pronta para evoluir matching, solicitacoes e notificacoes de negocio
+- Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao e dialogo de detalhes
+- Handoff visual para solicitar material; o workflow transacional de solicitacoes entra na proxima fase
 
 ## Requisitos
 
@@ -101,7 +102,7 @@ Validacao atual nesta maquina:
 .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin
 ```
 
-Esses comandos passam com o SDK configurado em `local.properties`.
+Esses comandos passam com o SDK configurado em `local.properties`, incluindo os testes JVM da discovery real.
 
 Com um emulador Android ja iniciado, o fluxo auth E2E tambem pode ser validado por instrumentacao:
 
@@ -109,7 +110,7 @@ Com um emulador Android ja iniciado, o fluxo auth E2E tambem pode ser validado p
 .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest
 ```
 
-Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, catalogo, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
+Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, discovery, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
 
 ## Como rodar pelo Android Studio
 
@@ -166,7 +167,7 @@ Se o backend estiver no WSL e o app continuar mostrando `Servidor indisponivel`,
 
 ## Observacao sobre o estado atual do codigo
 
-O fluxo legado de autenticacao com Google foi removido do app. O foco atual do modulo Android e consolidar o que ja esta integrado em auth/perfil/materiais e avancar nos proximos endpoints de matching, solicitacoes e notificacoes.
+O fluxo legado de autenticacao com Google foi removido do app. O foco atual do modulo Android e consolidar o que ja esta integrado em auth/perfil/materiais/discovery e avancar nos endpoints de solicitacoes e notificacoes.
 
 ## Celular fisico
 

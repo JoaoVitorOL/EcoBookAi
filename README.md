@@ -7,14 +7,14 @@ O repositorio esta organizado em duas bases explicitas:
 
 ## O que existe hoje
 
-- O backend ja tem auth local com `email + senha + JWT`, perfil de usuario, migracoes Flyway, `GET /api/v1/health`, `POST /api/v1/materiais/preview` e `POST /api/v1/materiais`.
-- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT e agora tambem um fluxo real de doacao com galeria/camera, preview IA, revisao manual e publicacao final.
-- Matching, solicitacoes e notificacoes continuam como os proximos modulos do MVP.
+- O backend ja tem auth local com `email + senha + JWT`, perfil de usuario, migracoes Flyway, `GET /api/v1/health`, `POST /api/v1/materiais/preview`, `POST /api/v1/materiais` e `GET /api/v1/materiais`.
+- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT, fluxo real de doacao com galeria/camera, preview IA, revisao manual, publicacao final e discovery real conectada ao backend.
+- Solicitacoes e notificacoes continuam como os proximos modulos do MVP.
 
 ## Estado de validacao
 
 - `EcoBookAiAndroid`: `gradlew.bat app:compileDebugKotlin` e `.\EcoBookAiAndroid\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin` executaram com sucesso nesta maquina.
-- `EcoBookAiAndroid`: a validacao em emulador nao foi concluida porque o AVD local ficou offline no ADB.
+- `EcoBookAiAndroid`: o fluxo instrumentado de auth continua disponivel via `.\EcoBookAiAndroid\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest` quando houver um emulador ativo.
 - `EcoBookAiBackend`: `mvn test` executou com sucesso nesta maquina usando Java 21 no WSL, com PostgreSQL real de teste.
 
 ## Proximos passos

@@ -5,15 +5,10 @@ import com.ecobook.model.AIPreviewField
 import com.ecobook.model.AiAssistStatus
 import com.ecobook.model.BackendConnectionState
 import com.ecobook.model.BackendStatus
-import com.ecobook.model.Disciplina
 import com.ecobook.model.DonationPreview
 import com.ecobook.model.DonationStep
-import com.ecobook.model.EstadoConservacao
-import com.ecobook.model.MaterialHighlight
-import com.ecobook.model.NivelEnsino
 import com.ecobook.model.ProjectInsight
 import com.ecobook.model.SessionUiState
-import com.ecobook.model.SistemaEnsino
 import com.ecobook.model.UserProfileDraft
 import com.ecobook.ui.EcoBookUiState
 import com.ecobook.utils.SecureStorage
@@ -39,7 +34,6 @@ class EcoBookRepository @Inject constructor(
         return EcoBookUiState(
             session = session,
             profile = buildProfileDraft(),
-            catalog = sampleCatalog(),
             insights = sampleInsights(),
             donationPreview = sampleDonationPreview()
         )
@@ -88,81 +82,6 @@ class EcoBookRepository @Inject constructor(
             )
     }
 
-    private fun sampleCatalog(): List<MaterialHighlight> {
-        return listOf(
-            MaterialHighlight(
-                id = "material-1",
-                title = "Colecao Anglo Matematica 7",
-                summary = "Livro em bom estado, ideal para reforco e atividades guiadas.",
-                discipline = Disciplina.MATEMATICA,
-                level = NivelEnsino.FUNDAMENTAL,
-                teachingSystem = SistemaEnsino.ANGLO,
-                conservationState = EstadoConservacao.BOM,
-                schoolYear = "7o ano",
-                neighborhood = "Centro",
-                city = "Florianopolis",
-                publicationYear = 2021,
-                matchNote = "Mesmo bairro e sistema de ensino compativel."
-            ),
-            MaterialHighlight(
-                id = "material-2",
-                title = "Kit Positivo Ciencias 8",
-                summary = "Conjunto com apostilas e caderno de experimentos.",
-                discipline = Disciplina.CIENCIAS,
-                level = NivelEnsino.FUNDAMENTAL,
-                teachingSystem = SistemaEnsino.POSITIVO,
-                conservationState = EstadoConservacao.USADO,
-                schoolYear = "8o ano",
-                neighborhood = "Trindade",
-                city = "Florianopolis",
-                publicationYear = 2020,
-                matchNote = "Mesmo municipio, publicacao recente."
-            ),
-            MaterialHighlight(
-                id = "material-3",
-                title = "Literatura para vestibular",
-                summary = "Selecao com obras de leitura obrigatoria e marcacoes.",
-                discipline = Disciplina.LITERATURA,
-                level = NivelEnsino.MEDIO,
-                teachingSystem = SistemaEnsino.OUTRO,
-                conservationState = EstadoConservacao.BOM,
-                schoolYear = "Ensino medio",
-                neighborhood = "Campeche",
-                city = "Florianopolis",
-                publicationYear = 2019,
-                matchNote = "Boa aderencia para trilha de leitura e vestibulares."
-            ),
-            MaterialHighlight(
-                id = "material-4",
-                title = "Geografia regional do Sul",
-                summary = "Material complementar com mapas e exercicios de revisao.",
-                discipline = Disciplina.GEOGRAFIA,
-                level = NivelEnsino.MEDIO,
-                teachingSystem = SistemaEnsino.COC,
-                conservationState = EstadoConservacao.NOVO,
-                schoolYear = "2a serie",
-                neighborhood = "Kobrasol",
-                city = "Sao Jose",
-                publicationYear = 2022,
-                matchNote = "Fora do bairro, mas com excelente estado de conservacao."
-            ),
-            MaterialHighlight(
-                id = "material-5",
-                title = "Historia do Brasil contemporaneo",
-                summary = "Volume unico para graduacao com anexos e resumos.",
-                discipline = Disciplina.HISTORIA,
-                level = NivelEnsino.SUPERIOR,
-                teachingSystem = SistemaEnsino.OUTRO,
-                conservationState = EstadoConservacao.USADO,
-                schoolYear = "Superior",
-                neighborhood = "Agronomica",
-                city = "Florianopolis",
-                publicationYear = 2018,
-                matchNote = "No nivel superior, o matching ignora o ano escolar."
-            )
-        )
-    }
-
     private fun sampleInsights(): List<ProjectInsight> {
         return listOf(
             ProjectInsight(
@@ -175,7 +94,7 @@ class EcoBookRepository @Inject constructor(
             ),
             ProjectInsight(
                 title = "Integracao atual",
-                description = "Auth, perfil, sessao local, upload com camera/galeria, preview com IA e publicacao final de materiais ja funcionam ponta a ponta. Solicitacoes e notificacoes de negocio seguem como a proxima frente."
+                description = "Auth, perfil, sessao local, upload com camera/galeria, preview com IA, publicacao final e busca paginada de materiais ja funcionam ponta a ponta. Solicitacoes e notificacoes de negocio seguem como a proxima frente."
             )
         )
     }

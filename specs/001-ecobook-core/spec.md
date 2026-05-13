@@ -685,6 +685,11 @@ Sent to student when material is cancelled by donor (at any stage).
 
 ### 7. Standard Error Response
 
+Current runtime note:
+- The implemented backend currently returns `status`, `error`, `message`, `timestamp`, `path`, and optional `field_errors`.
+- Richer `field` / `details` metadata below should be treated as target-state guidance, not as the guaranteed Phase 4 runtime shape.
+- The stable runtime contract for delivered endpoints is documented in `contracts/error-response.md`.
+
 All error responses follow this structure:
 
 ```json

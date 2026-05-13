@@ -129,9 +129,9 @@ fun HomeScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricCard(
-                    title = "Catalogo base",
-                    value = uiState.catalog.size.toString(),
-                    description = "Materiais de exemplo alinhados ao matching do projeto.",
+                    title = "Discovery",
+                    value = "Live API",
+                    description = "Busca paginada e filtros agora falam com /v1/materiais.",
                     icon = Icons.Rounded.MenuBook,
                     modifier = Modifier.weight(1f)
                 )

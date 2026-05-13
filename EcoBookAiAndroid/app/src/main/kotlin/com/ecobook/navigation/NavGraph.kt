@@ -33,11 +33,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ecobook.auth.AuthScreen
+import com.ecobook.discovery.DiscoveryScreen
 import com.ecobook.auth.LogoutViewModel
 import com.ecobook.model.SessionDestination
 import com.ecobook.onboarding.OnboardingScreen
 import com.ecobook.ui.EcoBookViewModel
-import com.ecobook.ui.screens.DiscoveryScreen
 import com.ecobook.ui.screens.DonateScreen
 import com.ecobook.ui.screens.HomeScreen
 import com.ecobook.ui.screens.ProfileScreen
@@ -148,13 +148,7 @@ fun NavGraph() {
                         )
                     }
                     composable(AppDestination.Discovery.route) {
-                        DiscoveryScreen(
-                            uiState = uiState,
-                            onQueryChange = viewModel::updateSearchQuery,
-                            onToggleDisciplina = viewModel::toggleDisciplina,
-                            onToggleNivelEnsino = viewModel::toggleNivelEnsino,
-                            onClearFilters = viewModel::clearDiscoveryFilters
-                        )
+                        DiscoveryScreen()
                     }
                     composable(AppDestination.Donate.route) {
                         DonateScreen()

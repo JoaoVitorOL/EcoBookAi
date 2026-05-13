@@ -30,16 +30,29 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.ecobook.dto.MaterialDTO
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 
 @Composable
 fun MaterialUploadScreen(
-    viewModel: MaterialUploadViewModel = hiltViewModel()
+    viewModel: MaterialUploadViewModel = hiltViewModel(),
+    topContent: (@Composable () -> Unit)? = null,
+    onMaterialPublished: (MaterialDTO) -> Unit = {},
+    autoResetAfterPublish: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var pendingCameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    androidx.compose.runtime.LaunchedEffect(uiState.createdMaterial?.id) {
+        if (autoResetAfterPublish) {
+            uiState.createdMaterial?.let { material ->
+                onMaterialPublished(material)
+                viewModel.restartFlow()
+            }
+        }
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -72,6 +85,10 @@ fun MaterialUploadScreen(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
+        topContent?.let { content ->
+            item { content() }
+        }
+
         item {
             SectionHeading(
                 title = "Fluxo de doacao com IA",

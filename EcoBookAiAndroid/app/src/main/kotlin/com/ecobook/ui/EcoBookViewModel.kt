@@ -7,8 +7,6 @@ import com.ecobook.data.ApiException
 import com.ecobook.data.AuthRepository
 import com.ecobook.data.EcoBookRepository
 import com.ecobook.model.BackendStatus
-import com.ecobook.model.Disciplina
-import com.ecobook.model.NivelEnsino
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
 import java.net.ConnectException
@@ -48,36 +46,6 @@ class EcoBookViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(backendStatus = backendStatus)
             }
-        }
-    }
-
-    fun updateSearchQuery(query: String) {
-        _uiState.update { state -> state.copy(searchQuery = query) }
-    }
-
-    fun toggleDisciplina(disciplina: Disciplina) {
-        _uiState.update { state ->
-            state.copy(
-                selectedDisciplina = if (state.selectedDisciplina == disciplina) null else disciplina
-            )
-        }
-    }
-
-    fun toggleNivelEnsino(nivelEnsino: NivelEnsino) {
-        _uiState.update { state ->
-            state.copy(
-                selectedNivelEnsino = if (state.selectedNivelEnsino == nivelEnsino) null else nivelEnsino
-            )
-        }
-    }
-
-    fun clearDiscoveryFilters() {
-        _uiState.update { state ->
-            state.copy(
-                searchQuery = "",
-                selectedDisciplina = null,
-                selectedNivelEnsino = null
-            )
         }
     }
 

@@ -1,9 +1,9 @@
 # Error Response Schema & HTTP Status Codes
 
 **Reference**: spec.md Communication Contracts  
-**Version**: 2.0  
-**Date**: 2026-05-05  
-**Status**: Aligned with the current backend implementation for Phase 1-2
+**Version**: 2.1  
+**Date**: 2026-05-12  
+**Status**: Aligned with the current backend implementation for the delivered Phase 1-4 runtime
 
 ---
 
@@ -16,7 +16,7 @@ For the currently implemented backend flows, API errors follow this JSON structu
   "status": 400,
   "error": "ERROR_CODE_UPPERCASE",
   "message": "Descricao legivel do erro",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/endpoint",
   "field_errors": {
     "campo": "mensagem opcional"
@@ -28,16 +28,16 @@ For the currently implemented backend flows, API errors follow this JSON structu
 
 | Field | Type | Always Present | Description |
 |-------|------|---|---|
-| `status` | Number | ✅ | HTTP status code |
-| `error` | String | ✅ | Machine-readable error code |
-| `message` | String | ✅ | Human-readable description |
-| `timestamp` | ISO 8601 | ✅ | When error occurred (server time) |
-| `path` | String | ✅ | API endpoint that failed |
-| `field_errors` | Object | ❌ | Optional map of field-specific validation messages |
+| `status` | Number | Yes | HTTP status code |
+| `error` | String | Yes | Machine-readable error code |
+| `message` | String | Yes | Human-readable description |
+| `timestamp` | ISO 8601 | Yes | When error occurred (server time) |
+| `path` | String | Yes | API endpoint that failed |
+| `field_errors` | Object | No | Optional map of field-specific validation messages |
 
 Implementation note:
 - The current runtime does not guarantee `details`, `field`, or domain-specific nested metadata.
-- Future modules may enrich payloads, but clients must treat the schema above as the stable Phase 1-2 baseline.
+- Future modules may enrich payloads, but clients must treat the schema above as the stable Phase 1-4 baseline.
 
 ---
 
@@ -58,7 +58,7 @@ Example:
   "status": 400,
   "error": "VALIDATION_ERROR",
   "message": "Falha de validacao",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/auth/register",
   "field_errors": {
     "password": "A senha deve ter entre 8 e 72 caracteres"
@@ -80,7 +80,7 @@ Examples:
   "status": 401,
   "error": "UNAUTHORIZED",
   "message": "Email ou senha invalidos",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/auth/login"
 }
 ```
@@ -90,7 +90,7 @@ Examples:
   "status": 401,
   "error": "UNAUTHORIZED",
   "message": "Um token JWT valido e obrigatorio",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/usuarios/me"
 }
 ```
@@ -110,7 +110,7 @@ Example:
   "status": 403,
   "error": "INCOMPLETE_PROFILE",
   "message": "Conclua seu perfil antes de acessar este recurso",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/materiais"
 }
 ```
@@ -129,7 +129,7 @@ Example:
   "status": 404,
   "error": "NOT_FOUND",
   "message": "Usuario nao encontrado",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/usuarios/me"
 }
 ```
@@ -148,7 +148,7 @@ Example:
   "status": 409,
   "error": "CONFLICT",
   "message": "Este email ja esta cadastrado",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/auth/register"
 }
 ```
@@ -168,7 +168,7 @@ Example:
   "status": 422,
   "error": "UNPROCESSABLE_ENTITY",
   "message": "Preencha todos os campos obrigatorios do perfil",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/usuarios/me",
   "field_errors": {
     "bairro": "Informe seu bairro",
@@ -191,7 +191,7 @@ Example:
   "status": 500,
   "error": "INTERNAL_SERVER_ERROR",
   "message": "Ocorreu um erro inesperado",
-  "timestamp": "2026-05-05T16:30:00",
+  "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/endpoint"
 }
 ```

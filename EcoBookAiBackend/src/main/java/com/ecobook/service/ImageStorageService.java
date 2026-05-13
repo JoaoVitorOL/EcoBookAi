@@ -110,7 +110,7 @@ public class ImageStorageService {
 
             Path destination = destinationDirectory.resolve(tempPath.getFileName().toString());
             Files.move(tempPath, destination, StandardCopyOption.REPLACE_EXISTING);
-            String publicUrl = "/api/uploads/" + upload.getUsuario().getId() + "/" + destination.getFileName();
+            String publicUrl = "/uploads/" + upload.getUsuario().getId() + "/" + destination.getFileName();
             return new PromotedImage(destination, publicUrl);
         } catch (IOException ex) {
             throw new ResourceNotFoundException("Nao foi possivel promover a imagem para armazenamento permanente", ex);
