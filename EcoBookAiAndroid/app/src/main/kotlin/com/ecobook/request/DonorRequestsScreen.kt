@@ -5,6 +5,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -13,23 +14,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.ui.components.FilterChipCard
 import com.ecobook.ui.components.GlassCard
-import com.ecobook.ui.components.SectionHeading
 
 @Composable
 fun DonorRequestsScreen(
+    topPadding: PaddingValues = PaddingValues(),
     viewModel: DonorRequestsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
@@ -38,14 +44,33 @@ fun DonorRequestsScreen(
         }
     }
 
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     LazyColumn(
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
+        modifier = Modifier.padding(topPadding),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 20.dp,
+            bottom = 120.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            SectionHeading(
-                title = "Pedidos recebidos",
-                subtitle = "Aprove ou recuse novas solicitacoes e finalize as reservas que ja viraram entrega."
+            Text(
+                text = "Aprove ou recuse novas solicitacoes e finalize as reservas que ja viraram entrega.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -128,7 +153,8 @@ fun DonorRequestsScreen(
                     DonorRequestsTab.APPROVED -> DonorRequestCard(
                         request = request,
                         isWorking = uiState.activeRequestId == request.id,
-                        onComplete = { viewModel.completeDonation(request.id) }
+                        onComplete = { viewModel.completeDonation(request.id) },
+                        onRevokeApproval = { viewModel.revokeApproval(request.id) }
                     )
                 }
             }

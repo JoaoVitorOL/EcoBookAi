@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,9 +27,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.discovery.MaterialImage
 import com.ecobook.discovery.formatAnoEscolar
@@ -60,12 +65,25 @@ fun DonateScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var selectedMode by rememberSaveable { mutableStateOf(DonateMode.HISTORY) }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.consumeToast()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshMaterials()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -84,7 +102,8 @@ fun DonateScreen(
                 DonateModeSwitchCard(
                     selectedMode = selectedMode,
                     onShowHistory = { selectedMode = DonateMode.HISTORY },
-                    onShowPublish = { selectedMode = DonateMode.PUBLISH }
+                    onShowPublish = { selectedMode = DonateMode.PUBLISH },
+                    onOpenDonorRequests = onOpenDonorRequests
                 )
             },
             onMaterialPublished = { material ->
@@ -149,6 +168,8 @@ private fun DonateHistoryContent(
     onSwitchToPublish: () -> Unit,
     onOpenDonorRequests: () -> Unit
 ) {
+    val visibleMaterials = uiState.visibleMaterials
+
     LazyColumn(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
@@ -164,26 +185,24 @@ private fun DonateHistoryContent(
             DonateModeSwitchCard(
                 selectedMode = DonateMode.HISTORY,
                 onShowHistory = {},
-                onShowPublish = onSwitchToPublish
+                onShowPublish = onSwitchToPublish,
+                onOpenDonorRequests = onOpenDonorRequests
             )
         }
 
         item {
             GlassCard {
                 Text(
-                    text = if (uiState.materials.isEmpty()) {
+                    text = if (visibleMaterials.isEmpty()) {
                         "Voce ainda nao publicou materiais."
                     } else {
-                        "Voce tem ${uiState.materials.size} materiais cadastrados nesta conta."
+                        "Voce tem ${visibleMaterials.size} materiais ativos cadastrados nesta conta."
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 OutlinedButton(onClick = onRefresh, enabled = !uiState.isLoading) {
                     Text("Atualizar lista")
-                }
-                Button(onClick = onOpenDonorRequests) {
-                    Text("Pedidos recebidos")
                 }
             }
         }
@@ -204,7 +223,7 @@ private fun DonateHistoryContent(
             }
         }
 
-        if (uiState.isLoading && uiState.materials.isEmpty()) {
+        if (uiState.isLoading && visibleMaterials.isEmpty()) {
             item {
                 GlassCard {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -217,7 +236,7 @@ private fun DonateHistoryContent(
                     }
                 }
             }
-        } else if (uiState.materials.isEmpty()) {
+        } else if (visibleMaterials.isEmpty()) {
             item {
                 GlassCard {
                     Text(
@@ -235,7 +254,7 @@ private fun DonateHistoryContent(
                 }
             }
         } else {
-            items(uiState.materials, key = { it.id }) { material ->
+            items(visibleMaterials, key = { it.id }) { material ->
                 DonateMaterialCard(
                     material = material,
                     onEdit = { onOpenEditor(material) },
@@ -250,14 +269,23 @@ private fun DonateHistoryContent(
 private fun DonateModeSwitchCard(
     selectedMode: DonateMode,
     onShowHistory: () -> Unit,
-    onShowPublish: () -> Unit
+    onShowPublish: () -> Unit,
+    onOpenDonorRequests: () -> Unit
 ) {
     GlassCard {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             FilterChipCard(
                 label = "Meus materiais",
                 selected = selectedMode == DonateMode.HISTORY,
                 onClick = onShowHistory
+            )
+            FilterChipCard(
+                label = "Pedidos recebidos",
+                selected = false,
+                onClick = onOpenDonorRequests
             )
             FilterChipCard(
                 label = "Publicar novo",

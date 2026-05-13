@@ -135,6 +135,27 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("donor should be able to revoke a previous approval and reopen the material")
+    void shouldAllowDonorToRevokeApproval() throws Exception {
+        Usuario donor = createUser("donor-revoke@example.com", "Doador");
+        Usuario student = createUser("student-revoke@example.com", "Estudante");
+        Material material = createMaterial(donor, "Colecao revogavel");
+        Solicitacao request = createApprovedRequest(material, student, donor);
+
+        mockMvc.perform(patch("/v1/solicitacoes/{id}/cancelar", request.getId())
+                        .header("Authorization", "Bearer " + tokenFor(donor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("CANCELADA"))
+                .andExpect(jsonPath("$.data.contato_doador").doesNotExist());
+
+        assertThat(materialRepository.findById(material.getId()))
+                .hasValueSatisfying(saved -> {
+                    assertThat(saved.getStatus()).isEqualTo(StatusMaterial.DISPONIVEL);
+                    assertThat(saved.getDoadoEm()).isNull();
+                });
+    }
+
+    @Test
     @DisplayName("listing endpoints should separate student, donor pending and donor approved requests")
     void shouldListRequestsByAudience() throws Exception {
         Usuario donor = createUser("donor-list-requests@example.com", "Doador");
@@ -191,7 +212,7 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                 .sistemaEnsino(SistemaEnsino.ANGLO)
                 .estadoConservacao(EstadoConservacao.BOM)
                 .status(StatusMaterial.DISPONIVEL)
-                .imagemUrl("/uploads/" + donor.getId() + "/" + title.replace(' ', '-').toLowerCase() + ".jpg")
+                .imagemUrl("/api/uploads/" + donor.getId() + "/" + title.replace(' ', '-').toLowerCase() + ".jpg")
                 .cidade(donor.getCidade())
                 .bairro(donor.getBairro())
                 .dataPublicacao(2024)

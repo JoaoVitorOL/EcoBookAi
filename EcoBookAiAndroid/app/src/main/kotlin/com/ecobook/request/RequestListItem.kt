@@ -140,7 +140,8 @@ fun DonorRequestCard(
     isWorking: Boolean,
     onApprove: (() -> Unit)? = null,
     onDecline: (() -> Unit)? = null,
-    onComplete: (() -> Unit)? = null
+    onComplete: (() -> Unit)? = null,
+    onRevokeApproval: (() -> Unit)? = null
 ) {
     val material = request.material
     val student = request.estudante
@@ -236,12 +237,23 @@ fun DonorRequestCard(
                     }
 
                     onComplete != null -> {
-                        Button(
-                            onClick = onComplete,
-                            enabled = !isWorking,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(if (isWorking) "Processando..." else "Marcar como doado")
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button(
+                                onClick = onComplete,
+                                enabled = !isWorking,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(if (isWorking) "Processando..." else "Marcar como doado")
+                            }
+                            onRevokeApproval?.let { revoke ->
+                                OutlinedButton(
+                                    onClick = revoke,
+                                    enabled = !isWorking,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(if (isWorking) "Processando..." else "Revogar aprovacao")
+                                }
+                            }
                         }
                     }
                 }

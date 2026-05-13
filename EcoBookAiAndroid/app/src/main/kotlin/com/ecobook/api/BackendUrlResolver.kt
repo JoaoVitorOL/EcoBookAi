@@ -40,7 +40,14 @@ object BackendUrlResolver {
             append(host)
             apiBase.port.takeIf { it != -1 }?.let { append(":$it") }
         }
+        val normalizedPath = if (value.startsWith("/")) value else "/$value"
+        val basePath = apiBase.path.orEmpty().trimEnd('/')
+        val resolvedPath = when {
+            basePath.isBlank() -> normalizedPath
+            normalizedPath == basePath || normalizedPath.startsWith("$basePath/") -> normalizedPath
+            else -> basePath + normalizedPath
+        }
 
-        return origin + if (value.startsWith("/")) value else "/$value"
+        return origin + resolvedPath
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import java.util.UUID;
 public interface MaterialRepository extends JpaRepository<Material, UUID> {
     List<Material> findByDoadorId(UUID doadorId);
     List<Material> findByDoadorIdOrderByCriadoEmDesc(UUID doadorId);
+    List<Material> findByDoadorIdAndStatusInOrderByCriadoEmDesc(UUID doadorId, Collection<StatusMaterial> statuses);
     List<Material> findByStatus(StatusMaterial status);
     List<Material> findByCidadeAndBairro(String cidade, String bairro);
 

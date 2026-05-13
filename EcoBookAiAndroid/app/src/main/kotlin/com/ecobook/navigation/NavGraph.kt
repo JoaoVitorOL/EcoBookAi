@@ -2,21 +2,25 @@ package com.ecobook.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.VolunteerActivism
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -29,20 +33,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ecobook.auth.AuthScreen
-import com.ecobook.discovery.DiscoveryScreen
 import com.ecobook.auth.LogoutViewModel
+import com.ecobook.discovery.DiscoveryScreen
 import com.ecobook.model.SessionDestination
 import com.ecobook.onboarding.OnboardingScreen
 import com.ecobook.request.DonorRequestsScreen
 import com.ecobook.request.MyRequestsScreen
 import com.ecobook.ui.EcoBookViewModel
 import com.ecobook.ui.screens.DonateScreen
-import com.ecobook.ui.screens.HomeScreen
 import com.ecobook.ui.screens.ProfileScreen
 
 @Composable
@@ -51,7 +55,7 @@ fun NavGraph() {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sessionDestination = uiState.session.destination
     val mainDestinations = listOf(
-        AppDestination.Home,
+        AppDestination.MyRequests,
         AppDestination.Discovery,
         AppDestination.Donate,
         AppDestination.Profile
@@ -86,17 +90,13 @@ fun NavGraph() {
                         ) {
                             NavigationBar(containerColor = Color.Transparent) {
                                 mainDestinations.forEach { destination ->
-                                    val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
+                                    val selected = currentDestination?.hierarchy?.any { backStackDestination ->
+                                        backStackDestination.route in destination.selectedRoutes
+                                    } == true
                                     NavigationBarItem(
                                         selected = selected,
                                         onClick = {
-                                            navController.navigate(destination.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
+                                            navController.navigateToTopLevelDestination(destination.route)
                                         },
                                         icon = {
                                             Icon(
@@ -124,7 +124,7 @@ fun NavGraph() {
                     startDestination = when (sessionDestination) {
                         SessionDestination.AUTH -> AppDestination.Auth.route
                         SessionDestination.ONBOARDING -> AppDestination.Onboarding.route
-                        SessionDestination.MAIN -> AppDestination.Home.route
+                        SessionDestination.MAIN -> AppDestination.MyRequests.route
                     },
                     modifier = Modifier.padding(innerPadding)
                 ) {
@@ -141,20 +141,11 @@ fun NavGraph() {
                             onLogout = logoutViewModel::logout
                         )
                     }
-                    composable(AppDestination.Home.route) {
-                        HomeScreen(
-                            uiState = uiState,
-                            onRefreshBackend = viewModel::refreshBackendStatus,
-                            onOpenDiscovery = { navController.navigate(AppDestination.Discovery.route) },
-                            onOpenDonate = { navController.navigate(AppDestination.Donate.route) },
-                            onOpenMyRequests = { navController.navigate(AppDestination.MyRequests.route) },
-                            onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) },
-                            onOpenProfile = { navController.navigate(AppDestination.Profile.route) }
-                        )
-                    }
                     composable(AppDestination.Discovery.route) {
                         DiscoveryScreen(
-                            onOpenMyRequests = { navController.navigate(AppDestination.MyRequests.route) }
+                            onOpenMyRequests = {
+                                navController.navigateToTopLevelDestination(AppDestination.MyRequests.route)
+                            }
                         )
                     }
                     composable(AppDestination.Donate.route) {
@@ -166,7 +157,14 @@ fun NavGraph() {
                         MyRequestsScreen()
                     }
                     composable(AppDestination.DonorRequests.route) {
-                        DonorRequestsScreen()
+                        ChildDestinationScaffold(
+                            title = "Pedidos recebidos",
+                            onNavigateUp = { navController.navigateUp() }
+                        ) { topPadding ->
+                            DonorRequestsScreen(
+                                topPadding = topPadding
+                            )
+                        }
                     }
                     composable(AppDestination.Profile.route) {
                         val logoutViewModel: LogoutViewModel = hiltViewModel()
@@ -182,17 +180,59 @@ fun NavGraph() {
     }
 }
 
+private fun NavHostController.navigateToTopLevelDestination(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
 private sealed class AppDestination(
     val route: String,
     val label: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val selectedRoutes: Set<String> = setOf(route)
 ) {
     data object Auth : AppDestination("auth", "Entrar", Icons.Rounded.AccountCircle)
     data object Onboarding : AppDestination("onboarding", "Onboarding", Icons.Rounded.AccountCircle)
-    data object Home : AppDestination("home", "Painel", Icons.Rounded.AutoAwesome)
     data object Discovery : AppDestination("discovery", "Buscar", Icons.Rounded.Explore)
-    data object Donate : AppDestination("donate", "Doar", Icons.Rounded.VolunteerActivism)
+    data object Donate : AppDestination(
+        route = "donate",
+        label = "Doar",
+        icon = Icons.Rounded.VolunteerActivism,
+        selectedRoutes = setOf("donate", "donor-requests")
+    )
     data object MyRequests : AppDestination("my-requests", "Solicitacoes", Icons.Rounded.MenuBook)
     data object DonorRequests : AppDestination("donor-requests", "Pedidos", Icons.Rounded.VolunteerActivism)
     data object Profile : AppDestination("profile", "Perfil", Icons.Rounded.AccountCircle)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChildDestinationScaffold(
+    title: String,
+    onNavigateUp: () -> Unit,
+    content: @Composable (topPadding: PaddingValues) -> Unit
+) {
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text(title) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowBack,
+                            contentDescription = "Voltar"
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        content(innerPadding)
+    }
 }

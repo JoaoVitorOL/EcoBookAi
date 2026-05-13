@@ -41,6 +41,9 @@ public class ImageStorageService {
     @Value("${storage.max-file-size-mb:5}")
     private long maxFileSizeMb;
 
+    @Value("${server.servlet.context-path:}")
+    private String servletContextPath;
+
     public StoredTemporaryUpload storeTemporaryImage(Usuario usuario, MultipartFile file) {
         byte[] imageBytes = readFileBytes(file);
         String mimeType = validateImage(imageBytes);
@@ -110,7 +113,7 @@ public class ImageStorageService {
 
             Path destination = destinationDirectory.resolve(tempPath.getFileName().toString());
             Files.move(tempPath, destination, StandardCopyOption.REPLACE_EXISTING);
-            String publicUrl = "/uploads/" + upload.getUsuario().getId() + "/" + destination.getFileName();
+            String publicUrl = buildPublicUrl(upload.getUsuario().getId(), destination.getFileName().toString());
             return new PromotedImage(destination, publicUrl);
         } catch (IOException ex) {
             throw new ResourceNotFoundException("Nao foi possivel promover a imagem para armazenamento permanente", ex);
@@ -186,5 +189,25 @@ public class ImageStorageService {
 
     private Path resolvePath(String filePath) {
         return Path.of(filePath).toAbsolutePath().normalize();
+    }
+
+    private String buildPublicUrl(UUID userId, String fileName) {
+        String contextPath = normalizeContextPath();
+        return contextPath + "/uploads/" + userId + "/" + fileName;
+    }
+
+    private String normalizeContextPath() {
+        if (servletContextPath == null || servletContextPath.isBlank() || "/".equals(servletContextPath.trim())) {
+            return "";
+        }
+
+        String normalized = servletContextPath.trim();
+        if (!normalized.startsWith("/")) {
+            normalized = "/" + normalized;
+        }
+        if (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized;
     }
 }

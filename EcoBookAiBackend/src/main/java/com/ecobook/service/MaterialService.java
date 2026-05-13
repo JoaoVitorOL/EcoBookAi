@@ -36,6 +36,7 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -153,7 +154,10 @@ public class MaterialService {
     @Transactional(readOnly = true)
     public List<MaterialDTO> listCurrentUserMaterials(String email) {
         Usuario usuario = loadUsuario(email);
-        return materialRepository.findByDoadorIdOrderByCriadoEmDesc(usuario.getId()).stream()
+        return materialRepository.findByDoadorIdAndStatusInOrderByCriadoEmDesc(
+                        usuario.getId(),
+                        EnumSet.of(StatusMaterial.DISPONIVEL, StatusMaterial.RESERVADO)
+                ).stream()
                 .map(materialMapper::toDto)
                 .toList();
     }

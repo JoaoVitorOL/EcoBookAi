@@ -44,21 +44,23 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Test
-    @DisplayName("GET /api/v1/materiais/me should list only the current donor materials in reverse creation order")
+    @DisplayName("GET /api/v1/materiais/me should list only active donor materials in reverse creation order")
     void shouldListCurrentUserMaterials() throws Exception {
         Usuario owner = createUser("owner-list@example.com");
         Usuario other = createUser("other-list@example.com");
 
         Material oldest = createMaterial(owner, "Colecao antiga", StatusMaterial.DISPONIVEL, LocalDateTime.now().minusDays(3));
-        Material newest = createMaterial(owner, "Colecao nova", StatusMaterial.CANCELADO, LocalDateTime.now().minusDays(1));
+        Material reserved = createMaterial(owner, "Colecao reservada", StatusMaterial.RESERVADO, LocalDateTime.now().minusDays(1));
+        createMaterial(owner, "Colecao cancelada", StatusMaterial.CANCELADO, LocalDateTime.now().minusHours(12));
+        createMaterial(owner, "Colecao doada", StatusMaterial.DOADO, LocalDateTime.now().minusHours(6));
         createMaterial(other, "Nao deve aparecer", StatusMaterial.DISPONIVEL, LocalDateTime.now());
 
         mockMvc.perform(get("/v1/materiais/me")
                         .header("Authorization", "Bearer " + tokenFor(owner)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].id").value(newest.getId().toString()))
-                .andExpect(jsonPath("$.data[0].titulo").value("Colecao nova"))
+                .andExpect(jsonPath("$.data[0].id").value(reserved.getId().toString()))
+                .andExpect(jsonPath("$.data[0].titulo").value("Colecao reservada"))
                 .andExpect(jsonPath("$.data[1].id").value(oldest.getId().toString()));
     }
 
@@ -179,7 +181,7 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
                 .sistemaEnsino(SistemaEnsino.ANGLO)
                 .estadoConservacao(EstadoConservacao.BOM)
                 .status(status)
-                .imagemUrl("/uploads/" + owner.getId() + "/" + titulo.replace(' ', '-').toLowerCase() + ".jpg")
+                .imagemUrl("/api/uploads/" + owner.getId() + "/" + titulo.replace(' ', '-').toLowerCase() + ".jpg")
                 .cidade(owner.getCidade())
                 .bairro(owner.getBairro())
                 .dataPublicacao(2022)

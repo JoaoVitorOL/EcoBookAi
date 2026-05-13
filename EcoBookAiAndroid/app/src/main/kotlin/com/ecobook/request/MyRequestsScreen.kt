@@ -1,5 +1,9 @@
 package com.ecobook.request
 
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -15,12 +19,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.dto.SolicitacaoDTO
 import com.ecobook.ui.WhatsAppFormatter
@@ -34,11 +42,24 @@ fun MyRequestsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.consumeToast()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -142,13 +163,33 @@ private fun openWhatsApp(context: android.content.Context, request: SolicitacaoD
     }
 
     val title = request.material?.titulo ?: "material solicitado"
-    val message = Uri.encode("Oi! Estou entrando em contato sobre o material \"$title\".")
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$normalized?text=$message"))
+    val message = Uri.encode("Oi! Estou entrando em contato sobre o material \"$title\" no seu aplicativo EcoBook.")
+    val nativeIntent = Intent(Intent.ACTION_VIEW, Uri.parse("whatsapp://send?phone=$normalized&text=$message"))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$normalized?text=$message"))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-    if (intent.resolveActivity(context.packageManager) == null) {
-        Toast.makeText(context, "Nao foi encontrado um app compativel com WhatsApp neste dispositivo.", Toast.LENGTH_SHORT).show()
+    try {
+        context.startActivity(nativeIntent)
         return
+    } catch (_: ActivityNotFoundException) {
+        // Fall back to the public web URL when the native app is not installed.
     }
 
-    context.startActivity(intent)
+    try {
+        context.startActivity(webIntent)
+        return
+    } catch (_: ActivityNotFoundException) {
+        copyContactToClipboard(context, donorWhatsapp.ifBlank { normalized })
+        Toast.makeText(
+            context,
+            "Nenhum app compativel foi encontrado. O contato do doador foi copiado.",
+            Toast.LENGTH_LONG
+        ).show()
+    }
+}
+
+private fun copyContactToClipboard(context: Context, contact: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+    clipboard.setPrimaryClip(ClipData.newPlainText("Contato do doador", contact))
 }

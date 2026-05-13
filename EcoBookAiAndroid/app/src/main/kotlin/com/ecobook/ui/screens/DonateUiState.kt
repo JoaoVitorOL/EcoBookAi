@@ -31,4 +31,9 @@ data class DonateUiState(
     val pendingDeleteMaterial: MaterialDTO? = null,
     val editDraft: DonateMaterialDraft = DonateMaterialDraft(),
     val validationErrors: Map<String, String> = emptyMap()
-)
+) {
+    val visibleMaterials: List<MaterialDTO>
+        get() = materials.filter { material ->
+            material.status == "DISPONIVEL" || material.status == "RESERVADO"
+        }
+}

@@ -79,6 +79,12 @@ class DonorRequestsViewModel @Inject constructor(
         performAction(requestId, "Material marcado como doado.") { requestRepository.completeDonation(requestId) }
     }
 
+    fun revokeApproval(requestId: String) {
+        performAction(requestId, "A aprovacao foi revogada e o material voltou a ficar disponivel.") {
+            requestRepository.cancelRequest(requestId)
+        }
+    }
+
     fun consumeToast() {
         _uiState.update { it.copy(toastMessage = null) }
     }

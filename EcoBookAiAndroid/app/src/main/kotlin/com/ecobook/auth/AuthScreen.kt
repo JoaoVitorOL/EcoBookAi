@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ecobook.api.RuntimeBackendUrlOverride
 import com.ecobook.BuildConfig
 import com.ecobook.R
 import com.ecobook.model.BackendConnectionState
@@ -119,7 +120,12 @@ fun AuthScreen(
 private fun rememberConfiguredBackendUrl(): String {
     val context = androidx.compose.ui.platform.LocalContext.current
     return remember(context) {
-        val override = BuildConfig.BACKEND_URL_OVERRIDE.trim()
+        val runtimeOverride = RuntimeBackendUrlOverride.current(context)
+        val override = if (!runtimeOverride.isNullOrBlank()) {
+            runtimeOverride
+        } else {
+            BuildConfig.BACKEND_URL_OVERRIDE.trim()
+        }
         if (override.isNotBlank()) {
             override.trimEnd('/')
         } else {
@@ -302,6 +308,7 @@ private fun BackendStatusCard(
     configuredBackendUrl: String,
     onRefreshBackend: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     GlassCard {
         val (badgeLabel, badgeContainer, badgeContent) = when (backendStatus.state) {
             BackendConnectionState.CHECKING -> Triple("Verificando servidor", Color(0xFFFCE7D8), Color(0xFF8A4C1F))
@@ -317,12 +324,24 @@ private fun BackendStatusCard(
         Text(
             text = when (backendStatus.state) {
                 BackendConnectionState.CHECKING -> "Estamos verificando a conexao com o backend local."
-                BackendConnectionState.OFFLINE -> "Nao foi possivel falar com o backend agora. O login continua disponivel e sera concluido quando a API responder."
+                BackendConnectionState.OFFLINE -> "Nao foi possivel falar com o backend agora. Enquanto a API estiver offline, entrar e criar conta nao vao concluir."
                 BackendConnectionState.ONLINE -> backendStatus.detail
             },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        backendOfflineHint(
+            backendStatus = backendStatus,
+            configuredBackendUrl = configuredBackendUrl,
+            emulatorUrl = context.getString(R.string.backend_url_emulator),
+            physicalUrl = context.getString(R.string.backend_url_physical)
+        )?.let { hint ->
+            Text(
+                text = hint,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Text(
             text = "Endpoint atual: $configuredBackendUrl",
             style = MaterialTheme.typography.bodyMedium,
@@ -334,5 +353,28 @@ private fun BackendStatusCard(
         ) {
             Text("Verificar backend novamente")
         }
+    }
+}
+
+private fun backendOfflineHint(
+    backendStatus: BackendStatus,
+    configuredBackendUrl: String,
+    emulatorUrl: String,
+    physicalUrl: String
+): String? {
+    if (backendStatus.state != BackendConnectionState.OFFLINE) {
+        return null
+    }
+
+    return when {
+        configuredBackendUrl.contains("10.0.2.2") -> {
+            "Dica: $emulatorUrl funciona no emulador Android. Se o backend estiver no WSL ou se voce estiver usando um celular fisico, troque para o IP real da maquina, por exemplo $physicalUrl."
+        }
+
+        configuredBackendUrl.contains("192.168.0.10") -> {
+            "Dica: $physicalUrl e apenas um exemplo. Substitua esse endpoint pelo IP real da maquina host na mesma rede Wi-Fi."
+        }
+
+        else -> null
     }
 }
