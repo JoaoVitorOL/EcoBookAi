@@ -1,41 +1,22 @@
-# Solicitacao (Request/Solicitation) API Contracts
+# Solicitacao API Contracts
 
-**Reference**: spec.md RF-026 through RF-031, RF-032 through RF-035  
-**Version**: 1.1  
-**Date**: 2026-05-05  
-**Status**: Target contract for Phase 5+; current backend route still serves as skeleton and may return HTTP 501
+**Reference**: spec.md RF-026 through RF-035  
+**Version**: 1.2  
+**Date**: 2026-05-13  
+**Status**: Current runtime contract for Phase 5 request workflow
 
 ---
 
-> Implementation note: this file remains the source of truth for the future request workflow, but the repository has not implemented the full request state machine yet.
+Runtime notes:
+- Successful responses are wrapped in `{ status, message, timestamp, path, data }`.
+- The examples below describe the inner `data` payload.
+- The current backend uses action endpoints (`/aprovar`, `/recusar`, `/cancelar`, `/concluir`) instead of a generic `PATCH /solicitacoes/{id}` body.
+- `contato_doador` is only populated after approval.
 
-## POST /solicitacoes
+## Shared Payload Shape
 
-Create a new request for a material. Student requests material from donor.
+Every runtime response returns a `SolicitacaoDTO` compatible with the shape below.
 
-### Request
-
-```http
-POST /api/v1/solicitacoes
-Content-Type: application/json
-Authorization: Bearer <jwt_token>
-
-{
-  "material_id": "material-uuid-1234567890",
-  "estudante_id": "user-uuid-student"
-}
-```
-
-**Validation Rules**:
-- `material_id`: Must exist and status must be DISPONIVEL
-- `estudante_id`: Must be the authenticated user (cannot request on behalf of others)
-- User must have `perfil_completo = true` → HTTP 403 if false
-- Material must not already have APROVADA Solicitacao → HTTP 409 if reserved
-- User cannot request their own material → HTTP 400 if donor equals student
-
-### Response
-
-**HTTP 201 Created**
 ```json
 {
   "id": "solicitacao-uuid-1234567890",
@@ -43,475 +24,308 @@ Authorization: Bearer <jwt_token>
   "estudante_id": "user-uuid-student",
   "status": "PENDENTE",
   "contato_doador": null,
-  "created_at": "2026-04-17T15:30:00Z",
-  "updated_at": "2026-04-17T15:30:00Z",
-  "approved_at": null,
-  "expires_at": null
-}
-```
-
-**Side Effects**:
-- FCM notification SOLICITACAO_RECEBIDA sent to donor
-- Material remains DISPONIVEL (only transitions to RESERVADO on approval)
-- Multiple PENDENTE Solicitacoes can exist for same Material
-
-### Error Responses
-
-**HTTP 400 Bad Request** - Student cannot request own material
-
-```json
-{
-  "error": "INVALID_REQUEST",
-  "message": "Cannot request your own material"
-}
-```
-
-**HTTP 403 Forbidden** - Profile incomplete
-
-```json
-{
-  "error": "INCOMPLETE_PROFILE",
-  "message": "Profile must be complete to request materials"
-}
-```
-
-**HTTP 404 Not Found** - Material does not exist
-
-```json
-{
-  "error": "NOT_FOUND",
-  "message": "Material not found"
-}
-```
-
-**HTTP 409 Conflict** - Material already reserved
-
-```json
-{
-  "error": "CONFLICT",
-  "message": "Material is already reserved; another request was approved for this material",
-  "details": {
-    "material_status": "RESERVADO",
-    "reason": "Only one approved request per material allowed"
+  "criado_em": "2026-05-13T14:30:00",
+  "atualizado_em": "2026-05-13T14:30:00",
+  "aprovado_em": null,
+  "expires_at": null,
+  "concluido_em": null,
+  "material": {
+    "id": "material-uuid-1234567890",
+    "titulo": "Geometria Plana 7o Ano",
+    "descricao": "Livro em bom estado",
+    "imagem_url": "/api/uploads/usuario/material.jpg",
+    "disciplina": "MATEMATICA",
+    "nivel_ensino": "FUNDAMENTAL",
+    "ano": 7,
+    "status": "DISPONIVEL",
+    "cidade": "FLORIANOPOLIS",
+    "bairro": "CENTRO",
+    "doador_nome": "Joao Silva"
+  },
+  "estudante": {
+    "id": "user-uuid-student",
+    "nome": "Maria Santos",
+    "cidade": "FLORIANOPOLIS",
+    "bairro": "CENTRO"
   }
 }
 ```
 
----
+## POST /materiais/{material_id}/solicitacoes
 
-## PATCH /solicitacoes/{id}
-
-Update solicitacao status. Only the material donor (original creator) can approve/decline requests. Either party can cancel under valid conditions.
+Create a new request for an available material.
 
 ### Request
 
 ```http
-PATCH /api/v1/solicitacoes/solicitacao-uuid-1234567890
-Content-Type: application/json
+POST /api/v1/materiais/{material_id}/solicitacoes
 Authorization: Bearer <jwt_token>
-
-{
-  "status": "APROVADA"
-}
 ```
 
-**Supported Status Transitions**:
+### Runtime Rules
 
-| Current | Target | Actor | Rules | Side Effects |
-|---|---|---|---|---|
-| PENDENTE | APROVADA | Material donor only | Atomic update of both Solicitacao and Material | Material→RESERVADO, FCM SOLICITACAO_APROVADA sent, contato_doador populated, expires_at set to +14 days |
-| PENDENTE | RECUSADA | Material donor only | No race condition risk | Material remains DISPONIVEL, FCM SOLICITACAO_RECUSADA sent |
-| PENDENTE | CANCELADA | Either party | Student can cancel before approval | Material remains DISPONIVEL |
-| APROVADA | CONCLUIDA | Material donor only | Final donation state | Material→DOADO, FCM MATERIAL_DOADO sent |
-| APROVADA | CANCELADA | Either party | Donor or student can cancel | Material→DISPONIVEL, FCM SOLICITACAO_CANCELADA sent |
+- The authenticated user becomes the requesting student.
+- The target material must exist and be `DISPONIVEL`.
+- The student cannot request their own material.
+- The same student cannot keep another `PENDENTE` or `APROVADA` request for the same material.
+- If the material is already `RESERVADO`, the backend returns HTTP 409.
 
-### Response (Approval)
+### Response
 
-**HTTP 200 OK**
+**HTTP 201 Created**
+
 ```json
 {
   "id": "solicitacao-uuid-1234567890",
-  "material_id": "material-uuid-1234567890",
-  "estudante_id": "user-uuid-student",
-  "status": "APROVADA",
-  "contato_doador": {
-    "nome": "João Silva",
-    "whatsapp": "+5548999999999"
-  },
-  "created_at": "2026-04-17T15:30:00Z",
-  "updated_at": "2026-04-17T15:45:00Z",
-  "approved_at": "2026-04-17T15:45:00Z",
-  "expires_at": "2026-05-01T15:45:00Z"
-}
-```
-
-**Processing**:
-1. Validate state transition (HTTP 422 if invalid)
-2. Verify actor is material donor (HTTP 403 if not)
-3. **Atomic operation** (database lock):
-   - Update Solicitacao.status = APROVADA
-   - Update Material.status = RESERVADO
-   - Set Solicitacao.approved_at, expires_at (14 days from now)
-   - Populate contato_doador from donor profile
-4. Send FCM notification SOLICITACAO_APROVADA to student
-5. Return updated Solicitacao
-
-**Lock Strategy** (Q7 - RFC-035):
-```java
-@Transactional(isolation = Isolating.SERIALIZABLE)
-public void approveSolicitacao(String solicitacaoId) {
-    // 1. SELECT Solicitacao FOR UPDATE (database lock)
-    Solicitacao solicitacao = solicitacaoRepo.findByIdForUpdate(solicitacaoId);
-    
-    // 2. SELECT Material FOR UPDATE (lock both rows)
-    Material material = materialRepo.findByIdForUpdate(solicitacao.getMaterialId());
-    
-    // 3. Validate Material has no other APROVADA Solicitacao
-    long approvedCount = solicitacaoRepo.countByMaterialIdAndStatus(
-        material.getId(), StatusSolicitacao.APROVADA);
-    if (approvedCount > 0) {
-        throw new ConflictException("Material already has approved request");
-    }
-    
-    // 4. Update both entities
-    solicitacao.setStatus(StatusSolicitacao.APROVADA);
-    solicitacao.setApprovedAt(Instant.now());
-    solicitacao.setExpiresAt(Instant.now().plus(Duration.ofDays(14)));
-    solicitacao.setContatoDoador(new Contato(donor.getNome(), donor.getWhatsapp()));
-    
-    material.setStatus(StatusMaterial.RESERVADO);
-    material.setUpdatedAt(Instant.now());
-    
-    // 5. Persist (atomic within transaction)
-    solicitacaoRepo.save(solicitacao);
-    materialRepo.save(material);
-    
-    // 6. Send FCM (outside transaction for retry safety)
-    fcmService.sendAsync(SOLICITACAO_APROVADA, student, solicitacao);
-}
-```
-
-### Response (Decline)
-
-**HTTP 200 OK**
-```json
-{
-  "id": "solicitacao-uuid-1234567890",
-  "material_id": "material-uuid-1234567890",
-  "estudante_id": "user-uuid-student",
-  "status": "RECUSADA",
+  "status": "PENDENTE",
   "contato_doador": null,
-  "created_at": "2026-04-17T15:30:00Z",
-  "updated_at": "2026-04-17T15:50:00Z",
-  "approved_at": null,
-  "expires_at": null
+  "criado_em": "2026-05-13T14:30:00"
 }
 ```
-
-**Side Effects**:
-- Material remains DISPONIVEL
-- Other PENDENTE requests for same Material still active
-- FCM notification SOLICITACAO_RECUSADA sent to student
-
-### Response (Completion)
-
-**HTTP 200 OK**
-```json
-{
-  "id": "solicitacao-uuid-1234567890",
-  "material_id": "material-uuid-1234567890",
-  "estudante_id": "user-uuid-student",
-  "status": "CONCLUIDA",
-  "contato_doador": {
-    "nome": "João Silva",
-    "whatsapp": "+5548999999999"
-  },
-  "created_at": "2026-04-17T15:30:00Z",
-  "updated_at": "2026-04-17T16:00:00Z",
-  "approved_at": "2026-04-17T15:45:00Z",
-  "expires_at": "2026-05-01T15:45:00Z"
-}
-```
-
-**Processing**:
-1. Verify current status = APROVADA (HTTP 422 if not)
-2. Verify actor is material donor (HTTP 403 if not)
-3. **Atomic update**:
-   - Update Solicitacao.status = CONCLUIDA
-   - Update Material.status = DOADO
-4. Send FCM notification MATERIAL_DOADO to student (includes donor contact)
-5. Return updated Solicitacao
 
 ### Error Responses
 
-**HTTP 401 Unauthorized** - Not authenticated
-
-```json
-{
-  "status": 401,
-  "error": "UNAUTHORIZED",
-  "message": "Um token JWT valido e obrigatorio"
-}
-```
-
-**HTTP 403 Forbidden** - Not authorized (not donor for approval/completion, or not either party for cancellation)
-
-```json
-{
-  "error": "FORBIDDEN",
-  "message": "Only the material donor can approve or complete this request",
-  "details": {
-    "actor": "user-uuid-student",
-    "material_donor": "user-uuid-donor",
-    "action": "approve"
-  }
-}
-```
-
-**HTTP 404 Not Found** - Solicitacao does not exist
-
-```json
-{
-  "error": "NOT_FOUND",
-  "message": "Solicitacao not found"
-}
-```
-
-**HTTP 409 Conflict** - Material already has approved request
-
-```json
-{
-  "error": "CONFLICT",
-  "message": "Cannot approve: material already has another approved request",
-  "details": {
-    "existing_approved_solicitacao_id": "solicitacao-uuid-other"
-  }
-}
-```
-
-**HTTP 422 Unprocessable Entity** - Invalid state transition
-
-```json
-{
-  "error": "INVALID_STATE_TRANSITION",
-  "message": "Cannot transition from RECUSADA to APROVADA",
-  "details": {
-    "current_status": "RECUSADA",
-    "requested_status": "APROVADA",
-    "reason": "RECUSADA is a terminal state"
-  }
-}
-```
+- `400 INVALID_FORMAT`: invalid UUID or self-request
+- `403 INCOMPLETE_PROFILE`: onboarding incomplete
+- `404 NOT_FOUND`: material not found
+- `409 CONFLICT`: duplicate active request or material already reserved
+- `422 UNPROCESSABLE_ENTITY`: material no longer available for requests
 
 ---
 
-## GET /solicitacoes
+## GET /solicitacoes/minhas
 
-List all requests for the current user (as donor or student).
+List requests created by the authenticated student.
 
 ### Request
 
 ```http
-GET /api/v1/solicitacoes?status=PENDENTE&page=1&limit=20
+GET /api/v1/solicitacoes/minhas?status=APROVADA
 Authorization: Bearer <jwt_token>
 ```
 
-**Query Parameters**:
+### Query Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `status` | String | No | Filter by status (PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA) |
-| `page` | Integer | No | Page number (default 1) |
-| `limit` | Integer | No | Results per page (default 20, max 100) |
+| `status` | String | No | Optional filter: `PENDENTE`, `APROVADA`, `RECUSADA`, `CANCELADA`, `CONCLUIDA` |
 
 ### Response
 
 **HTTP 200 OK**
+
 ```json
-{
-  "total": 12,
-  "page": 1,
-  "limit": 20,
-  "results": [
-    {
-      "id": "solicitacao-uuid-1",
-      "material_id": "material-uuid-1",
-      "estudante_id": "user-uuid-student-1",
-      "status": "PENDENTE",
-      "contato_doador": null,
-      "created_at": "2026-04-17T15:30:00Z",
-      "updated_at": "2026-04-17T15:30:00Z",
-      "approved_at": null,
-      "expires_at": null,
-      "material": {
-        "id": "material-uuid-1",
-        "titulo": "Geometria Plana 7º Ano",
-        "disciplina": "MATEMATICA",
-        "status": "DISPONIVEL"
-      }
+[
+  {
+    "id": "solicitacao-uuid-1",
+    "status": "PENDENTE"
+  },
+  {
+    "id": "solicitacao-uuid-2",
+    "status": "APROVADA",
+    "contato_doador": {
+      "nome": "Maria Santos",
+      "whatsapp": "+5548999999999"
     },
-    {
-      "id": "solicitacao-uuid-2",
-      "material_id": "material-uuid-2",
-      "estudante_id": "user-uuid-student-2",
-      "status": "APROVADA",
-      "contato_doador": {
-        "nome": "Maria Santos",
-        "whatsapp": "+5548988888888"
-      },
-      "created_at": "2026-04-16T10:00:00Z",
-      "updated_at": "2026-04-16T10:15:00Z",
-      "approved_at": "2026-04-16T10:15:00Z",
-      "expires_at": "2026-04-30T10:15:00Z",
-      "material": {
-        "id": "material-uuid-2",
-        "titulo": "Português 8º Ano",
-        "disciplina": "PORTUGUES",
-        "status": "RESERVADO"
-      }
-    }
-  ]
-}
+    "expires_at": "2026-05-27T10:15:00"
+  }
+]
 ```
 
-**Behavior**:
-- Returns requests where user is either the material donor OR the student requester
-- Can filter by status
-- Results include basic material info for context
+---
+
+## GET /solicitacoes/pendentes
+
+List pending requests for materials owned by the authenticated donor.
+
+### Request
+
+```http
+GET /api/v1/solicitacoes/pendentes
+Authorization: Bearer <jwt_token>
+```
+
+### Response
+
+**HTTP 200 OK**
+
+Returns only `PENDENTE` requests tied to materials created by the authenticated user.
+
+---
+
+## GET /solicitacoes/aprovadas
+
+List donor requests that are already approved and still awaiting completion.
+
+### Request
+
+```http
+GET /api/v1/solicitacoes/aprovadas
+Authorization: Bearer <jwt_token>
+```
+
+### Response
+
+**HTTP 200 OK**
+
+Returns only `APROVADA` requests tied to materials created by the authenticated user.
 
 ---
 
 ## GET /solicitacoes/{id}
 
-Retrieve details for a single solicitacao.
+Load one request. Only the donor or the requesting student can access it.
 
 ### Request
 
 ```http
-GET /api/v1/solicitacoes/solicitacao-uuid-1234567890
+GET /api/v1/solicitacoes/{id}
 Authorization: Bearer <jwt_token>
 ```
 
 ### Response
 
-**HTTP 200 OK** (Before approval)
-```json
-{
-  "id": "solicitacao-uuid-1234567890",
-  "material_id": "material-uuid-1234567890",
-  "estudante_id": "user-uuid-student",
-  "status": "PENDENTE",
-  "contato_doador": null,
-  "created_at": "2026-04-17T15:30:00Z",
-  "updated_at": "2026-04-17T15:30:00Z",
-  "approved_at": null,
-  "expires_at": null,
-  "material": {
-    "id": "material-uuid-1234567890",
-    "titulo": "Geometria Plana 7º Ano",
-    "descricao": "Livro em bom estado",
-    "disciplina": "MATEMATICA",
-    "nivel_ensino": "FUNDAMENTAL",
-    "ano": 7,
-    "status": "DISPONIVEL"
-  },
-  "estudante": {
-    "id": "user-uuid-student",
-    "nome": "Maria Santos",
-    "cidade": "FLORIANOPOLIS",
-    "bairro": "CENTRO"
-  }
-}
-```
+**HTTP 200 OK**
 
-**HTTP 200 OK** (After approval - includes contato_doador)
-```json
-{
-  "id": "solicitacao-uuid-1234567890",
-  "material_id": "material-uuid-1234567890",
-  "estudante_id": "user-uuid-student",
-  "status": "APROVADA",
-  "contato_doador": {
-    "nome": "João Silva",
-    "whatsapp": "+5548999999999"
-  },
-  "created_at": "2026-04-17T15:30:00Z",
-  "updated_at": "2026-04-17T15:45:00Z",
-  "approved_at": "2026-04-17T15:45:00Z",
-  "expires_at": "2026-05-01T15:45:00Z",
-  "material": {
-    "id": "material-uuid-1234567890",
-    "titulo": "Geometria Plana 7º Ano",
-    "descricao": "Livro em bom estado",
-    "disciplina": "MATEMATICA",
-    "nivel_ensino": "FUNDAMENTAL",
-    "ano": 7,
-    "status": "RESERVADO"
-  },
-  "estudante": {
-    "id": "user-uuid-student",
-    "nome": "Maria Santos",
-    "cidade": "FLORIANOPOLIS",
-    "bairro": "CENTRO"
-  }
-}
-```
-
-**Key Rule**: `contato_doador` is **only populated when status = APROVADA**; null in all other states.
+Returns the full shared payload shape shown above.
 
 ### Error Responses
 
-**HTTP 404 Not Found**
-```json
-{
-  "error": "NOT_FOUND",
-  "message": "Solicitacao not found"
-}
-```
+- `400 INVALID_FORMAT`: invalid UUID
+- `403 ACCESS_DENIED`: authenticated user is neither donor nor requesting student
+- `404 NOT_FOUND`: request not found
 
 ---
 
-## Expiry & Auto-Cancellation
+## PATCH /solicitacoes/{id}/aprovar
 
-**14-Day Reservation Window**:
+Approve a pending request as the donor.
 
-When Solicitacao is approved (`status = APROVADA`):
-- `expires_at` set to current time + 14 days
-- Material transitions to RESERVADO
+### Request
 
-**Daily Cleanup Job**:
-```sql
--- Runs daily; reverts expired reservations
-UPDATE solicitacao 
-SET status = 'CANCELADA', updated_at = NOW()
-WHERE status = 'APROVADA' AND expires_at < NOW();
-
-UPDATE material 
-SET status = 'DISPONIVEL', updated_at = NOW()
-WHERE id IN (
-  SELECT DISTINCT material_id FROM solicitacao 
-  WHERE status = 'CANCELADA' AND expires_at < NOW()
-);
+```http
+PATCH /api/v1/solicitacoes/{id}/aprovar
+Authorization: Bearer <jwt_token>
 ```
 
-**Invariants Maintained**:
-- Material.RESERVADO with no APROVADA Solicitacao is invalid (daily job prevents this)
-- If expiry occurs, Solicitacao → CANCELADA and Material → DISPONIVEL automatically
-- No manual intervention needed
+### Runtime Behavior
+
+- Runs inside a serializable transaction.
+- Locks both the request row and the related material row.
+- Requires request status `PENDENTE` and material status `DISPONIVEL`.
+- Sets request status to `APROVADA`.
+- Populates `aprovado_em`, `expires_at` (`+14 days`) and `contato_doador`.
+- Sets material status to `RESERVADO`.
+- Automatically changes every other pending request for the same material to `RECUSADA`.
+
+### Response
+
+**HTTP 200 OK**
+
+Returns the updated `SolicitacaoDTO` with donor contact populated.
+
+### Error Responses
+
+- `403 ACCESS_DENIED`: only the donor can approve
+- `404 NOT_FOUND`: request or material not found
+- `409 CONFLICT`: another approved request already exists for the material
+- `422 UNPROCESSABLE_ENTITY`: invalid request/material state
 
 ---
 
-## Performance SLA (Q6 Requirements)
+## PATCH /solicitacoes/{id}/recusar
 
-**Solicitacao Approval Endpoint** (PATCH /solicitacoes/{id}):
+Decline a pending request as the donor.
 
-| Latency Metric | Target | Notes |
-|---|---|---|
-| P95 latency | ≤ 50ms | Achieved via atomic database transaction with minimal locking scope |
-| P99 latency | ≤ 150ms | Worst case: FCM dispatch delay (async, fire-and-forget) |
+### Request
 
-**Implementation Details**:
-- SERIALIZABLE isolation level for atomic approval
-- SELECT...FOR UPDATE on both Solicitacao and Material rows
-- Database indexes on (material_id, status), (estudante_id, status)
-- FCM dispatch happens asynchronously after transaction commit
+```http
+PATCH /api/v1/solicitacoes/{id}/recusar
+Authorization: Bearer <jwt_token>
+```
+
+### Runtime Behavior
+
+- Allowed only for the donor.
+- Requires request status `PENDENTE`.
+- Keeps the material `DISPONIVEL`.
+- Clears approval-related fields if they somehow existed.
+
+### Response
+
+**HTTP 200 OK**
+
+Returns the updated request with status `RECUSADA`.
+
+---
+
+## PATCH /solicitacoes/{id}/cancelar
+
+Cancel a request as either participant.
+
+### Request
+
+```http
+PATCH /api/v1/solicitacoes/{id}/cancelar
+Authorization: Bearer <jwt_token>
+```
+
+### Runtime Behavior
+
+- Allowed for the requesting student or the donor.
+- Valid only while the request is `PENDENTE` or `APROVADA`.
+- If the request was `APROVADA`, the material is atomically reverted from `RESERVADO` to `DISPONIVEL`.
+- Clears `contato_doador`.
+
+### Response
+
+**HTTP 200 OK**
+
+Returns the updated request with status `CANCELADA`.
+
+---
+
+## PATCH /solicitacoes/{id}/concluir
+
+Mark a reservation as donated.
+
+### Request
+
+```http
+PATCH /api/v1/solicitacoes/{id}/concluir
+Authorization: Bearer <jwt_token>
+```
+
+### Runtime Behavior
+
+- Allowed only for the donor.
+- Requires request status `APROVADA`.
+- Requires material status `RESERVADO`.
+- Sets request status to `CONCLUIDA` and fills `concluido_em`.
+- Sets material status to `DOADO` and fills `doado_em`.
+
+### Response
+
+**HTTP 200 OK**
+
+Returns the updated request with status `CONCLUIDA`.
+
+---
+
+## Reservation Expiry Job
+
+Approved reservations expire automatically after 14 days.
+
+### Runtime Behavior
+
+- Daily scheduler runs at `02:00 UTC`.
+- Finds requests where `status = APROVADA` and `expires_at < now`.
+- Reverts the related material from `RESERVADO` to `DISPONIVEL`.
+- Changes the request status to `CANCELADA`.
+- Clears `contato_doador`.
+
+### Invariants
+
+- A material cannot keep two approved requests.
+- `RESERVADO` is only valid while an approved request still exists.
+- Donor contact is never exposed before approval.

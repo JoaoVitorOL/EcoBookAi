@@ -8,6 +8,7 @@ import com.ecobook.api.AuthApiService
 import com.ecobook.api.EcoBookApiClient
 import com.ecobook.api.FcmApiService
 import com.ecobook.api.MaterialApiService
+import com.ecobook.api.RequestApiService
 import com.ecobook.api.RuntimeBackendUrlOverride
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
@@ -103,6 +104,12 @@ object NetworkModule {
     @Singleton
     fun provideMaterialApiService(retrofit: Retrofit): MaterialApiService {
         return retrofit.create(MaterialApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRequestApiService(retrofit: Retrofit): RequestApiService {
+        return retrofit.create(RequestApiService::class.java)
     }
 
     @Provides

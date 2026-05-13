@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,10 +30,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.ecobook.model.Disciplina
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
@@ -44,16 +48,37 @@ import kotlinx.coroutines.flow.map
 
 @Composable
 fun DiscoveryScreen(
+    onOpenMyRequests: () -> Unit = {},
     viewModel: DiscoveryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.consumeToast()
+        }
+    }
+
+    LaunchedEffect(uiState.pendingNavigation) {
+        if (uiState.pendingNavigation == DiscoveryNavigation.MY_REQUESTS) {
+            onOpenMyRequests()
+            viewModel.consumeNavigation()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshActiveSearch()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -72,11 +97,9 @@ fun DiscoveryScreen(
     uiState.selectedMaterial?.let { material ->
         MaterialDetailDialog(
             material = material,
+            isRequestInFlight = uiState.requestingMaterialId == material.id,
             onDismiss = viewModel::closeMaterialDetail,
-            onRequestMaterial = {
-                viewModel.closeMaterialDetail()
-                viewModel.announceRequestFlow()
-            }
+            onRequestMaterial = { viewModel.requestMaterial(material.id) }
         )
     }
 

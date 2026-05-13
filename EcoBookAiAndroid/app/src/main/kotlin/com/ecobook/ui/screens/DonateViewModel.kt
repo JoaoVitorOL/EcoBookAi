@@ -184,16 +184,10 @@ class DonateViewModel @Inject constructor(
                 .onSuccess {
                     _uiState.update { state ->
                         state.copy(
-                            materials = state.materials.map { current ->
-                                if (current.id == material.id) {
-                                    current.copy(status = "CANCELADO")
-                                } else {
-                                    current
-                                }
-                            },
+                            materials = state.materials.filterNot { current -> current.id == material.id },
                             isDeleting = false,
                             pendingDeleteMaterial = null,
-                            toastMessage = "Material excluido da busca publica."
+                            toastMessage = "Material excluido da sua conta."
                         )
                     }
                 }

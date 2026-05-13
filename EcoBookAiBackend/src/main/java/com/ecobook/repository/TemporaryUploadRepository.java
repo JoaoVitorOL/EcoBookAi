@@ -13,6 +13,7 @@ import java.util.UUID;
 @Repository
 public interface TemporaryUploadRepository extends JpaRepository<TemporaryUpload, UUID> {
     Optional<TemporaryUpload> findByUploadId(String uploadId);
+    Optional<TemporaryUpload> findByMaterialId(UUID materialId);
 
     List<TemporaryUpload> findByExpiresAtBeforeAndMaterialIsNull(LocalDateTime expiresAt);
 

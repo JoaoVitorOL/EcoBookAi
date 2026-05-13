@@ -67,6 +67,9 @@ public class Solicitacao {
     @Column
     private LocalDateTime expiresAt;
 
+    @Column(name = "concluido_em")
+    private LocalDateTime concluidoEm;
+
     @PreUpdate
     protected void onUpdate() {
         this.atualizadoEm = LocalDateTime.now();
@@ -76,7 +79,7 @@ public class Solicitacao {
      * Set contact information for the donor
      * Only set when status changes to APROVADA
      */
-    public void setContatoDoador(Usuario doador) {
+    public void populateContatoDoador(Usuario doador) {
         if (this.status == StatusSolicitacao.APROVADA) {
             this.contatoDoador = new HashMap<>();
             this.contatoDoador.put("nome", doador.getNome());

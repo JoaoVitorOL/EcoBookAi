@@ -115,6 +115,9 @@ public class Material {
     @Builder.Default
     private LocalDateTime atualizadoEm = LocalDateTime.now();
 
+    @Column(name = "doado_em")
+    private LocalDateTime doadoEm;
+
     @OneToMany(mappedBy = "material", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Solicitacao> solicitacoes = new ArrayList<>();

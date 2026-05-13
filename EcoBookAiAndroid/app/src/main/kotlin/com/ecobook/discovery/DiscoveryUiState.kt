@@ -5,6 +5,10 @@ import com.ecobook.model.Disciplina
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
 
+enum class DiscoveryNavigation {
+    MY_REQUESTS
+}
+
 data class DiscoveryFilters(
     val query: String = "",
     val disciplina: Disciplina? = null,
@@ -30,7 +34,9 @@ data class DiscoveryUiState(
     val hasSearched: Boolean = false,
     val errorMessage: String? = null,
     val toastMessage: String? = null,
-    val selectedMaterial: MaterialDTO? = null
+    val selectedMaterial: MaterialDTO? = null,
+    val requestingMaterialId: String? = null,
+    val pendingNavigation: DiscoveryNavigation? = null
 ) {
     val isLoading: Boolean
         get() = isLoadingInitial || isLoadingMore

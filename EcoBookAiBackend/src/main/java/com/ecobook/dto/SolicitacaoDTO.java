@@ -1,5 +1,7 @@
 package com.ecobook.dto;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +14,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class SolicitacaoDTO {
     private String id;
     private String materialId;
@@ -22,4 +25,7 @@ public class SolicitacaoDTO {
     private LocalDateTime atualizadoEm;
     private LocalDateTime aprovadoEm;
     private LocalDateTime expiresAt;
+    private LocalDateTime concluidoEm;
+    private SolicitacaoMaterialDTO material;
+    private SolicitacaoStudentDTO estudante;
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecobook.data.ApiException
 import com.ecobook.data.MaterialRepository
+import com.ecobook.data.RequestRepository
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.model.NivelEnsino
 import com.ecobook.utils.SecureStorage
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class DiscoveryViewModel @Inject constructor(
     private val materialRepository: MaterialRepository,
+    private val requestRepository: RequestRepository,
     private val secureStorage: SecureStorage
 ) : ViewModel() {
 
@@ -123,14 +125,57 @@ class DiscoveryViewModel @Inject constructor(
         _uiState.update { state -> state.copy(selectedMaterial = null) }
     }
 
-    fun announceRequestFlow() {
-        _uiState.update { state ->
-            state.copy(toastMessage = "Solicitacoes entram na proxima fase do app.")
+    fun requestMaterial(materialId: String) {
+        if (_uiState.value.requestingMaterialId != null) {
+            return
         }
+
+        _uiState.update { state ->
+            state.copy(requestingMaterialId = materialId)
+        }
+
+        viewModelScope.launch {
+            runCatching { requestRepository.createRequest(materialId) }
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(
+                            selectedMaterial = null,
+                            requestingMaterialId = null,
+                            toastMessage = "Solicitacao enviada. Agora e so aguardar a aprovacao do doador.",
+                            pendingNavigation = DiscoveryNavigation.MY_REQUESTS
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { state ->
+                        state.copy(
+                            requestingMaterialId = null,
+                            toastMessage = resolveRequestError(error)
+                        )
+                    }
+                }
+        }
+    }
+
+    fun refreshActiveSearch() {
+        val state = uiState.value
+        if (!state.hasSearched || state.isLoading) {
+            return
+        }
+
+        executeSearch(
+            filters = state.activeFilters,
+            page = 0,
+            append = false
+        )
     }
 
     fun consumeToast() {
         _uiState.update { state -> state.copy(toastMessage = null) }
+    }
+
+    fun consumeNavigation() {
+        _uiState.update { state -> state.copy(pendingNavigation = null) }
     }
 
     private fun executeSearch(
@@ -224,6 +269,25 @@ class DiscoveryViewModel @Inject constructor(
             is UnknownHostException,
             is IOException -> "Nao foi possivel conectar ao backend configurado no app."
             else -> error.message ?: "Falha inesperada ao buscar materiais."
+        }
+    }
+
+    private fun resolveRequestError(error: Throwable): String {
+        return when (error) {
+            is ApiException -> when (error.statusCode) {
+                400 -> error.message
+                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                403 -> "Conclua o onboarding para solicitar materiais."
+                404 -> "Esse material nao foi encontrado."
+                409 -> error.message
+                422 -> "Esse material nao esta mais disponivel para novas solicitacoes."
+                else -> error.message
+            }
+
+            is ConnectException,
+            is UnknownHostException,
+            is IOException -> "Nao foi possivel enviar a solicitacao porque o backend nao respondeu."
+            else -> error.message ?: "Falha inesperada ao enviar a solicitacao."
         }
     }
 

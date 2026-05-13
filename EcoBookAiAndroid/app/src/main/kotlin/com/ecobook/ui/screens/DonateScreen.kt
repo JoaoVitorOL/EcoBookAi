@@ -55,6 +55,7 @@ private enum class DonateMode {
 
 @Composable
 fun DonateScreen(
+    onOpenDonorRequests: () -> Unit = {},
     viewModel: DonateViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,7 +75,8 @@ fun DonateScreen(
             onRefresh = viewModel::refreshMaterials,
             onOpenEditor = viewModel::openEditor,
             onDelete = viewModel::promptDelete,
-            onSwitchToPublish = { selectedMode = DonateMode.PUBLISH }
+            onSwitchToPublish = { selectedMode = DonateMode.PUBLISH },
+            onOpenDonorRequests = onOpenDonorRequests
         )
 
         DonateMode.PUBLISH -> MaterialUploadScreen(
@@ -118,7 +120,7 @@ fun DonateScreen(
             title = { Text("Excluir material") },
             text = {
                 Text(
-                    "O material \"${material.titulo}\" sera removido da busca publica e passara para o status CANCELADO."
+                    "O material \"${material.titulo}\" sera removido da sua conta e deixara de aparecer na busca publica."
                 )
             },
             confirmButton = {
@@ -144,7 +146,8 @@ private fun DonateHistoryContent(
     onRefresh: () -> Unit,
     onOpenEditor: (MaterialDTO) -> Unit,
     onDelete: (MaterialDTO) -> Unit,
-    onSwitchToPublish: () -> Unit
+    onSwitchToPublish: () -> Unit,
+    onOpenDonorRequests: () -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
@@ -178,6 +181,9 @@ private fun DonateHistoryContent(
                 )
                 OutlinedButton(onClick = onRefresh, enabled = !uiState.isLoading) {
                     Text("Atualizar lista")
+                }
+                Button(onClick = onOpenDonorRequests) {
+                    Text("Pedidos recebidos")
                 }
             }
         }

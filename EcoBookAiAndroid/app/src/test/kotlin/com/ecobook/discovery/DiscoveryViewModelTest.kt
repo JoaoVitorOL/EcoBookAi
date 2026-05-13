@@ -1,6 +1,7 @@
 package com.ecobook.discovery
 
 import com.ecobook.data.MaterialRepository
+import com.ecobook.data.RequestRepository
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.dto.MaterialDonorDTO
 import com.ecobook.dto.PagedResponseDTO
@@ -30,6 +31,7 @@ class DiscoveryViewModelTest {
     @Test
     fun initShouldPrefillCityAndNeighborhoodAndRunFirstSearch() = runTest {
         val repository = mockk<MaterialRepository>()
+        val requestRepository = mockk<RequestRepository>(relaxed = true)
         val secureStorage = mockk<SecureStorage>()
         every { secureStorage.getUserCidade() } returns "Florianopolis"
         every { secureStorage.getUserBairro() } returns "Centro"
@@ -42,7 +44,7 @@ class DiscoveryViewModelTest {
             total = 1
         )
 
-        val viewModel = DiscoveryViewModel(repository, secureStorage)
+        val viewModel = DiscoveryViewModel(repository, requestRepository, secureStorage)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -72,6 +74,7 @@ class DiscoveryViewModelTest {
     @Test
     fun searchShouldExposeValidationToastWhenPublicationRangeIsInvalid() = runTest {
         val repository = mockk<MaterialRepository>()
+        val requestRepository = mockk<RequestRepository>(relaxed = true)
         val secureStorage = mockk<SecureStorage>()
         every { secureStorage.getUserCidade() } returns null
         every { secureStorage.getUserBairro() } returns null
@@ -79,7 +82,7 @@ class DiscoveryViewModelTest {
             repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns pagedResponse()
 
-        val viewModel = DiscoveryViewModel(repository, secureStorage)
+        val viewModel = DiscoveryViewModel(repository, requestRepository, secureStorage)
         advanceUntilIdle()
         clearMocks(repository, answers = false)
 
@@ -101,6 +104,7 @@ class DiscoveryViewModelTest {
     @Test
     fun loadNextPageShouldAppendResultsUsingActiveFilters() = runTest {
         val repository = mockk<MaterialRepository>()
+        val requestRepository = mockk<RequestRepository>(relaxed = true)
         val secureStorage = mockk<SecureStorage>()
         every { secureStorage.getUserCidade() } returns "Sao Jose"
         every { secureStorage.getUserBairro() } returns ""
@@ -145,7 +149,7 @@ class DiscoveryViewModelTest {
             total = 2
         )
 
-        val viewModel = DiscoveryViewModel(repository, secureStorage)
+        val viewModel = DiscoveryViewModel(repository, requestRepository, secureStorage)
         advanceUntilIdle()
 
         viewModel.loadNextPage()
@@ -160,6 +164,7 @@ class DiscoveryViewModelTest {
     @Test
     fun selectingSuperiorShouldClearSchoolYearField() = runTest {
         val repository = mockk<MaterialRepository>()
+        val requestRepository = mockk<RequestRepository>(relaxed = true)
         val secureStorage = mockk<SecureStorage>()
         every { secureStorage.getUserCidade() } returns null
         every { secureStorage.getUserBairro() } returns null
@@ -167,7 +172,7 @@ class DiscoveryViewModelTest {
             repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns pagedResponse()
 
-        val viewModel = DiscoveryViewModel(repository, secureStorage)
+        val viewModel = DiscoveryViewModel(repository, requestRepository, secureStorage)
         advanceUntilIdle()
 
         viewModel.updateAno("7")

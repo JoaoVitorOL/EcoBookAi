@@ -145,7 +145,7 @@ public class MaterialController {
     @RequireCompleteProfile
     public ResponseEntity<Void> deleteMaterial(@PathVariable String id,
                                                Authentication authentication) {
-        materialService.cancelMaterial(authentication.getName(), id);
+        materialService.deleteMaterial(authentication.getName(), id);
         return ResponseEntity.noContent().build();
     }
 

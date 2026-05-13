@@ -9,6 +9,7 @@ import com.ecobook.exception.ConflictException;
 import com.ecobook.exception.ResourceNotFoundException;
 import com.ecobook.exception.UnprocessableEntityException;
 import com.ecobook.model.Material;
+import com.ecobook.model.Solicitacao;
 import com.ecobook.model.TemporaryUpload;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Disciplina;
@@ -19,6 +20,7 @@ import com.ecobook.model.enums.StatusIA;
 import com.ecobook.model.enums.StatusMaterial;
 import com.ecobook.model.enums.UploadProcessingStatus;
 import com.ecobook.repository.MaterialRepository;
+import com.ecobook.repository.SolicitacaoRepository;
 import com.ecobook.repository.TemporaryUploadRepository;
 import com.ecobook.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +49,11 @@ public class MaterialService {
     private final UsuarioRepository usuarioRepository;
     private final MaterialRepository materialRepository;
     private final TemporaryUploadRepository temporaryUploadRepository;
+    private final SolicitacaoRepository solicitacaoRepository;
     private final ImageStorageService imageStorageService;
     private final GeminiService geminiService;
     private final MaterialMapper materialMapper;
+    private final FcmService fcmService;
 
     @Transactional
     public GeminiResponseDTO previewMaterial(String email, MultipartFile file) {
@@ -176,12 +180,32 @@ public class MaterialService {
     }
 
     @Transactional
-    public void cancelMaterial(String email, String materialId) {
+    public void deleteMaterial(String email, String materialId) {
         Usuario usuario = loadUsuario(email);
         Material material = loadOwnedMaterial(materialId, usuario);
-        ensureStatusAllowsCancellation(material);
-        material.setStatus(StatusMaterial.CANCELADO);
-        materialRepository.save(material);
+        ensureStatusAllowsDeletion(material);
+
+        List<Solicitacao> requests = solicitacaoRepository.findByMaterialId(material.getId());
+
+        temporaryUploadRepository.findByMaterialId(material.getId()).ifPresent(upload -> {
+            imageStorageService.deleteIfExists(upload.getFilePath());
+            temporaryUploadRepository.delete(upload);
+        });
+
+        materialRepository.delete(material);
+
+        requests.stream()
+                .filter(request -> request.getEstudante() != null)
+                .forEach(request -> fcmService.sendNotification(
+                        request.getEstudante().getId().toString(),
+                        "Material removido",
+                        "A doacao \"" + material.getTitulo() + "\" foi removida pelo doador.",
+                        Map.of(
+                                "type", "MATERIAL_CANCELADO",
+                                "material_id", material.getId().toString(),
+                                "material_titulo", material.getTitulo()
+                        )
+                ));
     }
 
     private Usuario loadUsuario(String email) {
@@ -360,7 +384,7 @@ public class MaterialService {
         }
     }
 
-    private void ensureStatusAllowsCancellation(Material material) {
+    private void ensureStatusAllowsDeletion(Material material) {
         if (material.getStatus() != StatusMaterial.DISPONIVEL) {
             throw new UnprocessableEntityException("Somente materiais disponiveis podem ser excluidos");
         }

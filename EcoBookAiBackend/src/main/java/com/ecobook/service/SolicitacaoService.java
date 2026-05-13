@@ -1,17 +1,396 @@
 package com.ecobook.service;
 
+import com.ecobook.dto.SolicitacaoDTO;
+import com.ecobook.exception.BadRequestException;
+import com.ecobook.exception.ConflictException;
+import com.ecobook.exception.ResourceNotFoundException;
+import com.ecobook.exception.UnprocessableEntityException;
+import com.ecobook.model.Material;
+import com.ecobook.model.Solicitacao;
+import com.ecobook.model.Usuario;
+import com.ecobook.model.enums.StatusMaterial;
+import com.ecobook.model.enums.StatusSolicitacao;
+import com.ecobook.repository.MaterialRepository;
+import com.ecobook.repository.SolicitacaoRepository;
+import com.ecobook.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Solicitacao service for request/solicitation lifecycle
  */
 @Service
+@RequiredArgsConstructor
 public class SolicitacaoService {
 
-    /**
-     * Create a request for a material
-     */
-    public void createRequest(String materialId, String estudanteId) {
-        // Implementation in Phase 5
+    private static final String REQUEST_CANCELLED_MESSAGE = "A solicitacao foi cancelada.";
+
+    private final UsuarioRepository usuarioRepository;
+    private final MaterialRepository materialRepository;
+    private final SolicitacaoRepository solicitacaoRepository;
+    private final SolicitacaoMapper solicitacaoMapper;
+    private final MaterialStateValidator materialStateValidator;
+    private final FcmService fcmService;
+
+    @Transactional
+    public SolicitacaoDTO createRequest(String email, String materialId) {
+        Usuario estudante = loadUsuario(email);
+        Material material = loadMaterial(materialId);
+
+        if (material.getDoador().getId().equals(estudante.getId())) {
+            throw new BadRequestException("Nao e possivel solicitar o proprio material", Map.of());
+        }
+
+        if (material.getStatus() == StatusMaterial.RESERVADO) {
+            throw new ConflictException("O material ja possui uma solicitacao aprovada");
+        }
+
+        if (material.getStatus() != StatusMaterial.DISPONIVEL) {
+            throw new UnprocessableEntityException("O material nao esta disponivel para novas solicitacoes");
+        }
+
+        if (solicitacaoRepository.existsByMaterialIdAndEstudanteIdAndStatusIn(
+                material.getId(),
+                estudante.getId(),
+                List.of(StatusSolicitacao.PENDENTE, StatusSolicitacao.APROVADA)
+        )) {
+            throw new ConflictException("Voce ja possui uma solicitacao ativa para este material");
+        }
+
+        Solicitacao solicitacao = solicitacaoRepository.save(Solicitacao.builder()
+                .material(material)
+                .estudante(estudante)
+                .status(StatusSolicitacao.PENDENTE)
+                .build());
+
+        fcmService.sendNotification(
+                material.getDoador().getId().toString(),
+                "Novo pedido recebido",
+                "Sua doacao \"" + material.getTitulo() + "\" recebeu uma nova solicitacao.",
+                Map.of(
+                        "type", "SOLICITACAO_RECEBIDA",
+                        "solicitacao_id", solicitacao.getId().toString(),
+                        "material_id", material.getId().toString(),
+                        "material_titulo", material.getTitulo(),
+                        "estudante_nome", estudante.getNome()
+                )
+        );
+
+        return solicitacaoMapper.toDto(solicitacao);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SolicitacaoDTO> listCurrentUserRequests(String email, StatusSolicitacao status) {
+        Usuario usuario = loadUsuario(email);
+        return solicitacaoRepository.findByEstudanteIdOrderByCriadoEmDesc(usuario.getId()).stream()
+                .filter(request -> status == null || request.getStatus() == status)
+                .map(solicitacaoMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SolicitacaoDTO> listPendingRequestsForDonor(String email) {
+        Usuario usuario = loadUsuario(email);
+        return solicitacaoRepository
+                .findByMaterialDoadorIdAndStatusOrderByCriadoEmDesc(usuario.getId(), StatusSolicitacao.PENDENTE)
+                .stream()
+                .map(solicitacaoMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SolicitacaoDTO> listApprovedRequestsForDonor(String email) {
+        Usuario usuario = loadUsuario(email);
+        return solicitacaoRepository
+                .findByMaterialDoadorIdAndStatusOrderByCriadoEmDesc(usuario.getId(), StatusSolicitacao.APROVADA)
+                .stream()
+                .map(solicitacaoMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SolicitacaoDTO getRequest(String email, String requestId) {
+        Usuario usuario = loadUsuario(email);
+        Solicitacao solicitacao = loadSolicitacao(requestId);
+        ensureParticipant(solicitacao, usuario);
+        return solicitacaoMapper.toDto(solicitacao);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public SolicitacaoDTO approveRequest(String email, String requestId) {
+        Usuario doador = loadUsuario(email);
+        Solicitacao solicitacao = loadSolicitacaoForUpdate(requestId);
+        Material material = lockMaterial(solicitacao.getMaterial().getId());
+
+        ensureDonor(solicitacao, doador);
+        ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitacoes pendentes podem ser aprovadas");
+        materialStateValidator.requireAvailable(
+                material.getStatus(),
+                "O material precisa estar DISPONIVEL para aprovar uma solicitacao"
+        );
+
+        if (solicitacaoRepository.existsByMaterialIdAndStatusAndIdNot(
+                material.getId(),
+                StatusSolicitacao.APROVADA,
+                solicitacao.getId()
+        )) {
+            throw new ConflictException("Ja existe outra solicitacao aprovada para este material");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        materialStateValidator.validateTransition(material.getStatus(), StatusMaterial.RESERVADO);
+        material.setStatus(StatusMaterial.RESERVADO);
+        material.setDoadoEm(null);
+
+        solicitacao.setStatus(StatusSolicitacao.APROVADA);
+        solicitacao.setAprovadoEm(now);
+        solicitacao.setExpiresAt(now.plusDays(14));
+        solicitacao.populateContatoDoador(doador);
+
+        List<Solicitacao> otherPending = solicitacaoRepository.findByMaterialIdAndStatus(material.getId(), StatusSolicitacao.PENDENTE)
+                .stream()
+                .filter(other -> !other.getId().equals(solicitacao.getId()))
+                .peek(other -> other.setStatus(StatusSolicitacao.RECUSADA))
+                .toList();
+
+        materialRepository.save(material);
+        solicitacaoRepository.save(solicitacao);
+        if (!otherPending.isEmpty()) {
+            solicitacaoRepository.saveAll(otherPending);
+        }
+
+        notifyApproval(solicitacao);
+        otherPending.forEach(this::notifyDecline);
+        return solicitacaoMapper.toDto(solicitacao);
+    }
+
+    @Transactional
+    public SolicitacaoDTO declineRequest(String email, String requestId) {
+        Usuario doador = loadUsuario(email);
+        Solicitacao solicitacao = loadSolicitacao(requestId);
+        ensureDonor(solicitacao, doador);
+        ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitacoes pendentes podem ser recusadas");
+
+        solicitacao.setStatus(StatusSolicitacao.RECUSADA);
+        solicitacao.setContatoDoador(null);
+        solicitacao.setExpiresAt(null);
+        solicitacao.setConcluidoEm(null);
+        Solicitacao saved = solicitacaoRepository.save(solicitacao);
+        notifyDecline(saved);
+        return solicitacaoMapper.toDto(saved);
+    }
+
+    @Transactional
+    public SolicitacaoDTO cancelRequest(String email, String requestId) {
+        Usuario actor = loadUsuario(email);
+        Solicitacao solicitacao = loadSolicitacao(requestId);
+        ensureParticipant(solicitacao, actor);
+
+        if (!EnumSet.of(StatusSolicitacao.PENDENTE, StatusSolicitacao.APROVADA).contains(solicitacao.getStatus())) {
+            throw new UnprocessableEntityException("Somente solicitacoes pendentes ou aprovadas podem ser canceladas");
+        }
+
+        if (solicitacao.getStatus() == StatusSolicitacao.APROVADA) {
+            Material material = lockMaterial(solicitacao.getMaterial().getId());
+            materialStateValidator.validateTransition(material.getStatus(), StatusMaterial.DISPONIVEL);
+            material.setStatus(StatusMaterial.DISPONIVEL);
+            material.setDoadoEm(null);
+            materialRepository.save(material);
+        }
+
+        solicitacao.setStatus(StatusSolicitacao.CANCELADA);
+        solicitacao.setContatoDoador(null);
+        Solicitacao saved = solicitacaoRepository.save(solicitacao);
+        notifyCancellation(saved, actor);
+        return solicitacaoMapper.toDto(saved);
+    }
+
+    @Transactional
+    public SolicitacaoDTO completeDonation(String email, String requestId) {
+        Usuario doador = loadUsuario(email);
+        Solicitacao solicitacao = loadSolicitacao(requestId);
+        Material material = lockMaterial(solicitacao.getMaterial().getId());
+
+        ensureDonor(solicitacao, doador);
+        ensureRequestStatus(solicitacao, StatusSolicitacao.APROVADA, "Somente solicitacoes aprovadas podem ser concluidas");
+        materialStateValidator.validateTransition(material.getStatus(), StatusMaterial.DOADO);
+
+        LocalDateTime now = LocalDateTime.now();
+        solicitacao.setStatus(StatusSolicitacao.CONCLUIDA);
+        solicitacao.setConcluidoEm(now);
+        material.setStatus(StatusMaterial.DOADO);
+        material.setDoadoEm(now);
+
+        materialRepository.save(material);
+        Solicitacao saved = solicitacaoRepository.save(solicitacao);
+        notifyCompletion(saved);
+        return solicitacaoMapper.toDto(saved);
+    }
+
+    @Transactional
+    public int expireApprovedRequests() {
+        List<Solicitacao> expiredRequests = solicitacaoRepository.findByStatusAndExpiresAtBefore(
+                StatusSolicitacao.APROVADA,
+                LocalDateTime.now()
+        );
+
+        expiredRequests.forEach(request -> {
+            Material material = lockMaterial(request.getMaterial().getId());
+            if (material.getStatus() == StatusMaterial.RESERVADO) {
+                material.setStatus(StatusMaterial.DISPONIVEL);
+                material.setDoadoEm(null);
+                materialRepository.save(material);
+            }
+            request.setStatus(StatusSolicitacao.CANCELADA);
+            request.setContatoDoador(null);
+            solicitacaoRepository.save(request);
+            fcmService.sendNotification(
+                    request.getEstudante().getId().toString(),
+                    "Reserva expirada",
+                    "A reserva do material \"" + material.getTitulo() + "\" expirou e o item voltou a ficar disponivel.",
+                    Map.of(
+                            "type", "SOLICITACAO_CANCELADA",
+                            "solicitacao_id", request.getId().toString(),
+                            "material_id", material.getId().toString(),
+                            "material_titulo", material.getTitulo()
+                    )
+            );
+        });
+
+        return expiredRequests.size();
+    }
+
+    private Usuario loadUsuario(String email) {
+        return usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+    }
+
+    private Material loadMaterial(String materialId) {
+        return materialRepository.findById(parseUuid(materialId, "material"))
+                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+    }
+
+    private Material lockMaterial(UUID materialId) {
+        return materialRepository.findByIdForUpdate(materialId)
+                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+    }
+
+    private Solicitacao loadSolicitacao(String requestId) {
+        return solicitacaoRepository.findById(parseUuid(requestId, "solicitacao"))
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
+    }
+
+    private Solicitacao loadSolicitacaoForUpdate(String requestId) {
+        return solicitacaoRepository.findByIdForUpdate(parseUuid(requestId, "solicitacao"))
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
+    }
+
+    private void ensureDonor(Solicitacao solicitacao, Usuario usuario) {
+        if (!solicitacao.getMaterial().getDoador().getId().equals(usuario.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Apenas o doador do material pode alterar esta solicitacao"
+            );
+        }
+    }
+
+    private void ensureParticipant(Solicitacao solicitacao, Usuario usuario) {
+        boolean isStudent = solicitacao.getEstudante().getId().equals(usuario.getId());
+        boolean isDonor = solicitacao.getMaterial().getDoador().getId().equals(usuario.getId());
+        if (!isStudent && !isDonor) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Apenas o estudante solicitante ou o doador podem acessar esta solicitacao"
+            );
+        }
+    }
+
+    private void ensureRequestStatus(Solicitacao solicitacao, StatusSolicitacao expected, String message) {
+        if (solicitacao.getStatus() != expected) {
+            throw new UnprocessableEntityException(message);
+        }
+    }
+
+    private UUID parseUuid(String rawValue, String label) {
+        if (!StringUtils.hasText(rawValue)) {
+            throw new BadRequestException("Identificador de " + label + " invalido", Map.of(label, "Informe um UUID valido"));
+        }
+
+        try {
+            return UUID.fromString(rawValue.trim());
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("Identificador de " + label + " invalido", Map.of(label, "Informe um UUID valido"));
+        }
+    }
+
+    private void notifyApproval(Solicitacao solicitacao) {
+        fcmService.sendNotification(
+                solicitacao.getEstudante().getId().toString(),
+                "Solicitacao aprovada",
+                "Sua solicitacao para \"" + solicitacao.getMaterial().getTitulo() + "\" foi aprovada.",
+                Map.of(
+                        "type", "SOLICITACAO_APROVADA",
+                        "solicitacao_id", solicitacao.getId().toString(),
+                        "material_id", solicitacao.getMaterial().getId().toString(),
+                        "material_titulo", solicitacao.getMaterial().getTitulo(),
+                        "doador_nome", solicitacao.getMaterial().getDoador().getNome(),
+                        "doador_whatsapp", solicitacao.getMaterial().getDoador().getWhatsapp()
+                )
+        );
+    }
+
+    private void notifyDecline(Solicitacao solicitacao) {
+        fcmService.sendNotification(
+                solicitacao.getEstudante().getId().toString(),
+                "Solicitacao recusada",
+                "O pedido para \"" + solicitacao.getMaterial().getTitulo() + "\" foi recusado.",
+                Map.of(
+                        "type", "SOLICITACAO_RECUSADA",
+                        "solicitacao_id", solicitacao.getId().toString(),
+                        "material_id", solicitacao.getMaterial().getId().toString(),
+                        "material_titulo", solicitacao.getMaterial().getTitulo()
+                )
+        );
+    }
+
+    private void notifyCancellation(Solicitacao solicitacao, Usuario actor) {
+        Usuario recipient = solicitacao.getEstudante().getId().equals(actor.getId())
+                ? solicitacao.getMaterial().getDoador()
+                : solicitacao.getEstudante();
+
+        fcmService.sendNotification(
+                recipient.getId().toString(),
+                "Solicitacao cancelada",
+                REQUEST_CANCELLED_MESSAGE,
+                Map.of(
+                        "type", "SOLICITACAO_CANCELADA",
+                        "solicitacao_id", solicitacao.getId().toString(),
+                        "material_id", solicitacao.getMaterial().getId().toString(),
+                        "material_titulo", solicitacao.getMaterial().getTitulo()
+                )
+        );
+    }
+
+    private void notifyCompletion(Solicitacao solicitacao) {
+        fcmService.sendNotification(
+                solicitacao.getEstudante().getId().toString(),
+                "Doacao concluida",
+                "O material \"" + solicitacao.getMaterial().getTitulo() + "\" foi marcado como doado.",
+                Map.of(
+                        "type", "MATERIAL_DOADO",
+                        "solicitacao_id", solicitacao.getId().toString(),
+                        "material_id", solicitacao.getMaterial().getId().toString(),
+                        "material_titulo", solicitacao.getMaterial().getTitulo(),
+                        "doador_nome", solicitacao.getMaterial().getDoador().getNome(),
+                        "doador_whatsapp", solicitacao.getMaterial().getDoador().getWhatsapp()
+                )
+        );
     }
 }

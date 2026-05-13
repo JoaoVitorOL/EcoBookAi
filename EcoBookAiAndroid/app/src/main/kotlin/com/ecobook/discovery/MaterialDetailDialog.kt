@@ -24,6 +24,7 @@ import com.ecobook.ui.components.StatusBadge
 @Composable
 fun MaterialDetailDialog(
     material: MaterialDTO,
+    isRequestInFlight: Boolean,
     onDismiss: () -> Unit,
     onRequestMaterial: () -> Unit
 ) {
@@ -34,8 +35,11 @@ fun MaterialDetailDialog(
                 OutlinedButton(onClick = onDismiss) {
                     Text("Fechar")
                 }
-                Button(onClick = onRequestMaterial) {
-                    Text("Solicitar material")
+                Button(
+                    onClick = onRequestMaterial,
+                    enabled = !isRequestInFlight
+                ) {
+                    Text(if (isRequestInFlight) "Enviando..." else "Solicitar material")
                 }
             }
         },
@@ -97,20 +101,17 @@ fun MaterialDetailDialog(
                 MetadataLine("Autor", material.autor ?: "Nao informado")
                 MetadataLine("Editora", material.editora ?: "Nao informada")
                 MetadataLine("Doador", material.doador.nome)
-                OutlinedButton(onClick = onRequestMaterial) {
-                    Text("Contato liberado apos aprovacao")
-                }
+                Text(
+                    text = "O contato do doador so aparece depois que a solicitacao for aprovada.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
                 material.criadoEm?.let { criadoEm ->
                     MetadataLine(
                         "Item cadastrado em",
                         formatAbsoluteDateTime(criadoEm) ?: formatRelativeDate(criadoEm) ?: criadoEm
                     )
                 }
-                Text(
-                    text = "O fluxo de solicitacao sera conectado na proxima fase; por enquanto o app ja deixa a descoberta pronta para essa transicao.",
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.primary
-                )
             }
         }
     )

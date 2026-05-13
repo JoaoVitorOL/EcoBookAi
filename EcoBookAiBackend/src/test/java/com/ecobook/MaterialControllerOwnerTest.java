@@ -134,8 +134,8 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/materiais/{id} should cancel an available donor material")
-    void shouldCancelOwnedMaterial() throws Exception {
+    @DisplayName("DELETE /api/v1/materiais/{id} should permanently remove an available donor material")
+    void shouldDeleteOwnedMaterial() throws Exception {
         Usuario owner = createUser("owner-delete@example.com");
         Material material = createMaterial(owner, "Colecao excluivel", StatusMaterial.DISPONIVEL, LocalDateTime.now());
 
@@ -143,8 +143,12 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + tokenFor(owner)))
                 .andExpect(status().isNoContent());
 
-        assertThat(materialRepository.findById(material.getId()))
-                .hasValueSatisfying(updated -> assertThat(updated.getStatus()).isEqualTo(StatusMaterial.CANCELADO));
+        assertThat(materialRepository.findById(material.getId())).isEmpty();
+
+        mockMvc.perform(get("/v1/materiais/me")
+                        .header("Authorization", "Bearer " + tokenFor(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(0));
     }
 
     private Usuario createUser(String email) {

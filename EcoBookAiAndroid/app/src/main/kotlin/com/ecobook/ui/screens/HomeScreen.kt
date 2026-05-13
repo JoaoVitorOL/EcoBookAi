@@ -36,6 +36,8 @@ fun HomeScreen(
     onRefreshBackend: () -> Unit,
     onOpenDiscovery: () -> Unit,
     onOpenDonate: () -> Unit,
+    onOpenMyRequests: () -> Unit,
+    onOpenDonorRequests: () -> Unit,
     onOpenProfile: () -> Unit
 ) {
     LazyColumn(
@@ -72,6 +74,14 @@ fun HomeScreen(
                         }
                         OutlinedButton(onClick = onOpenDonate) {
                             Text("Fluxo de doacao")
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        FilledTonalButton(onClick = onOpenMyRequests) {
+                            Text("Minhas solicitacoes")
+                        }
+                        OutlinedButton(onClick = onOpenDonorRequests) {
+                            Text("Pedidos recebidos")
                         }
                     }
                     OutlinedButton(onClick = onOpenProfile) {

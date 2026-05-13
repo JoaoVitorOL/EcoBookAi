@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.VolunteerActivism
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -37,6 +38,8 @@ import com.ecobook.discovery.DiscoveryScreen
 import com.ecobook.auth.LogoutViewModel
 import com.ecobook.model.SessionDestination
 import com.ecobook.onboarding.OnboardingScreen
+import com.ecobook.request.DonorRequestsScreen
+import com.ecobook.request.MyRequestsScreen
 import com.ecobook.ui.EcoBookViewModel
 import com.ecobook.ui.screens.DonateScreen
 import com.ecobook.ui.screens.HomeScreen
@@ -144,14 +147,26 @@ fun NavGraph() {
                             onRefreshBackend = viewModel::refreshBackendStatus,
                             onOpenDiscovery = { navController.navigate(AppDestination.Discovery.route) },
                             onOpenDonate = { navController.navigate(AppDestination.Donate.route) },
+                            onOpenMyRequests = { navController.navigate(AppDestination.MyRequests.route) },
+                            onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) },
                             onOpenProfile = { navController.navigate(AppDestination.Profile.route) }
                         )
                     }
                     composable(AppDestination.Discovery.route) {
-                        DiscoveryScreen()
+                        DiscoveryScreen(
+                            onOpenMyRequests = { navController.navigate(AppDestination.MyRequests.route) }
+                        )
                     }
                     composable(AppDestination.Donate.route) {
-                        DonateScreen()
+                        DonateScreen(
+                            onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) }
+                        )
+                    }
+                    composable(AppDestination.MyRequests.route) {
+                        MyRequestsScreen()
+                    }
+                    composable(AppDestination.DonorRequests.route) {
+                        DonorRequestsScreen()
                     }
                     composable(AppDestination.Profile.route) {
                         val logoutViewModel: LogoutViewModel = hiltViewModel()
@@ -177,5 +192,7 @@ private sealed class AppDestination(
     data object Home : AppDestination("home", "Painel", Icons.Rounded.AutoAwesome)
     data object Discovery : AppDestination("discovery", "Buscar", Icons.Rounded.Explore)
     data object Donate : AppDestination("donate", "Doar", Icons.Rounded.VolunteerActivism)
+    data object MyRequests : AppDestination("my-requests", "Solicitacoes", Icons.Rounded.MenuBook)
+    data object DonorRequests : AppDestination("donor-requests", "Pedidos", Icons.Rounded.VolunteerActivism)
     data object Profile : AppDestination("profile", "Perfil", Icons.Rounded.AccountCircle)
 }
