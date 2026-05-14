@@ -35,7 +35,7 @@ class MyRequestsViewModel @Inject constructor(
 
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            runCatching { requestRepository.listMyRequests() }
+            runCatching { requestRepository.listMyRequests(_uiState.value.selectedFilter.status) }
                 .onSuccess { requests ->
                     _uiState.update {
                         it.copy(
@@ -58,6 +58,7 @@ class MyRequestsViewModel @Inject constructor(
 
     fun updateFilter(filter: MyRequestFilter) {
         _uiState.update { it.copy(selectedFilter = filter) }
+        refresh()
     }
 
     fun cancelRequest(requestId: String) {

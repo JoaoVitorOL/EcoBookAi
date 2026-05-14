@@ -8,7 +8,7 @@ O repositorio esta organizado em duas bases explicitas:
 ## O que existe hoje
 
 - O backend ja tem auth local com `email + senha + JWT`, perfil de usuario, migracoes Flyway, `GET /api/v1/health`, fluxo completo de materiais (`preview`, `create`, `search`, `list me`, `update`, `delete`) e fluxo transacional de solicitacoes (`create`, `list`, `approve`, `decline`, `cancel`, `complete`) com expiracao automatica de reservas.
-- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT, fluxo real de doacao com galeria/camera, preview IA, revisao manual, publicacao final, discovery real conectada ao backend, solicitacao real de materiais, inbox do estudante, inbox do doador e liberacao de contato apos aprovacao.
+- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT, fluxo real de doacao com galeria/camera, preview IA, revisao manual, publicacao final, discovery real conectada ao backend, solicitacao real de materiais, inbox do estudante, inbox do doador, historico do doador com itens doados e liberacao de contato apos aprovacao.
 - A base de notificacoes ja existe nos dois lados: sincronizacao de token FCM, endpoint backend para registrar token, notificacoes locais com IDs distintos e roteamento de toque para as areas de solicitacoes quando o Firebase estiver configurado.
 - Estado atual das fases: Fases 1 a 4 concluidas, Fase 5 amplamente entregue em runtime e Fase 6 parcial. O proximo front e endurecer notificacoes com historico, badges, acoes mais ricas e observabilidade, antes de seguir para modulos transversais como LGPD, admin e hardening final.
 

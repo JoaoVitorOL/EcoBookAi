@@ -95,6 +95,13 @@ fun StudentRequestCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                request.concluidoEm?.takeIf { request.status == "CONCLUIDA" }?.let { completedAt ->
+                    Text(
+                        text = "Doacao concluida em ${formatAbsoluteDateTime(completedAt) ?: completedAt}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 if (request.status == "APROVADA") {
                     val expiry = request.expiresAt?.let { formatAbsoluteDateTime(it) ?: it }
                     Text(

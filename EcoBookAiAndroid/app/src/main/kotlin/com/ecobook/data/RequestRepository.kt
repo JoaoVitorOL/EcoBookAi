@@ -23,6 +23,10 @@ class RequestRepository @Inject constructor(
         return requireData(requestApiService.listMyRequests(status))
     }
 
+    suspend fun getRequest(id: String): SolicitacaoDTO {
+        return requireData(requestApiService.getRequest(id))
+    }
+
     suspend fun listPendingRequestsForDonor(): List<SolicitacaoDTO> {
         return requireData(requestApiService.listPendingRequestsForDonor())
     }

@@ -44,7 +44,7 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Test
-    @DisplayName("GET /api/v1/materiais/me should list only active donor materials in reverse creation order")
+    @DisplayName("GET /api/v1/materiais/me should list donor materials including completed donations in reverse creation order")
     void shouldListCurrentUserMaterials() throws Exception {
         Usuario owner = createUser("owner-list@example.com");
         Usuario other = createUser("other-list@example.com");
@@ -52,16 +52,17 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
         Material oldest = createMaterial(owner, "Colecao antiga", StatusMaterial.DISPONIVEL, LocalDateTime.now().minusDays(3));
         Material reserved = createMaterial(owner, "Colecao reservada", StatusMaterial.RESERVADO, LocalDateTime.now().minusDays(1));
         createMaterial(owner, "Colecao cancelada", StatusMaterial.CANCELADO, LocalDateTime.now().minusHours(12));
-        createMaterial(owner, "Colecao doada", StatusMaterial.DOADO, LocalDateTime.now().minusHours(6));
+        Material donated = createMaterial(owner, "Colecao doada", StatusMaterial.DOADO, LocalDateTime.now().minusHours(6));
         createMaterial(other, "Nao deve aparecer", StatusMaterial.DISPONIVEL, LocalDateTime.now());
 
         mockMvc.perform(get("/v1/materiais/me")
                         .header("Authorization", "Bearer " + tokenFor(owner)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].id").value(reserved.getId().toString()))
-                .andExpect(jsonPath("$.data[0].titulo").value("Colecao reservada"))
-                .andExpect(jsonPath("$.data[1].id").value(oldest.getId().toString()));
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].id").value(donated.getId().toString()))
+                .andExpect(jsonPath("$.data[0].titulo").value("Colecao doada"))
+                .andExpect(jsonPath("$.data[1].id").value(reserved.getId().toString()))
+                .andExpect(jsonPath("$.data[2].id").value(oldest.getId().toString()));
     }
 
     @Test

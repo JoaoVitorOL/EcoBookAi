@@ -83,6 +83,7 @@ class ReservationExpiryJobTest extends BaseIntegrationTest {
                 .hasValueSatisfying(saved -> {
                     assertThat(saved.getStatus()).isEqualTo(StatusSolicitacao.CANCELADA);
                     assertThat(saved.getContatoDoador()).isNull();
+                    assertThat(saved.getExpiresAt()).isNull();
                 });
     }
 

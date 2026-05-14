@@ -4,6 +4,7 @@ import com.ecobook.annotation.RequireCompleteProfile;
 import com.ecobook.dto.ApiEnvelope;
 import com.ecobook.dto.ApiEnvelopeResponses;
 import com.ecobook.dto.SolicitacaoDTO;
+import com.ecobook.exception.BadRequestException;
 import com.ecobook.model.enums.StatusSolicitacao;
 import com.ecobook.service.SolicitacaoService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/v1")
@@ -145,6 +148,14 @@ public class SolicitacaoController {
         if (rawValue == null || rawValue.isBlank()) {
             return null;
         }
-        return StatusSolicitacao.valueOf(rawValue.trim().toUpperCase(java.util.Locale.ROOT));
+
+        try {
+            return StatusSolicitacao.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestException(
+                    "O filtro de status informado e invalido",
+                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA")
+            );
+        }
     }
 }

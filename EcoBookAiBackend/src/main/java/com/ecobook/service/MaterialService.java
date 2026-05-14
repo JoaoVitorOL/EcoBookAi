@@ -156,7 +156,7 @@ public class MaterialService {
         Usuario usuario = loadUsuario(email);
         return materialRepository.findByDoadorIdAndStatusInOrderByCriadoEmDesc(
                         usuario.getId(),
-                        EnumSet.of(StatusMaterial.DISPONIVEL, StatusMaterial.RESERVADO)
+                        EnumSet.of(StatusMaterial.DISPONIVEL, StatusMaterial.RESERVADO, StatusMaterial.DOADO)
                 ).stream()
                 .map(materialMapper::toDto)
                 .toList();

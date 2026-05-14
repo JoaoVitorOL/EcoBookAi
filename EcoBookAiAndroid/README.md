@@ -28,7 +28,7 @@ Referencias principais:
 - Navegacao com quatro areas principais: `Solicitacoes`, `Buscar`, `Doar` e `Perfil`, alem da rota secundaria `Pedidos recebidos`
 - Verificacao real do backend via `GET /api/v1/health`
 - Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
-- Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual, `POST /materiais`, historico do doador, edicao e exclusao de materiais disponiveis
+- Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual, `POST /materiais`, historico do doador com materiais disponiveis, reservados e doados, edicao e exclusao de materiais disponiveis
 - Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao, dialogo de detalhes e envio real de solicitacao
 - Tela `Minhas solicitacoes` com filtros, cancelamento e abertura de contato do doador apos aprovacao
 - Tela `Pedidos recebidos` para o doador aprovar, recusar, revogar aprovacao e concluir doacao

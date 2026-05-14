@@ -710,6 +710,11 @@ Phase 4 closeout note (2026-05-12):
 
 ### Module 5: Request Workflow (RF-005, RF-007)
 
+Runtime note on 2026-05-14:
+- The Phase 5 request workflow is implemented in runtime across backend and Android.
+- Some checklist items below still preserve historical planning names such as `RequestViewModel`, `donor/` package paths or dedicated lock-test filenames, but the delivered code was consolidated mainly under `request/`, `DiscoveryViewModel`, `SolicitacaoWorkflowTest` and `ReservationExpiryJobTest`.
+- Use the current runtime files as source of truth when the checklist wording differs from the final implementation layout.
+
 #### Backend: Request Creation
 
 - [ ] **T131** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java`:

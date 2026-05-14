@@ -21,6 +21,11 @@ interface RequestApiService {
         @Query("status") status: String? = null
     ): Response<ApiEnvelopeDTO<List<SolicitacaoDTO>>>
 
+    @GET("v1/solicitacoes/{id}")
+    suspend fun getRequest(
+        @Path("id") id: String
+    ): Response<ApiEnvelopeDTO<SolicitacaoDTO>>
+
     @GET("v1/solicitacoes/pendentes")
     suspend fun listPendingRequestsForDonor(): Response<ApiEnvelopeDTO<List<SolicitacaoDTO>>>
 

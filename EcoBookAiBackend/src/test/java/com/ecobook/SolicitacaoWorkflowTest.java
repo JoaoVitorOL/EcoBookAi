@@ -72,6 +72,18 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("POST /api/v1/materiais/{id}/solicitacoes should reject self requests")
+    void shouldRejectSelfRequest() throws Exception {
+        Usuario donor = createUser("donor-self-request@example.com", "Doador");
+        Material material = createMaterial(donor, "Colecao protegida do proprio doador");
+
+        mockMvc.perform(post("/v1/materiais/{id}/solicitacoes", material.getId())
+                        .header("Authorization", "Bearer " + tokenFor(donor)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Nao e possivel solicitar o proprio material"));
+    }
+
+    @Test
     @DisplayName("approval should reserve the material, auto-reject competing requests and allow cancellation")
     void shouldApproveAndCancelRequestWorkflow() throws Exception {
         Usuario donor = createUser("donor-workflow@example.com", "Doador");
@@ -120,7 +132,9 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + tokenFor(donor)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("CONCLUIDA"))
-                .andExpect(jsonPath("$.data.concluido_em").isNotEmpty());
+                .andExpect(jsonPath("$.data.concluido_em").isNotEmpty())
+                .andExpect(jsonPath("$.data.contato_doador").doesNotExist())
+                .andExpect(jsonPath("$.data.expires_at").doesNotExist());
 
         assertThat(materialRepository.findById(material.getId()))
                 .hasValueSatisfying(saved -> {
@@ -131,6 +145,8 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                 .hasValueSatisfying(saved -> {
                     assertThat(saved.getStatus()).isEqualTo(StatusSolicitacao.CONCLUIDA);
                     assertThat(saved.getConcluidoEm()).isNotNull();
+                    assertThat(saved.getContatoDoador()).isNull();
+                    assertThat(saved.getExpiresAt()).isNull();
                 });
     }
 
@@ -152,6 +168,12 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                 .hasValueSatisfying(saved -> {
                     assertThat(saved.getStatus()).isEqualTo(StatusMaterial.DISPONIVEL);
                     assertThat(saved.getDoadoEm()).isNull();
+                });
+        assertThat(solicitacaoRepository.findById(request.getId()))
+                .hasValueSatisfying(saved -> {
+                    assertThat(saved.getStatus()).isEqualTo(StatusSolicitacao.CANCELADA);
+                    assertThat(saved.getContatoDoador()).isNull();
+                    assertThat(saved.getExpiresAt()).isNull();
                 });
     }
 
@@ -185,6 +207,21 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].id").value(approvedRequest.getId().toString()));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/solicitacoes/minhas should reject invalid status filters with HTTP 400")
+    void shouldRejectInvalidRequestStatusFilter() throws Exception {
+        Usuario student = createUser("student-invalid-filter@example.com", "Estudante");
+
+        mockMvc.perform(get("/v1/solicitacoes/minhas")
+                        .param("status", "EM_ANALISE")
+                        .header("Authorization", "Bearer " + tokenFor(student)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("O filtro de status informado e invalido"))
+                .andExpect(jsonPath("$.field_errors.status").value(
+                        "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA"
+                ));
     }
 
     private Usuario createUser(String email, String nome) {

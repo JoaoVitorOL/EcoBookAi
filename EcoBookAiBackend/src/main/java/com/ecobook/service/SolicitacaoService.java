@@ -181,8 +181,7 @@ public class SolicitacaoService {
         ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitacoes pendentes podem ser recusadas");
 
         solicitacao.setStatus(StatusSolicitacao.RECUSADA);
-        solicitacao.setContatoDoador(null);
-        solicitacao.setExpiresAt(null);
+        clearApprovalContext(solicitacao, false);
         solicitacao.setConcluidoEm(null);
         Solicitacao saved = solicitacaoRepository.save(solicitacao);
         notifyDecline(saved);
@@ -208,7 +207,8 @@ public class SolicitacaoService {
         }
 
         solicitacao.setStatus(StatusSolicitacao.CANCELADA);
-        solicitacao.setContatoDoador(null);
+        clearApprovalContext(solicitacao, true);
+        solicitacao.setConcluidoEm(null);
         Solicitacao saved = solicitacaoRepository.save(solicitacao);
         notifyCancellation(saved, actor);
         return solicitacaoMapper.toDto(saved);
@@ -227,6 +227,7 @@ public class SolicitacaoService {
         LocalDateTime now = LocalDateTime.now();
         solicitacao.setStatus(StatusSolicitacao.CONCLUIDA);
         solicitacao.setConcluidoEm(now);
+        clearApprovalContext(solicitacao, true);
         material.setStatus(StatusMaterial.DOADO);
         material.setDoadoEm(now);
 
@@ -251,7 +252,8 @@ public class SolicitacaoService {
                 materialRepository.save(material);
             }
             request.setStatus(StatusSolicitacao.CANCELADA);
-            request.setContatoDoador(null);
+            clearApprovalContext(request, true);
+            request.setConcluidoEm(null);
             solicitacaoRepository.save(request);
             fcmService.sendNotification(
                     request.getEstudante().getId().toString(),
@@ -315,6 +317,14 @@ public class SolicitacaoService {
     private void ensureRequestStatus(Solicitacao solicitacao, StatusSolicitacao expected, String message) {
         if (solicitacao.getStatus() != expected) {
             throw new UnprocessableEntityException(message);
+        }
+    }
+
+    private void clearApprovalContext(Solicitacao solicitacao, boolean keepApprovedTimestamp) {
+        solicitacao.setContatoDoador(null);
+        solicitacao.setExpiresAt(null);
+        if (!keepApprovedTimestamp) {
+            solicitacao.setAprovadoEm(null);
         }
     }
 
