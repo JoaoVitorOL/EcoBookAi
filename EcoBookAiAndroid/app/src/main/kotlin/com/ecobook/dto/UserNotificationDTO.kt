@@ -1,13 +1,13 @@
 package com.ecobook.dto
 
 data class UserNotificationDTO(
-    val id: String,
-    val title: String,
-    val body: String,
-    val notificationType: String,
-    val route: String,
+    val id: String? = null,
+    val title: String? = null,
+    val body: String? = null,
+    val notificationType: String? = null,
+    val route: String? = null,
     val requestId: String? = null,
     val materialId: String? = null,
-    val receivedAt: String,
-    val unread: Boolean
+    val receivedAt: String? = null,
+    val unread: Boolean? = null
 )

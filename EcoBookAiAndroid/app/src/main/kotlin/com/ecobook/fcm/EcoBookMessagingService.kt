@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import com.ecobook.navigation.AppRoutes
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,6 +20,9 @@ class EcoBookMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var notificationInboxRepository: NotificationInboxRepository
+
+    @Inject
+    lateinit var appForegroundTracker: AppForegroundTracker
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Timber.d("Message received from: ${remoteMessage.from}")
@@ -37,11 +41,34 @@ class EcoBookMessagingService : FirebaseMessagingService() {
 
         notification?.let {
             notificationInboxRepository.record(it)
-            sendNotification(it)
+            if (appForegroundTracker.isAppVisible()) {
+                Timber.d(
+                    "Notification %s recorded only in the in-app inbox because the app is visible.",
+                    it.id
+                )
+            } else {
+                sendNotification(it)
+            }
             return
         }
 
-        body?.takeIf { it.isNotBlank() }?.let { sendNotification(title, it, null, remoteMessage.messageId) }
+        body?.takeIf { it.isNotBlank() }?.let { messageBody ->
+            val fallbackNotification = AppNotification(
+                id = remoteMessage.messageId,
+                title = title,
+                body = messageBody,
+                destination = NotificationDestination(
+                    route = AppRoutes.NOTIFICATIONS,
+                    notificationType = "NOTIFICACAO_GERAL"
+                )
+            )
+            notificationInboxRepository.record(fallbackNotification)
+            if (appForegroundTracker.isAppVisible()) {
+                Timber.d("Foreground fallback notification captured only in the notifications center.")
+            } else {
+                sendNotification(fallbackNotification)
+            }
+        }
     }
 
     override fun onNewToken(token: String) {

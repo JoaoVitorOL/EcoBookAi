@@ -23,8 +23,8 @@ class NotificationInboxRepository @Inject constructor(
 
     fun record(notification: AppNotification) {
         synchronized(lock) {
-            val now = System.currentTimeMillis()
             val resolvedId = notification.id?.takeIf(String::isNotBlank) ?: fallbackId(notification)
+            val existingEntry = _notifications.value.firstOrNull { it.id == resolvedId }
             val updatedEntry = NotificationInboxEntry(
                 id = resolvedId,
                 title = notification.title,
@@ -33,8 +33,8 @@ class NotificationInboxRepository @Inject constructor(
                 route = notification.destination.route,
                 requestId = notification.destination.requestId,
                 materialId = notification.destination.materialId,
-                receivedAtEpochMillis = now,
-                unread = true
+                receivedAtEpochMillis = existingEntry?.receivedAtEpochMillis ?: System.currentTimeMillis(),
+                unread = existingEntry?.unread ?: true
             )
 
             val merged = buildList {
@@ -53,7 +53,7 @@ class NotificationInboxRepository @Inject constructor(
                 return
             }
 
-            persistEntries(current.map { it.copy(unread = false) })
+            persistEntries(emptyList())
         }
     }
 
@@ -63,17 +63,20 @@ class NotificationInboxRepository @Inject constructor(
         }
 
         synchronized(lock) {
-            val updated = _notifications.value.map { entry ->
-                if (entry.id == notificationId) entry.copy(unread = false) else entry
-            }
+            val updated = _notifications.value.filterNot { entry -> entry.id == notificationId }
             persistEntries(updated)
         }
     }
 
     fun replaceAll(entries: List<NotificationInboxEntry>) {
         synchronized(lock) {
+            val unreadEntries = entries.filter(NotificationInboxEntry::unread)
+            val backendIds = unreadEntries.mapTo(mutableSetOf()) { it.id }
             persistEntries(
-                entries.sortedByDescending(NotificationInboxEntry::receivedAtEpochMillis)
+                buildList {
+                    addAll(unreadEntries)
+                    addAll(_notifications.value.filterNot { it.id in backendIds })
+                }.sortedByDescending(NotificationInboxEntry::receivedAtEpochMillis)
                     .take(MAX_ENTRIES)
             )
         }
@@ -87,6 +90,7 @@ class NotificationInboxRepository @Inject constructor(
 
         return runCatching {
             gson.fromJson<List<NotificationInboxEntry>>(payload, listType)
+                ?.filter(NotificationInboxEntry::unread)
                 ?.sortedByDescending(NotificationInboxEntry::receivedAtEpochMillis)
                 .orEmpty()
         }.getOrElse { error ->
@@ -96,8 +100,13 @@ class NotificationInboxRepository @Inject constructor(
     }
 
     private fun persistEntries(entries: List<NotificationInboxEntry>) {
-        _notifications.value = entries
-        store.writeInbox(gson.toJson(entries))
+        val visibleEntries = entries
+            .filter(NotificationInboxEntry::unread)
+            .sortedByDescending(NotificationInboxEntry::receivedAtEpochMillis)
+            .take(MAX_ENTRIES)
+
+        _notifications.value = visibleEntries
+        store.writeInbox(gson.toJson(visibleEntries))
     }
 
     private fun fallbackId(notification: AppNotification): String {

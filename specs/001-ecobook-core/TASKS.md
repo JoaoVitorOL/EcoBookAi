@@ -1007,7 +1007,7 @@ Runtime note on 2026-05-14:
 - [x] **T180** [P] [US4] Create notification unread indicator in the Android main navigation surfaces:
   - Track unread notifications locally
   - Show visual state on the bell entry point rendered in the main screen headers
-  - Clear unread state from the NotificationsScreen flow
+  - Runtime closeout now keeps notifications unread until the user explicitly chooses `Marcar como lida` or `Marcar todas como lidas` inside `NotificationsScreen`
 
 ---
 

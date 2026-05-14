@@ -68,19 +68,19 @@ class DonorRequestsViewModel @Inject constructor(
     }
 
     fun approveRequest(requestId: String) {
-        performAction(requestId, "Pedido aprovado.") { requestRepository.approveRequest(requestId) }
+        performAction(requestId) { requestRepository.approveRequest(requestId) }
     }
 
     fun declineRequest(requestId: String) {
-        performAction(requestId, "Pedido recusado.") { requestRepository.declineRequest(requestId) }
+        performAction(requestId) { requestRepository.declineRequest(requestId) }
     }
 
     fun completeDonation(requestId: String) {
-        performAction(requestId, "Material marcado como doado.") { requestRepository.completeDonation(requestId) }
+        performAction(requestId) { requestRepository.completeDonation(requestId) }
     }
 
     fun revokeApproval(requestId: String) {
-        performAction(requestId, "A aprovacao foi revogada e o material voltou a ficar disponivel.") {
+        performAction(requestId) {
             requestRepository.cancelRequest(requestId)
         }
     }
@@ -91,7 +91,6 @@ class DonorRequestsViewModel @Inject constructor(
 
     private fun performAction(
         requestId: String,
-        successMessage: String,
         block: suspend () -> com.ecobook.dto.SolicitacaoDTO
     ) {
         _uiState.update { it.copy(activeRequestId = requestId, errorMessage = null) }
@@ -114,8 +113,7 @@ class DonorRequestsViewModel @Inject constructor(
                                     if (current.id == updatedRequest.id) updatedRequest else current
                                 }
                             },
-                            activeRequestId = null,
-                            toastMessage = successMessage
+                            activeRequestId = null
                         )
                     }
                 }

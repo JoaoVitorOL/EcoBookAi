@@ -144,7 +144,7 @@ What is already implemented in the repository:
 
 6. Phase 6 notification runtime
    - backend now accepts FCM device tokens, dispatches notifications after commit, standardizes payloads and persists transient failures for hourly retry
-   - Android now requests notification permission contextually, syncs the FCM token, handles deep links, persists a local notifications inbox and exposes an unread bell entry point inside the main screens instead of a dedicated bottom-nav tab
+   - Android now requests notification permission contextually, syncs the FCM token, handles deep links, persists a local notifications inbox, exposes an unread bell entry point inside the main screens instead of a dedicated bottom-nav tab, keeps foreground receipt inside the in-app inbox and lets the user mark notifications as read individually or in batch from the notifications center
 
 What closed Phase 3 formally:
 
@@ -192,7 +192,7 @@ What is now accurate about readiness:
 - Accurate to declare Phase 3 core delivered
 - Accurate to declare Phase 4 discovery delivered
 - Accurate to declare Phase 5 request workflow delivered in runtime
-- Safe to close Phase 6 notification UX and then move to admin/LGPD/hardening fronts
+- Safe to treat Phase 6 notification UX as implemented in runtime and then move to admin/LGPD/hardening fronts after final Firebase-device validation
 
 ---
 

@@ -25,13 +25,45 @@ class NotificationInboxRepositoryTest {
     }
 
     @Test
-    fun markAllAsReadShouldClearUnreadFlags() {
-        val repository = NotificationInboxRepository(FakeNotificationInboxStore(), GsonBuilder().create())
+    fun markAllAsReadShouldClearNotificationCenter() {
+        val store = FakeNotificationInboxStore()
+        val repository = NotificationInboxRepository(store, GsonBuilder().create())
         repository.record(sampleNotification(id = "notif-2"))
 
         repository.markAllAsRead()
 
-        assertTrue(repository.notifications.value.all { !it.unread })
+        assertTrue(repository.notifications.value.isEmpty())
+        assertEquals("[]", store.payload)
+    }
+
+    @Test
+    fun markAsReadShouldRemoveSingleNotificationFromCenter() {
+        val repository = NotificationInboxRepository(FakeNotificationInboxStore(), GsonBuilder().create())
+        repository.record(sampleNotification(id = "notif-3"))
+        repository.record(sampleNotification(id = "notif-4"))
+
+        repository.markAsRead("notif-3")
+
+        val entries = repository.notifications.value
+        assertEquals(1, entries.size)
+        assertEquals("notif-4", entries.single().id)
+    }
+
+    @Test
+    fun shouldDropReadEntriesLoadedFromLegacyStorage() {
+        val store = FakeNotificationInboxStore()
+        store.payload = """
+            [
+              {"id":"notif-old-read","title":"Lida","body":"Corpo","notificationType":"SOLICITACAO_APROVADA","route":"my-requests","requestId":"request-1","materialId":"material-1","receivedAtEpochMillis":1,"unread":false},
+              {"id":"notif-old-unread","title":"Nova","body":"Corpo","notificationType":"SOLICITACAO_APROVADA","route":"my-requests","requestId":"request-2","materialId":"material-2","receivedAtEpochMillis":2,"unread":true}
+            ]
+        """.trimIndent()
+
+        val repository = NotificationInboxRepository(store, GsonBuilder().create())
+
+        val entries = repository.notifications.value
+        assertEquals(1, entries.size)
+        assertEquals("notif-old-unread", entries.single().id)
     }
 
     private fun sampleNotification(id: String): AppNotification {

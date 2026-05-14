@@ -141,7 +141,6 @@ class DiscoveryViewModel @Inject constructor(
                         state.copy(
                             selectedMaterial = null,
                             requestingMaterialId = null,
-                            toastMessage = "Solicitacao enviada. Agora e so aguardar a aprovacao do doador.",
                             pendingNavigation = DiscoveryNavigation.MY_REQUESTS
                         )
                     }

@@ -89,7 +89,6 @@ class MainActivity : ComponentActivity() {
         val notification = NotificationIntentRouter.messageFromIntent(intent)
         notification?.let {
             notificationInboxRepository.record(it)
-            it.id?.let(notificationInboxRepository::markAsRead)
             notificationNavigationManager.queue(it.destination)
         }
     }

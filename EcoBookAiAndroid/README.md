@@ -32,7 +32,7 @@ Referencias principais:
 - Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao, dialogo de detalhes e envio real de solicitacao
 - Tela `Minhas solicitacoes` com filtros, cancelamento e abertura de contato do doador apos aprovacao
 - Tela `Pedidos recebidos` para o doador aprovar, recusar, revogar aprovacao e concluir doacao
-- Sincronizacao de token FCM com o backend, prompt de permissao adiado ate a area principal do app, roteamento do toque da notificacao para as areas de solicitacoes, inbox local de avisos e sininho nas telas principais com variacao visual entre lido/nao lido quando o Firebase estiver configurado
+- Sincronizacao de token FCM com o backend, prompt de permissao adiado ate a area principal do app, roteamento do toque da notificacao para as areas de solicitacoes, inbox local de avisos, sininho nas telas principais com variacao visual entre lido/nao lido e central de notificacoes com `Marcar como lida` individual e `Marcar todas como lidas` quando o Firebase estiver configurado
 
 ## Requisitos
 
@@ -113,10 +113,9 @@ Validacao atual nesta maquina:
 
 ```powershell
 .\gradlew.bat app:compileDebugKotlin
-.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin
 ```
 
-Esses comandos passam com o SDK configurado em `local.properties`, incluindo os testes JVM da discovery real.
+Hoje, nesta workspace do OneDrive com caminho acentuado, `app:compileDebugKotlin` segue confiavel. O `testDebugUnitTest` e o wrapper `Invoke-GradleAsciiPath.ps1` ainda podem falhar por questoes de caminho/alias do Windows, entao nao devem ser tratados como sinal verde local automatico ate uma estabilizacao separada do ambiente.
 
 Com um emulador Android ja iniciado, o fluxo auth E2E tambem pode ser validado por instrumentacao:
 
