@@ -13,11 +13,12 @@ Backend Spring Boot do EcoBook AI.
 
 ## O que existe hoje
 
-- Estrutura principal de entidades, DTOs e repositorios
-- Configuracao de seguranca
-- Migracao inicial do banco
-- Endpoint de saude em `GET /api/v1/health`
-- Base para auth, usuarios, materiais e solicitacoes
+- Auth local com `email + senha + JWT`, hashing forte no servidor e endpoints de perfil do usuario
+- Fluxo de materiais com `preview`, `create`, `search`, `list me`, `update` e `delete`
+- Fluxo de solicitacoes com `create`, `list minhas`, `list pendentes`, `list aprovadas`, `approve`, `decline`, `cancel` e `complete`
+- Expiracao automatica de reservas aprovadas
+- Registro de token FCM em `POST /api/v1/fcm/tokens` e disparo de notificacoes com payload de navegacao para Android quando o Firebase estiver configurado
+- Contratos de runtime atualizados em `specs/001-ecobook-core/contracts/`
 
 ## Requisitos
 
@@ -65,6 +66,14 @@ http://127.0.0.1:8080/api/v1/health
 - `GEMINI_API_KEY`
 - `FIREBASE_SERVICE_ACCOUNT_PATH`
 
+## Fonte de verdade dos endpoints
+
+Para o shape atual das respostas e dos endpoints entregues, use estes contratos:
+
+- `specs/001-ecobook-core/contracts/user-api.md`
+- `specs/001-ecobook-core/contracts/material-api.md`
+- `specs/001-ecobook-core/contracts/solicitacao-api.md`
+
 ## Gemini no ambiente local
 
 O backend so habilita a classificacao assistida quando `GEMINI_API_KEY` existe no processo que inicia o Spring Boot.
@@ -98,10 +107,11 @@ Importante:
 
 ## Observacao importante
 
-Neste ambiente de trabalho a validacao local do backend foi executada com `mvn test` usando Java 21 no WSL.
+Neste ciclo, a suite do backend nao foi revalidada nesta maquina.
 
-Detalhe importante sobre a infraestrutura de teste:
+Detalhe importante sobre a infraestrutura de teste atual:
 
 - a suite tenta usar Testcontainers PostgreSQL primeiro
 - se o Docker engine local estiver novo demais para a versao atual do cliente Testcontainers do projeto, o bootstrap cai automaticamente para um banco `ecobook_test` criado no PostgreSQL do `docker compose`
-- por isso, antes de `mvn test`, mantenha `docker compose up -d postgres` ativo na raiz do repositorio
+- por isso, antes de `mvn test`, mantenha `docker compose up -d postgres` ativo na raiz do repositorio, ou configure explicitamente `ECOBOOK_TEST_DB_*`
+- se o Maven estiver rodando com Java 17 no host Windows, a suite atual pode falhar porque o backend esta alinhado com Java 21

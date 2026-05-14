@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Complete  
-**Date**: 2026-05-12  
-**Status**: Phase 4 discovery delivered across backend and Android; Phase 5 can begin
+**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Partial  
+**Date**: 2026-05-14  
+**Status**: Phase 5 request workflow is already implemented across backend and Android; Phase 6 notifications are partially implemented and are the next closeout front
 
 ---
 
@@ -95,6 +95,20 @@ All planning now aligns with Constitution v2.0.0:
 
 ---
 
+## Android Implementation Rule
+
+The Android app must follow official Android references and patterns from `developer.android.com`.
+
+Primary references:
+
+- [Architecture recommendations](https://developer.android.com/topic/architecture/recommendations)
+- [Guide to app architecture](https://developer.android.com/topic/architecture)
+- [UI layer and state holders](https://developer.android.com/topic/architecture/ui-layer/stateholders)
+- [Navigation for Compose](https://developer.android.com/develop/ui/compose/navigation)
+- [Notification runtime permission](https://developer.android.com/develop/ui/views/notifications/notification-permission)
+
+---
+
 ## Current Closeout Snapshot
 
 What is already implemented in the repository:
@@ -119,6 +133,19 @@ What is already implemented in the repository:
    - temporary upload tracking and scheduled cleanup are active in the backend
    - Android donation flow now supports gallery/camera, processing state, AI review and final publish
 
+4. Phase 4 discovery
+   - backend discovery exposes `GET /api/v1/materiais` with pagination, geo-aware ranking, publication-year range validation and deterministic filters
+   - Android discovery uses the live search endpoint with empty state, infinite scroll, detail dialog and request CTA
+
+5. Phase 5 request workflow
+   - backend now exposes request creation, student/donor listings, approve, decline, cancel, complete and automatic reservation expiry
+   - Android now performs real request creation from discovery, shows `Minhas solicitacoes`, shows `Pedidos recebidos` for donors and unlocks donor contact only after approval
+   - donor-owned material management also includes `GET /api/v1/materiais/me`, `PUT /api/v1/materiais/{id}` and `DELETE /api/v1/materiais/{id}`
+
+6. Phase 6 notification foundation
+   - backend already accepts FCM device tokens and attempts notification dispatch when Firebase Admin is configured
+   - Android already requests notification permission, syncs the FCM token and shows basic local notifications
+
 What closed Phase 3 formally:
 
 1. Backend automated coverage at the end of the Phase 3 closeout included preview/create material scenarios and passed with `57` tests via `mvn test` on Java 21, using a real PostgreSQL test database
@@ -129,7 +156,19 @@ What closed Phase 4 formally:
 
 1. Backend discovery now exposes `GET /api/v1/materiais` with deterministic matching, geo-aware ranking, pagination and publication-range validation, and the backend regression suite now passes with `66` tests via `mvn test`
 2. Android discovery now uses the live search endpoint with prefilled location filters, infinite scroll, empty state, detail dialog and JVM validation through `.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin`
-3. The material detail dialog already surfaces the request CTA, while the actual solicitation transaction remains intentionally deferred to Phase 5
+3. The material detail dialog was the handoff point that immediately evolved into the delivered Phase 5 transaction flow recorded on 2026-05-13
+
+What closed Phase 5 functionally:
+
+1. Backend request workflow now exposes `POST /api/v1/materiais/{id}/solicitacoes`, `GET /api/v1/solicitacoes/minhas`, `GET /api/v1/solicitacoes/pendentes`, `GET /api/v1/solicitacoes/aprovadas`, `PATCH /api/v1/solicitacoes/{id}/aprovar`, `recusar`, `cancelar` and `concluir`, plus the daily reservation expiry job
+2. Android request UX now covers request creation from discovery, student follow-up, donor approval/rejection/completion flows and WhatsApp handoff after approval
+3. Git history records `inicio fase 5` and `fase 5 refinamento` on 2026-05-13, which matches the implemented runtime state
+
+What remains to close Phase 6 formally:
+
+1. Keep the current token-sync and backend dispatch base, but finish navigation-aware notification handling on Android
+2. Add deep links, richer notification IDs/history/badges where the product decides they are in scope
+3. Revalidate the notification flow end to end with a real Firebase setup and updated execution notes
 
 ---
 
@@ -152,7 +191,8 @@ What changed materially:
 What is now accurate about readiness:
 - Accurate to declare Phase 3 core delivered
 - Accurate to declare Phase 4 discovery delivered
-- Safe to begin Phase 5 request workflow work
+- Accurate to declare Phase 5 request workflow delivered in runtime
+- Safe to close Phase 6 notification UX and then move to admin/LGPD/hardening fronts
 
 ---
 

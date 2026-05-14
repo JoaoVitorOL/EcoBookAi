@@ -5,6 +5,12 @@
 **Status**: Active MVP baseline (implementation in progress)  
 **Architecture**: Android Native (Kotlin, Jetpack Compose) + Spring Boot Backend + PostgreSQL
 
+Runtime note (2026-05-14):
+- This document remains the product and architecture baseline.
+- For delivered endpoint shapes and payloads, the runtime source of truth is `specs/001-ecobook-core/contracts/`.
+- The current implementation already includes the Phase 5 request workflow and uses runtime routes such as `POST /api/v1/materiais/{id}/solicitacoes` plus action endpoints like `/api/v1/solicitacoes/{id}/aprovar`.
+- Android implementation must follow official Android references and patterns from `developer.android.com`.
+
 ---
 
 ## Overview
@@ -106,10 +112,10 @@ A student finds a matching material and submits a request. The system records th
 
 **Acceptance Scenarios**:
 
-1. **Given** a student views a DISPONIVEL material, **When** they submit a request via POST /solicitacoes, **Then** the system creates a Solicitacao with status = PENDENTE and returns it
+1. **Given** a student views a DISPONIVEL material, **When** they submit a request via POST /materiais/{materialId}/solicitacoes, **Then** the system creates a Solicitacao with status = PENDENTE and returns it
 2. **Given** a request is created, **When** the request reaches PENDENTE, **Then** an FCM notification SOLICITACAO_RECEBIDA is sent to the donor
-3. **Given** a donor approves a request via PATCH /solicitacoes/{id} with status = APROVADA, **When** the operation succeeds, **Then**: (a) the Solicitacao transitions to APROVADA, (b) the Material transitions to RESERVADO, (c) an FCM notification SOLICITACAO_APROVADA is sent to the student, (d) the Material is locked (no new requests accepted)
-4. **Given** a request is in PENDENTE state, **When** the donor declines via PATCH with status = RECUSADA, **Then** the Solicitacao transitions to RECUSADA and FCM notification SOLICITACAO_RECUSADA is sent
+3. **Given** a donor approves a request via PATCH /solicitacoes/{id}/aprovar, **When** the operation succeeds, **Then**: (a) the Solicitacao transitions to APROVADA, (b) the Material transitions to RESERVADO, (c) an FCM notification SOLICITACAO_APROVADA is sent to the student, (d) the Material is locked (no new requests accepted)
+4. **Given** a request is in PENDENTE state, **When** the donor declines via PATCH /solicitacoes/{id}/recusar, **Then** the Solicitacao transitions to RECUSADA and FCM notification SOLICITACAO_RECUSADA is sent
 5. **Given** a Solicitacao is APROVADA and 14 days pass, **When** the Material is not marked DOADO, **Then** the system automatically reverts Material.status to DISPONIVEL and Solicitacao.status to CANCELADA
 
 ---
@@ -124,26 +130,26 @@ After the student receives and accepts the material, the donor marks it as DOADO
 
 **Acceptance Scenarios**:
 
-1. **Given** a Solicitacao is in APROVADA state, **When** the donor calls PATCH /solicitacoes/{id} with status = CONCLUIDA, **Then** the Material transitions to DOADO and Solicitacao.status = CONCLUIDA
+1. **Given** a Solicitacao is in APROVADA state, **When** the donor calls PATCH /solicitacoes/{id}/concluir, **Then** the Material transitions to DOADO and Solicitacao.status = CONCLUIDA
 2. **Given** a donation is marked CONCLUIDA, **When** the transition occurs, **Then** an FCM notification MATERIAL_DOADO is sent to the student with donor contact details (contato_doador)
 3. **Given** a Material is in DOADO state, **When** a new request arrives, **Then** the system returns HTTP 422 Unprocessable Entity (invalid state transition)
 
 ---
 
-### User Story 6 - Material Cancellation and Reversion (Priority: P2)
+### User Story 6 - Material Removal and Reversion (Priority: P2)
 
-A donor can cancel a material donation at various stages. The system enforces business rules for cancellation and reverts state appropriately.
+A donor can remove a material while it is still available, and approved reservations can still revert automatically or by request cancellation. The system enforces business rules for removal and state reversion appropriately.
 
 **Why this priority**: Important for donor flexibility and error recovery, but secondary to core matching.
 
-**Independent Test**: Can be fully tested by: (1) Canceling DISPONIVEL materials, (2) Canceling RESERVADO materials (with side effects on requests), (3) Verifying invalid transitions are rejected.
+**Independent Test**: Can be fully tested by: (1) Deleting DISPONIVEL materials, (2) Canceling approved requests to revert RESERVADO materials, (3) Verifying invalid transitions are rejected.
 
 **Acceptance Scenarios**:
 
-1. **Given** a Material in DISPONIVEL state, **When** the donor calls PATCH /materiais/{id} with status = CANCELADO, **Then** the Material transitions to CANCELADO and is no longer discoverable
-2. **Given** a Material in RESERVADO state with an APROVADA Solicitacao, **When** the donor cancels, **Then** the Material transitions to CANCELADO, the Solicitacao transitions to CANCELADA, and FCM notification SOLICITACAO_CANCELADA is sent
-3. **Given** a Material in CANCELADO state, **When** a request tries to modify it, **Then** the system returns HTTP 422 Unprocessable Entity
-4. **Given** a Material in DOADO state, **When** cancellation is attempted, **Then** the system returns HTTP 422 Unprocessable Entity (final state, cannot revert)
+1. **Given** a Material in DISPONIVEL state, **When** the donor calls DELETE /materiais/{id}, **Then** the material is removed from runtime APIs and no longer appears in discovery
+2. **Given** a Material in RESERVADO state with an APROVADA Solicitacao, **When** the reservation is canceled via PATCH /solicitacoes/{id}/cancelar or it expires after 14 days, **Then** the Material transitions back to DISPONIVEL and the Solicitacao transitions to CANCELADA
+3. **Given** a deleted material had pending student requests, **When** the delete completes, **Then** affected students receive MATERIAL_CANCELADO and the cascading delete removes the historical request rows tied to that material
+4. **Given** a Material in DOADO state, **When** deletion is attempted, **Then** the system returns HTTP 422 Unprocessable Entity (final state, cannot revert)
 
 ---
 
@@ -158,7 +164,7 @@ Users must complete their profiles before performing restricted operations. The 
 **Acceptance Scenarios**:
 
 1. **Given** a newly registered user with incomplete profile (missing city or WhatsApp), **When** they query GET /usuarios/me, **Then** the response includes `perfil_completo: false`
-2. **Given** a user with `perfil_completo: false`, **When** they attempt POST /materiais or POST /solicitacoes, **Then** the system returns HTTP 403 Forbidden
+2. **Given** a user with `perfil_completo: false`, **When** they attempt POST /materiais or POST /materiais/{materialId}/solicitacoes, **Then** the system returns HTTP 403 Forbidden
 3. **Given** a user with incomplete profile, **When** they complete all required fields via PUT /usuarios/me, **Then** `perfil_completo` transitions to true and restricted operations become available
 4. **Given** a user completes all required profile fields but leaves `consentimento_ia = false`, **When** the profile is saved, **Then** `perfil_completo` still becomes true because AI consent is not part of the completeness gate
 5. **Given** a profile-complete user later changes their mind about AI usage, **When** they update consent from profile/settings, **Then** `consentimento_ia` changes without affecting authentication state or profile completeness
@@ -195,7 +201,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 
 #### Material Management & Lifecycle
 
-- **RF-005**: Material lifecycle states are: DISPONIVEL (initially), RESERVADO (approved request), DOADO (completed donation), CANCELADO (donor-initiated cancellation); no other states allowed
+- **RF-005**: Material lifecycle states stored by the current domain are: DISPONIVEL (initially), RESERVADO (approved request), DOADO (completed donation), CANCELADO (legacy/admin-oriented state retained in the schema); current donor-facing runtime CRUD exposes DELETE /materiais/{id} for removing DISPONIVEL items instead of a public CANCELADO transition
 - **RF-006**: System MUST reject invalid state transitions with HTTP 422 Unprocessable Entity
 - **RF-007**: Material MUST be discoverable only in DISPONIVEL state
 - **RF-008**: Material creation requires: titulo, descricao, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, imagem (JPEG/PNG, ≤ 5MB), doador_id, cidade, bairro, data_publicacao; optional metadata includes `autor` and `editora`
@@ -240,11 +246,11 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 #### Request Lifecycle & Approval
 
 - **RF-026**: Request lifecycle states: PENDENTE (initial), APROVADA (donor accepted), RECUSADA (donor declined), CANCELADA (either party cancelled), CONCLUIDA (donation completed); no other states
-- **RF-027**: POST /solicitacoes creates Solicitacao with status = PENDENTE; Material remains DISPONIVEL initially
-- **RF-028**: Donor approval: PATCH /solicitacoes/{id} with status = APROVADA atomically (1) updates Solicitacao.status, (2) updates Material.status = RESERVADO, (3) sends FCM notification SOLICITACAO_APROVADA to student
-- **RF-029**: Donor decline: PATCH /solicitacoes/{id} with status = RECUSADA updates Solicitacao.status; Material remains DISPONIVEL; sends FCM notification SOLICITACAO_RECUSADA
+- **RF-027**: POST /materiais/{materialId}/solicitacoes creates Solicitacao with status = PENDENTE; Material remains DISPONIVEL initially
+- **RF-028**: Donor approval: PATCH /solicitacoes/{id}/aprovar atomically (1) updates Solicitacao.status, (2) updates Material.status = RESERVADO, (3) sends FCM notification SOLICITACAO_APROVADA to student
+- **RF-029**: Donor decline: PATCH /solicitacoes/{id}/recusar updates Solicitacao.status; Material remains DISPONIVEL; sends FCM notification SOLICITACAO_RECUSADA
 - **RF-030**: Material MUST have at most ONE active (APROVADA) Solicitacao at any time; subsequent requests to same material are rejected with HTTP 409 Conflict if Material.status = RESERVADO
-- **RF-031**: Completion: PATCH /solicitacoes/{id} with status = CONCLUIDA transitions Material.status = DOADO and Solicitacao.status = CONCLUIDA
+- **RF-031**: Completion: PATCH /solicitacoes/{id}/concluir transitions Material.status = DOADO and Solicitacao.status = CONCLUIDA
 
 #### State Consistency & Invariants
 
@@ -262,7 +268,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
   - SOLICITACAO_RECUSADA: Sent to student when request declined
   - SOLICITACAO_CANCELADA: Sent to student when approved request is cancelled
   - MATERIAL_DOADO: Sent to student when donation completed (includes donor contact)
-  - MATERIAL_CANCELADO: Sent to student when material is cancelled
+  - MATERIAL_CANCELADO: Sent to student when a DISPONIVEL material is removed by the donor
 - **RF-038**: FCM must be reliable; failures are logged but do not block primary operations
 - **RF-038a**: FCM notification failures MUST be retried with exponential backoff: first retry at 1s, second at 2s, third at 4s, fourth at 8s, maximum 5 total attempts; after 5 failures, notification is discarded and a system alert is logged for operations review
 - **RF-038b**: Failed FCM notifications MUST be queued in a persistent retry system (database or message broker); queued notifications are processed by a background job that runs every 5 minutes
@@ -274,7 +280,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
   - NivelEnsino: FUNDAMENTAL | MEDIO | SUPERIOR
   - SistemaEnsino: ANGLO | OBJETIVO | COC | POSITIVO | OUTRO
   - EstadoConservacao: NOVO | BOM | USADO | DANIFICADO
-  - StatusMaterial: DISPONIVEL | RESERVADO | DOADO | CANCELADO
+  - StatusMaterial: DISPONIVEL | RESERVADO | DOADO | CANCELADO (legacy/admin-oriented; current donor CRUD removes DISPONIVEL materials via DELETE instead of exposing CANCELADO)
   - StatusSolicitacao: PENDENTE | APROVADA | RECUSADA | CANCELADA | CONCLUIDA
   - StatusRespostaIA: SUCCESS | LOW_CONFIDENCE | FAILURE
 - **RF-040**: Enum validation must reject invalid values with HTTP 400 and error message specifying field and allowed values
@@ -336,6 +342,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RNF-015**: Material search endpoint (GET /materiais with filters) MUST maintain P95 latency ≤ 150ms and P99 ≤ 300ms under 10k concurrent users; requires database indexing on (disciplina, nivel_ensino, cidade, bairro, status) and query result pagination (limit 50 per page)
 - **RNF-016**: Gemini classification (POST /materiais/preview) MUST complete within P95 7 seconds and P99 9 seconds including image upload, Gemini API call (10s timeout), and response marshaling; Gemini timeout at 10s ensures we stay below target
 - **RNF-017**: Material request approval (PATCH /solicitacoes/{id} status=APROVADA) MUST maintain P95 latency ≤ 50ms and P99 ≤ 150ms; database lock acquisition (RF-035) and notification queue insertion must be optimized
+- **RNF-017a**: Runtime endpoint note: the current backend exposes this approval path as `PATCH /solicitacoes/{id}/aprovar`
 - **RNF-018**: FCM webhook handler (POST /webhooks/fcm) MUST process callbacks within P95 30ms and P99 75ms; webhook processing offloaded to async job queue to avoid blocking caller
 - **RNF-019**: Gemini API circuit breaker MUST track failure count and timestamp over 5-minute window; when failure count exceeds 10, circuit breaker enters OPEN state and pauses all Gemini calls for 30 seconds, returning status_ia = FAILURE immediately; after 30s, transitions to HALF_OPEN and allows probe request; on probe success, resets to CLOSED. Prevents cascading failures and API exhaustion.
 
@@ -378,7 +385,7 @@ Represents a donated educational resource.
 - `ano` (Integer): Target grade/year (1–12 for FUNDAMENTAL/MEDIO, null for SUPERIOR)
 - `sistema_ensino` (Enum: ANGLO | OBJETIVO | COC | POSITIVO | OUTRO)
 - `estado_conservacao` (Enum: NOVO | BOM | USADO | DANIFICADO): Always selected manually by the donor after reviewing the item
-- `status` (Enum: DISPONIVEL | RESERVADO | DOADO | CANCELADO)
+- `status` (Enum: DISPONIVEL | RESERVADO | DOADO | CANCELADO; current donor CRUD only surfaces DISPONIVEL, RESERVADO and DOADO directly)
 - `imagem_url` (String): URL to permanent storage
 - `upload_id` (String, optional): Temporary upload tracking ID
 - `doador_id` (UUID): Foreign key to User (donor)
@@ -815,7 +822,15 @@ All error responses follow this structure:
 - **Response**: Material entity with doador info (HTTP 200)
 - **HTTP Codes**: 200 OK, 404 Not Found
 
-#### PATCH /materiais/{id}
+#### Runtime Note - Current Material Write Endpoints
+
+The current runtime contract supersedes the legacy planning note below:
+
+- `PUT /materiais/{id}` updates editable metadata only while the material is `DISPONIVEL`
+- `DELETE /materiais/{id}` removes a `DISPONIVEL` material from runtime APIs with hard delete
+- the donor-facing API does not currently expose `PATCH /materiais/{id}` with `status = CANCELADO`
+
+#### Legacy Planning Note - PATCH /materiais/{id}
 - **Method**: PATCH
 - **RFC**: RF-005 through RF-006
 - **Description**: Update material status (e.g., DISPONIVEL → CANCELADO)
@@ -832,7 +847,21 @@ All error responses follow this structure:
 
 ### 3. Request Management
 
-#### POST /solicitacoes
+#### Runtime Note - Current Request Endpoints
+
+The current runtime contract supersedes the legacy planning notes below:
+
+- `POST /materiais/{material_id}/solicitacoes`
+- `GET /solicitacoes/minhas`
+- `GET /solicitacoes/pendentes`
+- `GET /solicitacoes/aprovadas`
+- `GET /solicitacoes/{id}`
+- `PATCH /solicitacoes/{id}/aprovar`
+- `PATCH /solicitacoes/{id}/recusar`
+- `PATCH /solicitacoes/{id}/cancelar`
+- `PATCH /solicitacoes/{id}/concluir`
+
+#### Legacy Planning Note - POST /solicitacoes
 - **Method**: POST
 - **RFC**: RF-026 through RF-027
 - **Description**: Create request for material
@@ -845,7 +874,7 @@ All error responses follow this structure:
   - Send FCM notification SOLICITACAO_RECEBIDA to donor
 - **HTTP Codes**: 201 Created, 403 Forbidden, 404 Not Found, 409 Conflict
 
-#### PATCH /solicitacoes/{id}
+#### Legacy Planning Note - PATCH /solicitacoes/{id}
 - **Method**: PATCH
 - **RFC**: RF-028 through RF-031, RF-032 through RF-035
 - **Description**: Update request status (PENDENTE → APROVADA, RECUSADA, or CANCELADA)
@@ -860,7 +889,7 @@ All error responses follow this structure:
   - Completion: Solicitacao → CONCLUIDA, Material → DOADO
 - **HTTP Codes**: 200 OK, 403 Forbidden, 422 Unprocessable Entity
 
-#### GET /solicitacoes
+#### Legacy Planning Note - GET /solicitacoes
 - **Method**: GET
 - **RFC**: RF-026
 - **Description**: List requests for current user (in both donor and student capacities)
@@ -975,11 +1004,15 @@ DISPONIVEL ──(user requests)──> [waiting for approval]
     │
     └──(donor cancels)──> CANCELADO [FINAL]
 
+Runtime note:
+- the current donor-facing runtime removes `DISPONIVEL` materials via `DELETE /materiais/{id}` instead of exposing a public transition to `CANCELADO`
+
 Rules:
 - Only DISPONIVEL materials appear in search results
 - RESERVADO → DOADO: only via Solicitacao APROVADA → CONCLUIDA
 - RESERVADO → DISPONIVEL: automatic after 14 days expiry if not DOADO
-- DOADO and CANCELADO are terminal states (no transitions out)
+- DOADO is terminal in the current donor-facing runtime
+- CANCELADO remains reserved in the schema for legacy/admin-oriented flows and is not exposed by the current donor CRUD
 - Invalid transitions → HTTP 422
 ```
 

@@ -1,9 +1,9 @@
 ﻿# EcoBook IA — Implementation Tasks
 
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
-**Phase**: 2–5 (Prototypes, AI Testing, Full Development, Launch)  
-**Total Tasks**: 187  
-**Status**: Phase 4 discovery delivered across backend and Android; request workflow is the next implementation front  
+**Phase**: 1–10 (Setup through Polish & Launch)  
+**Total Tasks**: 230  
+**Status**: Phase 5 request workflow is already implemented in runtime; Phase 6 notifications are partially implemented and remain the next closeout front  
 **Generated**: 2026-04-15
 
 ---
@@ -31,6 +31,8 @@ This document organizes all implementation tasks for EcoBook IA across **5 imple
 
 Historical note:
 - Some unchecked items below are environment/manual setup tasks or legacy follow-ups whose original intent is already covered elsewhere after the auth rebaseline. They should not be treated as phase gates by themselves.
+- Phase 5 request workflow and part of Phase 6 notifications were implemented after the original checkbox pass.
+- Some unchecked Phase 5/6 items below were not backfilled one by one; use `PLAN-SUMMARY.md` and `contracts/` as the current runtime truth.
 
 ---
 
@@ -272,7 +274,7 @@ Phase 10: Polish & Integration
   - Check SecurityContext user's perfil_completo = true
   - Return HTTP 403 if false: `{"error": "INCOMPLETE_PROFILE", "message": "Conclua seu perfil antes de acessar este recurso"}` 
 - [x] **T070** [US1] Create `@RequireCompleteProfile` annotation in `src/main/java/com/ecobook/annotation/RequireCompleteProfile.java`
-- [x] **T071** [US1] Mark future endpoints with `@RequireCompleteProfile`: POST /materiais, POST /solicitacoes, PUT /materiais/{id}, DELETE /materiais/{id}
+- [x] **T071** [US1] Mark future endpoints with `@RequireCompleteProfile`: POST /materiais, POST /materiais/{id}/solicitacoes, PUT /materiais/{id}, DELETE /materiais/{id}
 - [x] **T072** [US1] Test aspect behavior in `src/test/java/com/ecobook/aspect/ProfileCompletenessAspectTest.java` (incomplete profile → 403, complete → proceed)
 
 #### Android: Onboarding Screen
@@ -691,7 +693,7 @@ Phase 10: Polish & Integration
 Phase 4 closeout note (2026-05-12):
 - Backend discovery now serves live matching through `GET /api/v1/materiais` with pagination, ranking and publication-range filtering.
 - Android discovery now uses the real backend endpoint with filter state, empty state, pagination and material detail dialog.
-- The request CTA is present in the detail dialog, but the actual `POST /solicitacoes/{material_id}` workflow starts in Phase 5.
+- The request CTA was the Phase 4 handoff point. Runtime update (2026-05-14): the repository already includes the delivered Phase 5 workflow for request creation, inboxes and approval/completion actions.
 
 ---
 
@@ -842,10 +844,9 @@ Phase 4 closeout note (2026-05-12):
   - Method: `validateTransition(currentStatus, newStatus)` → throws if invalid
   - Valid transitions:
     - DISPONIVEL → RESERVADO (approval)
-    - DISPONIVEL → CANCELADO (donor cancel)
     - RESERVADO → DOADO (completion)
     - RESERVADO → DISPONIVEL (expiry auto-revert)
-    - RESERVADO → CANCELADO (student cancel)
+    - RESERVADO → DISPONIVEL (manual cancel of approved request)
     - Any other → throw InvalidStateTransitionException (HTTP 422)
 - [ ] **T153** [US4] Create state validation test in `src/test/java/com/ecobook/service/MaterialStateValidatorTest.java`:
   - Test all valid transitions
@@ -855,7 +856,7 @@ Phase 4 closeout note (2026-05-12):
 
 - [ ] **T154** [P] [US4] Create "Request Material" action in MaterialDetailScreen:
   - Button: "Request Material"
-  - On click: Call `POST /solicitacoes/{material_id}`
+  - On click: Call `POST /materiais/{material_id}/solicitacoes`
   - Success: Show confirmation dialog "Material requested! Waiting for donor approval."
   - Navigate to "My Requests" screen
 - [ ] **T155** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/RequestViewModel.kt`:
@@ -900,7 +901,7 @@ Phase 4 closeout note (2026-05-12):
   - Tapping "Decline": PATCH /solicitacoes/{id}/recusar
   - On accept: Show confirmation, navigate back (request status → APROVADA)
 - [ ] **T161** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsViewModel.kt`:
-  - Load incoming requests: GET /api/v1/solicitacoes/pendentes (endpoint to be created in next phase)
+  - Load incoming requests: GET /api/v1/solicitacoes/pendentes
   - `approveRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/aprovar
   - `declineRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/recusar
   - Handle success: Refresh list, show toast "Request approved"
@@ -1390,6 +1391,9 @@ What is already true in the repository:
 - ✅ Database schema and migrations support local credentials (`password_hash`)
 - ✅ JWT generation, validation and profile completeness gate are implemented
 - ✅ `/api/v1/materiais/preview` and `/api/v1/materiais` now run the Phase 3 preview/create flow end to end
+- ✅ `GET /api/v1/materiais` now delivers the Phase 4 discovery flow end to end
+- ✅ Phase 5 request workflow is already present in runtime on backend and Android
+- ✅ FCM token registration plus basic notification dispatch/permission flow already exist as the start of Phase 6
 
 Phase 3 closeout notes:
 
@@ -1404,13 +1408,14 @@ Phase 3 closeout notes:
 1. **Assign Tasks**: Distribute tasks to backend dev, Android dev, QA based on user story phases
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
-4. **Begin Phase 5 implementation**: solicitation endpoints, approval lifecycle and donor/student request inboxes
-5. **Keep backlog hygiene**: Update manual/env tasks as Firebase and emulator setup decisions land
+4. **Close Phase 6**: finish navigation-aware notifications, deep links and end-to-end Firebase validation
+5. **Keep backlog hygiene**: update Phase 5/6 checkbox history and manual/env tasks as Firebase and emulator setup decisions land
+6. **Prepare the next fronts**: admin/moderation, LGPD/anonymization, observability and hardening
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 4 discovery closeout recorded; use this file as a living backlog for Phase 5+ execution  
+**Status**: Phase 5 runtime delivery and Phase 6 partial delivery recorded; use this file as a living backlog for Phase 6+ execution  
 **Document Owner**: Product/Tech Lead  
-**Last Updated**: 2026-05-12
+**Last Updated**: 2026-05-14
 

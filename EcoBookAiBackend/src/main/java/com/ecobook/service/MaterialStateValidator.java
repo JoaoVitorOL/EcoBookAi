@@ -17,7 +17,7 @@ public class MaterialStateValidator {
 
     public void validateTransition(StatusMaterial currentStatus, StatusMaterial targetStatus) {
         boolean isValid = switch (currentStatus) {
-            case DISPONIVEL -> EnumSet.of(StatusMaterial.RESERVADO, StatusMaterial.CANCELADO).contains(targetStatus);
+            case DISPONIVEL -> targetStatus == StatusMaterial.RESERVADO;
             case RESERVADO -> EnumSet.of(StatusMaterial.DISPONIVEL, StatusMaterial.DOADO).contains(targetStatus);
             case DOADO, CANCELADO -> false;
         };

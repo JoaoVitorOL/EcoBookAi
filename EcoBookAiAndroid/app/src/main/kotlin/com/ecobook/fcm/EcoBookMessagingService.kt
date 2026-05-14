@@ -26,9 +26,10 @@ class EcoBookMessagingService : FirebaseMessagingService() {
         val body = remoteMessage.notification?.body
             ?: remoteMessage.data["body"]
             ?: remoteMessage.data["message"]
+        val destination = NotificationIntentRouter.destinationFromData(remoteMessage.data)
 
         body?.takeIf { it.isNotBlank() }?.let {
-            sendNotification(title, it)
+            sendNotification(title, it, destination)
         }
     }
 
@@ -37,11 +38,13 @@ class EcoBookMessagingService : FirebaseMessagingService() {
         fcmTokenSyncManager.syncTokenAsync(token)
     }
 
-    private fun sendNotification(title: String, messageBody: String) {
+    private fun sendNotification(
+        title: String,
+        messageBody: String,
+        destination: NotificationDestination?
+    ) {
         val channelId = "eco_book_notifications"
-        val notificationId = 1
 
-        // Create notification channel for API 26+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
@@ -55,12 +58,22 @@ class EcoBookMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(this, channelId)
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
             .setContentText(messageBody)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(messageBody))
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setAutoCancel(true)
-            .build()
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        destination?.let {
+            NotificationIntentRouter.buildPendingIntent(this, it)
+                ?.let(notificationBuilder::setContentIntent)
+        }
+
+        val notification = notificationBuilder.build()
+        val notificationId = destination?.let(NotificationIntentRouter::notificationId)
+            ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

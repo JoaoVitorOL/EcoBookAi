@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
@@ -41,6 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ecobook.auth.AuthScreen
 import com.ecobook.auth.LogoutViewModel
 import com.ecobook.discovery.DiscoveryScreen
+import com.ecobook.fcm.NotificationNavigationManager
 import com.ecobook.model.SessionDestination
 import com.ecobook.onboarding.OnboardingScreen
 import com.ecobook.request.DonorRequestsScreen
@@ -50,9 +52,12 @@ import com.ecobook.ui.screens.DonateScreen
 import com.ecobook.ui.screens.ProfileScreen
 
 @Composable
-fun NavGraph() {
+fun NavGraph(
+    notificationNavigationManager: NotificationNavigationManager
+) {
     val viewModel: EcoBookViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val pendingNotification by notificationNavigationManager.pendingDestination.collectAsStateWithLifecycle()
     val sessionDestination = uiState.session.destination
     val mainDestinations = listOf(
         AppDestination.MyRequests,
@@ -65,6 +70,16 @@ fun NavGraph() {
         val navController = rememberNavController()
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val showBottomBar = sessionDestination == SessionDestination.MAIN
+
+        LaunchedEffect(sessionDestination, pendingNotification) {
+            val destination = pendingNotification ?: return@LaunchedEffect
+            if (sessionDestination != SessionDestination.MAIN) {
+                return@LaunchedEffect
+            }
+
+            navController.navigateToNotificationDestination(destination.route)
+            notificationNavigationManager.consume(destination)
+        }
 
         Box(
             modifier = Modifier
@@ -180,6 +195,19 @@ fun NavGraph() {
     }
 }
 
+private fun NavHostController.navigateToNotificationDestination(route: String) {
+    when (route) {
+        AppRoutes.MY_REQUESTS,
+        AppRoutes.DISCOVERY,
+        AppRoutes.DONATE,
+        AppRoutes.PROFILE -> navigateToTopLevelDestination(route)
+
+        AppRoutes.DONOR_REQUESTS -> navigate(route) {
+            launchSingleTop = true
+        }
+    }
+}
+
 private fun NavHostController.navigateToTopLevelDestination(route: String) {
     navigate(route) {
         popUpTo(graph.findStartDestination().id) {
@@ -196,18 +224,18 @@ private sealed class AppDestination(
     val icon: ImageVector,
     val selectedRoutes: Set<String> = setOf(route)
 ) {
-    data object Auth : AppDestination("auth", "Entrar", Icons.Rounded.AccountCircle)
-    data object Onboarding : AppDestination("onboarding", "Onboarding", Icons.Rounded.AccountCircle)
-    data object Discovery : AppDestination("discovery", "Buscar", Icons.Rounded.Explore)
+    data object Auth : AppDestination(AppRoutes.AUTH, "Entrar", Icons.Rounded.AccountCircle)
+    data object Onboarding : AppDestination(AppRoutes.ONBOARDING, "Onboarding", Icons.Rounded.AccountCircle)
+    data object Discovery : AppDestination(AppRoutes.DISCOVERY, "Buscar", Icons.Rounded.Explore)
     data object Donate : AppDestination(
-        route = "donate",
+        route = AppRoutes.DONATE,
         label = "Doar",
         icon = Icons.Rounded.VolunteerActivism,
-        selectedRoutes = setOf("donate", "donor-requests")
+        selectedRoutes = setOf(AppRoutes.DONATE, AppRoutes.DONOR_REQUESTS)
     )
-    data object MyRequests : AppDestination("my-requests", "Solicitacoes", Icons.Rounded.MenuBook)
-    data object DonorRequests : AppDestination("donor-requests", "Pedidos", Icons.Rounded.VolunteerActivism)
-    data object Profile : AppDestination("profile", "Perfil", Icons.Rounded.AccountCircle)
+    data object MyRequests : AppDestination(AppRoutes.MY_REQUESTS, "Solicitacoes", Icons.Rounded.MenuBook)
+    data object DonorRequests : AppDestination(AppRoutes.DONOR_REQUESTS, "Pedidos", Icons.Rounded.VolunteerActivism)
+    data object Profile : AppDestination(AppRoutes.PROFILE, "Perfil", Icons.Rounded.AccountCircle)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

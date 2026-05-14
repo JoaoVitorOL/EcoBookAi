@@ -11,14 +11,28 @@ Aplicativo Android nativo do EcoBook AI.
 - Retrofit + OkHttp
 - Firebase Messaging
 
+## Diretriz obrigatoria para Android
+
+Este projeto deve seguir os padroes oficiais do Android em `developer.android.com`. Novas telas, navegacao, gerenciamento de estado, permissoes, notificacoes e testes devem usar as recomendacoes oficiais como base de implementacao.
+
+Referencias principais:
+
+- [Architecture recommendations](https://developer.android.com/topic/architecture/recommendations)
+- [Guide to app architecture](https://developer.android.com/topic/architecture)
+- [UI layer and state holders](https://developer.android.com/topic/architecture/ui-layer/stateholders)
+- [Navigation for Compose](https://developer.android.com/develop/ui/compose/navigation)
+- [Notification runtime permission](https://developer.android.com/develop/ui/views/notifications/notification-permission)
+
 ## O que este app entrega agora
 
-- Navegacao com quatro areas: `Painel`, `Buscar`, `Doar` e `Perfil`
+- Navegacao com quatro areas principais: `Solicitacoes`, `Buscar`, `Doar` e `Perfil`, alem da rota secundaria `Pedidos recebidos`
 - Verificacao real do backend via `GET /api/v1/health`
 - Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
-- Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual e `POST /materiais`
-- Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao e dialogo de detalhes
-- Handoff visual para solicitar material; o workflow transacional de solicitacoes entra na proxima fase
+- Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual, `POST /materiais`, historico do doador, edicao e exclusao de materiais disponiveis
+- Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao, dialogo de detalhes e envio real de solicitacao
+- Tela `Minhas solicitacoes` com filtros, cancelamento e abertura de contato do doador apos aprovacao
+- Tela `Pedidos recebidos` para o doador aprovar, recusar, revogar aprovacao e concluir doacao
+- Sincronizacao de token FCM com o backend, prompt de permissao adiado ate a area principal do app e roteamento do toque da notificacao para as areas de solicitacoes quando o Firebase estiver configurado
 
 ## Requisitos
 
@@ -110,7 +124,7 @@ Com um emulador Android ja iniciado, o fluxo auth E2E tambem pode ser validado p
 .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest
 ```
 
-Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, discovery, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
+Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, discovery, solicitacoes, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
 
 ## Como rodar pelo Android Studio
 
@@ -167,7 +181,7 @@ Se o backend estiver no WSL e o app continuar mostrando `Servidor indisponivel`,
 
 ## Observacao sobre o estado atual do codigo
 
-O fluxo legado de autenticacao com Google foi removido do app. O foco atual do modulo Android e consolidar o que ja esta integrado em auth/perfil/materiais/discovery e avancar nos endpoints de solicitacoes e notificacoes.
+O fluxo legado de autenticacao com Google foi removido do app. O estado atual do modulo Android ja inclui auth/perfil/materiais/discovery/solicitacoes em runtime. O foco agora e fechar a Fase 6 de notificacoes com UX navegavel por push, deep links, identificadores de notificacao mais robustos e validacao final com Firebase real.
 
 ## Celular fisico
 
