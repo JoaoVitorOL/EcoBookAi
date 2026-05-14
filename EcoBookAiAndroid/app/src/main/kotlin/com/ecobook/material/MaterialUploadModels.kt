@@ -20,6 +20,11 @@ enum class ImageSource {
     CAMERA
 }
 
+enum class ImageSlot {
+    FRONT,
+    BACK
+}
+
 data class SelectedImageUiModel(
     val uri: Uri,
     val fileName: String,
@@ -43,7 +48,8 @@ data class MaterialDraft(
 
 data class MaterialUploadUiState(
     val stage: MaterialFlowStage = MaterialFlowStage.SELECT,
-    val selectedImage: SelectedImageUiModel? = null,
+    val selectedFrontImage: SelectedImageUiModel? = null,
+    val selectedBackImage: SelectedImageUiModel? = null,
     val isBusy: Boolean = false,
     val overallStatus: AiAssistStatus? = null,
     val uploadId: String? = null,
@@ -54,8 +60,11 @@ data class MaterialUploadUiState(
     val draft: MaterialDraft = MaterialDraft(),
     val createdMaterial: MaterialDTO? = null
 ) {
+    val selectedImage: SelectedImageUiModel?
+        get() = selectedFrontImage
+
     val canStartPreview: Boolean
-        get() = selectedImage != null && !isBusy
+        get() = selectedFrontImage != null && !isBusy
 
     val canSubmit: Boolean
         get() = uploadId != null && !isBusy

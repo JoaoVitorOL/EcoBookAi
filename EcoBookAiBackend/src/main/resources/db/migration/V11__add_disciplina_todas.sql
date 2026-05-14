@@ -1,0 +1,1 @@
+ALTER TYPE disciplina_enum ADD VALUE IF NOT EXISTS 'TODAS';

@@ -68,7 +68,7 @@ public class MaterialController {
         SistemaEnsino parsedSistemaEnsino = parseEnum(sistemaEnsino, SistemaEnsino.class, "sistema_ensino", fieldErrors);
 
         validatePagination(page, size, fieldErrors);
-        validateYears(ano, minAnoPublicacao, maxAnoPublicacao, fieldErrors);
+        validateYears(parsedNivelEnsino, ano, minAnoPublicacao, maxAnoPublicacao, fieldErrors);
 
         if (!fieldErrors.isEmpty()) {
             throw new BadRequestException("Os filtros de busca sao invalidos", fieldErrors);
@@ -107,12 +107,15 @@ public class MaterialController {
     @PostMapping("/preview")
     @RequireCompleteProfile
     public ResponseEntity<ApiEnvelope<GeminiResponseDTO>> previewMaterial(Authentication authentication,
-                                                                          @RequestPart("file") MultipartFile file,
+                                                                          @RequestPart(value = "file", required = false) MultipartFile legacyFile,
+                                                                          @RequestPart(value = "file_front", required = false) MultipartFile frontFile,
+                                                                          @RequestPart(value = "file_back", required = false) MultipartFile backFile,
                                                                           HttpServletRequest servletRequest) {
+        MultipartFile effectiveFrontFile = frontFile != null && !frontFile.isEmpty() ? frontFile : legacyFile;
         return ApiEnvelopeResponses.ok(
                 servletRequest,
                 "Preview do material gerado com sucesso",
-                materialService.previewMaterial(authentication.getName(), file)
+                materialService.previewMaterial(authentication.getName(), effectiveFrontFile, backFile)
         );
     }
 
@@ -158,12 +161,18 @@ public class MaterialController {
         }
     }
 
-    private void validateYears(Integer ano,
+    private void validateYears(NivelEnsino nivelEnsino,
+                               Integer ano,
                                Integer minAnoPublicacao,
                                Integer maxAnoPublicacao,
                                Map<String, String> fieldErrors) {
-        if (ano != null && (ano < 1 || ano > 12)) {
-            fieldErrors.put("ano", "Informe um ano escolar entre 1 e 12");
+        if (nivelEnsino == NivelEnsino.SUPERIOR && ano != null) {
+            fieldErrors.put("ano", "Materiais de nivel SUPERIOR nao usam ano escolar");
+        } else if (ano != null) {
+            int maxAno = nivelEnsino == NivelEnsino.MEDIO ? 3 : 9;
+            if (ano < 1 || ano > maxAno) {
+                fieldErrors.put("ano", "Informe um ano escolar valido para o nivel selecionado");
+            }
         }
         if (minAnoPublicacao != null && (minAnoPublicacao < 1900 || minAnoPublicacao > 2100)) {
             fieldErrors.put("min_ano_publicacao", "Informe um ano minimo entre 1900 e 2100");

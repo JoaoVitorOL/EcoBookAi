@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phase 5 request workflow is already implemented in runtime; Phase 6 notifications are partially implemented and remain the next closeout front  
+**Status**: Phase 5 request workflow and Phase 6 notification workflow are implemented in runtime; final Firebase real-device validation remains the main external closeout item  
 **Generated**: 2026-04-15
 
 ---
@@ -936,55 +936,30 @@ Runtime note on 2026-05-14:
 
 #### Backend: FCM Configuration
 
-- [ ] **T166** [P] Create `src/main/java/com/ecobook/config/FirebaseConfig.java`:
-  - Initialize Firebase Admin SDK from service account JSON
-  - Load service account from `firebase-service-account.json` (path in application.yml)
-- [ ] **T167** [P] Create `src/main/java/com/ecobook/service/FcmService.java`:
+- [x] **T166** [P] Runtime note: Firebase Admin SDK initialization now lives lazily inside `src/main/java/com/ecobook/service/FcmService.java` instead of a separate `FirebaseConfig.java`
+  - Service account path comes from `firebase.service-account-path`
+  - Firebase stays dormant when local credentials are intentionally absent
+- [x] **T167** [P] Create `src/main/java/com/ecobook/service/FcmService.java`:
   - Method: `sendNotification(userId, title, body, data)` → sends to user's device
   - Retrieve FCM token from user record
   - Build notification message (title, body, data payload)
   - Send via FirebaseMessaging.send()
   - Log result (success, failure, not registered)
-- [ ] **T168** [P] Create `src/main/java/com/ecobook/service/FcmTokenService.java`:
-  - Endpoint: **POST /api/v1/fcm/tokens** (mobile client sends device token on app startup)
-  - Store fcm_token in Usuario record
-  - Support token rotation (overwrite existing token per device)
-- [ ] **T169** [P] Create event listeners for notifications:
-  - `@EventListener SolicitacaoCreatedEvent` → notify donor
-  - `@EventListener SolicitacaoApprovedEvent` → notify student
-  - `@EventListener SolicitacaoRejectedEvent` → notify student
-  - `@EventListener SolicitacaoCanceledEvent` → notify other party
-  - `@EventListener SolicitacaoCompletedEvent` → notify student
-  - `@EventListener MaterialCanceledEvent` → notify affected students
+- [x] **T168** [P] Runtime note: token registration is implemented through `FcmController` + `UsuarioService.updateFcmToken()` instead of a dedicated `FcmTokenService.java`
+  - Endpoint: **POST /api/v1/fcm/tokens**
+  - Store `fcm_token` in `Usuario`
+  - Support token rotation (overwrite existing token per user/device session)
+- [x] **T169** [P] Create event listeners for notifications:
+  - Runtime implementation uses a generic `NotificationRequestedEvent` + `NotificationRequestedEventListener`
+  - Request workflow now publishes post-commit notification intents for donor/student events
+  - Material deletion also emits notification events to affected students
 
 #### Backend: 6 Notification Payloads
 
-- [ ] **T170** [P] Create notification payloads in `src/main/java/com/ecobook/dto/notification/`:
-  - **SolicitacaoRecebidaNotification.java** (sent to donor)
-    - Title: "New Material Request"
-    - Body: "{student_name} requested your {material_title}"
-    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST"
-  - **SolicitacaoAprovadaNotification.java** (sent to student)
-    - Title: "Request Approved!"
-    - Body: "Your request for {material_title} was approved. 14 days to complete."
-    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST", expires_at
-  - **SolicitacaoRecusadaNotification.java** (sent to student)
-    - Title: "Request Declined"
-    - Body: "Your request for {material_title} was declined."
-    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST"
-  - **SolicitacaoCanceladaNotification.java** (sent to student or donor)
-    - Title: "Request Cancelled"
-    - Body: "{material_title} request was cancelled."
-    - Data: solicitacao_id, material_id, action: "VIEW_REQUEST"
-  - **MaterialDoadoNotification.java** (sent to student)
-    - Title: "Material Received!"
-    - Body: "Your {material_title} has been marked as received."
-    - Data: material_id, solicitacao_id, action: "VIEW_MATERIAL"
-  - **MaterialCanceladoNotification.java** (sent to pending/approved students)
-    - Title: "Material No Longer Available"
-    - Body: "{material_title} was cancelled by donor."
-    - Data: material_id, action: "BACK_TO_SEARCH"
-- [ ] **T171** [P] Implement notification sending in event listeners:
+- [x] **T170** [P] Create notification payloads in `src/main/java/com/ecobook/dto/notification/`:
+  - Runtime implementation consolidates the six payload types into `NotificationType`, `NotificationPayloadDTO` and `NotificationPayloadFactory`
+  - Payload data now includes `notification_id`, `type`, `title`, `body`, `route`, `solicitacao_id` and `material_id` where applicable
+- [x] **T171** [P] Implement notification sending in event listeners:
   - Each listener catches domain event (e.g., SolicitacaoApprovedEvent)
   - Builds appropriate notification payload
   - Calls FcmService.sendNotification(recipient_user_id, payload)
@@ -992,11 +967,11 @@ Runtime note on 2026-05-14:
 
 #### Backend: FCM Error Handling
 
-- [ ] **T172** [P] Create retry logic for failed notifications:
+- [x] **T172** [P] Create retry logic for failed notifications:
   - If send fails: Store in FailedNotificationQueue (for manual retry)
   - Log: user_id, notification_type, error_reason, timestamp
   - Cron job: retry failed notifications every hour (max 3 retries)
-- [ ] **T173** [P] Create `src/main/java/com/ecobook/scheduler/NotificationRetryJob.java`:
+- [x] **T173** [P] Create `src/main/java/com/ecobook/scheduler/NotificationRetryJob.java`:
   - Query FailedNotificationQueue records with retry_count < 3
   - Retry each notification
   - Delete on success, increment retry_count on failure
@@ -1004,39 +979,35 @@ Runtime note on 2026-05-14:
 
 #### Android: FCM Setup
 
-- [ ] **T174** [P] [US4] Create Firebase Cloud Messaging setup in `EcoBookAiAndroid/src/main/AndroidManifest.xml`:
+- [x] **T174** [P] [US4] Create Firebase Cloud Messaging setup in `EcoBookAiAndroid/src/main/AndroidManifest.xml`:
   - Add FCM service declarations
   - Add required permissions (POST_NOTIFICATIONS for Android 13+)
-- [ ] **T175** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/fcm/EcoBookMessagingService.kt`:
+- [x] **T175** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/fcm/EcoBookMessagingService.kt`:
   - Extend FirebaseMessagingService
   - Override `onMessageReceived(remoteMessage)`
   - Handle notifications in foreground (show local notification via NotificationManager)
   - Handle notifications in background (FCM shows automatically)
   - Extract custom data (action, ids) from payload
-  - Handle "VIEW_REQUEST" action: navigate to RequestDetailScreen with solicitacao_id
-  - Handle "BACK_TO_SEARCH" action: navigate to DiscoveryScreen
-- [ ] **T176** [P] [US4] Create notification display in `EcoBookMessagingService`:
+  - Runtime note: notification taps currently route to `MyRequests`, `DonorRequests`, `Discovery` or `Notifications` instead of a dedicated `RequestDetailScreen`
+- [x] **T176** [P] [US4] Create notification display in `EcoBookMessagingService`:
   - Build NotificationCompat.Builder with title, body, icon, color
   - Use PendingIntent to navigate to appropriate screen
   - Post to NotificationManager
   - Set notification ID per notification type (avoid duplicates)
-- [ ] **T177** [P] [US4] Implement token registration in `EcoBookAiAndroid/src/main/java/com/ecobook/auth/AuthViewModel.kt`:
-  - After successful login: Get FCM token via FirebaseMessaging.getInstance().token
-  - POST /api/v1/fcm/tokens with device token
-  - Store locally (in case future updates needed)
-  - Log token registration for debugging
-- [ ] **T178** [P] [US4] Create notification permission request for Android 13+:
-  - Use RuntimePermissions to request POST_NOTIFICATIONS
-  - On app startup: check if permission granted, request if not
-  - Show explanation: "We send you updates on your requests"
-- [ ] **T179** [P] [US4] Create deep linking for notification actions:
+- [x] **T177** [P] [US4] Implement token registration in the Android runtime:
+  - Runtime implementation lives in `AuthRepository`, `EcoBookApp` and `FcmTokenSyncManager` instead of `AuthViewModel.kt`
+  - After successful login/app startup: get current FCM token, POST `/api/v1/fcm/tokens`, cache locally and avoid redundant sync
+- [x] **T178** [P] [US4] Create notification permission request for Android 13+:
+  - Request `POST_NOTIFICATIONS` only after the session reaches the main area
+  - Avoid eager prompt in `onCreate` before the user sees app context
+- [x] **T179** [P] [US4] Create deep linking for notification actions:
   - Configure AndroidManifest.xml to handle deep links
-  - Examples: `ecobook://request/{solicitacao_id}`, `ecobook://search`
+  - Runtime routes use `ecobook://app/my-requests`, `ecobook://app/donor-requests`, `ecobook://app/discovery` and `ecobook://app/notifications`
   - MainActivity should parse intent and navigate via navigation graph
-- [ ] **T180** [P] [US4] Create notification badge (unread count) in BottomNavigationBar:
+- [x] **T180** [P] [US4] Create notification unread indicator in the Android main navigation surfaces:
   - Track unread notifications locally
-  - Show badge on notification icon
-  - Clear badge on NotificationsScreen view
+  - Show visual state on the bell entry point rendered in the main screen headers
+  - Clear unread state from the NotificationsScreen flow
 
 ---
 
@@ -1413,14 +1384,14 @@ Phase 3 closeout notes:
 1. **Assign Tasks**: Distribute tasks to backend dev, Android dev, QA based on user story phases
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
-4. **Close Phase 6**: finish navigation-aware notifications, deep links and end-to-end Firebase validation
+4. **Revalidate Phase 6 End to End**: run the implemented notification stack against a real Firebase project/device flow and capture execution notes
 5. **Keep backlog hygiene**: update Phase 5/6 checkbox history and manual/env tasks as Firebase and emulator setup decisions land
 6. **Prepare the next fronts**: admin/moderation, LGPD/anonymization, observability and hardening
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 5 runtime delivery and Phase 6 partial delivery recorded; use this file as a living backlog for Phase 6+ execution  
+**Status**: Phase 5 and Phase 6 runtime delivery recorded; use this file as a living backlog for Firebase validation plus Phase 7+ execution  
 **Document Owner**: Product/Tech Lead  
 **Last Updated**: 2026-05-14
 

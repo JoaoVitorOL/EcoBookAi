@@ -9,6 +9,7 @@ EcoBookAiAndroid/*.iml
 # Backend / Maven
 EcoBookAiBackend/target/
 EcoBookAiBackend/logs/
+EcoBookAiBackend/credentials/*.json
 
 # IDE / OS
 .idea/

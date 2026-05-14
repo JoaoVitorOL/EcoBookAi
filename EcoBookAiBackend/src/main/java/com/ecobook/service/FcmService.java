@@ -1,6 +1,9 @@
 package com.ecobook.service;
 
+import com.ecobook.dto.notification.NotificationPayloadDTO;
+import com.ecobook.model.FailedNotification;
 import com.ecobook.model.Usuario;
+import com.ecobook.repository.FailedNotificationRepository;
 import com.ecobook.repository.UsuarioRepository;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -21,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,8 +40,11 @@ import java.util.UUID;
 public class FcmService {
 
     private static final String FIREBASE_APP_NAME = "ecobook-fcm";
+    private static final String GOOGLE_APPLICATION_CREDENTIALS = "GOOGLE_APPLICATION_CREDENTIALS";
+    private static final int MAX_RETRY_COUNT = 3;
 
     private final UsuarioRepository usuarioRepository;
+    private final FailedNotificationRepository failedNotificationRepository;
 
     @Value("${firebase.service-account-path:}")
     private String serviceAccountPath;
@@ -47,13 +55,41 @@ public class FcmService {
     private volatile FirebaseMessaging firebaseMessaging;
     private volatile boolean initializationAttempted;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean sendNotification(String userId, String title, String body) {
         return sendNotification(userId, title, body, Map.of());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean sendNotification(String userId, String title, String body, Map<String, String> data) {
+        return sendNotificationInternal(userId, title, body, enrichPayload(title, body, data));
+    }
+
+    @Transactional
+    public boolean sendNotification(UUID userId, NotificationPayloadDTO payload) {
+        return sendNotificationInternal(
+                userId.toString(),
+                payload.getTitle(),
+                payload.getBody(),
+                payload.toDataMap()
+        );
+    }
+
+    @Transactional
+    public int retryFailedNotifications() {
+        LocalDateTime now = LocalDateTime.now();
+        int processedCount = 0;
+
+        for (FailedNotification failedNotification : failedNotificationRepository
+                .findTop100ByDeliveredAtIsNullAndPermanentlyFailedAtIsNullAndNextAttemptAtLessThanEqualOrderByCreatedAtAsc(now)) {
+            processedCount++;
+            retryFailedNotification(failedNotification, now);
+        }
+
+        return processedCount;
+    }
+
+    private boolean sendNotificationInternal(String userId, String title, String body, Map<String, String> data) {
         Optional<Usuario> usuarioOptional = findUsuario(userId);
         if (usuarioOptional.isEmpty()) {
             log.warn("FCM skipped: user {} was not found or is invalid.", userId);
@@ -68,6 +104,9 @@ public class FcmService {
 
         FirebaseMessaging messaging = getFirebaseMessagingClient();
         if (messaging == null) {
+            String errorMessage = "Firebase Admin SDK indisponivel; verifique FIREBASE_SERVICE_ACCOUNT_PATH no backend";
+            log.warn("FCM unavailable for user {}: {}", userId, errorMessage);
+            queueFailedNotification(usuario.getId(), title, body, data, errorMessage);
             return false;
         }
 
@@ -80,8 +119,53 @@ public class FcmService {
             log.warn("FCM failed for user {}: {}", userId, exception.getMessage(), exception);
             if (shouldClearStoredToken(exception)) {
                 clearStoredToken(usuario.getId(), usuario.getFcmToken());
+            } else {
+                queueFailedNotification(usuario.getId(), title, body, data, exception.getMessage());
             }
             return false;
+        }
+    }
+
+    private void retryFailedNotification(FailedNotification failedNotification, LocalDateTime now) {
+        Optional<Usuario> usuarioOptional = usuarioRepository.findById(failedNotification.getUserId());
+        if (usuarioOptional.isEmpty()) {
+            markAsPermanentlyFailed(failedNotification, now, "Usuario nao encontrado para retry");
+            return;
+        }
+
+        Usuario usuario = usuarioOptional.get();
+        if (!StringUtils.hasText(usuario.getFcmToken())) {
+            markAsPermanentlyFailed(failedNotification, now, "Usuario sem token FCM registrado");
+            return;
+        }
+
+        FirebaseMessaging messaging = getFirebaseMessagingClient();
+        if (messaging == null) {
+            scheduleRetry(failedNotification, now, "Firebase Admin SDK indisponivel no momento");
+            return;
+        }
+
+        try {
+            String responseId = messaging.send(buildMessage(
+                    usuario.getFcmToken(),
+                    failedNotification.getTitle(),
+                    failedNotification.getBody(),
+                    failedNotification.getPayloadData()
+            ));
+            failedNotification.setDeliveredAt(now);
+            failedNotification.setLastAttemptAt(now);
+            failedNotification.setLastError(null);
+            failedNotificationRepository.save(failedNotification);
+            log.info("FCM retry succeeded for queued notification {} with response id {}", failedNotification.getId(), responseId);
+        } catch (FirebaseMessagingException exception) {
+            log.warn("FCM retry failed for queued notification {}: {}", failedNotification.getId(), exception.getMessage(), exception);
+            if (shouldClearStoredToken(exception)) {
+                clearStoredToken(usuario.getId(), usuario.getFcmToken());
+                markAsPermanentlyFailed(failedNotification, now, exception.getMessage());
+                return;
+            }
+
+            scheduleRetry(failedNotification, now, exception.getMessage());
         }
     }
 
@@ -109,6 +193,18 @@ public class FcmService {
         return builder.build();
     }
 
+    private Map<String, String> enrichPayload(String title, String body, Map<String, String> data) {
+        LinkedHashMap<String, String> payload = new LinkedHashMap<>();
+        payload.put("title", title);
+        payload.put("body", body);
+        data.forEach((key, value) -> {
+            if (StringUtils.hasText(key) && value != null) {
+                payload.put(key, value);
+            }
+        });
+        return payload;
+    }
+
     private FirebaseMessaging getFirebaseMessagingClient() {
         if (firebaseMessaging != null) {
             return firebaseMessaging;
@@ -123,12 +219,13 @@ public class FcmService {
             }
 
             initializationAttempted = true;
-            if (!StringUtils.hasText(serviceAccountPath)) {
-                log.info("FCM is disabled because FIREBASE_SERVICE_ACCOUNT_PATH is not configured.");
+            String resolvedServiceAccountPath = resolveServiceAccountPath();
+            if (!StringUtils.hasText(resolvedServiceAccountPath)) {
+                log.info("FCM is disabled because neither FIREBASE_SERVICE_ACCOUNT_PATH nor GOOGLE_APPLICATION_CREDENTIALS is configured.");
                 return null;
             }
 
-            Path credentialsPath = Path.of(serviceAccountPath.trim());
+            Path credentialsPath = Path.of(resolvedServiceAccountPath);
             if (!Files.exists(credentialsPath)) {
                 log.warn("FCM is disabled because the Firebase service account file was not found at {}", credentialsPath);
                 return null;
@@ -153,6 +250,23 @@ public class FcmService {
         }
     }
 
+    String resolveServiceAccountPath() {
+        if (StringUtils.hasText(serviceAccountPath)) {
+            return serviceAccountPath.trim();
+        }
+
+        String googleApplicationCredentials = googleApplicationCredentialsEnv();
+        if (StringUtils.hasText(googleApplicationCredentials)) {
+            return googleApplicationCredentials.trim();
+        }
+
+        return "";
+    }
+
+    String googleApplicationCredentialsEnv() {
+        return System.getenv(GOOGLE_APPLICATION_CREDENTIALS);
+    }
+
     private FirebaseApp getOrCreateFirebaseApp(FirebaseOptions options) {
         try {
             return FirebaseApp.getInstance(FIREBASE_APP_NAME);
@@ -175,5 +289,48 @@ public class FcmService {
                 log.info("FCM token cleared for user {} after an unrecoverable Firebase response.", userId);
             }
         });
+    }
+
+    private void queueFailedNotification(UUID userId,
+                                         String title,
+                                         String body,
+                                         Map<String, String> payload,
+                                         String errorMessage) {
+        FailedNotification queuedNotification = failedNotificationRepository.save(FailedNotification.builder()
+                .userId(userId)
+                .notificationType(payload.getOrDefault("type", "GENERIC"))
+                .title(title)
+                .body(body)
+                .payloadData(new LinkedHashMap<>(payload))
+                .lastError(errorMessage)
+                .build());
+
+        log.info("Queued failed FCM notification {} for retry", queuedNotification.getId());
+    }
+
+    private void scheduleRetry(FailedNotification failedNotification, LocalDateTime now, String errorMessage) {
+        int nextRetryCount = failedNotification.getRetryCount() + 1;
+        failedNotification.setRetryCount(nextRetryCount);
+        failedNotification.setLastAttemptAt(now);
+        failedNotification.setLastError(errorMessage);
+
+        if (nextRetryCount >= MAX_RETRY_COUNT) {
+            failedNotification.setPermanentlyFailedAt(now);
+            failedNotification.setNextAttemptAt(now);
+            failedNotificationRepository.save(failedNotification);
+            log.error("FCM notification {} reached the retry limit and is now permanently failed.", failedNotification.getId());
+            return;
+        }
+
+        failedNotification.setNextAttemptAt(now.plusHours(1));
+        failedNotificationRepository.save(failedNotification);
+    }
+
+    private void markAsPermanentlyFailed(FailedNotification failedNotification, LocalDateTime now, String errorMessage) {
+        failedNotification.setLastAttemptAt(now);
+        failedNotification.setLastError(errorMessage);
+        failedNotification.setPermanentlyFailedAt(now);
+        failedNotificationRepository.save(failedNotification);
+        log.error("FCM notification {} marked as permanently failed: {}", failedNotification.getId(), errorMessage);
     }
 }

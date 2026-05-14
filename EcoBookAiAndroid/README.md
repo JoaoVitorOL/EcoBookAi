@@ -25,14 +25,14 @@ Referencias principais:
 
 ## O que este app entrega agora
 
-- Navegacao com quatro areas principais: `Solicitacoes`, `Buscar`, `Doar` e `Perfil`, alem da rota secundaria `Pedidos recebidos`
+- Navegacao com quatro areas principais: `Solicitacoes`, `Buscar`, `Doar` e `Perfil`, alem das rotas secundarias `Avisos` e `Pedidos recebidos`
 - Verificacao real do backend via `GET /api/v1/health`
 - Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
-- Fluxo real de doacao com galeria/camera, `POST /materiais/preview`, revisao manual, `POST /materiais`, historico do doador com materiais disponiveis, reservados e doados, edicao e exclusao de materiais disponiveis
+- Fluxo real de doacao com galeria/camera, capa da frente obrigatoria, capa de tras opcional, `POST /materiais/preview`, revisao manual, `POST /materiais`, historico do doador com materiais disponiveis, reservados e doados, edicao e exclusao de materiais disponiveis
 - Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao, dialogo de detalhes e envio real de solicitacao
 - Tela `Minhas solicitacoes` com filtros, cancelamento e abertura de contato do doador apos aprovacao
 - Tela `Pedidos recebidos` para o doador aprovar, recusar, revogar aprovacao e concluir doacao
-- Sincronizacao de token FCM com o backend, prompt de permissao adiado ate a area principal do app e roteamento do toque da notificacao para as areas de solicitacoes quando o Firebase estiver configurado
+- Sincronizacao de token FCM com o backend, prompt de permissao adiado ate a area principal do app, roteamento do toque da notificacao para as areas de solicitacoes, inbox local de avisos e sininho nas telas principais com variacao visual entre lido/nao lido quando o Firebase estiver configurado
 
 ## Requisitos
 
@@ -181,7 +181,7 @@ Se o backend estiver no WSL e o app continuar mostrando `Servidor indisponivel`,
 
 ## Observacao sobre o estado atual do codigo
 
-O fluxo legado de autenticacao com Google foi removido do app. O estado atual do modulo Android ja inclui auth/perfil/materiais/discovery/solicitacoes em runtime. O foco agora e fechar a Fase 6 de notificacoes com UX navegavel por push, deep links, identificadores de notificacao mais robustos e validacao final com Firebase real.
+O fluxo legado de autenticacao com Google foi removido do app. O estado atual do modulo Android ja inclui auth/perfil/materiais/discovery/solicitacoes/notificacoes em runtime. A Fase 6 agora cobre permissao contextual, deep links, IDs robustos, inbox local e sininho com estado visual; o principal fechamento restante fora do codigo e a validacao final com Firebase real e credenciais backend corretas.
 
 ## Celular fisico
 

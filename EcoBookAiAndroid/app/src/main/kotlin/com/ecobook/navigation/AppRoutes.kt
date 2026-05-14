@@ -7,5 +7,6 @@ object AppRoutes {
     const val DONATE = "donate"
     const val MY_REQUESTS = "my-requests"
     const val DONOR_REQUESTS = "donor-requests"
+    const val NOTIFICATIONS = "notifications"
     const val PROFILE = "profile"
 }

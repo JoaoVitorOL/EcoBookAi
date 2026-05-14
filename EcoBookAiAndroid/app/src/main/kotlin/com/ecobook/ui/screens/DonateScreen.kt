@@ -61,6 +61,8 @@ private enum class DonateMode {
 @Composable
 fun DonateScreen(
     onOpenDonorRequests: () -> Unit = {},
+    unreadNotifications: Int = 0,
+    onOpenNotifications: () -> Unit = {},
     viewModel: DonateViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,7 +96,9 @@ fun DonateScreen(
             onOpenEditor = viewModel::openEditor,
             onDelete = viewModel::promptDelete,
             onSwitchToPublish = { selectedMode = DonateMode.PUBLISH },
-            onOpenDonorRequests = onOpenDonorRequests
+            onOpenDonorRequests = onOpenDonorRequests,
+            unreadNotifications = unreadNotifications,
+            onOpenNotifications = onOpenNotifications
         )
 
         DonateMode.PUBLISH -> MaterialUploadScreen(
@@ -106,6 +110,8 @@ fun DonateScreen(
                     onOpenDonorRequests = onOpenDonorRequests
                 )
             },
+            unreadNotifications = unreadNotifications,
+            onOpenNotifications = onOpenNotifications,
             onMaterialPublished = { material ->
                 viewModel.onMaterialPublished(material)
                 selectedMode = DonateMode.HISTORY
@@ -166,7 +172,9 @@ private fun DonateHistoryContent(
     onOpenEditor: (MaterialDTO) -> Unit,
     onDelete: (MaterialDTO) -> Unit,
     onSwitchToPublish: () -> Unit,
-    onOpenDonorRequests: () -> Unit
+    onOpenDonorRequests: () -> Unit,
+    unreadNotifications: Int,
+    onOpenNotifications: () -> Unit
 ) {
     val visibleMaterials = uiState.visibleMaterials
 
@@ -177,7 +185,13 @@ private fun DonateHistoryContent(
         item {
             SectionHeading(
                 title = "Area do doador",
-                subtitle = "Acompanhe tudo o que voce ja publicou, edite materiais disponiveis e abra novos cadastros quando quiser."
+                subtitle = "Acompanhe tudo o que voce ja publicou, edite materiais disponiveis e abra novos cadastros quando quiser.",
+                trailingContent = {
+                    com.ecobook.ui.components.NotificationsEntryPointButton(
+                        unreadCount = unreadNotifications,
+                        onClick = onOpenNotifications
+                    )
+                }
             )
         }
 
@@ -408,13 +422,42 @@ private fun EditMaterialDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                MaterialImage(
-                    imageUrl = material.imagemUrl,
-                    title = material.titulo,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    androidx.compose.foundation.layout.Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Capa da frente",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        MaterialImage(
+                            imageUrl = material.imagemUrl,
+                            title = material.titulo,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                        )
+                    }
+                    material.imagemVersoUrl?.let { backImageUrl ->
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Capa de tras",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            MaterialImage(
+                                imageUrl = backImageUrl,
+                                title = "${material.titulo} verso",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                            )
+                        }
+                    }
+                }
                 uiState.editorMessage?.let { message ->
                     Text(
                         text = message,
@@ -475,7 +518,13 @@ private fun EditMaterialDialog(
                     onValueChange = onAnoChange,
                     label = "Ano escolar",
                     modifier = Modifier.fillMaxWidth(),
-                    errorMessage = uiState.validationErrors["ano"]
+                    errorMessage = uiState.validationErrors["ano"],
+                    supportingMessage = when (uiState.editDraft.nivelEnsino) {
+                        NivelEnsino.MEDIO -> "Para ensino medio, use apenas 1, 2 ou 3."
+                        NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                        else -> "Para ensino fundamental, use um valor de 1 a 9."
+                    },
+                    enabled = uiState.editDraft.nivelEnsino != NivelEnsino.SUPERIOR
                 )
                 EnumDropdown(
                     label = "Sistema de ensino",

@@ -21,6 +21,8 @@ import com.ecobook.ui.components.StatusBadge
 @Composable
 fun ProfileScreen(
     uiState: EcoBookUiState,
+    unreadNotifications: Int = 0,
+    onOpenNotifications: () -> Unit = {},
     onToggleAiConsent: (Boolean) -> Unit,
     onLogout: () -> Unit
 ) {
@@ -33,7 +35,13 @@ fun ProfileScreen(
         item {
             SectionHeading(
                 title = "Conta e perfil",
-                subtitle = "Resumo do usuario autenticado e dos dados enviados no onboarding."
+                subtitle = "Resumo do usuario autenticado e dos dados enviados no onboarding.",
+                trailingContent = {
+                    com.ecobook.ui.components.NotificationsEntryPointButton(
+                        unreadCount = unreadNotifications,
+                        onClick = onOpenNotifications
+                    )
+                }
             )
         }
 

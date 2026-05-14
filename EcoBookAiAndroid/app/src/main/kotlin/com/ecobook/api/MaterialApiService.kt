@@ -37,7 +37,10 @@ interface MaterialApiService {
 
     @Multipart
     @POST("v1/materiais/preview")
-    suspend fun previewMaterial(@Part file: MultipartBody.Part): Response<ApiEnvelopeDTO<GeminiResponseDTO>>
+    suspend fun previewMaterial(
+        @Part fileFront: MultipartBody.Part,
+        @Part fileBack: MultipartBody.Part? = null
+    ): Response<ApiEnvelopeDTO<GeminiResponseDTO>>
 
     @GET("v1/materiais/me")
     suspend fun listCurrentUserMaterials(): Response<ApiEnvelopeDTO<List<MaterialDTO>>>

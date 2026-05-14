@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Partial  
+**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented  
 **Date**: 2026-05-14  
-**Status**: Phase 5 request workflow is already implemented across backend and Android; Phase 6 notifications are partially implemented and are the next closeout front
+**Status**: Phase 5 request workflow and Phase 6 notification workflow are implemented across backend and Android; the remaining closeout item is end-to-end Firebase validation on real-capable devices
 
 ---
 
@@ -142,9 +142,9 @@ What is already implemented in the repository:
    - Android now performs real request creation from discovery, shows `Minhas solicitacoes`, shows `Pedidos recebidos` for donors and unlocks donor contact only after approval
    - donor-owned material management also includes `GET /api/v1/materiais/me`, `PUT /api/v1/materiais/{id}` and `DELETE /api/v1/materiais/{id}`
 
-6. Phase 6 notification foundation
-   - backend already accepts FCM device tokens and attempts notification dispatch when Firebase Admin is configured
-   - Android already requests notification permission, syncs the FCM token and shows basic local notifications
+6. Phase 6 notification runtime
+   - backend now accepts FCM device tokens, dispatches notifications after commit, standardizes payloads and persists transient failures for hourly retry
+   - Android now requests notification permission contextually, syncs the FCM token, handles deep links, persists a local notifications inbox and exposes an unread bell entry point inside the main screens instead of a dedicated bottom-nav tab
 
 What closed Phase 3 formally:
 
@@ -166,9 +166,9 @@ What closed Phase 5 functionally:
 
 What remains to close Phase 6 formally:
 
-1. Keep the current token-sync and backend dispatch base, but finish navigation-aware notification handling on Android
-2. Add deep links, richer notification IDs/history/badges where the product decides they are in scope
-3. Revalidate the notification flow end to end with a real Firebase setup and updated execution notes
+1. Revalidate the implemented notification flow end to end with a real Firebase setup and updated execution notes
+2. Capture device-level evidence for foreground/background receipt on hardware or emulator with Google Play services
+3. Fold any Firebase-project-specific findings back into the local runbooks
 
 ---
 

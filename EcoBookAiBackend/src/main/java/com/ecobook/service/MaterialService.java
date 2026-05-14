@@ -8,6 +8,7 @@ import com.ecobook.exception.BadRequestException;
 import com.ecobook.exception.ConflictException;
 import com.ecobook.exception.ResourceNotFoundException;
 import com.ecobook.exception.UnprocessableEntityException;
+import com.ecobook.event.NotificationRequestedEvent;
 import com.ecobook.model.Material;
 import com.ecobook.model.Solicitacao;
 import com.ecobook.model.TemporaryUpload;
@@ -25,6 +26,7 @@ import com.ecobook.repository.TemporaryUploadRepository;
 import com.ecobook.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,12 +56,19 @@ public class MaterialService {
     private final ImageStorageService imageStorageService;
     private final GeminiService geminiService;
     private final MaterialMapper materialMapper;
-    private final FcmService fcmService;
+    private final NotificationPayloadFactory notificationPayloadFactory;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public GeminiResponseDTO previewMaterial(String email, MultipartFile file) {
+    public GeminiResponseDTO previewMaterial(String email, MultipartFile file, MultipartFile secondaryFile) {
         Usuario usuario = loadUsuario(email);
-        ImageStorageService.StoredTemporaryUpload storedUpload = imageStorageService.storeTemporaryImage(usuario, file);
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("Imagem invalida", Map.of(
+                    "image", "Envie uma imagem frontal JPEG ou PNG valida"
+            ));
+        }
+
+        ImageStorageService.StoredTemporaryUpload storedUpload = imageStorageService.storeTemporaryImage(usuario, file, secondaryFile);
 
         if (!Boolean.TRUE.equals(usuario.getConsentimentoIa())) {
             TemporaryUpload upload = storedUpload.upload();
@@ -82,7 +91,9 @@ public class MaterialService {
         GeminiResponseDTO response = geminiService.classifyMaterial(
                 storedUpload.originalFilename(),
                 storedUpload.imageBytes(),
-                storedUpload.mimeType()
+                storedUpload.mimeType(),
+                storedUpload.secondaryImageBytes(),
+                storedUpload.secondaryMimeType()
         );
         response.setUploadId(storedUpload.upload().getUploadId());
 
@@ -115,6 +126,7 @@ public class MaterialService {
         }
 
         ImageStorageService.PromotedImage promotedImage = imageStorageService.promoteTemporaryImage(upload);
+        ImageStorageService.PromotedImage promotedBackImage = imageStorageService.promoteSecondaryTemporaryImage(upload);
 
         try {
             Material material = materialRepository.save(Material.builder()
@@ -130,6 +142,7 @@ public class MaterialService {
                     .estadoConservacao(validated.data().estadoConservacao())
                     .status(StatusMaterial.DISPONIVEL)
                     .imagemUrl(promotedImage.publicUrl())
+                    .imagemVersoUrl(promotedBackImage != null ? promotedBackImage.publicUrl() : null)
                     .uploadId(validated.uploadId())
                     .cidade(usuario.getCidade())
                     .bairro(usuario.getBairro())
@@ -142,6 +155,7 @@ public class MaterialService {
             upload.setStatus(UploadProcessingStatus.MATERIAL_CREATED);
             upload.setExpiresAt(null);
             upload.setFilePath(promotedImage.absolutePath().toString());
+            upload.setSecondaryFilePath(promotedBackImage != null ? promotedBackImage.absolutePath().toString() : null);
             temporaryUploadRepository.save(upload);
 
             return materialMapper.toDto(material);
@@ -193,6 +207,7 @@ public class MaterialService {
 
         temporaryUploadRepository.findByMaterialId(material.getId()).ifPresent(upload -> {
             imageStorageService.deleteIfExists(upload.getFilePath());
+            imageStorageService.deleteIfExists(upload.getSecondaryFilePath());
             temporaryUploadRepository.delete(upload);
         });
 
@@ -200,16 +215,14 @@ public class MaterialService {
 
         requests.stream()
                 .filter(request -> request.getEstudante() != null)
-                .forEach(request -> fcmService.sendNotification(
-                        request.getEstudante().getId().toString(),
-                        "Material removido",
-                        "A doacao \"" + material.getTitulo() + "\" foi removida pelo doador.",
-                        Map.of(
-                                "type", "MATERIAL_CANCELADO",
-                                "material_id", material.getId().toString(),
-                                "material_titulo", material.getTitulo()
+                .forEach(request -> eventPublisher.publishEvent(new NotificationRequestedEvent(
+                        request.getEstudante().getId(),
+                        notificationPayloadFactory.materialCanceled(
+                                request.getId().toString(),
+                                material.getId().toString(),
+                                material.getTitulo()
                         )
-                ));
+                )));
     }
 
     private Usuario loadUsuario(String email) {
@@ -358,8 +371,8 @@ public class MaterialService {
                 if (ano != null) {
                     errors.put("ano", "Materiais de nivel SUPERIOR nao usam ano escolar");
                 }
-            } else if (ano == null || ano < 1 || ano > 12) {
-                errors.put("ano", "Informe um ano escolar entre 1 e 12");
+            } else if (ano == null || ano < 1 || ano > maxAnoEscolar(nivelEnsino)) {
+                errors.put("ano", "Informe um ano escolar valido para o nivel selecionado");
             }
         }
 
@@ -426,6 +439,14 @@ public class MaterialService {
             return null;
         }
         return value.trim();
+    }
+
+    private int maxAnoEscolar(NivelEnsino nivelEnsino) {
+        return switch (nivelEnsino) {
+            case FUNDAMENTAL -> 9;
+            case MEDIO -> 3;
+            case SUPERIOR -> 0;
+        };
     }
 
     private record ValidatedMaterialRequest(

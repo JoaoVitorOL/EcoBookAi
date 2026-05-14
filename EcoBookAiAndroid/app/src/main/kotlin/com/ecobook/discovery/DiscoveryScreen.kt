@@ -49,6 +49,8 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun DiscoveryScreen(
     onOpenMyRequests: () -> Unit = {},
+    unreadNotifications: Int = 0,
+    onOpenNotifications: () -> Unit = {},
     viewModel: DiscoveryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,7 +114,13 @@ fun DiscoveryScreen(
         item {
             SectionHeading(
                 title = "Descoberta de materiais",
-                subtitle = "Busca real conectada ao backend com matching deterministico, filtros academicos e ordenacao por proximidade."
+                subtitle = "Busca real conectada ao backend com matching deterministico, filtros academicos e ordenacao por proximidade.",
+                trailingContent = {
+                    com.ecobook.ui.components.NotificationsEntryPointButton(
+                        unreadCount = unreadNotifications,
+                        onClick = onOpenNotifications
+                    )
+                }
             )
         }
 
@@ -266,7 +274,7 @@ private fun DiscoveryFiltersCard(
             label = "Disciplina",
             selectedOption = uiState.filters.disciplina,
             options = Disciplina.entries,
-            allLabel = "Todas",
+            allLabel = "Qualquer disciplina",
             optionLabel = { it.label },
             onSelected = onDisciplinaChange
         )
@@ -293,7 +301,16 @@ private fun DiscoveryFiltersCard(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             enabled = uiState.filters.nivelEnsino != NivelEnsino.SUPERIOR,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            supportingText = {
+                Text(
+                    when (uiState.filters.nivelEnsino) {
+                        NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino medio."
+                        NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                        else -> "Use um valor de 1 a 9."
+                    }
+                )
+            }
         )
         OutlinedTextField(
             value = uiState.filters.cidade,

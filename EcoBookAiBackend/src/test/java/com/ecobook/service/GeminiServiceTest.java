@@ -191,6 +191,29 @@ class GeminiServiceTest {
     }
 
     @Test
+    @DisplayName("buildRequestBody should send front and back images together and explain TODAS for multi-subject materials")
+    @SuppressWarnings("unchecked")
+    void shouldIncludeBothImagesAndTodasGuidance() {
+        Map<String, Object> requestBody = geminiService.buildRequestBody(
+                List.of(
+                        new GeminiService.GeminiImageInput(new byte[]{1, 2, 3}, "image/png"),
+                        new GeminiService.GeminiImageInput(new byte[]{4, 5, 6}, "image/jpeg")
+                ),
+                false
+        );
+
+        List<Map<String, Object>> contents = (List<Map<String, Object>>) requestBody.get("contents");
+        List<Map<String, Object>> parts = (List<Map<String, Object>>) contents.get(0).get("parts");
+        String prompt = (String) parts.get(0).get("text");
+
+        assertThat(parts).hasSize(3);
+        assertThat(((Map<String, Object>) parts.get(1).get("inlineData"))).containsEntry("mimeType", "image/png");
+        assertThat(((Map<String, Object>) parts.get(2).get("inlineData"))).containsEntry("mimeType", "image/jpeg");
+        assertThat(prompt).contains("Use disciplina TODAS quando o material reunir multiplas materias");
+        assertThat(prompt).contains("frente e verso podem trazer informacoes complementares");
+    }
+
+    @Test
     @DisplayName("buildGeminiHttpErrorMessage should expose the API message when Gemini rejects the request")
     void shouldExposeGeminiApiErrorMessage() {
         String payload = """

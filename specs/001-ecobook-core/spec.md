@@ -10,6 +10,8 @@ Runtime note (2026-05-14):
 - For delivered endpoint shapes and payloads, the runtime source of truth is `specs/001-ecobook-core/contracts/`.
 - The current implementation already includes the Phase 5 request workflow and uses runtime routes such as `POST /api/v1/materiais/{id}/solicitacoes` plus action endpoints like `/api/v1/solicitacoes/{id}/aprovar`.
 - Android implementation must follow official Android references and patterns from `developer.android.com`.
+- Material publication runtime now supports a required front-cover image plus an optional back-cover image stored with the published item; the front cover remains the primary AI input for `/materiais/preview`.
+- Notification runtime already belongs to the delivered Phase 6 codepath; when push does not arrive in local tests, the first configuration to verify is `FIREBASE_SERVICE_ACCOUNT_PATH` on the backend and Google Play services availability on the target device/emulator.
 
 ---
 
@@ -270,8 +272,8 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
   - MATERIAL_DOADO: Sent to student when donation completed (includes donor contact)
   - MATERIAL_CANCELADO: Sent to student when a DISPONIVEL material is removed by the donor
 - **RF-038**: FCM must be reliable; failures are logged but do not block primary operations
-- **RF-038a**: FCM notification failures MUST be retried with exponential backoff: first retry at 1s, second at 2s, third at 4s, fourth at 8s, maximum 5 total attempts; after 5 failures, notification is discarded and a system alert is logged for operations review
-- **RF-038b**: Failed FCM notifications MUST be queued in a persistent retry system (database or message broker); queued notifications are processed by a background job that runs every 5 minutes
+- **RF-038a**: Current runtime note: transient FCM notification failures are queued in PostgreSQL and retried hourly, up to 3 retry attempts; unrecoverable token errors clear the stored token and skip further retries
+- **RF-038b**: Failed FCM notifications MUST be queued in a persistent retry system; the current runtime processes this queue via a scheduled background job every hour
 
 #### Enums & Data Types
 
@@ -300,10 +302,10 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 
 #### FCM Queue Recovery & Dead-Letter Queue
 
-- **RF-048**: FCM notifications that fail 5 consecutive retry attempts MUST be moved to a dead-letter queue (DLQ) table `fcm_notifications_dlq` with fields: notification_id, failed_from_retry_queue_at, dlq_timestamp, reason_for_dlq, manual_retry_attempted, resolved_at
-- **RF-049**: Operations team MUST be able to query and review DLQ entries via admin dashboard; entries show notification type, recipient, failed payload, and retry history
-- **RF-050**: DLQ entries older than 30 days MUST be automatically archived to `fcm_notifications_archive` table (read-only, used for auditing); archived entries MUST NOT be retried unless explicitly moved back to active queue by admin
-- **RF-051**: Successful FCM notifications are deleted from active queue after confirmed delivery (Firebase webhook confirmation); if confirmation not received within 5 minutes, entry remains in queue for next retry cycle
+- **RF-048**: Current runtime note: FCM notifications that exhaust the 3 retry attempts are marked in `failed_notification` with `permanently_failed_at` and `last_error`, remaining available for later operator inspection
+- **RF-049**: Admin dashboard review of permanently failed notifications remains future work and is not part of the current runtime
+- **RF-050**: Dedicated DLQ/archive tables are deferred to a later observability/admin phase; the current runtime keeps permanent failures in the primary retry table
+- **RF-051**: Successful FCM notifications are marked with `delivered_at`; the current runtime does not wait for Firebase webhook confirmation before removing them from the active retry path
 
 #### Rate Limiting & Throttling
 
@@ -326,13 +328,13 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 ### Non-Functional Requirements
 
 - **RNF-001**: System MUST support Android 8.0+ (API level 26+); native Kotlin implementation via Jetpack Compose
-- **RNF-002**: Backend MUST be Spring Boot 3.x with Java 17+; PostgreSQL 14+ as primary database
+- **RNF-002**: Backend MUST be Spring Boot 3.x with Java 21+; PostgreSQL 14+ as primary database
 - **RNF-003**: Gemini API calls MUST timeout after 10 seconds; timeout returns FAILURE status
 - **RNF-004**: Image processing MUST validate and reject non-JPEG/PNG files with HTTP 400
 - **RNF-005**: System MUST log all security events (authentication, authorization, state transitions) with timestamp and actor
-- **RNF-006**: FCM notification retry queue MUST persist failed notifications in PostgreSQL with fields: notification_id, recipient_user_id, notification_type, payload (JSON), attempt_count, last_attempt_timestamp, next_retry_timestamp; retry job MUST update these fields and track delivery status
+- **RNF-006**: FCM notification retry queue MUST persist failed notifications in PostgreSQL with fields compatible with the current runtime: `id`, `user_id`, `notification_type`, `title`, `body`, `payload_data` (JSON), `retry_count`, `last_attempt_at`, `next_attempt_at`, `delivered_at`, `permanently_failed_at`, `last_error`
 - **RNF-007**: API versioning infrastructure MUST support at least 2 major versions running concurrently (e.g., v1 and v2 routable to different handler chains); routing decision based on URL path prefix only
-- **RNF-008**: FCM notification database schema MUST include DLQ and archive tables; primary queue table should have indexes on (status, next_retry_timestamp) for efficient retrieval of next batch of retries; archive table indexed by archived_at for efficient age-based queries
+- **RNF-008**: Current runtime note: the FCM notification schema includes the primary retry table and indexes on `next_attempt_at` and `user_id`; DLQ/archive tables remain future observability work
 - **RNF-009**: PostgreSQL replication MUST be configured in streaming replication mode (primary-replica) to ensure zero data loss on primary failure; replica can be promoted to primary within 2 minutes of primary outage detection
 - **RNF-010**: Rate limiting lookup MUST complete within 5ms per request to avoid bottleneck; Redis cluster with 3+ nodes (primary + replicas) provides high availability; in-memory fallback uses LRU cache limited to 100,000 user entries
 - **RNF-011**: Rate limit quotas MUST be configurable per endpoint without code changes; configuration stored in database (feature_flags table) or Spring property file; changes take effect within 1 minute

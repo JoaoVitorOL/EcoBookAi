@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ecobook.auth.SessionManager
+import com.ecobook.fcm.NotificationInboxRepository
 import com.ecobook.fcm.NotificationIntentRouter
 import com.ecobook.fcm.NotificationNavigationManager
 import com.ecobook.model.SessionDestination
@@ -34,6 +35,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var notificationNavigationManager: NotificationNavigationManager
+
+    @Inject
+    lateinit var notificationInboxRepository: NotificationInboxRepository
 
     private var notificationPermissionRequestedThisSession = false
 
@@ -82,9 +86,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun routeNotificationIntent(intent: Intent?) {
-        notificationNavigationManager.queue(
-            NotificationIntentRouter.destinationFromIntent(intent)
-        )
+        val notification = NotificationIntentRouter.messageFromIntent(intent)
+        notification?.let {
+            notificationInboxRepository.record(it)
+            it.id?.let(notificationInboxRepository::markAsRead)
+            notificationNavigationManager.queue(it.destination)
+        }
     }
 
     private fun requestNotificationPermissionIfNeeded() {

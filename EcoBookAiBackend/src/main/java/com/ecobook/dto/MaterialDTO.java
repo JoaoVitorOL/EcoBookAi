@@ -27,6 +27,7 @@ public class MaterialDTO {
     private String estadoConservacao;
     private String status;
     private String imagemUrl;
+    private String imagemVersoUrl;
     private String uploadId;
     private MaterialDonorDTO doador;
     private String cidade;

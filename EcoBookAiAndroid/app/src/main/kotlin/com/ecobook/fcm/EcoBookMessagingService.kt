@@ -17,6 +17,9 @@ class EcoBookMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var fcmTokenSyncManager: FcmTokenSyncManager
 
+    @Inject
+    lateinit var notificationInboxRepository: NotificationInboxRepository
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Timber.d("Message received from: ${remoteMessage.from}")
 
@@ -26,11 +29,19 @@ class EcoBookMessagingService : FirebaseMessagingService() {
         val body = remoteMessage.notification?.body
             ?: remoteMessage.data["body"]
             ?: remoteMessage.data["message"]
-        val destination = NotificationIntentRouter.destinationFromData(remoteMessage.data)
+        val notification = NotificationIntentRouter.messageFromData(
+            remoteMessage.data,
+            fallbackTitle = title,
+            fallbackBody = body
+        )
 
-        body?.takeIf { it.isNotBlank() }?.let {
-            sendNotification(title, it, destination)
+        notification?.let {
+            notificationInboxRepository.record(it)
+            sendNotification(it)
+            return
         }
+
+        body?.takeIf { it.isNotBlank() }?.let { sendNotification(title, it, null, remoteMessage.messageId) }
     }
 
     override fun onNewToken(token: String) {
@@ -38,10 +49,15 @@ class EcoBookMessagingService : FirebaseMessagingService() {
         fcmTokenSyncManager.syncTokenAsync(token)
     }
 
+    private fun sendNotification(notification: AppNotification) {
+        sendNotification(notification.title, notification.body, notification, notification.id)
+    }
+
     private fun sendNotification(
         title: String,
         messageBody: String,
-        destination: NotificationDestination?
+        appNotification: AppNotification?,
+        fallbackNotificationId: String?
     ) {
         val channelId = "eco_book_notifications"
 
@@ -52,6 +68,7 @@ class EcoBookMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Notifications from EcoBook"
+                setShowBadge(true)
             }
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -66,17 +83,18 @@ class EcoBookMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        destination?.let {
+        appNotification?.let {
             NotificationIntentRouter.buildPendingIntent(this, it)
                 ?.let(notificationBuilder::setContentIntent)
         }
 
-        val notification = notificationBuilder.build()
-        val notificationId = destination?.let(NotificationIntentRouter::notificationId)
+        val builtNotification = notificationBuilder.build()
+        val notificationId = appNotification?.let(NotificationIntentRouter::notificationId)
+            ?: fallbackNotificationId?.hashCode()
             ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(notificationId, notification)
+        notificationManager.notify(notificationId, builtNotification)
     }
 }

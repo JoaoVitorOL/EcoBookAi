@@ -38,6 +38,8 @@ import com.ecobook.ui.components.SectionHeading
 
 @Composable
 fun MyRequestsScreen(
+    unreadNotifications: Int = 0,
+    onOpenNotifications: () -> Unit = {},
     viewModel: MyRequestsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -70,7 +72,13 @@ fun MyRequestsScreen(
         item {
             SectionHeading(
                 title = "Minhas solicitacoes",
-                subtitle = "Acompanhe os pedidos que voce abriu, veja quando o contato for liberado e cancele quando precisar."
+                subtitle = "Acompanhe os pedidos que voce abriu, veja quando o contato for liberado e cancele quando precisar.",
+                trailingContent = {
+                    com.ecobook.ui.components.NotificationsEntryPointButton(
+                        unreadCount = unreadNotifications,
+                        onClick = onOpenNotifications
+                    )
+                }
             )
         }
 

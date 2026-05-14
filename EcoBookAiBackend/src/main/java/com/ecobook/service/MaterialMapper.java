@@ -22,6 +22,7 @@ public class MaterialMapper {
                 .estadoConservacao(material.getEstadoConservacao().name())
                 .status(material.getStatus().name())
                 .imagemUrl(material.getImagemUrl())
+                .imagemVersoUrl(material.getImagemVersoUrl())
                 .uploadId(material.getUploadId())
                 .doador(MaterialDonorDTO.builder()
                         .id(material.getDoador().getId().toString())

@@ -20,9 +20,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.text.Normalizer;
-import java.time.Instant;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -82,6 +81,14 @@ public class GeminiService {
     private Instant circuitOpenUntil;
 
     public GeminiResponseDTO classifyMaterial(String originalFilename, byte[] imageBytes, String mimeType) {
+        return classifyMaterial(originalFilename, imageBytes, mimeType, null, null);
+    }
+
+    public GeminiResponseDTO classifyMaterial(String originalFilename,
+                                              byte[] imageBytes,
+                                              String mimeType,
+                                              byte[] secondaryImageBytes,
+                                              String secondaryMimeType) {
         if (mockEnabled) {
             return mockResponse(originalFilename);
         }
@@ -97,7 +104,15 @@ public class GeminiService {
             );
         }
 
-        return callGeminiWithRetry(imageBytes, mimeType);
+        List<GeminiImageInput> images = new ArrayList<>();
+        images.add(new GeminiImageInput(imageBytes, mimeType));
+        if (secondaryImageBytes != null
+                && secondaryImageBytes.length > 0
+                && StringUtils.hasText(secondaryMimeType)) {
+            images.add(new GeminiImageInput(secondaryImageBytes, secondaryMimeType));
+        }
+
+        return callGeminiWithRetry(images);
     }
 
     GeminiResponseDTO parseGeminiResponse(String rawGeminiText) {
@@ -183,7 +198,7 @@ public class GeminiService {
         return populatedFields > 0 ? StatusIA.LOW_CONFIDENCE : StatusIA.FAILURE;
     }
 
-    private GeminiResponseDTO callGeminiWithRetry(byte[] imageBytes, String mimeType) {
+    private GeminiResponseDTO callGeminiWithRetry(List<GeminiImageInput> images) {
         if (isCircuitOpen()) {
             log.warn("Gemini circuit breaker is OPEN; returning manual fallback without external call");
             return failureResponse(
@@ -199,7 +214,7 @@ public class GeminiService {
 
         while (true) {
             try {
-                GeminiResponseDTO response = doGeminiCall(imageBytes, mimeType);
+                GeminiResponseDTO response = doGeminiCall(images);
                 recordOutcome(response);
                 return response;
             } catch (RetryableGeminiException ex) {
@@ -220,18 +235,16 @@ public class GeminiService {
         }
     }
 
-    private GeminiResponseDTO doGeminiCall(byte[] imageBytes, String mimeType) throws IOException {
+    private GeminiResponseDTO doGeminiCall(List<GeminiImageInput> images) throws IOException {
         boolean includeGoogleSearchTool = shouldUseGoogleSearchTool();
-
-        return executeGeminiCall(imageBytes, mimeType, includeGoogleSearchTool);
+        return executeGeminiCall(images, includeGoogleSearchTool);
     }
 
-    private GeminiResponseDTO executeGeminiCall(byte[] imageBytes,
-                                                String mimeType,
+    private GeminiResponseDTO executeGeminiCall(List<GeminiImageInput> images,
                                                 boolean includeGoogleSearchTool) throws IOException {
         OkHttpClient client = createHttpClient();
 
-        String body = objectMapper.writeValueAsString(buildRequestBody(imageBytes, mimeType, includeGoogleSearchTool));
+        String body = objectMapper.writeValueAsString(buildRequestBody(images, includeGoogleSearchTool));
         Request request = new Request.Builder()
                 .url("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent")
                 .addHeader("x-goog-api-key", apiKey)
@@ -261,7 +274,7 @@ public class GeminiService {
                         && includeGoogleSearchTool
                         && isStructuredOutputToolConflict(errorPayload)) {
                     log.warn("Gemini rejeitou o uso de google_search com JSON mode no modelo {}; tentando novamente sem grounding", model);
-                    return executeGeminiCall(imageBytes, mimeType, false);
+                    return executeGeminiCall(images, false);
                 }
 
                 return failureResponse(
@@ -315,18 +328,23 @@ public class GeminiService {
     private Map<String, Object> buildRequestBody(byte[] imageBytes,
                                                  String mimeType,
                                                  boolean includeGoogleSearchTool) {
+        return buildRequestBody(List.of(new GeminiImageInput(imageBytes, mimeType)), includeGoogleSearchTool);
+    }
+
+    Map<String, Object> buildRequestBody(List<GeminiImageInput> images,
+                                         boolean includeGoogleSearchTool) {
         Map<String, Object> request = new LinkedHashMap<>();
-        Map<String, Object> textPart = Map.of(
-                "text",
-                includeGoogleSearchTool ? prompt(true) : promptWithoutGoogleSearchTool()
-        );
-        Map<String, Object> imagePart = Map.of(
-                "inlineData", Map.of(
-                        "mimeType", mimeType,
-                        "data", Base64.getEncoder().encodeToString(imageBytes)
-                )
-        );
-        request.put("contents", List.of(Map.of("parts", List.of(textPart, imagePart))));
+        List<Map<String, Object>> parts = new ArrayList<>();
+        parts.add(Map.of("text", prompt(includeGoogleSearchTool)));
+        for (GeminiImageInput image : images) {
+            parts.add(Map.of(
+                    "inlineData", Map.of(
+                            "mimeType", image.mimeType(),
+                            "data", Base64.getEncoder().encodeToString(image.imageBytes())
+                    )
+            ));
+        }
+        request.put("contents", List.of(Map.of("parts", parts)));
         if (includeGoogleSearchTool) {
             request.put("tools", List.of(Map.of("google_search", Map.of())));
         }
@@ -338,59 +356,29 @@ public class GeminiService {
     }
 
     private String prompt(boolean includeGoogleSearchTool) {
-        if (includeGoogleSearchTool) {
-            return String.join("\n",
-                    "Analise a imagem de um material educacional brasileiro.",
-                    "Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.",
-                    "Cada campo deve seguir o formato {\"value\": \"...\", \"confidence\": 0.0}.",
-                    "Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.",
-                    "Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
-                    "Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.",
-                    "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.",
-                    "Para campos nao identificados, use value null e confidence null.",
-                    "Nunca invente descricao. Nunca retorne texto fora do JSON.",
-                    "Autor e editora devem ser extraidos da capa, lombada ou outras partes visiveis da imagem sempre que possivel.",
-                    "Se autor ou editora nao estiverem claramente visiveis, voce pode usar Google Search grounding para tentar confirmar essas informacoes com base no titulo e no contexto visual do livro.",
-                    "So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.",
-                    "Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.",
-                    "Seja conservador nas predicoes e priorize a precisao da informacao."
-            );
-        }
-        return """
-                Analise a imagem de um material educacional brasileiro.
-                Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.
-                Cada campo deve seguir o formato {"value": "...", "confidence": 0.0}.
-                Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.
-                Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.
-                Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.
-                Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.
-                Para campos nao identificados, use value null e confidence null.
-                Nunca invente descricao. Nunca retorne texto fora do JSON.
-                Autor e editora devem ser extraidos da capa, lombada ou outras partes visiveis da imagem sempre que possivel.
-                Se autor ou editora nao estiverem claramente visiveis, voce pode usar Google Search grounding para tentar confirmar essas informacoes com base no titulo e no contexto visual do livro.
-                So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.
-                Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.
-                Seja conservador nas predicoes e priorize a precisao da informacao.
-                Você pode pesquisar na internet as informacoes do livro a partir da imagem fornecida caso não estejam explicitas na foto, mas se tiver duvida, deixe o campo como null. Seja conservador nas predicoes e priorize a precisao da informação.
-                """;
-    }
-
-    private String promptWithoutGoogleSearchTool() {
-        return String.join("\n",
-                "Analise a imagem de um material educacional brasileiro.",
+        List<String> lines = new ArrayList<>(List.of(
+                "Analise as imagens de um material educacional brasileiro.",
+                "Considere todas as imagens enviadas em conjunto; frente e verso podem trazer informacoes complementares.",
                 "Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.",
                 "Cada campo deve seguir o formato {\"value\": \"...\", \"confidence\": 0.0}.",
                 "Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.",
-                "Valores de disciplina: MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
+                "Valores de disciplina: TODAS, MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
+                "Use disciplina TODAS quando o material reunir multiplas materias, for uma colecao multidisciplinar ou as imagens indicarem mais de uma disciplina no mesmo volume.",
                 "Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.",
                 "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.",
                 "Para campos nao identificados, use value null e confidence null.",
                 "Nunca invente descricao. Nunca retorne texto fora do JSON.",
-                "Autor e editora devem ser extraidos da capa, lombada ou outras partes visiveis da imagem sempre que possivel.",
+                "Autor e editora devem ser extraidos da capa, lombada, contracapa ou outras partes visiveis das imagens sempre que possivel.",
                 "So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.",
                 "Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.",
                 "Seja conservador nas predicoes e priorize a precisao da informacao."
-        );
+        ));
+
+        if (includeGoogleSearchTool) {
+            lines.add(12, "Se autor ou editora nao estiverem claramente visiveis, voce pode usar Google Search grounding para tentar confirmar essas informacoes com base no titulo e no contexto visual do livro.");
+        }
+
+        return String.join("\n", lines);
     }
 
     private boolean shouldUseGoogleSearchTool() {
@@ -488,7 +476,7 @@ public class GeminiService {
 
     private List<String> allowedValues(String field) {
         return switch (field) {
-            case "disciplina" -> List.of("MATEMATICA", "PORTUGUES", "HISTORIA", "GEOGRAFIA", "CIENCIAS", "LITERATURA");
+            case "disciplina" -> List.of("TODAS", "MATEMATICA", "PORTUGUES", "HISTORIA", "GEOGRAFIA", "CIENCIAS", "LITERATURA");
             case "nivel_ensino" -> List.of("FUNDAMENTAL", "MEDIO", "SUPERIOR");
             case "sistema_ensino" -> List.of("ANGLO", "OBJETIVO", "COC", "POSITIVO", "OUTRO");
             default -> List.of();
@@ -640,6 +628,9 @@ public class GeminiService {
         while (!recentFailures.isEmpty() && recentFailures.peekFirst().isBefore(threshold)) {
             recentFailures.removeFirst();
         }
+    }
+
+    record GeminiImageInput(byte[] imageBytes, String mimeType) {
     }
 
     private enum RetryCategory {

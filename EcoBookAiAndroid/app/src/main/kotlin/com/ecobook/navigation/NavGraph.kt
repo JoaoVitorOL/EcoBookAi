@@ -44,6 +44,8 @@ import com.ecobook.auth.LogoutViewModel
 import com.ecobook.discovery.DiscoveryScreen
 import com.ecobook.fcm.NotificationNavigationManager
 import com.ecobook.model.SessionDestination
+import com.ecobook.notifications.NotificationsScreen
+import com.ecobook.notifications.NotificationsViewModel
 import com.ecobook.onboarding.OnboardingScreen
 import com.ecobook.request.DonorRequestsScreen
 import com.ecobook.request.MyRequestsScreen
@@ -56,7 +58,9 @@ fun NavGraph(
     notificationNavigationManager: NotificationNavigationManager
 ) {
     val viewModel: EcoBookViewModel = hiltViewModel()
+    val notificationsViewModel: NotificationsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val notificationsUiState by notificationsViewModel.uiState.collectAsStateWithLifecycle()
     val pendingNotification by notificationNavigationManager.pendingDestination.collectAsStateWithLifecycle()
     val sessionDestination = uiState.session.destination
     val mainDestinations = listOf(
@@ -79,6 +83,12 @@ fun NavGraph(
 
             navController.navigateToNotificationDestination(destination.route)
             notificationNavigationManager.consume(destination)
+        }
+
+        LaunchedEffect(sessionDestination) {
+            if (sessionDestination == SessionDestination.MAIN) {
+                notificationsViewModel.refresh()
+            }
         }
 
         Box(
@@ -160,16 +170,42 @@ fun NavGraph(
                         DiscoveryScreen(
                             onOpenMyRequests = {
                                 navController.navigateToTopLevelDestination(AppDestination.MyRequests.route)
+                            },
+                            unreadNotifications = notificationsUiState.unreadCount,
+                            onOpenNotifications = {
+                                navController.navigateToNotifications()
                             }
                         )
                     }
                     composable(AppDestination.Donate.route) {
                         DonateScreen(
-                            onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) }
+                            onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) },
+                            unreadNotifications = notificationsUiState.unreadCount,
+                            onOpenNotifications = {
+                                navController.navigateToNotifications()
+                            }
                         )
                     }
                     composable(AppDestination.MyRequests.route) {
-                        MyRequestsScreen()
+                        MyRequestsScreen(
+                            unreadNotifications = notificationsUiState.unreadCount,
+                            onOpenNotifications = {
+                                navController.navigateToNotifications()
+                            }
+                        )
+                    }
+                    composable(AppDestination.Notifications.route) {
+                        ChildDestinationScaffold(
+                            title = "Notificacoes",
+                            onNavigateUp = { navController.navigateUp() }
+                        ) { topPadding ->
+                            NotificationsScreen(
+                                topPadding = topPadding,
+                                onOpenNotification = { notification ->
+                                    navController.navigateToNotificationDestination(notification.route)
+                                }
+                            )
+                        }
                     }
                     composable(AppDestination.DonorRequests.route) {
                         ChildDestinationScaffold(
@@ -185,6 +221,10 @@ fun NavGraph(
                         val logoutViewModel: LogoutViewModel = hiltViewModel()
                         ProfileScreen(
                             uiState = uiState,
+                            unreadNotifications = notificationsUiState.unreadCount,
+                            onOpenNotifications = {
+                                navController.navigateToNotifications()
+                            },
                             onToggleAiConsent = viewModel::updateAiConsent,
                             onLogout = logoutViewModel::logout
                         )
@@ -202,9 +242,17 @@ private fun NavHostController.navigateToNotificationDestination(route: String) {
         AppRoutes.DONATE,
         AppRoutes.PROFILE -> navigateToTopLevelDestination(route)
 
+        AppRoutes.NOTIFICATIONS -> navigateToNotifications()
+
         AppRoutes.DONOR_REQUESTS -> navigate(route) {
             launchSingleTop = true
         }
+    }
+}
+
+private fun NavHostController.navigateToNotifications() {
+    navigate(AppRoutes.NOTIFICATIONS) {
+        launchSingleTop = true
     }
 }
 
@@ -234,6 +282,7 @@ private sealed class AppDestination(
         selectedRoutes = setOf(AppRoutes.DONATE, AppRoutes.DONOR_REQUESTS)
     )
     data object MyRequests : AppDestination(AppRoutes.MY_REQUESTS, "Solicitacoes", Icons.Rounded.MenuBook)
+    data object Notifications : AppDestination(AppRoutes.NOTIFICATIONS, "Notificacoes", Icons.Rounded.MenuBook)
     data object DonorRequests : AppDestination(AppRoutes.DONOR_REQUESTS, "Pedidos", Icons.Rounded.VolunteerActivism)
     data object Profile : AppDestination(AppRoutes.PROFILE, "Perfil", Icons.Rounded.AccountCircle)
 }

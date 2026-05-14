@@ -8,8 +8,11 @@ import com.ecobook.api.AuthApiService
 import com.ecobook.api.EcoBookApiClient
 import com.ecobook.api.FcmApiService
 import com.ecobook.api.MaterialApiService
+import com.ecobook.api.NotificationApiService
 import com.ecobook.api.RequestApiService
 import com.ecobook.api.RuntimeBackendUrlOverride
+import com.ecobook.fcm.NotificationInboxStore
+import com.ecobook.fcm.SecureNotificationInboxStore
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -116,5 +119,19 @@ object NetworkModule {
     @Singleton
     fun provideFcmApiService(retrofit: Retrofit): FcmApiService {
         return retrofit.create(FcmApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationApiService(retrofit: Retrofit): NotificationApiService {
+        return retrofit.create(NotificationApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationInboxStore(
+        secureNotificationInboxStore: SecureNotificationInboxStore
+    ): NotificationInboxStore {
+        return secureNotificationInboxStore
     }
 }

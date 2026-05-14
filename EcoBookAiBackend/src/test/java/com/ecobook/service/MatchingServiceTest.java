@@ -135,6 +135,27 @@ class MatchingServiceTest extends BaseIntegrationTest {
                 .containsExactly("Anglo 2019", "Outro 2018");
     }
 
+    @Test
+    @DisplayName("findMatching should include multidisciplinary collections when a specific discipline is requested")
+    void shouldIncludeMultidisciplinaryCollectionsInSpecificDisciplineSearch() {
+        Usuario donor = createUser("multidisciplinary-donor@example.com", "CURITIBA", "CENTRO");
+
+        createMaterial(donor, "Colecao Geral", Disciplina.TODAS, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2021);
+        createMaterial(donor, "Matematica Direta", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2022);
+        createMaterial(donor, "Historia Direta", Disciplina.HISTORIA, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2020);
+
+        PagedResponseDTO<MaterialDTO> response = matchingService.findMatching(
+                SearchCriteriaDTO.builder()
+                        .disciplina(Disciplina.MATEMATICA)
+                        .build(),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(response.getResults()).extracting(MaterialDTO::getTitulo)
+                .contains("Colecao Geral", "Matematica Direta")
+                .doesNotContain("Historia Direta");
+    }
+
     private Usuario createUser(String email, String cidade, String bairro) {
         return usuarioRepository.saveAndFlush(Usuario.builder()
                 .email(email)

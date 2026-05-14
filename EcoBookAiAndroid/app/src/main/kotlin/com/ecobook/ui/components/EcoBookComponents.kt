@@ -7,11 +7,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,18 +57,73 @@ fun GlassCard(
 @Composable
 fun SectionHeading(
     title: String,
-    subtitle: String
+    subtitle: String,
+    trailingContent: (@Composable RowScope.() -> Unit)? = null
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (trailingContent != null) {
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                content = trailingContent
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotificationsEntryPointButton(
+    unreadCount: Int,
+    onClick: () -> Unit
+) {
+    val contentDescription = if (unreadCount > 0) {
+        "Abrir notificacoes. $unreadCount novas notificacoes."
+    } else {
+        "Abrir notificacoes. Nenhuma novidade."
+    }
+
+    if (unreadCount > 0) {
+        FilledTonalIconButton(onClick = onClick) {
+            BadgedBox(
+                badge = {
+                    Badge {
+                        Text(if (unreadCount > 99) "99+" else unreadCount.toString())
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Notifications,
+                    contentDescription = contentDescription
+                )
+            }
+        }
+        return
+    }
+
+    OutlinedIconButton(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Rounded.Notifications,
+            contentDescription = contentDescription
         )
     }
 }

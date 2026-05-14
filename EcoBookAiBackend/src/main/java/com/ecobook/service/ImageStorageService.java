@@ -45,29 +45,52 @@ public class ImageStorageService {
     private String servletContextPath;
 
     public StoredTemporaryUpload storeTemporaryImage(Usuario usuario, MultipartFile file) {
+        return storeTemporaryImage(usuario, file, null);
+    }
+
+    public StoredTemporaryUpload storeTemporaryImage(Usuario usuario,
+                                                     MultipartFile file,
+                                                     MultipartFile secondaryFile) {
         byte[] imageBytes = readFileBytes(file);
         String mimeType = validateImage(imageBytes);
+        byte[] secondaryImageBytes = null;
+        String secondaryMimeType = null;
         String uploadId = "temp-upload-" + UUID.randomUUID();
-        String extension = extensionForMimeType(mimeType);
 
         try {
             Path directory = Path.of(uploadDir, usuario.getId().toString(), "temp").toAbsolutePath().normalize();
             Files.createDirectories(directory);
 
-            Path filePath = directory.resolve(uploadId + extension);
-            Files.write(filePath, imageBytes);
+            Path filePath = storeImageBytes(directory, uploadId, imageBytes, mimeType);
 
-            TemporaryUpload upload = temporaryUploadRepository.save(TemporaryUpload.builder()
+            TemporaryUpload.TemporaryUploadBuilder uploadBuilder = TemporaryUpload.builder()
                     .uploadId(uploadId)
                     .usuario(usuario)
                     .status(UploadProcessingStatus.UPLOADED)
                     .filePath(filePath.toString())
                     .mimeType(mimeType)
                     .fileSize((long) imageBytes.length)
-                    .expiresAt(LocalDateTime.now().plusHours(24))
-                    .build());
+                    .expiresAt(LocalDateTime.now().plusHours(24));
 
-            return new StoredTemporaryUpload(upload, imageBytes, mimeType, file.getOriginalFilename());
+            if (secondaryFile != null && !secondaryFile.isEmpty()) {
+                secondaryImageBytes = readFileBytes(secondaryFile);
+                secondaryMimeType = validateImage(secondaryImageBytes);
+                Path secondaryFilePath = storeImageBytes(directory, uploadId + "-back", secondaryImageBytes, secondaryMimeType);
+                uploadBuilder
+                        .secondaryFilePath(secondaryFilePath.toString())
+                        .secondaryMimeType(secondaryMimeType)
+                        .secondaryFileSize((long) secondaryImageBytes.length);
+            }
+
+            TemporaryUpload upload = temporaryUploadRepository.save(uploadBuilder.build());
+            return new StoredTemporaryUpload(
+                    upload,
+                    imageBytes,
+                    mimeType,
+                    file.getOriginalFilename(),
+                    secondaryImageBytes,
+                    secondaryMimeType
+            );
         } catch (IOException ex) {
             throw new ResourceNotFoundException("Nao foi possivel armazenar a imagem temporaria", ex);
         }
@@ -100,20 +123,31 @@ public class ImageStorageService {
     }
 
     public PromotedImage promoteTemporaryImage(TemporaryUpload upload) {
-        Path tempPath = resolvePath(upload.getFilePath());
+        return promoteStoredImage(upload.getUsuario().getId(), upload.getFilePath());
+    }
+
+    public PromotedImage promoteSecondaryTemporaryImage(TemporaryUpload upload) {
+        if (!org.springframework.util.StringUtils.hasText(upload.getSecondaryFilePath())) {
+            return null;
+        }
+        return promoteStoredImage(upload.getUsuario().getId(), upload.getSecondaryFilePath());
+    }
+
+    private PromotedImage promoteStoredImage(UUID userId, String storedFilePath) {
+        Path tempPath = resolvePath(storedFilePath);
         if (!Files.exists(tempPath)) {
             throw new ResourceNotFoundException("Temporary upload not found or expired");
         }
 
         try {
-            Path destinationDirectory = Path.of(uploadDir, upload.getUsuario().getId().toString())
+            Path destinationDirectory = Path.of(uploadDir, userId.toString())
                     .toAbsolutePath()
                     .normalize();
             Files.createDirectories(destinationDirectory);
 
             Path destination = destinationDirectory.resolve(tempPath.getFileName().toString());
             Files.move(tempPath, destination, StandardCopyOption.REPLACE_EXISTING);
-            String publicUrl = buildPublicUrl(upload.getUsuario().getId(), destination.getFileName().toString());
+            String publicUrl = buildPublicUrl(userId, destination.getFileName().toString());
             return new PromotedImage(destination, publicUrl);
         } catch (IOException ex) {
             throw new ResourceNotFoundException("Nao foi possivel promover a imagem para armazenamento permanente", ex);
@@ -136,7 +170,9 @@ public class ImageStorageService {
             TemporaryUpload upload,
             byte[] imageBytes,
             String mimeType,
-            String originalFilename
+            String originalFilename,
+            byte[] secondaryImageBytes,
+            String secondaryMimeType
     ) {
     }
 
@@ -179,6 +215,12 @@ public class ImageStorageService {
 
     private String extensionForMimeType(String mimeType) {
         return "image/png".equals(mimeType) ? ".png" : ".jpg";
+    }
+
+    private Path storeImageBytes(Path directory, String uploadId, byte[] imageBytes, String mimeType) throws IOException {
+        Path filePath = directory.resolve(uploadId + extensionForMimeType(mimeType));
+        Files.write(filePath, imageBytes);
+        return filePath;
     }
 
     private BadRequestException invalidImage(String field, String message) {

@@ -51,13 +51,13 @@ class DiscoveryViewModel @Inject constructor(
         updateFilters {
             copy(
                 nivelEnsino = value,
-                ano = if (value == NivelEnsino.SUPERIOR) "" else ano
+                ano = sanitizeAnoEscolar(ano, value)
             )
         }
     }
 
     fun updateAno(value: String) {
-        updateFilters { copy(ano = value.filter(Char::isDigit).take(2)) }
+        updateFilters { copy(ano = sanitizeAnoEscolar(value, nivelEnsino)) }
     }
 
     fun updateSistemaEnsino(value: com.ecobook.model.SistemaEnsino?) {
@@ -240,8 +240,14 @@ class DiscoveryViewModel @Inject constructor(
         val minAnoPublicacao = filters.minAnoPublicacao.toIntOrNull()
         val maxAnoPublicacao = filters.maxAnoPublicacao.toIntOrNull()
 
-        if (filters.ano.isNotBlank() && (ano == null || ano !in 1..12)) {
-            return "Informe um ano escolar entre 1 e 12."
+        if (filters.nivelEnsino == NivelEnsino.SUPERIOR && filters.ano.isNotBlank()) {
+            return "Materiais de nivel superior nao usam ano escolar."
+        }
+        if (filters.ano.isNotBlank()) {
+            val maxAno = maxAnoEscolar(filters.nivelEnsino)
+            if (ano == null || ano !in 1..maxAno) {
+                return "Informe um ano escolar valido para o nivel selecionado."
+            }
         }
         if (filters.minAnoPublicacao.isNotBlank() && (minAnoPublicacao == null || minAnoPublicacao !in 1900..2100)) {
             return "O ano inicial de publicacao deve ficar entre 1900 e 2100."
@@ -302,5 +308,23 @@ class DiscoveryViewModel @Inject constructor(
             cidade = secureStorage.getUserCidade().orEmpty(),
             bairro = secureStorage.getUserBairro().orEmpty()
         )
+    }
+
+    private fun sanitizeAnoEscolar(value: String, nivelEnsino: NivelEnsino?): String {
+        if (nivelEnsino == NivelEnsino.SUPERIOR) {
+            return ""
+        }
+
+        val digits = value.filter(Char::isDigit).take(1)
+        val parsedYear = digits.toIntOrNull() ?: return digits
+        val maxAno = maxAnoEscolar(nivelEnsino)
+        return if (parsedYear in 1..maxAno) parsedYear.toString() else ""
+    }
+
+    private fun maxAnoEscolar(nivelEnsino: NivelEnsino?): Int {
+        return when (nivelEnsino) {
+            NivelEnsino.MEDIO -> 3
+            else -> 9
+        }
     }
 }

@@ -19,12 +19,68 @@ data class NotificationDestination(
 object NotificationIntentRouter {
 
     const val EXTRA_ROUTE = "ecobook.notification.route"
+    const val EXTRA_NOTIFICATION_ID = "ecobook.notification.id"
     const val EXTRA_NOTIFICATION_TYPE = "ecobook.notification.type"
     const val EXTRA_REQUEST_ID = "ecobook.notification.request_id"
     const val EXTRA_MATERIAL_ID = "ecobook.notification.material_id"
+    const val EXTRA_TITLE = "ecobook.notification.title"
+    const val EXTRA_BODY = "ecobook.notification.body"
 
     private const val DEEP_LINK_SCHEME = "ecobook"
     private const val DEEP_LINK_HOST = "app"
+
+    fun messageFromData(
+        data: Map<String, String>,
+        fallbackTitle: String? = null,
+        fallbackBody: String? = null
+    ): AppNotification? {
+        val destination = destinationFromData(data) ?: return null
+        val title = data["title"]?.takeIf(String::isNotBlank)
+            ?: fallbackTitle?.takeIf(String::isNotBlank)
+            ?: "EcoBook"
+        val body = data["body"]?.takeIf(String::isNotBlank)
+            ?: data["message"]?.takeIf(String::isNotBlank)
+            ?: fallbackBody?.takeIf(String::isNotBlank)
+            ?: return null
+
+        return AppNotification(
+            id = data["notification_id"]?.takeIf(String::isNotBlank),
+            title = title,
+            body = body,
+            destination = destination
+        )
+    }
+
+    fun messageFromIntent(intent: Intent?): AppNotification? {
+        if (intent == null) {
+            return null
+        }
+
+        val extras = intent.extras?.keySet()
+            ?.associateWith { key -> intent.extras?.getString(key).orEmpty() }
+            ?.filterValues(String::isNotBlank)
+            .orEmpty()
+
+        val destination = intent.data?.let(::destinationFromUri)
+            ?: destinationFromData(extras)
+            ?: destinationFromExtras(intent)
+            ?: return null
+
+        val title = extras["title"]
+            ?: intent.getStringExtra(EXTRA_TITLE)
+            ?: "EcoBook"
+        val body = extras["body"]
+            ?: extras["message"]
+            ?: intent.getStringExtra(EXTRA_BODY)
+            ?: return null
+
+        return AppNotification(
+            id = extras["notification_id"] ?: intent.getStringExtra(EXTRA_NOTIFICATION_ID),
+            title = title,
+            body = body,
+            destination = destination
+        )
+    }
 
     fun destinationFromData(data: Map<String, String>): NotificationDestination? {
         val type = data["type"]
@@ -33,7 +89,7 @@ object NotificationIntentRouter {
             ?.takeIf { it.isNotBlank() }
             ?: return null
 
-        val route = routeForType(type) ?: return null
+        val route = routeForPath(data["route"]) ?: routeForType(type) ?: return null
         return NotificationDestination(
             route = route,
             notificationType = type,
@@ -43,19 +99,16 @@ object NotificationIntentRouter {
     }
 
     fun destinationFromIntent(intent: Intent?): NotificationDestination? {
-        if (intent == null) {
-            return null
-        }
-
-        return intent.data?.let(::destinationFromUri) ?: destinationFromExtras(intent)
+        return messageFromIntent(intent)?.destination
     }
 
-    fun notificationId(destination: NotificationDestination): Int {
+    fun notificationId(notification: AppNotification): Int {
         val rawId = listOf(
-            destination.notificationType,
-            destination.requestId.orEmpty(),
-            destination.materialId.orEmpty(),
-            destination.route
+            notification.id.orEmpty(),
+            notification.destination.notificationType,
+            notification.destination.requestId.orEmpty(),
+            notification.destination.materialId.orEmpty(),
+            notification.destination.route
         ).joinToString("|").hashCode()
 
         return when (rawId) {
@@ -66,25 +119,28 @@ object NotificationIntentRouter {
 
     fun buildPendingIntent(
         context: Context,
-        destination: NotificationDestination
+        notification: AppNotification
     ): PendingIntent? {
         val deepLinkIntent = Intent(
             Intent.ACTION_VIEW,
-            destination.toUri(),
+            notification.destination.toUri(),
             context,
             MainActivity::class.java
         ).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(EXTRA_ROUTE, destination.route)
-            putExtra(EXTRA_NOTIFICATION_TYPE, destination.notificationType)
-            putExtra(EXTRA_REQUEST_ID, destination.requestId)
-            putExtra(EXTRA_MATERIAL_ID, destination.materialId)
+            putExtra(EXTRA_ROUTE, notification.destination.route)
+            putExtra(EXTRA_NOTIFICATION_ID, notification.id)
+            putExtra(EXTRA_NOTIFICATION_TYPE, notification.destination.notificationType)
+            putExtra(EXTRA_REQUEST_ID, notification.destination.requestId)
+            putExtra(EXTRA_MATERIAL_ID, notification.destination.materialId)
+            putExtra(EXTRA_TITLE, notification.title)
+            putExtra(EXTRA_BODY, notification.body)
         }
 
         return TaskStackBuilder.create(context).run {
             addNextIntentWithParentStack(deepLinkIntent)
             getPendingIntent(
-                notificationId(destination),
+                notificationId(notification),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
@@ -161,6 +217,7 @@ object NotificationIntentRouter {
             AppRoutes.DONOR_REQUESTS -> AppRoutes.DONOR_REQUESTS
             AppRoutes.MY_REQUESTS -> AppRoutes.MY_REQUESTS
             AppRoutes.DISCOVERY -> AppRoutes.DISCOVERY
+            AppRoutes.NOTIFICATIONS -> AppRoutes.NOTIFICATIONS
             else -> null
         }
     }
@@ -170,6 +227,7 @@ object NotificationIntentRouter {
             AppRoutes.DONOR_REQUESTS -> AppRoutes.DONOR_REQUESTS
             AppRoutes.MY_REQUESTS -> AppRoutes.MY_REQUESTS
             AppRoutes.DISCOVERY -> AppRoutes.DISCOVERY
+            AppRoutes.NOTIFICATIONS -> AppRoutes.NOTIFICATIONS
             else -> AppRoutes.MY_REQUESTS
         }
     }

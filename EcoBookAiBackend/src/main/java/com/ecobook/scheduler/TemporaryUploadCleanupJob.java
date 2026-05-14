@@ -24,7 +24,10 @@ public class TemporaryUploadCleanupJob {
         List<TemporaryUpload> expiredUploads = temporaryUploadRepository
                 .findByExpiresAtBeforeAndMaterialIsNull(LocalDateTime.now());
 
-        expiredUploads.forEach(upload -> imageStorageService.deleteIfExists(upload.getFilePath()));
+        expiredUploads.forEach(upload -> {
+            imageStorageService.deleteIfExists(upload.getFilePath());
+            imageStorageService.deleteIfExists(upload.getSecondaryFilePath());
+        });
         temporaryUploadRepository.deleteAll(expiredUploads);
 
         if (!expiredUploads.isEmpty()) {

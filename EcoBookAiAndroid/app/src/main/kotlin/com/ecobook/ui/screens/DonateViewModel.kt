@@ -99,13 +99,13 @@ class DonateViewModel @Inject constructor(
     fun updateAutor(value: String) = updateDraft { copy(autor = value) }
     fun updateEditora(value: String) = updateDraft { copy(editora = value) }
     fun updateDescricao(value: String) = updateDraft { copy(descricao = value) }
-    fun updateAno(value: String) = updateDraft { copy(ano = value.filter(Char::isDigit).take(2)) }
+    fun updateAno(value: String) = updateDraft { copy(ano = sanitizeAnoEscolar(value, nivelEnsino)) }
     fun updateDataPublicacao(value: String) = updateDraft { copy(dataPublicacao = value.filter(Char::isDigit).take(4)) }
     fun updateDisciplina(value: Disciplina?) = updateDraft { copy(disciplina = value) }
     fun updateNivelEnsino(value: NivelEnsino?) = updateDraft {
         copy(
             nivelEnsino = value,
-            ano = if (value == NivelEnsino.SUPERIOR) "" else ano
+            ano = sanitizeAnoEscolar(ano, value)
         )
     }
     fun updateSistemaEnsino(value: SistemaEnsino?) = updateDraft { copy(sistemaEnsino = value) }
@@ -259,8 +259,9 @@ class DonateViewModel @Inject constructor(
             }
         } else {
             val parsedYear = draft.ano.toIntOrNull()
-            if (parsedYear == null || parsedYear !in 1..12) {
-                errors["ano"] = "Informe um ano escolar entre 1 e 12."
+            val maxAno = maxAnoEscolar(draft.nivelEnsino)
+            if (parsedYear == null || parsedYear !in 1..maxAno) {
+                errors["ano"] = "Informe um ano escolar valido para o nivel selecionado."
             }
         }
 
@@ -343,5 +344,23 @@ class DonateViewModel @Inject constructor(
 
     private inline fun <reified T : Enum<T>> enumOrNull(value: String): T? {
         return runCatching { enumValueOf<T>(value) }.getOrNull()
+    }
+
+    private fun sanitizeAnoEscolar(value: String, nivelEnsino: NivelEnsino?): String {
+        if (nivelEnsino == NivelEnsino.SUPERIOR) {
+            return ""
+        }
+
+        val digits = value.filter(Char::isDigit).take(1)
+        val parsedYear = digits.toIntOrNull() ?: return digits
+        val maxAno = maxAnoEscolar(nivelEnsino)
+        return if (parsedYear in 1..maxAno) parsedYear.toString() else ""
+    }
+
+    private fun maxAnoEscolar(nivelEnsino: NivelEnsino?): Int {
+        return when (nivelEnsino) {
+            NivelEnsino.MEDIO -> 3
+            else -> 9
+        }
     }
 }

@@ -102,7 +102,14 @@ public class MatchingService {
     }
 
     private boolean matchesDisciplina(Material material, SearchCriteriaDTO criteria) {
-        return criteria.getDisciplina() == null || material.getDisciplina() == criteria.getDisciplina();
+        if (criteria.getDisciplina() == null) {
+            return true;
+        }
+        if (criteria.getDisciplina() == com.ecobook.model.enums.Disciplina.TODAS) {
+            return material.getDisciplina() == com.ecobook.model.enums.Disciplina.TODAS;
+        }
+        return material.getDisciplina() == criteria.getDisciplina()
+                || material.getDisciplina() == com.ecobook.model.enums.Disciplina.TODAS;
     }
 
     private boolean matchesNivelEnsino(Material material, SearchCriteriaDTO criteria) {

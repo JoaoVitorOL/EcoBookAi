@@ -12,10 +12,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,12 +50,15 @@ import com.ecobook.ui.components.SectionHeading
 fun MaterialUploadScreen(
     viewModel: MaterialUploadViewModel = hiltViewModel(),
     topContent: (@Composable () -> Unit)? = null,
+    unreadNotifications: Int = 0,
+    onOpenNotifications: () -> Unit = {},
     onMaterialPublished: (MaterialDTO) -> Unit = {},
     autoResetAfterPublish: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var pendingCameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pendingImageSlot by remember { mutableStateOf(ImageSlot.FRONT) }
 
     androidx.compose.runtime.LaunchedEffect(uiState.createdMaterial?.id) {
         if (autoResetAfterPublish) {
@@ -57,14 +72,14 @@ fun MaterialUploadScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        uri?.let { viewModel.onImageSelected(it, ImageSource.GALLERY) }
+        uri?.let { viewModel.onImageSelected(it, ImageSource.GALLERY, pendingImageSlot) }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            pendingCameraUri?.let { viewModel.onImageSelected(it, ImageSource.CAMERA) }
+            pendingCameraUri?.let { viewModel.onImageSelected(it, ImageSource.CAMERA, pendingImageSlot) }
         }
     }
 
@@ -92,7 +107,13 @@ fun MaterialUploadScreen(
         item {
             SectionHeading(
                 title = "Fluxo de doacao com IA",
-                subtitle = "Agora o app ja envia a imagem real para /materiais/preview, deixa voce revisar os campos sugeridos e publica o material usando o upload temporario do backend."
+                subtitle = "Agora o app ja envia a imagem real para /materiais/preview, deixa voce revisar os campos sugeridos e publica o material usando o upload temporario do backend.",
+                trailingContent = {
+                    com.ecobook.ui.components.NotificationsEntryPointButton(
+                        unreadCount = unreadNotifications,
+                        onClick = onOpenNotifications
+                    )
+                }
             )
         }
 
@@ -100,10 +121,12 @@ fun MaterialUploadScreen(
             when (uiState.stage) {
                 MaterialFlowStage.SELECT -> UploadSelectionContent(
                     uiState = uiState,
-                    onChooseFromGallery = {
+                    onChooseFrontFromGallery = {
+                        pendingImageSlot = ImageSlot.FRONT
                         galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
-                    onCaptureWithCamera = {
+                    onCaptureFrontWithCamera = {
+                        pendingImageSlot = ImageSlot.FRONT
                         val granted = ContextCompat.checkSelfPermission(
                             context,
                             Manifest.permission.CAMERA
@@ -116,11 +139,40 @@ fun MaterialUploadScreen(
                             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     },
+                    onClearFrontSelection = {
+                        viewModel.clearSelectedImage(ImageSlot.FRONT)
+                    },
+                    onChooseBackFromGallery = {
+                        pendingImageSlot = ImageSlot.BACK
+                        galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    onCaptureBackWithCamera = {
+                        pendingImageSlot = ImageSlot.BACK
+                        val granted = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (granted) {
+                            val uri = ImagePickerHelper.createCameraImageUri(context)
+                            pendingCameraUri = uri
+                            cameraLauncher.launch(uri)
+                        } else {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                    onClearBackSelection = {
+                        viewModel.clearSelectedImage(ImageSlot.BACK)
+                    },
                     onStartPreview = viewModel::startPreview,
-                    onClearSelection = viewModel::clearSelectedImage
+                    onClearAllSelections = {
+                        viewModel.clearSelectedImage()
+                    }
                 )
 
-                MaterialFlowStage.PROCESSING -> ProcessingScreen(selectedImage = uiState.selectedImage)
+                MaterialFlowStage.PROCESSING -> ProcessingScreen(
+                    selectedFrontImage = uiState.selectedFrontImage,
+                    selectedBackImage = uiState.selectedBackImage
+                )
 
                 MaterialFlowStage.REVIEW -> ReviewScreen(
                     uiState = uiState,
@@ -150,64 +202,68 @@ fun MaterialUploadScreen(
 @Composable
 private fun UploadSelectionContent(
     uiState: MaterialUploadUiState,
-    onChooseFromGallery: () -> Unit,
-    onCaptureWithCamera: () -> Unit,
+    onChooseFrontFromGallery: () -> Unit,
+    onCaptureFrontWithCamera: () -> Unit,
+    onClearFrontSelection: () -> Unit,
+    onChooseBackFromGallery: () -> Unit,
+    onCaptureBackWithCamera: () -> Unit,
+    onClearBackSelection: () -> Unit,
     onStartPreview: () -> Unit,
-    onClearSelection: () -> Unit
+    onClearAllSelections: () -> Unit
 ) {
-    val context = LocalContext.current
-
     GlassCard {
         Text(
             text = "1. Escolha ou fotografe o material",
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Voce pode selecionar uma imagem da galeria ou capturar uma nova foto com a camera. O app valida JPEG/PNG e comprime quando necessario para ficar abaixo de 5MB.",
+            text = "Envie a capa da frente para a analise principal e, se quiser, adicione tambem a capa de tras. O app valida JPEG/PNG e comprime quando necessario para ficar abaixo de 5MB por imagem.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = onChooseFromGallery, modifier = Modifier.fillMaxWidth()) {
-                Text("Escolher da galeria")
-            }
-            OutlinedButton(onClick = onCaptureWithCamera, modifier = Modifier.fillMaxWidth()) {
-                Text("Usar a camera")
-            }
-        }
+        ImageSelectionSlot(
+            title = "Capa da frente",
+            subtitle = "Obrigatoria. E a imagem usada na analise inicial da IA.",
+            selectedImage = uiState.selectedFrontImage,
+            onChooseFromGallery = onChooseFrontFromGallery,
+            onCaptureWithCamera = onCaptureFrontWithCamera,
+            onClearSelection = onClearFrontSelection
+        )
 
-        uiState.selectedImage?.let { image ->
-            AsyncImage(
-                model = image.uri,
-                contentDescription = "Imagem selecionada para doacao",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(22.dp))
-            )
-            Text(
-                text = image.fileName,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Origem: ${if (image.source == ImageSource.CAMERA) "Camera" else "Galeria"} | ${if (image.mimeType.isBlank()) "Tipo a confirmar" else image.mimeType} | ${Formatter.formatShortFileSize(context, image.sizeBytes)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onStartPreview,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = uiState.canStartPreview
-                ) {
-                    Text("Analisar com IA")
-                }
-                OutlinedButton(
-                    onClick = onClearSelection,
+        ImageSelectionSlot(
+            title = "Capa de tras",
+            subtitle = "Opcional. Fica salva junto com o material para dar mais contexto a quem for receber.",
+            selectedImage = uiState.selectedBackImage,
+            onChooseFromGallery = onChooseBackFromGallery,
+            onCaptureWithCamera = onCaptureBackWithCamera,
+            onClearSelection = onClearBackSelection
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(
+                onClick = onStartPreview,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.canStartPreview
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.AutoAwesome,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Analisar com IA")
+            }
+            if (uiState.selectedFrontImage != null || uiState.selectedBackImage != null) {
+                TextButton(
+                    onClick = onClearAllSelections,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Limpar")
+                    Icon(
+                        imageVector = Icons.Rounded.RestartAlt,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Limpar imagens")
                 }
             }
         }
@@ -218,6 +274,84 @@ private fun UploadSelectionContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error
             )
+        }
+    }
+}
+
+@Composable
+private fun ImageSelectionSlot(
+    title: String,
+    subtitle: String,
+    selectedImage: SelectedImageUiModel?,
+    onChooseFromGallery: () -> Unit,
+    onCaptureWithCamera: () -> Unit,
+    onClearSelection: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        selectedImage?.let { image ->
+            AsyncImage(
+                model = image.uri,
+                contentDescription = "Imagem selecionada para $title",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(22.dp))
+            )
+            Text(
+                text = image.fileName,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(
+                text = "Origem: ${if (image.source == ImageSource.CAMERA) "Camera" else "Galeria"} | ${if (image.mimeType.isBlank()) "Tipo a confirmar" else image.mimeType} | ${Formatter.formatShortFileSize(context, image.sizeBytes)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(onClick = onChooseFromGallery, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = Icons.Rounded.PhotoLibrary,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Escolher da galeria")
+            }
+            FilledTonalButton(onClick = onCaptureWithCamera, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = Icons.Rounded.PhotoCamera,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Usar a camera")
+            }
+            if (selectedImage != null) {
+                OutlinedButton(
+                    onClick = onClearSelection,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.DeleteOutline,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Remover imagem")
+                }
+            }
         }
     }
 }
@@ -246,6 +380,13 @@ private fun SuccessContent(
                 text = "Status: ${material.status} | Local: ${material.bairro}, ${material.cidade}",
                 style = MaterialTheme.typography.bodyMedium
             )
+            if (material.imagemVersoUrl != null) {
+                Text(
+                    text = "As capas da frente e de tras foram salvas neste cadastro.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         Button(onClick = onRestart) {
             Text("Publicar outro material")

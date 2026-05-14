@@ -4,6 +4,7 @@ package com.ecobook.model.enums;
  * Educational discipline/subject
  */
 public enum Disciplina {
+    TODAS("Todas"),
     MATEMATICA("Matemática"),
     PORTUGUES("Português"),
     HISTORIA("História"),

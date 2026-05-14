@@ -127,6 +127,14 @@ class SecureStorage @Inject constructor(
         return runStorageOperation { encryptedSharedPreferences.getString("last_synced_fcm_token", null) }
     }
 
+    fun saveNotificationInboxPayload(payload: String) {
+        runStorageOperation { encryptedSharedPreferences.edit().putString("notification_inbox_payload", payload).apply() }
+    }
+
+    fun getNotificationInboxPayload(): String? {
+        return runStorageOperation { encryptedSharedPreferences.getString("notification_inbox_payload", null) }
+    }
+
     fun hasToken(): Boolean {
         return !getToken().isNullOrBlank()
     }
@@ -140,6 +148,7 @@ class SecureStorage @Inject constructor(
                 .remove("user_instituicao")
                 .remove("user_consentimento_ia")
                 .remove("last_synced_fcm_token")
+                .remove("notification_inbox_payload")
                 .apply()
         }
     }

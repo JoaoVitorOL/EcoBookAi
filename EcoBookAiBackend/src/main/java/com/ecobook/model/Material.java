@@ -87,6 +87,9 @@ public class Material {
     @Column(length = 500)
     private String imagemUrl;
 
+    @Column(length = 500)
+    private String imagemVersoUrl;
+
     @Column(length = 100)
     private String uploadId;
 

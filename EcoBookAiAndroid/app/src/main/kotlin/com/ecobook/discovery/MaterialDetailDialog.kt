@@ -54,13 +54,42 @@ fun MaterialDetailDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                MaterialImage(
-                    imageUrl = material.imagemUrl,
-                    title = material.titulo,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Capa da frente",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        MaterialImage(
+                            imageUrl = material.imagemUrl,
+                            title = material.titulo,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                        )
+                    }
+                    material.imagemVersoUrl?.let { backImageUrl ->
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Capa de tras",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            MaterialImage(
+                                imageUrl = backImageUrl,
+                                title = "${material.titulo} verso",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = "Descricao",
                     style = MaterialTheme.typography.titleSmall,

@@ -13,6 +13,7 @@ data class MaterialDTO(
     val estadoConservacao: String,
     val status: String,
     val imagemUrl: String?,
+    val imagemVersoUrl: String? = null,
     val uploadId: String?,
     val doador: MaterialDonorDTO,
     val cidade: String,

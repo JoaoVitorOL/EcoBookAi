@@ -35,6 +35,10 @@
         <jacoco.version>0.8.14</jacoco.version>
         <jacoco.minimum.line.coverage>0.85</jacoco.minimum.line.coverage>
         <lombok.version>1.18.44</lombok.version>
+        <flyway.version>9.22.3</flyway.version>
+        <flyway.url>jdbc:postgresql://localhost:5432/ecobook</flyway.url>
+        <flyway.user>ecobook</flyway.user>
+        <flyway.password>dev_password_123</flyway.password>
     </properties>
 
     <dependencyManagement>
@@ -262,6 +266,20 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <url>${flyway.url}</url>
+                    <user>${flyway.user}</user>
+                    <password>${flyway.password}</password>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration</location>
+                    </locations>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

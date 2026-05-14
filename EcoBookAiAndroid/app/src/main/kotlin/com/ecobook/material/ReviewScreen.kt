@@ -50,15 +50,45 @@ fun ReviewScreen(
 
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         GlassCard {
-            uiState.selectedImage?.let { image ->
-                AsyncImage(
-                    model = image.uri,
-                    contentDescription = "Imagem do material selecionado",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .clip(RoundedCornerShape(22.dp))
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                uiState.selectedFrontImage?.let { image ->
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Capa da frente",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        AsyncImage(
+                            model = image.uri,
+                            contentDescription = "Imagem frontal do material selecionado",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .clip(RoundedCornerShape(22.dp))
+                        )
+                    }
+                }
+                uiState.selectedBackImage?.let { image ->
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Capa de tras",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        AsyncImage(
+                            model = image.uri,
+                            contentDescription = "Imagem traseira do material selecionado",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .clip(RoundedCornerShape(22.dp))
+                        )
+                    }
+                }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -84,6 +114,13 @@ fun ReviewScreen(
                         text = uploadId.takeLast(8),
                         containerColor = androidx.compose.ui.graphics.Color(0xFFEDE8FA),
                         contentColor = androidx.compose.ui.graphics.Color(0xFF4D3B8A)
+                    )
+                }
+                if (uiState.selectedBackImage != null) {
+                    StatusBadge(
+                        text = "verso incluido",
+                        containerColor = androidx.compose.ui.graphics.Color(0xFFE3EEF9),
+                        contentColor = androidx.compose.ui.graphics.Color(0xFF214A73)
                     )
                 }
             }
@@ -167,7 +204,13 @@ fun ReviewScreen(
                 onValueChange = onAnoChange,
                 label = "Ano escolar",
                 modifier = Modifier.fillMaxWidth(),
-                errorMessage = uiState.validationErrors["ano"]
+                errorMessage = uiState.validationErrors["ano"],
+                supportingMessage = when (uiState.draft.nivelEnsino) {
+                    NivelEnsino.MEDIO -> "Para ensino medio, use apenas 1, 2 ou 3."
+                    NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                    else -> "Para ensino fundamental, use um valor de 1 a 9."
+                },
+                enabled = uiState.draft.nivelEnsino != NivelEnsino.SUPERIOR
             )
 
             ConfidenceIndicator(confidence = uiState.confidenceByField["sistema_ensino"])
@@ -209,7 +252,7 @@ fun ReviewScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onRestart
                 ) {
-                    Text("Trocar imagem")
+                    Text("Trocar imagens")
                 }
                 Button(
                     modifier = Modifier.fillMaxWidth(),

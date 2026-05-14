@@ -63,11 +63,20 @@ public class TemporaryUpload {
     @Column(name = "file_path", length = 1000)
     private String filePath;
 
+    @Column(name = "secondary_file_path", length = 1000)
+    private String secondaryFilePath;
+
     @Column(name = "mime_type", length = 100)
     private String mimeType;
 
+    @Column(name = "secondary_mime_type", length = 100)
+    private String secondaryMimeType;
+
     @Column(name = "file_size")
     private Long fileSize;
+
+    @Column(name = "secondary_file_size")
+    private Long secondaryFileSize;
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;

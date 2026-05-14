@@ -5,6 +5,7 @@ import com.ecobook.exception.BadRequestException;
 import com.ecobook.exception.ConflictException;
 import com.ecobook.exception.ResourceNotFoundException;
 import com.ecobook.exception.UnprocessableEntityException;
+import com.ecobook.event.NotificationRequestedEvent;
 import com.ecobook.model.Material;
 import com.ecobook.model.Solicitacao;
 import com.ecobook.model.Usuario;
@@ -14,6 +15,7 @@ import com.ecobook.repository.MaterialRepository;
 import com.ecobook.repository.SolicitacaoRepository;
 import com.ecobook.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +41,8 @@ public class SolicitacaoService {
     private final SolicitacaoRepository solicitacaoRepository;
     private final SolicitacaoMapper solicitacaoMapper;
     private final MaterialStateValidator materialStateValidator;
-    private final FcmService fcmService;
+    private final NotificationPayloadFactory notificationPayloadFactory;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public SolicitacaoDTO createRequest(String email, String materialId) {
@@ -72,18 +75,15 @@ public class SolicitacaoService {
                 .status(StatusSolicitacao.PENDENTE)
                 .build());
 
-        fcmService.sendNotification(
-                material.getDoador().getId().toString(),
-                "Novo pedido recebido",
-                "Sua doacao \"" + material.getTitulo() + "\" recebeu uma nova solicitacao.",
-                Map.of(
-                        "type", "SOLICITACAO_RECEBIDA",
-                        "solicitacao_id", solicitacao.getId().toString(),
-                        "material_id", material.getId().toString(),
-                        "material_titulo", material.getTitulo(),
-                        "estudante_nome", estudante.getNome()
+        eventPublisher.publishEvent(new NotificationRequestedEvent(
+                material.getDoador().getId(),
+                notificationPayloadFactory.requestReceived(
+                        solicitacao.getId().toString(),
+                        material.getId().toString(),
+                        material.getTitulo(),
+                        estudante.getNome()
                 )
-        );
+        ));
 
         return solicitacaoMapper.toDto(solicitacao);
     }
@@ -255,17 +255,14 @@ public class SolicitacaoService {
             clearApprovalContext(request, true);
             request.setConcluidoEm(null);
             solicitacaoRepository.save(request);
-            fcmService.sendNotification(
-                    request.getEstudante().getId().toString(),
-                    "Reserva expirada",
-                    "A reserva do material \"" + material.getTitulo() + "\" expirou e o item voltou a ficar disponivel.",
-                    Map.of(
-                            "type", "SOLICITACAO_CANCELADA",
-                            "solicitacao_id", request.getId().toString(),
-                            "material_id", material.getId().toString(),
-                            "material_titulo", material.getTitulo()
+            eventPublisher.publishEvent(new NotificationRequestedEvent(
+                    request.getEstudante().getId(),
+                    notificationPayloadFactory.requestExpired(
+                            request.getId().toString(),
+                            material.getId().toString(),
+                            material.getTitulo()
                     )
-            );
+            ));
         });
 
         return expiredRequests.size();
@@ -341,33 +338,27 @@ public class SolicitacaoService {
     }
 
     private void notifyApproval(Solicitacao solicitacao) {
-        fcmService.sendNotification(
-                solicitacao.getEstudante().getId().toString(),
-                "Solicitacao aprovada",
-                "Sua solicitacao para \"" + solicitacao.getMaterial().getTitulo() + "\" foi aprovada.",
-                Map.of(
-                        "type", "SOLICITACAO_APROVADA",
-                        "solicitacao_id", solicitacao.getId().toString(),
-                        "material_id", solicitacao.getMaterial().getId().toString(),
-                        "material_titulo", solicitacao.getMaterial().getTitulo(),
-                        "doador_nome", solicitacao.getMaterial().getDoador().getNome(),
-                        "doador_whatsapp", solicitacao.getMaterial().getDoador().getWhatsapp()
+        eventPublisher.publishEvent(new NotificationRequestedEvent(
+                solicitacao.getEstudante().getId(),
+                notificationPayloadFactory.requestApproved(
+                        solicitacao.getId().toString(),
+                        solicitacao.getMaterial().getId().toString(),
+                        solicitacao.getMaterial().getTitulo(),
+                        solicitacao.getMaterial().getDoador().getNome(),
+                        solicitacao.getMaterial().getDoador().getWhatsapp()
                 )
-        );
+        ));
     }
 
     private void notifyDecline(Solicitacao solicitacao) {
-        fcmService.sendNotification(
-                solicitacao.getEstudante().getId().toString(),
-                "Solicitacao recusada",
-                "O pedido para \"" + solicitacao.getMaterial().getTitulo() + "\" foi recusado.",
-                Map.of(
-                        "type", "SOLICITACAO_RECUSADA",
-                        "solicitacao_id", solicitacao.getId().toString(),
-                        "material_id", solicitacao.getMaterial().getId().toString(),
-                        "material_titulo", solicitacao.getMaterial().getTitulo()
+        eventPublisher.publishEvent(new NotificationRequestedEvent(
+                solicitacao.getEstudante().getId(),
+                notificationPayloadFactory.requestDeclined(
+                        solicitacao.getId().toString(),
+                        solicitacao.getMaterial().getId().toString(),
+                        solicitacao.getMaterial().getTitulo()
                 )
-        );
+        ));
     }
 
     private void notifyCancellation(Solicitacao solicitacao, Usuario actor) {
@@ -375,32 +366,27 @@ public class SolicitacaoService {
                 ? solicitacao.getMaterial().getDoador()
                 : solicitacao.getEstudante();
 
-        fcmService.sendNotification(
-                recipient.getId().toString(),
-                "Solicitacao cancelada",
-                REQUEST_CANCELLED_MESSAGE,
-                Map.of(
-                        "type", "SOLICITACAO_CANCELADA",
-                        "solicitacao_id", solicitacao.getId().toString(),
-                        "material_id", solicitacao.getMaterial().getId().toString(),
-                        "material_titulo", solicitacao.getMaterial().getTitulo()
+        eventPublisher.publishEvent(new NotificationRequestedEvent(
+                recipient.getId(),
+                notificationPayloadFactory.requestCanceled(
+                        solicitacao.getId().toString(),
+                        solicitacao.getMaterial().getId().toString(),
+                        solicitacao.getMaterial().getTitulo(),
+                        REQUEST_CANCELLED_MESSAGE
                 )
-        );
+        ));
     }
 
     private void notifyCompletion(Solicitacao solicitacao) {
-        fcmService.sendNotification(
-                solicitacao.getEstudante().getId().toString(),
-                "Doacao concluida",
-                "O material \"" + solicitacao.getMaterial().getTitulo() + "\" foi marcado como doado.",
-                Map.of(
-                        "type", "MATERIAL_DOADO",
-                        "solicitacao_id", solicitacao.getId().toString(),
-                        "material_id", solicitacao.getMaterial().getId().toString(),
-                        "material_titulo", solicitacao.getMaterial().getTitulo(),
-                        "doador_nome", solicitacao.getMaterial().getDoador().getNome(),
-                        "doador_whatsapp", solicitacao.getMaterial().getDoador().getWhatsapp()
+        eventPublisher.publishEvent(new NotificationRequestedEvent(
+                solicitacao.getEstudante().getId(),
+                notificationPayloadFactory.donationCompleted(
+                        solicitacao.getId().toString(),
+                        solicitacao.getMaterial().getId().toString(),
+                        solicitacao.getMaterial().getTitulo(),
+                        solicitacao.getMaterial().getDoador().getNome(),
+                        solicitacao.getMaterial().getDoador().getWhatsapp()
                 )
-        );
+        ));
     }
 }

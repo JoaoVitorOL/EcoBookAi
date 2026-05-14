@@ -32,14 +32,15 @@ class MaterialUploadViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MaterialUploadUiState())
     val uiState: StateFlow<MaterialUploadUiState> = _uiState.asStateFlow()
 
-    fun onImageSelected(uri: Uri, source: ImageSource) {
+    fun onImageSelected(uri: Uri, source: ImageSource, slot: ImageSlot) {
         runCatching { materialRepository.describeImage(uri, source) }
             .onSuccess { image ->
                 _uiState.update {
-                    MaterialUploadUiState(
-                        selectedImage = image,
-                        backendMessage = null
-                    )
+                    val nextState = when (slot) {
+                        ImageSlot.FRONT -> it.copy(selectedFrontImage = image)
+                        ImageSlot.BACK -> it.copy(selectedBackImage = image)
+                    }
+                    nextState.copy(backendMessage = null)
                 }
             }
             .onFailure { error ->
@@ -59,15 +60,22 @@ class MaterialUploadViewModel @Inject constructor(
         }
     }
 
-    fun clearSelectedImage() {
-        _uiState.update { MaterialUploadUiState() }
+    fun clearSelectedImage(slot: ImageSlot? = null) {
+        _uiState.update { state ->
+            when (slot) {
+                ImageSlot.FRONT -> MaterialUploadUiState(selectedBackImage = state.selectedBackImage)
+                ImageSlot.BACK -> state.copy(selectedBackImage = null, backendMessage = null)
+                null -> MaterialUploadUiState()
+            }
+        }
     }
 
     fun startPreview() {
-        val image = _uiState.value.selectedImage ?: run {
-            _uiState.update { it.copy(backendMessage = "Escolha uma imagem antes de seguir.") }
+        val frontImage = _uiState.value.selectedFrontImage ?: run {
+            _uiState.update { it.copy(backendMessage = "Escolha a imagem da capa da frente antes de seguir.") }
             return
         }
+        val backImage = _uiState.value.selectedBackImage
 
         viewModelScope.launch {
             _uiState.update {
@@ -80,7 +88,7 @@ class MaterialUploadViewModel @Inject constructor(
                 )
             }
 
-            runCatching { materialRepository.previewImage(image) }
+            runCatching { materialRepository.previewImage(frontImage, backImage) }
                 .onSuccess { response -> applyPreviewResponse(response) }
                 .onFailure { error ->
                     _uiState.update {
@@ -99,13 +107,15 @@ class MaterialUploadViewModel @Inject constructor(
     fun updateAutor(value: String) = updateDraft { draft -> draft.copy(autor = value) }
     fun updateEditora(value: String) = updateDraft { draft -> draft.copy(editora = value) }
     fun updateDescricao(value: String) = updateDraft { draft -> draft.copy(descricao = value) }
-    fun updateAno(value: String) = updateDraft { draft -> draft.copy(ano = value.filter(Char::isDigit)) }
+    fun updateAno(value: String) = updateDraft { draft ->
+        draft.copy(ano = sanitizeAnoEscolar(value, draft.nivelEnsino))
+    }
     fun updateDataPublicacao(value: String) = updateDraft { draft -> draft.copy(dataPublicacao = value.filter(Char::isDigit)) }
     fun updateDisciplina(value: Disciplina?) = updateDraft { draft -> draft.copy(disciplina = value) }
     fun updateNivelEnsino(value: NivelEnsino?) = updateDraft { draft ->
         draft.copy(
             nivelEnsino = value,
-            ano = if (value == NivelEnsino.SUPERIOR) "" else draft.ano
+            ano = sanitizeAnoEscolar(draft.ano, value)
         )
     }
     fun updateSistemaEnsino(value: SistemaEnsino?) = updateDraft { draft -> draft.copy(sistemaEnsino = value) }
@@ -192,14 +202,15 @@ class MaterialUploadViewModel @Inject constructor(
 
     private fun applyPreviewResponse(response: GeminiResponseDTO) {
         val predictions = response.bestPrediction
+        val nivelEnsino = predictions["nivel_ensino"].enumValue(NivelEnsino::valueOf)
         val draft = MaterialDraft(
             titulo = predictions["titulo"].stringValue(),
             autor = predictions["autor"].stringValue(),
             editora = predictions["editora"].stringValue(),
             descricao = "",
             disciplina = predictions["disciplina"].enumValue(Disciplina::valueOf),
-            nivelEnsino = predictions["nivel_ensino"].enumValue(NivelEnsino::valueOf),
-            ano = predictions["ano"].intValue()?.toString().orEmpty(),
+            nivelEnsino = nivelEnsino,
+            ano = sanitizeAnoEscolar(predictions["ano"].intValue()?.toString().orEmpty(), nivelEnsino),
             sistemaEnsino = predictions["sistema_ensino"].enumValue(SistemaEnsino::valueOf),
             dataPublicacao = predictions["data_publicacao"].intValue()?.toString().orEmpty()
         )
@@ -223,7 +234,7 @@ class MaterialUploadViewModel @Inject constructor(
         return when (response.statusIa.toAssistStatus()) {
             AiAssistStatus.SUCCESS -> "A IA encontrou um conjunto consistente de campos. Voce ainda pode editar tudo antes de publicar."
             AiAssistStatus.LOW_CONFIDENCE -> "A IA trouxe pistas uteis, mas alguns campos pedem revisao manual antes da publicacao."
-            AiAssistStatus.FAILURE -> "A IA nao conseguiu sugerir campos confiaveis. Complete o formulario manualmente."
+            AiAssistStatus.FAILURE -> "A IA nao conseguiu sugerir campos confiaveis. Complete o formulario manualmente. A capa traseira, quando enviada, segue vinculada ao cadastro."
             null -> "Revise os campos antes de continuar."
         }
     }
@@ -273,8 +284,9 @@ class MaterialUploadViewModel @Inject constructor(
             }
         } else {
             val parsedYear = draft.ano.toIntOrNull()
-            if (parsedYear == null || parsedYear !in 1..12) {
-                errors["ano"] = "Informe um ano escolar entre 1 e 12."
+            val maxAno = maxAnoEscolar(draft.nivelEnsino)
+            if (parsedYear == null || parsedYear !in 1..maxAno) {
+                errors["ano"] = "Informe um ano escolar valido para o nivel selecionado."
             }
         }
 
@@ -375,5 +387,23 @@ class MaterialUploadViewModel @Inject constructor(
         val rawValue = this?.value?.toString()?.trim().orEmpty()
         if (rawValue.isBlank()) return null
         return runCatching { parser(rawValue) }.getOrNull()
+    }
+
+    private fun sanitizeAnoEscolar(value: String, nivelEnsino: NivelEnsino?): String {
+        if (nivelEnsino == NivelEnsino.SUPERIOR) {
+            return ""
+        }
+
+        val digits = value.filter(Char::isDigit).take(1)
+        val parsedYear = digits.toIntOrNull() ?: return digits
+        val maxAno = maxAnoEscolar(nivelEnsino)
+        return if (parsedYear in 1..maxAno) parsedYear.toString() else ""
+    }
+
+    private fun maxAnoEscolar(nivelEnsino: NivelEnsino?): Int {
+        return when (nivelEnsino) {
+            NivelEnsino.MEDIO -> 3
+            else -> 9
+        }
     }
 }

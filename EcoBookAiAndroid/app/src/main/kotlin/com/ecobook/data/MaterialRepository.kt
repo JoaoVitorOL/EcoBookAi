@@ -36,11 +36,33 @@ class MaterialRepository @Inject constructor(
         return ImagePickerHelper.describeImage(context, uri, source)
     }
 
-    suspend fun previewImage(image: SelectedImageUiModel): GeminiResponseDTO = withContext(Dispatchers.IO) {
-        val preparedImage = ImageCompressionHelper.prepareForUpload(context, image.uri, image.fileName)
-        val requestBody = preparedImage.bytes.toRequestBody(preparedImage.mimeType.toMediaType())
-        val filePart = MultipartBody.Part.createFormData("file", preparedImage.fileName, requestBody)
-        requireData(materialApiService.previewMaterial(filePart))
+    suspend fun previewImage(
+        image: SelectedImageUiModel,
+        backImage: SelectedImageUiModel? = null
+    ): GeminiResponseDTO = withContext(Dispatchers.IO) {
+        val preparedFrontImage = ImageCompressionHelper.prepareForUpload(context, image.uri, image.fileName)
+        val frontRequestBody = preparedFrontImage.bytes.toRequestBody(preparedFrontImage.mimeType.toMediaType())
+        val frontFilePart = MultipartBody.Part.createFormData(
+            "file_front",
+            preparedFrontImage.fileName,
+            frontRequestBody
+        )
+
+        val backFilePart = backImage?.let { selectedBackImage ->
+            val preparedBackImage = ImageCompressionHelper.prepareForUpload(
+                context,
+                selectedBackImage.uri,
+                selectedBackImage.fileName
+            )
+            val backRequestBody = preparedBackImage.bytes.toRequestBody(preparedBackImage.mimeType.toMediaType())
+            MultipartBody.Part.createFormData(
+                "file_back",
+                preparedBackImage.fileName,
+                backRequestBody
+            )
+        }
+
+        requireData(materialApiService.previewMaterial(frontFilePart, backFilePart))
     }
 
     suspend fun createMaterial(request: CreateMaterialRequestDTO): MaterialDTO {

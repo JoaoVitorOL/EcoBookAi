@@ -181,6 +181,30 @@ class DiscoveryViewModelTest {
         assertTrue(viewModel.uiState.value.filters.ano.isBlank())
     }
 
+    @Test
+    fun selectingHighSchoolShouldOnlyKeepYearsUpToThree() = runTest {
+        val repository = mockk<MaterialRepository>()
+        val requestRepository = mockk<RequestRepository>(relaxed = true)
+        val secureStorage = mockk<SecureStorage>()
+        every { secureStorage.getUserCidade() } returns null
+        every { secureStorage.getUserBairro() } returns null
+        coEvery {
+            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } returns pagedResponse()
+
+        val viewModel = DiscoveryViewModel(repository, requestRepository, secureStorage)
+        advanceUntilIdle()
+
+        viewModel.updateNivelEnsino(NivelEnsino.MEDIO)
+        viewModel.updateAno("4")
+
+        assertTrue(viewModel.uiState.value.filters.ano.isBlank())
+
+        viewModel.updateAno("3")
+
+        assertEquals("3", viewModel.uiState.value.filters.ano)
+    }
+
     private fun pagedResponse(
         results: List<MaterialDTO> = emptyList(),
         page: Int = 0,

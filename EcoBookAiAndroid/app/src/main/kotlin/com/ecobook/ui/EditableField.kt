@@ -13,6 +13,8 @@ fun EditableField(
     label: String,
     modifier: Modifier = Modifier,
     errorMessage: String? = null,
+    supportingMessage: String? = null,
+    enabled: Boolean = true,
     singleLine: Boolean = true,
     minLines: Int = 1
 ) {
@@ -22,6 +24,7 @@ fun EditableField(
         label = { Text(label) },
         modifier = modifier,
         isError = errorMessage != null,
+        enabled = enabled,
         singleLine = singleLine,
         minLines = minLines,
         supportingText = {
@@ -30,6 +33,8 @@ fun EditableField(
                     text = errorMessage,
                     color = MaterialTheme.colorScheme.error
                 )
+            } else if (supportingMessage != null) {
+                Text(supportingMessage)
             }
         }
     )

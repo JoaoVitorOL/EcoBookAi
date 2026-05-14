@@ -14,10 +14,10 @@ Backend Spring Boot do EcoBook AI.
 ## O que existe hoje
 
 - Auth local com `email + senha + JWT`, hashing forte no servidor e endpoints de perfil do usuario
-- Fluxo de materiais com `preview`, `create`, `search`, `list me`, `update` e `delete`
+- Fluxo de materiais com `preview`, `create`, `search`, `list me`, `update` e `delete`, incluindo capa frontal obrigatoria e capa traseira opcional no cadastro
 - Fluxo de solicitacoes com `create`, `list minhas`, `list pendentes`, `list aprovadas`, `approve`, `decline`, `cancel` e `complete`
 - Expiracao automatica de reservas aprovadas
-- Registro de token FCM em `POST /api/v1/fcm/tokens` e disparo de notificacoes com payload de navegacao para Android quando o Firebase estiver configurado
+- Registro de token FCM em `POST /api/v1/fcm/tokens`, disparo de notificacoes pos-commit com payload de navegacao para Android e fila persistida de retry para falhas transientes quando o Firebase estiver configurado
 - Contratos de runtime atualizados em `specs/001-ecobook-core/contracts/`
 
 ## Requisitos
@@ -65,6 +65,7 @@ http://127.0.0.1:8080/api/v1/health
 - `SERVER_PORT`
 - `GEMINI_API_KEY`
 - `FIREBASE_SERVICE_ACCOUNT_PATH`
+- `FIREBASE_DATABASE_URL` (opcional)
 
 ## Fonte de verdade dos endpoints
 
@@ -73,6 +74,84 @@ Para o shape atual das respostas e dos endpoints entregues, use estes contratos:
 - `specs/001-ecobook-core/contracts/user-api.md`
 - `specs/001-ecobook-core/contracts/material-api.md`
 - `specs/001-ecobook-core/contracts/solicitacao-api.md`
+
+## Firebase para push real
+
+O backend so envia push real quando existe um JSON valido da conta de servico do Firebase Admin SDK.
+
+O app Android deste repositorio esta ligado ao projeto Firebase `ecobook-148f2` via `EcoBookAiAndroid/app/google-services.json`. Gere a chave de service account nesse mesmo projeto.
+
+Passo a passo:
+
+1. Abra o Firebase Console no projeto `ecobook-148f2`.
+2. Va em `Project settings` > `Service accounts`.
+3. Clique em `Generate new private key`.
+4. Salve o JSON com seguranca. Uma opcao local segura para este repo e `EcoBookAiBackend/credentials/ecobook-adminsdk.json`.
+
+O backend aceita duas variaveis de ambiente:
+
+- `FIREBASE_SERVICE_ACCOUNT_PATH`
+- `GOOGLE_APPLICATION_CREDENTIALS` (fallback alinhado ao padrao oficial do Firebase Admin SDK)
+
+Sem essa configuracao, a Fase 6 continua compilada e o app ainda registra token/local inbox/deep link, mas o envio backend fica dormente. Agora, quando isso acontecer, o servidor tambem registra a tentativa na fila persistida de retry com motivo explicito.
+
+### Subir com PowerShell
+
+```powershell
+.\scripts\Run-BackendWithFirebase.ps1 -ServiceAccountPath .\EcoBookAiBackend\credentials\ecobook-adminsdk.json
+```
+
+### Subir com WSL
+
+```bash
+chmod +x ./scripts/run-backend-with-firebase.sh
+./scripts/run-backend-with-firebase.sh /mnt/c/Users/jvol2/OneDrive/Area\ de\ Trabalho/projIntegrador/EcoBookAi/EcoBookAiBackend/credentials/ecobook-adminsdk.json
+```
+
+### Sem script
+
+Windows:
+
+```powershell
+$env:FIREBASE_SERVICE_ACCOUNT_PATH="C:\caminho\firebase-adminsdk.json"
+$env:GOOGLE_APPLICATION_CREDENTIALS=$env:FIREBASE_SERVICE_ACCOUNT_PATH
+mvn spring-boot:run
+```
+
+WSL:
+
+```bash
+export FIREBASE_SERVICE_ACCOUNT_PATH="/mnt/c/caminho/firebase-adminsdk.json"
+export GOOGLE_APPLICATION_CREDENTIALS="$FIREBASE_SERVICE_ACCOUNT_PATH"
+mvn spring-boot:run
+```
+
+Importante:
+
+- reinicie o backend depois de definir a variavel
+- `google-services.json` do Android nao substitui a credencial Admin SDK do servidor
+- nao versione o JSON; a pasta `EcoBookAiBackend/credentials/` foi preparada para uso local e o `.gitignore` ja ignora `*.json`
+
+## Flyway via Maven
+
+O `pom.xml` agora deixa `flyway:info`, `flyway:validate` e `flyway:repair` apontando por padrao para o banco local de desenvolvimento:
+
+- URL: `jdbc:postgresql://localhost:5432/ecobook`
+- Usuario: `ecobook`
+- Senha default local: `dev_password_123`
+
+Exemplos:
+
+```bash
+mvn flyway:info
+mvn flyway:repair
+```
+
+Se o seu ambiente usar outra credencial, voce pode sobrescrever na linha de comando:
+
+```bash
+mvn -Dflyway.password=sua_senha flyway:repair
+```
 
 ## Gemini no ambiente local
 
