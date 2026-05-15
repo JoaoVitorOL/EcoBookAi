@@ -3,6 +3,7 @@ package com.ecobook.material
 import android.Manifest
 import android.content.pm.PackageManager
 import android.text.format.Formatter
+import androidx.compose.foundation.layout.Spacer
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -20,13 +20,13 @@ import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -186,6 +186,7 @@ fun MaterialUploadScreen(
                     onNivelEnsinoChange = viewModel::updateNivelEnsino,
                     onSistemaEnsinoChange = viewModel::updateSistemaEnsino,
                     onEstadoConservacaoChange = viewModel::updateEstadoConservacao,
+                    onPrepareConfirm = viewModel::prepareSubmit,
                     onRestart = viewModel::restartFlow,
                     onConfirm = viewModel::submitMaterial
                 )
@@ -211,6 +212,8 @@ private fun UploadSelectionContent(
     onStartPreview: () -> Unit,
     onClearAllSelections: () -> Unit
 ) {
+    var showClearAllConfirmation by remember { mutableStateOf(false) }
+
     GlassCard {
         Text(
             text = "1. Escolha ou fotografe o material",
@@ -221,6 +224,35 @@ private fun UploadSelectionContent(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(
+                onClick = onStartPreview,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.canStartPreview
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.AutoAwesome,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Analisar com IA")
+            }
+            if (uiState.selectedFrontImage != null || uiState.selectedBackImage != null) {
+                FilledTonalButton(
+                    onClick = { showClearAllConfirmation = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = destructiveFilledTonalButtonColors()
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.RestartAlt,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Limpar imagens")
+                }
+            }
+        }
 
         ImageSelectionSlot(
             title = "Capa da frente",
@@ -240,34 +272,6 @@ private fun UploadSelectionContent(
             onClearSelection = onClearBackSelection
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-                onClick = onStartPreview,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = uiState.canStartPreview
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.AutoAwesome,
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Analisar com IA")
-            }
-            if (uiState.selectedFrontImage != null || uiState.selectedBackImage != null) {
-                TextButton(
-                    onClick = onClearAllSelections,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.RestartAlt,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Limpar imagens")
-                }
-            }
-        }
-
         uiState.backendMessage?.let { message ->
             Text(
                 text = message,
@@ -275,6 +279,31 @@ private fun UploadSelectionContent(
                 color = MaterialTheme.colorScheme.error
             )
         }
+    }
+
+    if (showClearAllConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearAllConfirmation = false },
+            title = { Text("Limpar imagens") },
+            text = {
+                Text("Voce vai remover as imagens selecionadas deste rascunho. A escolha precisara ser feita novamente para continuar.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showClearAllConfirmation = false
+                        onClearAllSelections()
+                    }
+                ) {
+                    Text("Limpar tudo")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showClearAllConfirmation = false }) {
+                    Text("Manter imagens")
+                }
+            }
+        )
     }
 }
 
@@ -288,6 +317,7 @@ private fun ImageSelectionSlot(
     onClearSelection: () -> Unit
 ) {
     val context = LocalContext.current
+    var showRemoveConfirmation by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -337,12 +367,10 @@ private fun ImageSelectionSlot(
                 Text("Usar a camera")
             }
             if (selectedImage != null) {
-                OutlinedButton(
-                    onClick = onClearSelection,
+                FilledTonalButton(
+                    onClick = { showRemoveConfirmation = true },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
+                    colors = destructiveFilledTonalButtonColors()
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.DeleteOutline,
@@ -354,7 +382,40 @@ private fun ImageSelectionSlot(
             }
         }
     }
+
+    if (showRemoveConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showRemoveConfirmation = false },
+            title = { Text("Remover imagem") },
+            text = {
+                Text("Esta imagem sera removida do rascunho atual. Se precisar dela depois, voce tera que seleciona-la novamente.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRemoveConfirmation = false
+                        onClearSelection()
+                    }
+                ) {
+                    Text("Remover")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRemoveConfirmation = false }) {
+                    Text("Manter imagem")
+                }
+            }
+        )
+    }
 }
+
+@Composable
+private fun destructiveFilledTonalButtonColors() = ButtonDefaults.filledTonalButtonColors(
+    containerColor = MaterialTheme.colorScheme.errorContainer,
+    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+    disabledContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.38f),
+    disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.38f)
+)
 
 @Composable
 private fun SuccessContent(

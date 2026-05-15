@@ -28,6 +28,16 @@ object NotificationIntentRouter {
 
     private const val DEEP_LINK_SCHEME = "ecobook"
     private const val DEEP_LINK_HOST = "app"
+    private val reservedKeys = setOf(
+        "notification_id",
+        "type",
+        "title",
+        "body",
+        "message",
+        "route",
+        "solicitacao_id",
+        "material_id"
+    )
 
     fun messageFromData(
         data: Map<String, String>,
@@ -47,7 +57,8 @@ object NotificationIntentRouter {
             id = data["notification_id"]?.takeIf(String::isNotBlank),
             title = title,
             body = body,
-            destination = destination
+            destination = destination,
+            metadata = metadataFromData(data)
         )
     }
 
@@ -78,7 +89,8 @@ object NotificationIntentRouter {
             id = extras["notification_id"] ?: intent.getStringExtra(EXTRA_NOTIFICATION_ID),
             title = title,
             body = body,
-            destination = destination
+            destination = destination,
+            metadata = metadataFromData(extras)
         )
     }
 
@@ -237,6 +249,22 @@ object NotificationIntentRouter {
             AppRoutes.DONOR_REQUESTS -> "SOLICITACAO_RECEBIDA"
             AppRoutes.DISCOVERY -> "DISCOVERY"
             else -> "SOLICITACAO_APROVADA"
+        }
+    }
+
+    private fun metadataFromData(data: Map<String, String>): Map<String, String> {
+        return buildMap {
+            data.forEach { (key, value) ->
+                val normalizedKey = key.trim()
+                val normalizedValue = value.trim()
+                if (
+                    normalizedKey.isNotBlank() &&
+                    normalizedValue.isNotBlank() &&
+                    normalizedKey !in reservedKeys
+                ) {
+                    put(normalizedKey, normalizedValue)
+                }
+            }
         }
     }
 }

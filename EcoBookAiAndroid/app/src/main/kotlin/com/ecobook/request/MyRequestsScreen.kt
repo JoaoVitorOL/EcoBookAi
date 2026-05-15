@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -22,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -45,6 +50,7 @@ fun MyRequestsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var pendingCancellation by remember { mutableStateOf<SolicitacaoDTO?>(null) }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
@@ -95,9 +101,6 @@ fun MyRequestsScreen(
                             onClick = { viewModel.updateFilter(filter) }
                         )
                     }
-                }
-                OutlinedButton(onClick = viewModel::refresh, enabled = !uiState.isLoading) {
-                    Text("Atualizar lista")
                 }
             }
         }
@@ -154,11 +157,39 @@ fun MyRequestsScreen(
                 StudentRequestCard(
                     request = request,
                     isWorking = uiState.activeRequestId == request.id,
-                    onCancel = { viewModel.cancelRequest(request.id) },
+                    onCancel = { pendingCancellation = request },
                     onContactDonor = { openWhatsApp(context, request) }
                 )
             }
         }
+    }
+
+    pendingCancellation?.let { request ->
+        AlertDialog(
+            onDismissRequest = { pendingCancellation = null },
+            title = { Text("Cancelar solicitacao") },
+            text = {
+                Text(
+                    "Voce vai cancelar a solicitacao de \"${request.material?.titulo ?: "este material"}\". Depois disso, sera preciso fazer um novo pedido se ainda quiser receber esse material."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        pendingCancellation = null
+                        viewModel.cancelRequest(request.id)
+                    },
+                    enabled = uiState.activeRequestId == null
+                ) {
+                    Text(if (uiState.activeRequestId == request.id) "Cancelando..." else "Cancelar solicitacao")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { pendingCancellation = null }) {
+                    Text("Manter solicitacao")
+                }
+            }
+        )
     }
 }
 

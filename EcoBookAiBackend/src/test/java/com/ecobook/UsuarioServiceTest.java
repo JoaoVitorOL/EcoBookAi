@@ -46,7 +46,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Profile User",
                                   "whatsapp": "+5511991234567",
-                                  "cidade": "São José dos Campos",
+                                  "cidade": "Sao Jose",
                                   "bairro": " centro ",
                                   "consentimento_ia": true,
                                   "necessidades_academicas": ["TEXTBOOKS", "TEST_PREP"]
@@ -54,7 +54,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.perfil_completo").value(true))
-                .andExpect(jsonPath("$.data.cidade").value("SAO JOSE DOS CAMPOS"))
+                .andExpect(jsonPath("$.data.cidade").value("SAO JOSE"))
                 .andExpect(jsonPath("$.data.bairro").value("CENTRO"))
                 .andExpect(jsonPath("$.data.consentimento_ia").value(true));
     }
@@ -77,7 +77,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Invalid WhatsApp",
                                   "whatsapp": "11991234567",
-                                  "cidade": "Ribeirão Preto",
+                                  "cidade": "Criciuma",
                                   "bairro": "Centro"
                                 }
                                 """))
@@ -129,20 +129,20 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Institution User",
                                   "whatsapp": "+5511991234567",
-                                  "cidade": "Campinas",
+                                  "cidade": "Curitiba",
                                   "bairro": "Centro",
-                                  "instituicao": "  IFSP Campinas  "
+                                  "instituicao": "  IFPR Curitiba  "
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.instituicao").value("IFSP Campinas"))
+                .andExpect(jsonPath("$.data.instituicao").value("IFPR Curitiba"))
                 .andExpect(jsonPath("$.data.consentimento_ia").value(false))
                 .andExpect(jsonPath("$.data.necessidades_academicas").isArray())
                 .andExpect(jsonPath("$.data.necessidades_academicas").isEmpty());
 
         usuarioRepository.findByEmailIgnoreCase("institution@example.com")
                 .ifPresent(usuario -> {
-                    org.assertj.core.api.Assertions.assertThat(usuario.getInstituicao()).isEqualTo("IFSP Campinas");
+                    org.assertj.core.api.Assertions.assertThat(usuario.getInstituicao()).isEqualTo("IFPR Curitiba");
                     org.assertj.core.api.Assertions.assertThat(usuario.getConsentimentoIa()).isFalse();
                     org.assertj.core.api.Assertions.assertThat(usuario.getNecessidadesAcademicas()).isEmpty();
                 });
@@ -166,13 +166,39 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "   ",
                                   "whatsapp": "+5511991234567",
-                                  "cidade": "Campinas",
+                                  "cidade": "Curitiba",
                                   "bairro": "Centro"
                                 }
                                 """))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error").value("UNPROCESSABLE_ENTITY"))
                 .andExpect(jsonPath("$.field_errors.nome").value("Informe seu nome"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/usuarios/me should reject cities outside the southern Brazil coverage")
+    void shouldRejectUnsupportedCity() throws Exception {
+        String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("unsupported-city@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Unsupported City User")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build()));
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Unsupported City User",
+                                  "whatsapp": "+5511991234567",
+                                  "cidade": "Sao Paulo",
+                                  "bairro": "Centro"
+                                }
+                                """))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.field_errors.cidade").value("Use uma cidade atendida em SC, PR ou RS."));
     }
 
     private String tokenFor(Usuario usuario) {

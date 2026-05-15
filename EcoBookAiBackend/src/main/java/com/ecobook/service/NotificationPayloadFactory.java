@@ -2,6 +2,7 @@ package com.ecobook.service;
 
 import com.ecobook.dto.notification.NotificationPayloadDTO;
 import com.ecobook.dto.notification.NotificationType;
+import com.ecobook.model.Usuario;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -15,108 +16,134 @@ public class NotificationPayloadFactory {
     public NotificationPayloadDTO requestReceived(String requestId,
                                                   String materialId,
                                                   String materialTitle,
-                                                  String studentName) {
+                                                  Usuario solicitante) {
         return build(
                 NotificationType.SOLICITACAO_RECEBIDA,
                 "Novo pedido recebido",
-                "Sua doacao \"" + materialTitle + "\" recebeu uma nova solicitacao.",
+                safeName(solicitante, "Um solicitante") +
+                        " pediu o material \"" + materialTitle + "\". Revise os dados do solicitante antes de aprovar ou recusar.",
                 requestId,
                 materialId,
-                Map.ofEntries(
-                        Map.entry("material_titulo", materialTitle),
-                        Map.entry("estudante_nome", studentName)
-                )
+                participantMetadata(materialTitle, null, solicitante)
         );
     }
 
     public NotificationPayloadDTO requestApproved(String requestId,
                                                   String materialId,
                                                   String materialTitle,
-                                                  String donorName,
-                                                  String donorWhatsapp) {
+                                                  Usuario doador,
+                                                  Usuario solicitante) {
         return build(
                 NotificationType.SOLICITACAO_APROVADA,
                 "Solicitacao aprovada",
-                "Sua solicitacao para \"" + materialTitle + "\" foi aprovada.",
+                "Sua solicitacao do material \"" + materialTitle + "\" foi aprovada por " +
+                        safeName(doador, "o doador") +
+                        ". O contato do doador ja esta disponivel no pedido.",
                 requestId,
                 materialId,
-                metadata(
-                        "material_titulo", materialTitle,
-                        "doador_nome", donorName,
-                        "doador_whatsapp", donorWhatsapp
-                )
+                participantMetadata(materialTitle, doador, solicitante)
         );
     }
 
     public NotificationPayloadDTO requestDeclined(String requestId,
                                                   String materialId,
-                                                  String materialTitle) {
+                                                  String materialTitle,
+                                                  Usuario doador,
+                                                  Usuario solicitante) {
         return build(
                 NotificationType.SOLICITACAO_RECUSADA,
                 "Solicitacao recusada",
-                "O pedido para \"" + materialTitle + "\" foi recusado.",
+                "Sua solicitacao do material \"" + materialTitle + "\" foi recusada por " +
+                        safeName(doador, "o doador") + ".",
                 requestId,
                 materialId,
-                Map.of("material_titulo", materialTitle)
+                participantMetadata(materialTitle, doador, solicitante)
         );
     }
 
-    public NotificationPayloadDTO requestCanceled(String requestId,
-                                                  String materialId,
-                                                  String materialTitle,
-                                                  String messageBody) {
+    public NotificationPayloadDTO requestCanceledByDonor(String requestId,
+                                                         String materialId,
+                                                         String materialTitle,
+                                                         Usuario doador,
+                                                         Usuario solicitante) {
+        LinkedHashMap<String, String> metadata = participantMetadata(materialTitle, doador, solicitante);
+        metadata.put("cancelado_por", "DOADOR");
         return build(
                 NotificationType.SOLICITACAO_CANCELADA,
-                "Solicitacao cancelada",
-                messageBody,
+                "Solicitacao cancelada pelo doador",
+                "Sua solicitacao do material \"" + materialTitle + "\" foi cancelada pelo doador " +
+                        safeName(doador, "responsavel pelo material") + ".",
                 requestId,
                 materialId,
-                Map.of("material_titulo", materialTitle)
+                metadata
+        );
+    }
+
+    public NotificationPayloadDTO requestCanceledByStudent(String requestId,
+                                                           String materialId,
+                                                           String materialTitle,
+                                                           Usuario doador,
+                                                           Usuario solicitante) {
+        LinkedHashMap<String, String> metadata = participantMetadata(materialTitle, doador, solicitante);
+        metadata.put("cancelado_por", "SOLICITANTE");
+        return build(
+                NotificationType.SOLICITACAO_CANCELADA,
+                "Solicitacao cancelada pelo solicitante",
+                "O solicitante " + safeName(solicitante, "responsavel pelo pedido") +
+                        " cancelou o pedido do material \"" + materialTitle + "\".",
+                requestId,
+                materialId,
+                metadata
         );
     }
 
     public NotificationPayloadDTO requestExpired(String requestId,
                                                  String materialId,
-                                                 String materialTitle) {
+                                                 String materialTitle,
+                                                 Usuario doador,
+                                                 Usuario solicitante) {
+        LinkedHashMap<String, String> metadata = participantMetadata(materialTitle, doador, solicitante);
+        metadata.put("cancelado_por", "PRAZO");
         return build(
                 NotificationType.SOLICITACAO_CANCELADA,
                 "Reserva expirada",
-                "A reserva do material \"" + materialTitle + "\" expirou e o item voltou a ficar disponivel.",
+                "A reserva do material \"" + materialTitle + "\" expirou porque a doacao nao foi concluida dentro do prazo.",
                 requestId,
                 materialId,
-                Map.of("material_titulo", materialTitle)
+                metadata
         );
     }
 
     public NotificationPayloadDTO donationCompleted(String requestId,
                                                     String materialId,
                                                     String materialTitle,
-                                                    String donorName,
-                                                    String donorWhatsapp) {
+                                                    Usuario doador,
+                                                    Usuario solicitante) {
         return build(
                 NotificationType.MATERIAL_DOADO,
                 "Doacao concluida",
-                "O material \"" + materialTitle + "\" foi marcado como doado.",
+                "A doacao do material \"" + materialTitle + "\" foi concluida entre " +
+                        safeName(doador, "o doador") +
+                        " e " + safeName(solicitante, "o solicitante") + ".",
                 requestId,
                 materialId,
-                metadata(
-                        "material_titulo", materialTitle,
-                        "doador_nome", donorName,
-                        "doador_whatsapp", donorWhatsapp
-                )
+                participantMetadata(materialTitle, doador, solicitante)
         );
     }
 
     public NotificationPayloadDTO materialCanceled(String requestId,
                                                    String materialId,
-                                                   String materialTitle) {
+                                                   String materialTitle,
+                                                   Usuario doador,
+                                                   Usuario solicitante) {
         return build(
                 NotificationType.MATERIAL_CANCELADO,
                 "Material removido",
-                "A doacao \"" + materialTitle + "\" foi removida pelo doador.",
+                "O doador " + safeName(doador, "responsavel pelo material") +
+                        " removeu o material \"" + materialTitle + "\" e a solicitacao associada foi encerrada.",
                 requestId,
                 materialId,
-                Map.of("material_titulo", materialTitle)
+                participantMetadata(materialTitle, doador, solicitante)
         );
     }
 
@@ -138,15 +165,43 @@ public class NotificationPayloadFactory {
                 .build();
     }
 
-    private Map<String, String> metadata(String... pairs) {
+    private LinkedHashMap<String, String> participantMetadata(String materialTitle,
+                                                              Usuario doador,
+                                                              Usuario solicitante) {
         LinkedHashMap<String, String> metadata = new LinkedHashMap<>();
-        for (int index = 0; index + 1 < pairs.length; index += 2) {
-            String key = pairs[index];
-            String value = pairs[index + 1];
-            if (StringUtils.hasText(key) && StringUtils.hasText(value)) {
-                metadata.put(key, value.trim());
-            }
-        }
+        putIfHasText(metadata, "material_titulo", materialTitle);
+        addParticipant(metadata, "doador", doador, true);
+        addParticipant(metadata, "solicitante", solicitante, false);
         return metadata;
+    }
+
+    private void addParticipant(Map<String, String> target,
+                                String prefix,
+                                Usuario usuario,
+                                boolean includeWhatsapp) {
+        if (usuario == null) {
+            return;
+        }
+
+        putIfHasText(target, prefix + "_nome", usuario.getNome());
+        putIfHasText(target, prefix + "_cidade", usuario.getCidade());
+        putIfHasText(target, prefix + "_bairro", usuario.getBairro());
+        putIfHasText(target, prefix + "_instituicao", usuario.getInstituicao());
+        if (includeWhatsapp) {
+            putIfHasText(target, prefix + "_whatsapp", usuario.getWhatsapp());
+        }
+    }
+
+    private String safeName(Usuario usuario, String fallback) {
+        if (usuario == null || !StringUtils.hasText(usuario.getNome())) {
+            return fallback;
+        }
+        return usuario.getNome().trim();
+    }
+
+    private void putIfHasText(Map<String, String> target, String key, String value) {
+        if (StringUtils.hasText(key) && StringUtils.hasText(value)) {
+            target.put(key, value.trim());
+        }
     }
 }

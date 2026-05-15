@@ -43,10 +43,12 @@ fun ReviewScreen(
     onNivelEnsinoChange: (NivelEnsino?) -> Unit,
     onSistemaEnsinoChange: (SistemaEnsino?) -> Unit,
     onEstadoConservacaoChange: (EstadoConservacao?) -> Unit,
+    onPrepareConfirm: () -> Boolean,
     onRestart: () -> Unit,
     onConfirm: () -> Unit
 ) {
     var showConfirmation by remember { mutableStateOf(false) }
+    var showRestartConfirmation by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         GlassCard {
@@ -250,13 +252,17 @@ fun ReviewScreen(
             ) {
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onRestart
+                    onClick = { showRestartConfirmation = true }
                 ) {
                     Text("Trocar imagens")
                 }
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { showConfirmation = true },
+                    onClick = {
+                        if (onPrepareConfirm()) {
+                            showConfirmation = true
+                        }
+                    },
                     enabled = uiState.canSubmit
                 ) {
                     Text(if (uiState.isBusy) "Publicando..." else "Publicar material")
@@ -279,14 +285,40 @@ fun ReviewScreen(
                     onClick = {
                         showConfirmation = false
                         onConfirm()
-                    }
+                    },
+                    enabled = !uiState.isBusy
                 ) {
-                    Text("Confirmar")
+                    Text(if (uiState.isBusy) "Publicando..." else "Confirmar")
                 }
             },
             dismissButton = {
                 OutlinedButton(onClick = { showConfirmation = false }) {
                     Text("Editar")
+                }
+            }
+        )
+    }
+
+    if (showRestartConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showRestartConfirmation = false },
+            title = { Text("Descartar revisao") },
+            text = {
+                Text("Voce vai apagar a revisao atual e voltar para a etapa de escolha das imagens. Use isso apenas se realmente quiser recomecar.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRestartConfirmation = false
+                        onRestart()
+                    }
+                ) {
+                    Text("Voltar e trocar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRestartConfirmation = false }) {
+                    Text("Continuar revisando")
                 }
             }
         )

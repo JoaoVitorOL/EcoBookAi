@@ -27,12 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.model.NecessidadeAcademica
-import com.ecobook.ui.CityAutocomplete
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
@@ -193,10 +193,12 @@ private fun ContactStep(
         OutlinedTextField(
             value = uiState.whatsapp,
             onValueChange = onWhatsappChange,
-            label = { Text("WhatsApp") },
+            label = { Text("WhatsApp com DDD") },
             isError = uiState.fieldErrors.containsKey("whatsapp"),
+            placeholder = { Text("(48) 99999-9999") },
+            prefix = { Text("+55 ") },
             supportingText = {
-                Text(uiState.fieldErrors["whatsapp"] ?: "Formato esperado: +5548999999999")
+                Text(uiState.fieldErrors["whatsapp"] ?: "Digite so DDD + numero. O codigo do Brasil ja e adicionado automaticamente.")
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -219,11 +221,17 @@ private fun LocationStep(
     onInstitutionChange: (String) -> Unit
 ) {
     GlassCard {
-        CityAutocomplete(
+        OutlinedTextField(
             value = uiState.cidade,
             onValueChange = onCityChange,
+            label = { Text("Cidade") },
             isError = uiState.fieldErrors.containsKey("cidade"),
-            supportingText = uiState.fieldErrors["cidade"] ?: "Use uma cidade brasileira ou escolha uma sugestao."
+            supportingText = {
+                Text(uiState.fieldErrors["cidade"] ?: "Digite manualmente. O sistema normaliza a cidade antes de salvar o perfil.")
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = uiState.bairro,
@@ -232,6 +240,7 @@ private fun LocationStep(
             isError = uiState.fieldErrors.containsKey("bairro"),
             supportingText = uiState.fieldErrors["bairro"]?.let { message -> { Text(message) } },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(

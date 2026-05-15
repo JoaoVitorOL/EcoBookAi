@@ -112,6 +112,7 @@ public class UserNotificationService {
                 .materialId(notification.getMaterialId() == null ? null : notification.getMaterialId().toString())
                 .receivedAt(notification.getCreatedAt())
                 .unread(notification.getReadAt() == null)
+                .metadata(new LinkedHashMap<>(notification.getPayloadData() == null ? Map.of() : notification.getPayloadData()))
                 .build();
     }
 

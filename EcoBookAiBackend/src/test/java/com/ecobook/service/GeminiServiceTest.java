@@ -76,8 +76,48 @@ class GeminiServiceTest {
         assertThat(response.getStatusIa()).isEqualTo("LOW_CONFIDENCE");
         assertThat(response.getBestPrediction().get("nivel_ensino").getValue()).isEqualTo("FUNDAMENTAL");
         assertThat(response.getBestPrediction().get("sistema_ensino").getValue()).isEqualTo("ANGLO");
-        assertThat(response.getBestPrediction().get("disciplina").getValue()).isNull();
+        assertThat(response.getBestPrediction()).doesNotContainKey("disciplina");
         assertThat(response.getErrorDetails().getInvalidEnums()).containsExactly("disciplina");
+    }
+
+    @Test
+    @DisplayName("parseGeminiResponse should extract numeric hints from textual school and publication years")
+    void shouldExtractNumericHintsFromTextualYears() {
+        String payload = """
+                {
+                  "best_prediction": {
+                    "titulo": { "value": "Ciencias 7", "confidence": 0.92 },
+                    "nivel_ensino": { "value": "fundamental", "confidence": 0.88 },
+                    "ano": { "value": "7o ano", "confidence": 0.84 },
+                    "data_publicacao": { "value": "Edicao 2021", "confidence": 0.81 }
+                  }
+                }
+                """;
+
+        GeminiResponseDTO response = geminiService.parseGeminiResponse(payload);
+
+        assertThat(response.getBestPrediction().get("ano").getValue()).isEqualTo(7);
+        assertThat(response.getBestPrediction().get("ano").getConfidence()).isEqualTo(0.84);
+        assertThat(response.getBestPrediction().get("data_publicacao").getValue()).isEqualTo(2021);
+        assertThat(response.getBestPrediction().get("data_publicacao").getConfidence()).isEqualTo(0.81);
+    }
+
+    @Test
+    @DisplayName("parseGeminiResponse should drop confidence when a numeric field has no usable value")
+    void shouldDropConfidenceForUnusableNumericField() {
+        String payload = """
+                {
+                  "best_prediction": {
+                    "titulo": { "value": "Livro sem ano", "confidence": 0.92 },
+                    "ano": { "value": "setimo ano", "confidence": 0.84 }
+                  }
+                }
+                """;
+
+        GeminiResponseDTO response = geminiService.parseGeminiResponse(payload);
+
+        assertThat(response.getBestPrediction()).doesNotContainKey("ano");
+        assertThat(response.getErrorDetails().getMissingFields()).contains("ano");
     }
 
     @Test

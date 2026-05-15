@@ -9,5 +9,6 @@ data class UserNotificationDTO(
     val requestId: String? = null,
     val materialId: String? = null,
     val receivedAt: String? = null,
-    val unread: Boolean? = null
+    val unread: Boolean? = null,
+    val metadata: Map<String, String> = emptyMap()
 )

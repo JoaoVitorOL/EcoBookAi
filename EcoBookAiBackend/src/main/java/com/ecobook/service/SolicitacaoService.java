@@ -34,8 +34,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SolicitacaoService {
 
-    private static final String REQUEST_CANCELLED_MESSAGE = "A solicitacao foi cancelada.";
-
     private final UsuarioRepository usuarioRepository;
     private final MaterialRepository materialRepository;
     private final SolicitacaoRepository solicitacaoRepository;
@@ -81,7 +79,7 @@ public class SolicitacaoService {
                         solicitacao.getId().toString(),
                         material.getId().toString(),
                         material.getTitulo(),
-                        estudante.getNome()
+                        estudante
                 )
         ));
 
@@ -260,7 +258,9 @@ public class SolicitacaoService {
                     notificationPayloadFactory.requestExpired(
                             request.getId().toString(),
                             material.getId().toString(),
-                            material.getTitulo()
+                            material.getTitulo(),
+                            material.getDoador(),
+                            request.getEstudante()
                     )
             ));
         });
@@ -344,8 +344,8 @@ public class SolicitacaoService {
                         solicitacao.getId().toString(),
                         solicitacao.getMaterial().getId().toString(),
                         solicitacao.getMaterial().getTitulo(),
-                        solicitacao.getMaterial().getDoador().getNome(),
-                        solicitacao.getMaterial().getDoador().getWhatsapp()
+                        solicitacao.getMaterial().getDoador(),
+                        solicitacao.getEstudante()
                 )
         ));
     }
@@ -356,7 +356,9 @@ public class SolicitacaoService {
                 notificationPayloadFactory.requestDeclined(
                         solicitacao.getId().toString(),
                         solicitacao.getMaterial().getId().toString(),
-                        solicitacao.getMaterial().getTitulo()
+                        solicitacao.getMaterial().getTitulo(),
+                        solicitacao.getMaterial().getDoador(),
+                        solicitacao.getEstudante()
                 )
         ));
     }
@@ -365,14 +367,24 @@ public class SolicitacaoService {
         Usuario recipient = solicitacao.getEstudante().getId().equals(actor.getId())
                 ? solicitacao.getMaterial().getDoador()
                 : solicitacao.getEstudante();
+        boolean canceledByStudent = solicitacao.getEstudante().getId().equals(actor.getId());
 
         eventPublisher.publishEvent(new NotificationRequestedEvent(
                 recipient.getId(),
-                notificationPayloadFactory.requestCanceled(
+                canceledByStudent
+                        ? notificationPayloadFactory.requestCanceledByStudent(
                         solicitacao.getId().toString(),
                         solicitacao.getMaterial().getId().toString(),
                         solicitacao.getMaterial().getTitulo(),
-                        REQUEST_CANCELLED_MESSAGE
+                        solicitacao.getMaterial().getDoador(),
+                        solicitacao.getEstudante()
+                )
+                        : notificationPayloadFactory.requestCanceledByDonor(
+                        solicitacao.getId().toString(),
+                        solicitacao.getMaterial().getId().toString(),
+                        solicitacao.getMaterial().getTitulo(),
+                        solicitacao.getMaterial().getDoador(),
+                        solicitacao.getEstudante()
                 )
         ));
     }
@@ -384,8 +396,8 @@ public class SolicitacaoService {
                         solicitacao.getId().toString(),
                         solicitacao.getMaterial().getId().toString(),
                         solicitacao.getMaterial().getTitulo(),
-                        solicitacao.getMaterial().getDoador().getNome(),
-                        solicitacao.getMaterial().getDoador().getWhatsapp()
+                        solicitacao.getMaterial().getDoador(),
+                        solicitacao.getEstudante()
                 )
         ));
     }

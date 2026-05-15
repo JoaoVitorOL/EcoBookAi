@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.LinkedHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.abs
@@ -65,7 +66,8 @@ class NotificationRepository @Inject constructor(
             requestId = notification.requestId?.trim()?.takeIf(String::isNotBlank),
             materialId = notification.materialId?.trim()?.takeIf(String::isNotBlank),
             receivedAtEpochMillis = parseReceivedAt(notification.receivedAt, notificationType),
-            unread = notification.unread ?: true
+            unread = notification.unread ?: true,
+            metadata = sanitizeMetadata(notification.metadata)
         )
     }
 
@@ -185,5 +187,19 @@ class NotificationRepository @Inject constructor(
         ).joinToString("|").hashCode()
 
         return if (rawId == Int.MIN_VALUE) "0" else abs(rawId).toString()
+    }
+
+    private fun sanitizeMetadata(rawMetadata: Map<String, String>?): Map<String, String> {
+        return rawMetadata.orEmpty()
+            .mapNotNull { (key, value) ->
+                val normalizedKey = key.trim()
+                val normalizedValue = value.trim()
+                if (normalizedKey.isBlank() || normalizedValue.isBlank()) {
+                    null
+                } else {
+                    normalizedKey to normalizedValue
+                }
+            }
+            .toMap(LinkedHashMap())
     }
 }

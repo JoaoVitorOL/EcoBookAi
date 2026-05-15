@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -92,7 +93,6 @@ fun DonateScreen(
     when (selectedMode) {
         DonateMode.HISTORY -> DonateHistoryContent(
             uiState = uiState,
-            onRefresh = viewModel::refreshMaterials,
             onOpenEditor = viewModel::openEditor,
             onDelete = viewModel::promptDelete,
             onSwitchToPublish = { selectedMode = DonateMode.PUBLISH },
@@ -151,7 +151,8 @@ fun DonateScreen(
             confirmButton = {
                 Button(
                     onClick = viewModel::deletePendingMaterial,
-                    enabled = !uiState.isDeleting
+                    enabled = !uiState.isDeleting,
+                    colors = destructiveButtonColors()
                 ) {
                     Text(if (uiState.isDeleting) "Excluindo..." else "Excluir")
                 }
@@ -168,7 +169,6 @@ fun DonateScreen(
 @Composable
 private fun DonateHistoryContent(
     uiState: DonateUiState,
-    onRefresh: () -> Unit,
     onOpenEditor: (MaterialDTO) -> Unit,
     onDelete: (MaterialDTO) -> Unit,
     onSwitchToPublish: () -> Unit,
@@ -215,9 +215,6 @@ private fun DonateHistoryContent(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                OutlinedButton(onClick = onRefresh, enabled = !uiState.isLoading) {
-                    Text("Atualizar lista")
-                }
             }
         }
 
@@ -385,6 +382,7 @@ private fun DonateMaterialCard(
                     Button(
                         onClick = onDelete,
                         enabled = isAvailable,
+                        colors = destructiveButtonColors(),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Excluir")
@@ -394,6 +392,14 @@ private fun DonateMaterialCard(
         }
     }
 }
+
+@Composable
+private fun destructiveButtonColors() = ButtonDefaults.buttonColors(
+    containerColor = MaterialTheme.colorScheme.errorContainer,
+    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+    disabledContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.38f),
+    disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.38f)
+)
 
 @Composable
 private fun EditMaterialDialog(

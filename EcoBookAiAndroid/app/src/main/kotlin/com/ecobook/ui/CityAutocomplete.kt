@@ -14,24 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-
-private val brazilianCities = listOf(
-    "Sao Paulo",
-    "Rio de Janeiro",
-    "Belo Horizonte",
-    "Curitiba",
-    "Porto Alegre",
-    "Florianopolis",
-    "Sao Jose",
-    "Joinville",
-    "Blumenau",
-    "Chapeco",
-    "Criciuma",
-    "Londrina",
-    "Maringa",
-    "Campinas",
-    "Santos"
-)
+import com.ecobook.location.SouthBrazilCityCatalog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +29,7 @@ fun CityAutocomplete(
     var expanded by remember { mutableStateOf(false) }
     val filteredCities = remember(value) {
         val query = value.trim().lowercase()
-        brazilianCities.filter { city ->
+        SouthBrazilCityCatalog.cities.filter { city ->
             query.isBlank() || city.lowercase().contains(query)
         }.take(6)
     }

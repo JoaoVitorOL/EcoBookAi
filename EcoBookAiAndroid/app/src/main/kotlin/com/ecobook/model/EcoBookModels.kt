@@ -21,6 +21,11 @@ enum class SistemaEnsino(val label: String) {
     OBJETIVO("Objetivo"),
     COC("COC"),
     POSITIVO("Positivo"),
+    POLIEDRO("Poliedro"),
+    ETAPA("Etapa"),
+    BERNOULLI("Bernoulli"),
+    SAS("SAS"),
+    FTD("FTD"),
     OUTRO("Outro")
 }
 

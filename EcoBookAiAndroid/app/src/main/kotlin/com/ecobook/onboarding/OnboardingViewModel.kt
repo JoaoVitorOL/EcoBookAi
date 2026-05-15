@@ -55,7 +55,7 @@ class OnboardingViewModel @Inject constructor(
     fun updateWhatsapp(value: String) {
         _uiState.update {
             it.copy(
-                whatsapp = WhatsAppFormatter.format(value),
+                whatsapp = WhatsAppFormatter.formatForInput(value),
                 fieldErrors = it.fieldErrors - "whatsapp",
                 message = null
             )
@@ -63,9 +63,9 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun onWhatsappFocusLost() {
-        if (_uiState.value.whatsapp.isNotBlank() && !WhatsAppFormatter.isValid(_uiState.value.whatsapp)) {
+        if (_uiState.value.whatsapp.isNotBlank() && !WhatsAppFormatter.isValidInput(_uiState.value.whatsapp)) {
             _uiState.update {
-                it.copy(fieldErrors = it.fieldErrors + ("whatsapp" to "Use o formato +55XXXXXXXXXXX"))
+                it.copy(fieldErrors = it.fieldErrors + ("whatsapp" to "Digite DDD + numero, por exemplo 48 99999-9999."))
             }
         }
     }
@@ -124,7 +124,7 @@ class OnboardingViewModel @Inject constructor(
             val state = _uiState.value
             val request = UpdateProfileRequestDTO(
                 nome = state.nome.trim(),
-                whatsapp = state.whatsapp.trim(),
+                whatsapp = WhatsAppFormatter.toBackendValue(state.whatsapp),
                 cidade = state.cidade.trim(),
                 bairro = state.bairro.trim(),
                 instituicao = state.instituicao.trim().ifBlank { null },
@@ -162,14 +162,14 @@ class OnboardingViewModel @Inject constructor(
                 }
                 if (_uiState.value.whatsapp.isBlank()) {
                     put("whatsapp", "Informe um WhatsApp para contato.")
-                } else if (!WhatsAppFormatter.isValid(_uiState.value.whatsapp)) {
-                    put("whatsapp", "Use o formato +55XXXXXXXXXXX")
+                } else if (!WhatsAppFormatter.isValidInput(_uiState.value.whatsapp)) {
+                    put("whatsapp", "Digite DDD + numero, por exemplo 48 99999-9999.")
                 }
             }
 
             1 -> buildMap {
                 if (_uiState.value.cidade.isBlank()) {
-                    put("cidade", "Escolha ou digite sua cidade.")
+                    put("cidade", "Digite sua cidade.")
                 }
                 if (_uiState.value.bairro.isBlank()) {
                     put("bairro", "Informe o bairro onde voce pode receber ou doar materiais.")

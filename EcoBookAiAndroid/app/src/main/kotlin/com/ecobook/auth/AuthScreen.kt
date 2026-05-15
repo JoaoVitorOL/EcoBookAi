@@ -12,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -71,8 +70,16 @@ fun AuthScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             SectionHeading(
-                title = "Entrar no EcoBook",
-                subtitle = "Entre com email e senha ou crie sua conta para continuar o onboarding no aplicativo."
+                title = if (uiState.mode == AuthMode.LOGIN) {
+                    "Entrar no EcoBook"
+                } else {
+                    "Criar conta no EcoBook"
+                },
+                subtitle = if (uiState.mode == AuthMode.LOGIN) {
+                    "Entre com email e senha para continuar seu onboarding no aplicativo."
+                } else {
+                    "Crie sua conta com nome, email e senha. Os demais dados ficam para o onboarding."
+                }
             )
 
             if (!sessionMessage.isNullOrBlank()) {
@@ -145,24 +152,6 @@ private fun AuthCard(
     onSubmit: () -> Unit
 ) {
     GlassCard {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            AuthModeButton(
-                text = "Entrar",
-                selected = uiState.mode == AuthMode.LOGIN,
-                onClick = { onModeSelected(AuthMode.LOGIN) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            AuthModeButton(
-                text = "Criar conta",
-                selected = uiState.mode == AuthMode.REGISTER,
-                onClick = { onModeSelected(AuthMode.REGISTER) },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
         Text(
             text = if (uiState.mode == AuthMode.LOGIN) {
                 "Use o email e a senha cadastrados para retomar sua sessao."
@@ -248,34 +237,6 @@ private fun AuthCard(
                     "Ja tem conta? Entrar"
                 }
             )
-        }
-    }
-}
-
-@Composable
-private fun AuthModeButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (selected) {
-        Button(
-            onClick = onClick,
-            modifier = modifier
-        ) {
-            Text(text)
-        }
-    } else {
-        OutlinedButton(
-            onClick = onClick,
-            modifier = modifier,
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White.copy(alpha = 0.96f),
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
-        ) {
-            Text(text)
         }
     }
 }

@@ -3,21 +3,23 @@ package com.ecobook.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
@@ -103,17 +105,38 @@ fun NotificationsEntryPointButton(
     }
 
     if (unreadCount > 0) {
-        FilledTonalIconButton(onClick = onClick) {
-            BadgedBox(
-                badge = {
-                    Badge {
-                        Text(if (unreadCount > 99) "99+" else unreadCount.toString())
-                    }
-                }
+        val badgeLabel = if (unreadCount > 99) "99+" else unreadCount.toString()
+
+        Box {
+            FilledTonalIconButton(
+                onClick = onClick,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.92f),
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                )
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Notifications,
                     contentDescription = contentDescription
+                )
+            }
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 6.dp, y = (-4).dp),
+                shape = RoundedCornerShape(999.dp),
+                color = Color(0xFFE96A8D),
+                contentColor = Color.White,
+                shadowElevation = 4.dp,
+                border = BorderStroke(2.dp, Color.White.copy(alpha = 0.95f))
+            ) {
+                Text(
+                    text = badgeLabel,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                        .sizeIn(minWidth = 20.dp, minHeight = 20.dp)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
         }

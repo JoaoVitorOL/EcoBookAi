@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -56,6 +57,7 @@ public class UsuarioService {
         boolean profileWasComplete = usuario.isPerfilCompleto();
         GeoNormalizationService.NormalizedGeo normalizedGeo =
                 geoNormalizationService.normalize(request.getCidade(), request.getBairro());
+        validateSupportedCity(normalizedGeo.city());
 
         usuario.setNome(request.getNome().trim());
         usuario.setWhatsapp(request.getWhatsapp().trim());
@@ -191,6 +193,17 @@ public class UsuarioService {
         }
 
         throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
+    }
+
+    private void validateSupportedCity(String normalizedCity) {
+        if (geoNormalizationService.isSupportedSouthernCity(normalizedCity)) {
+            return;
+        }
+
+        throw new UnprocessableEntityException(
+                "Preencha todos os campos obrigatorios do perfil",
+                Map.of("cidade", "Use uma cidade atendida em SC, PR ou RS.")
+        );
     }
 
     private Set<NecessidadeAcademica> resolveNeeds(Set<NecessidadeAcademica> necessidadesAcademicas) {

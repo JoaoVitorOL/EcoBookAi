@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -17,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -25,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ecobook.dto.SolicitacaoDTO
 import com.ecobook.ui.components.FilterChipCard
 import com.ecobook.ui.components.GlassCard
 
@@ -36,6 +42,7 @@ fun DonorRequestsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var pendingAction by remember { mutableStateOf<PendingDonorAction?>(null) }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
@@ -87,9 +94,6 @@ fun DonorRequestsScreen(
                             onClick = { viewModel.selectTab(tab) }
                         )
                     }
-                }
-                OutlinedButton(onClick = viewModel::refresh, enabled = !uiState.isLoading) {
-                    Text("Atualizar lista")
                 }
             }
         }
@@ -147,17 +151,76 @@ fun DonorRequestsScreen(
                         request = request,
                         isWorking = uiState.activeRequestId == request.id,
                         onApprove = { viewModel.approveRequest(request.id) },
-                        onDecline = { viewModel.declineRequest(request.id) }
+                        onDecline = { pendingAction = PendingDonorAction(DonorActionType.DECLINE, request) }
                     )
 
                     DonorRequestsTab.APPROVED -> DonorRequestCard(
                         request = request,
                         isWorking = uiState.activeRequestId == request.id,
                         onComplete = { viewModel.completeDonation(request.id) },
-                        onRevokeApproval = { viewModel.revokeApproval(request.id) }
+                        onRevokeApproval = { pendingAction = PendingDonorAction(DonorActionType.REVOKE_APPROVAL, request) }
                     )
                 }
             }
         }
     }
+
+    pendingAction?.let { action ->
+        AlertDialog(
+            onDismissRequest = { pendingAction = null },
+            title = {
+                Text(
+                    when (action.type) {
+                        DonorActionType.DECLINE -> "Recusar pedido"
+                        DonorActionType.REVOKE_APPROVAL -> "Cancelar reserva aprovada"
+                    }
+                )
+            },
+            text = {
+                Text(
+                    when (action.type) {
+                        DonorActionType.DECLINE ->
+                            "Voce vai recusar o pedido de \"${action.request.estudante?.nome ?: "este estudante"}\" para \"${action.request.material?.titulo ?: "este material"}\"."
+                        DonorActionType.REVOKE_APPROVAL ->
+                            "Voce vai cancelar a reserva aprovada de \"${action.request.material?.titulo ?: "este material"}\". O estudante perdera o acesso atual a essa reserva."
+                    }
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        pendingAction = null
+                        when (action.type) {
+                            DonorActionType.DECLINE -> viewModel.declineRequest(action.request.id)
+                            DonorActionType.REVOKE_APPROVAL -> viewModel.revokeApproval(action.request.id)
+                        }
+                    },
+                    enabled = uiState.activeRequestId == null
+                ) {
+                    Text(
+                        when {
+                            uiState.activeRequestId == action.request.id -> "Processando..."
+                            action.type == DonorActionType.DECLINE -> "Recusar pedido"
+                            else -> "Cancelar reserva"
+                        }
+                    )
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { pendingAction = null }) {
+                    Text("Voltar")
+                }
+            }
+        )
+    }
 }
+
+private enum class DonorActionType {
+    DECLINE,
+    REVOKE_APPROVAL
+}
+
+private data class PendingDonorAction(
+    val type: DonorActionType,
+    val request: SolicitacaoDTO
+)

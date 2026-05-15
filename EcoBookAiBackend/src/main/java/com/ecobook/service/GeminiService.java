@@ -31,11 +31,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GeminiService {
+
+    private static final Pattern SCHOOL_YEAR_PATTERN = Pattern.compile("\\d{1,2}");
+    private static final Pattern PUBLICATION_YEAR_PATTERN = Pattern.compile("\\d{4}");
 
     private static final List<String> EXPECTED_FIELDS = List.of(
             "titulo",
@@ -136,6 +141,7 @@ public class GeminiService {
                 Double confidence = parseConfidence(fieldNode.path("confidence"));
                 if (value == null) {
                     missingFields.add(field);
+                    confidence = null;
                 }
 
                 if (isEnumField(field) && value != null) {
@@ -143,6 +149,7 @@ public class GeminiService {
                     if (!allowedValues(field).contains(normalized)) {
                         invalidEnums.add(field);
                         value = null;
+                        confidence = null;
                     } else {
                         value = normalized;
                     }
@@ -365,7 +372,7 @@ public class GeminiService {
                 "Valores de disciplina: TODAS, MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
                 "Use disciplina TODAS quando o material reunir multiplas materias, for uma colecao multidisciplinar ou as imagens indicarem mais de uma disciplina no mesmo volume.",
                 "Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.",
-                "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, OUTRO.",
+                "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, POLIEDRO, ETAPA, BERNOULLI, SAS, FTD, OUTRO.",
                 "Para campos nao identificados, use value null e confidence null.",
                 "Nunca invente descricao. Nunca retorne texto fora do JSON.",
                 "Autor e editora devem ser extraidos da capa, lombada, contracapa ou outras partes visiveis das imagens sempre que possivel.",
@@ -436,23 +443,37 @@ public class GeminiService {
         }
 
         if ("ano".equals(field) || "data_publicacao".equals(field)) {
-            if (valueNode.isInt() || valueNode.isLong()) {
-                return valueNode.asInt();
-            }
-            if (valueNode.isTextual()) {
-                String value = valueNode.asText().trim();
-                if (!value.isEmpty()) {
-                    try {
-                        return Integer.parseInt(value);
-                    } catch (NumberFormatException ignored) {
-                        return null;
-                    }
-                }
-            }
-            return null;
+            return parseNumericField(field, valueNode);
         }
 
         return valueNode.asText(null);
+    }
+
+    private Integer parseNumericField(String field, JsonNode valueNode) {
+        if (valueNode.isInt() || valueNode.isLong()) {
+            return valueNode.asInt();
+        }
+
+        if (!valueNode.isTextual()) {
+            return null;
+        }
+
+        String rawValue = valueNode.asText().trim();
+        if (!StringUtils.hasText(rawValue)) {
+            return null;
+        }
+
+        Pattern pattern = "data_publicacao".equals(field) ? PUBLICATION_YEAR_PATTERN : SCHOOL_YEAR_PATTERN;
+        Matcher matcher = pattern.matcher(rawValue);
+        if (!matcher.find()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(matcher.group());
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     private Double parseConfidence(JsonNode confidenceNode) {
@@ -478,7 +499,7 @@ public class GeminiService {
         return switch (field) {
             case "disciplina" -> List.of("TODAS", "MATEMATICA", "PORTUGUES", "HISTORIA", "GEOGRAFIA", "CIENCIAS", "LITERATURA");
             case "nivel_ensino" -> List.of("FUNDAMENTAL", "MEDIO", "SUPERIOR");
-            case "sistema_ensino" -> List.of("ANGLO", "OBJETIVO", "COC", "POSITIVO", "OUTRO");
+            case "sistema_ensino" -> List.of("ANGLO", "OBJETIVO", "COC", "POSITIVO", "POLIEDRO", "ETAPA", "BERNOULLI", "SAS", "FTD", "OUTRO");
             default -> List.of();
         };
     }

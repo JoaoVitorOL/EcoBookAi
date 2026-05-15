@@ -9,5 +9,6 @@ data class NotificationInboxEntry(
     val requestId: String? = null,
     val materialId: String? = null,
     val receivedAtEpochMillis: Long,
-    val unread: Boolean = true
+    val unread: Boolean = true,
+    val metadata: Map<String, String> = emptyMap()
 )

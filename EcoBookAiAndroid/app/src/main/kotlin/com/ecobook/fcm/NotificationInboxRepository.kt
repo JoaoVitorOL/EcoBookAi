@@ -34,7 +34,8 @@ class NotificationInboxRepository @Inject constructor(
                 requestId = notification.destination.requestId,
                 materialId = notification.destination.materialId,
                 receivedAtEpochMillis = existingEntry?.receivedAtEpochMillis ?: System.currentTimeMillis(),
-                unread = existingEntry?.unread ?: true
+                unread = existingEntry?.unread ?: true,
+                metadata = notification.metadata.ifEmpty { existingEntry?.metadata ?: emptyMap() }
             )
 
             val merged = buildList {

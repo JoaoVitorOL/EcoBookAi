@@ -110,7 +110,7 @@ class MaterialUploadViewModel @Inject constructor(
     fun updateAno(value: String) = updateDraft { draft ->
         draft.copy(ano = sanitizeAnoEscolar(value, draft.nivelEnsino))
     }
-    fun updateDataPublicacao(value: String) = updateDraft { draft -> draft.copy(dataPublicacao = value.filter(Char::isDigit)) }
+    fun updateDataPublicacao(value: String) = updateDraft { draft -> draft.copy(dataPublicacao = value.filter(Char::isDigit).take(4)) }
     fun updateDisciplina(value: Disciplina?) = updateDraft { draft -> draft.copy(disciplina = value) }
     fun updateNivelEnsino(value: NivelEnsino?) = updateDraft { draft ->
         draft.copy(
@@ -121,7 +121,7 @@ class MaterialUploadViewModel @Inject constructor(
     fun updateSistemaEnsino(value: SistemaEnsino?) = updateDraft { draft -> draft.copy(sistemaEnsino = value) }
     fun updateEstadoConservacao(value: EstadoConservacao?) = updateDraft { draft -> draft.copy(estadoConservacao = value) }
 
-    fun submitMaterial() {
+    fun prepareSubmit(): Boolean {
         val currentState = _uiState.value
         val validationErrors = validate(currentState.draft, currentState.uploadId)
         if (validationErrors.isNotEmpty()) {
@@ -131,6 +131,19 @@ class MaterialUploadViewModel @Inject constructor(
                     validationErrors = validationErrors
                 )
             }
+            return false
+        }
+
+        return true
+    }
+
+    fun submitMaterial() {
+        val currentState = _uiState.value
+        if (currentState.stage != MaterialFlowStage.REVIEW || currentState.isBusy) {
+            return
+        }
+
+        if (!prepareSubmit()) {
             return
         }
 
@@ -378,7 +391,7 @@ class MaterialUploadViewModel @Inject constructor(
             is Float -> rawValue.toInt()
             is Int -> rawValue
             is Number -> rawValue.toInt()
-            is String -> rawValue.toIntOrNull()
+            is String -> Regex("\\d{1,4}").find(rawValue)?.value?.toIntOrNull()
             else -> null
         }
     }

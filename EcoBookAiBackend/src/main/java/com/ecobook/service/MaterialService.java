@@ -220,7 +220,9 @@ public class MaterialService {
                         notificationPayloadFactory.materialCanceled(
                                 request.getId().toString(),
                                 material.getId().toString(),
-                                material.getTitulo()
+                                material.getTitulo(),
+                                material.getDoador(),
+                                request.getEstudante()
                         )
                 )));
     }

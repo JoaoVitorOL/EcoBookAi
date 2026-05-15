@@ -71,7 +71,8 @@ class MyRequestsViewModel @Inject constructor(
                             requests = state.requests.map { current ->
                                 if (current.id == updatedRequest.id) updatedRequest else current
                             },
-                            activeRequestId = null
+                            activeRequestId = null,
+                            toastMessage = "Solicitacao cancelada com sucesso."
                         )
                     }
                 }

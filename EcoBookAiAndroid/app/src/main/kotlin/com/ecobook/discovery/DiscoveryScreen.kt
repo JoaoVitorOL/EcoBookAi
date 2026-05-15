@@ -1,6 +1,8 @@
 package com.ecobook.discovery
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,12 +12,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,10 +34,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -262,104 +271,164 @@ private fun DiscoveryFiltersCard(
     onReset: () -> Unit,
     isLoading: Boolean
 ) {
+    var expanded by rememberSaveable { mutableStateOf(true) }
+
     GlassCard {
-        OutlinedTextField(
-            value = uiState.filters.query,
-            onValueChange = onQueryChange,
-            label = { Text("Buscar por titulo, descricao, autor ou local") },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-        DropdownField(
-            label = "Disciplina",
-            selectedOption = uiState.filters.disciplina,
-            options = Disciplina.entries,
-            allLabel = "Qualquer disciplina",
-            optionLabel = { it.label },
-            onSelected = onDisciplinaChange
-        )
-        DropdownField(
-            label = "Nivel de ensino",
-            selectedOption = uiState.filters.nivelEnsino,
-            options = NivelEnsino.entries,
-            allLabel = "Todos",
-            optionLabel = { it.label },
-            onSelected = onNivelEnsinoChange
-        )
-        DropdownField(
-            label = "Sistema de ensino",
-            selectedOption = uiState.filters.sistemaEnsino,
-            options = SistemaEnsino.entries,
-            allLabel = "Todos",
-            optionLabel = { it.label },
-            onSelected = onSistemaEnsinoChange
-        )
-        OutlinedTextField(
-            value = uiState.filters.ano,
-            onValueChange = onAnoChange,
-            label = { Text("Ano escolar") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            enabled = uiState.filters.nivelEnsino != NivelEnsino.SUPERIOR,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            supportingText = {
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 Text(
-                    when (uiState.filters.nivelEnsino) {
-                        NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino medio."
-                        NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
-                        else -> "Use um valor de 1 a 9."
-                    }
+                    text = "Filtros da busca",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = if (expanded) {
+                        "Ajuste disciplina, nivel, sistema de ensino e local quando quiser refinar os resultados."
+                    } else {
+                        collapsedFiltersSummary(uiState)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        )
-        OutlinedTextField(
-            value = uiState.filters.cidade,
-            onValueChange = onCidadeChange,
-            label = { Text("Cidade") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-        OutlinedTextField(
-            value = uiState.filters.bairro,
-            onValueChange = onBairroChange,
-            label = { Text("Bairro") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(
-                value = uiState.filters.minAnoPublicacao,
-                onValueChange = onMinAnoPublicacaoChange,
-                label = { Text("Publicacao de") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            OutlinedTextField(
-                value = uiState.filters.maxAnoPublicacao,
-                onValueChange = onMaxAnoPublicacaoChange,
-                label = { Text("Publicacao ate") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(
-                onClick = onSearch,
-                enabled = !isLoading,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Buscar")
-            }
-            OutlinedButton(
-                onClick = onReset,
-                enabled = !isLoading,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Resetar")
+            IconButton(onClick = { expanded = !expanded }) {
+                Icon(
+                    imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                    contentDescription = if (expanded) "Minimizar filtros" else "Expandir filtros"
+                )
             }
         }
+
+        AnimatedVisibility(visible = expanded) {
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier.animateContentSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = uiState.filters.query,
+                    onValueChange = onQueryChange,
+                    label = { Text("Buscar por titulo, descricao, autor ou local") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                DropdownField(
+                    label = "Disciplina",
+                    selectedOption = uiState.filters.disciplina,
+                    options = Disciplina.entries,
+                    allLabel = "Qualquer disciplina",
+                    optionLabel = { it.label },
+                    onSelected = onDisciplinaChange
+                )
+                DropdownField(
+                    label = "Nivel de ensino",
+                    selectedOption = uiState.filters.nivelEnsino,
+                    options = NivelEnsino.entries,
+                    allLabel = "Todos",
+                    optionLabel = { it.label },
+                    onSelected = onNivelEnsinoChange
+                )
+                DropdownField(
+                    label = "Sistema de ensino",
+                    selectedOption = uiState.filters.sistemaEnsino,
+                    options = SistemaEnsino.entries,
+                    allLabel = "Todos",
+                    optionLabel = { it.label },
+                    onSelected = onSistemaEnsinoChange
+                )
+                OutlinedTextField(
+                    value = uiState.filters.ano,
+                    onValueChange = onAnoChange,
+                    label = { Text("Ano escolar") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = uiState.filters.nivelEnsino != NivelEnsino.SUPERIOR,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    supportingText = {
+                        Text(
+                            when (uiState.filters.nivelEnsino) {
+                                NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino medio."
+                                NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                                else -> "Use um valor de 1 a 9."
+                            }
+                        )
+                    }
+                )
+                OutlinedTextField(
+                    value = uiState.filters.cidade,
+                    onValueChange = onCidadeChange,
+                    label = { Text("Cidade") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    supportingText = {
+                        Text("Opcional. A busca normaliza a cidade informada antes de filtrar.")
+                    }
+                )
+                OutlinedTextField(
+                    value = uiState.filters.bairro,
+                    onValueChange = onBairroChange,
+                    label = { Text("Bairro") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = uiState.filters.minAnoPublicacao,
+                        onValueChange = onMinAnoPublicacaoChange,
+                        label = { Text("Publicacao de") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                    OutlinedTextField(
+                        value = uiState.filters.maxAnoPublicacao,
+                        onValueChange = onMaxAnoPublicacaoChange,
+                        label = { Text("Publicacao ate") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(
+                        onClick = onSearch,
+                        enabled = !isLoading,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Buscar")
+                    }
+                    OutlinedButton(
+                        onClick = onReset,
+                        enabled = !isLoading,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Resetar")
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun collapsedFiltersSummary(uiState: DiscoveryUiState): String {
+    val activeFilters = buildList {
+        uiState.filters.query.takeIf { it.isNotBlank() }?.let { add("texto") }
+        uiState.filters.disciplina?.let { add(it.label) }
+        uiState.filters.nivelEnsino?.let { add(it.label) }
+        uiState.filters.sistemaEnsino?.let { add(it.label) }
+        uiState.filters.cidade.takeIf { it.isNotBlank() }?.let { add(it) }
+        uiState.filters.bairro.takeIf { it.isNotBlank() }?.let { add(it) }
+    }
+
+    return if (activeFilters.isEmpty()) {
+        "Filtros recolhidos. Toque para expandir quando quiser refinar a busca."
+    } else {
+        "Filtros recolhidos com ${activeFilters.size} criterio(s) ativo(s): ${activeFilters.joinToString(", ")}."
     }
 }
 
