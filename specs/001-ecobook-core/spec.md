@@ -38,7 +38,7 @@ EcoBook IA is an AI-powered material donation matching platform designed to prom
 
 ### Session 2026-05-05
 
-- Q: What city options should the onboarding/profile flow prioritize for MVP geography input? → A: The frontend should prioritize a curated list of Santa Catarina cities in the city autocomplete so the initial product feels local and reduces typo-driven mismatch.
+- Q: What city behavior should the onboarding/profile flow use for geography input in the current runtime? → A: City and neighborhood are free-text fields in the client; the backend normalizes the values before persisting and matching, without restricting the user to a curated catalog.
 - Q: Is AI consent required during profile completion? → A: No. `consentimento_ia` remains optional during onboarding, defaults to false, and can be granted or revoked later from profile/settings without affecting `perfil_completo`.
 - Q: How should the Buscar result blocks behave in the final UX? → A: Each result should render as a tappable card; if the image is missing or unavailable, show a neutral placeholder; tapping the card opens a dismissible detail dialog/modal with an explicit close action.
 - Q: Must the Doar image flow support only camera capture? → A: No. The product should support both camera capture and gallery selection, and the UI copy should communicate both options clearly.
@@ -198,7 +198,7 @@ The system normalizes geographic data (cities, neighborhoods) to ensure consiste
 - **RF-002**: System MUST enforce profile completeness before allowing material operations; endpoint GET /usuarios/me returns `perfil_completo: boolean`
 - **RF-003**: System MUST normalize geographic data: uppercase letters, remove accents (NFD + ASCII), trim whitespace; e.g., "são joão" → "SAO JOAO"
 - **RF-004**: System MUST track `consentimento_ia: boolean` per user to control Gemini API calls
-- **RF-004a**: Frontend city selection during onboarding/profile editing MUST prioritize a curated list of Santa Catarina cities for MVP autocomplete, while backend storage remains normalized text
+- **RF-004a**: Frontend city and neighborhood inputs during onboarding/profile editing MUST accept free-text values, while backend storage remains normalized text
 - **RF-004b**: `consentimento_ia` MUST default to false, MUST NOT block `perfil_completo`, and MUST remain editable later from profile/settings
 
 #### Material Management & Lifecycle
@@ -761,7 +761,7 @@ All error responses follow this structure:
   - Set `perfil_completo = true` if all required fields present
   - `consentimento_ia` controls Gemini API usage
   - `consentimento_ia` is optional for onboarding completion and can be enabled later from profile/settings without requiring the user to recreate the profile
-  - Frontend UX should prioritize a curated Santa Catarina city list for city selection, while the API continues accepting normalized text
+  - Frontend UX should accept free-text city and neighborhood values, while the API normalizes them before persistence and matching
 
 #### GET /usuarios/me
 - **Method**: GET

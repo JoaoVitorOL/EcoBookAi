@@ -276,7 +276,7 @@ Authorization: Bearer <jwt_token>
 - Geographic normalization happens on save
 - `consentimento_ia` controls whether Gemini can be called for AI classification
 - `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this endpoint or the dedicated consent endpoint below
-- The frontend should prioritize a curated Santa Catarina city list for suggestions, but the API still accepts normalized text values
+- The frontend should use free-text city and neighborhood inputs; the API normalizes the values before persisting and using them for matching
 
 ---
 

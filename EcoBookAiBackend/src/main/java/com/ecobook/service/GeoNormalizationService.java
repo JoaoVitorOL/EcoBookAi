@@ -35,10 +35,6 @@ public class GeoNormalizationService {
         return new NormalizedGeo(normalize(city), normalize(neighborhood));
     }
 
-    public boolean isSupportedSouthernCity(String normalizedCity) {
-        return normalizedCity != null && SupportedSouthernCities.NORMALIZED.contains(normalizedCity);
-    }
-
     public record NormalizedGeo(String city, String neighborhood) {
     }
 }

@@ -293,9 +293,9 @@ Phase 10: Polish & Integration
   - Handle success: Navigate to MainScreen
   - Handle 400/422 errors: Show field-specific error messages
   - Handle 403: Show "Profile already complete" message, navigate to MainScreen
-- [x] **T075** [P] [US1] Create City autocomplete in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/CityAutocomplete.kt`:
-  - Prioritize a curated list of Santa Catarina cities for MVP autocomplete (future expansion can fetch broader coverage from backend)
-  - Filter on user input, display dropdown suggestions
+- [x] **T075** [P] [US1] Deliver free-text city input in the onboarding/profile runtime:
+  - Accept manual city entry in the Android form and let the backend normalize before persistence
+  - Remove the old curated-city autocomplete dependency from the active flow
 - [x] **T076** [P] [US1] Add WhatsApp formatter in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/WhatsAppFormatter.kt`:
   - User types: "11991234567" → automatically format to "+5511991234567"
   - Prevent typing invalid characters (only digits and +)

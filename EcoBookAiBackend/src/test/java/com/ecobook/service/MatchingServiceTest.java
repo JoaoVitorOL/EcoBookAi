@@ -45,7 +45,6 @@ class MatchingServiceTest extends BaseIntegrationTest {
         Usuario campinasDonor = createUser("campinas-donor@example.com", "CAMPINAS", "CAMBUCI");
 
         createMaterial(centroDonor, "Anglo 2020", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 5, SistemaEnsino.ANGLO, "SAO PAULO", "CENTRO", 2020);
-        createMaterial(centroDonor, "Outro 2024", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "SAO PAULO", "CENTRO", 2024);
         createMaterial(liberdadeDonor, "Anglo 2023", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 4, SistemaEnsino.ANGLO, "SAO PAULO", "LIBERDADE", 2023);
         createMaterial(campinasDonor, "Anglo 2025", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 5, SistemaEnsino.ANGLO, "CAMPINAS", "CAMBUCI", 2025);
         createMaterial(centroDonor, "Positivo excluido", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 5, SistemaEnsino.POSITIVO, "SAO PAULO", "CENTRO", 2026);
@@ -63,9 +62,9 @@ class MatchingServiceTest extends BaseIntegrationTest {
                 PageRequest.of(0, 10)
         );
 
-        assertThat(response.getTotal()).isEqualTo(4);
+        assertThat(response.getTotal()).isEqualTo(3);
         assertThat(response.getResults()).extracting(MaterialDTO::getTitulo)
-                .containsExactly("Outro 2024", "Anglo 2020", "Anglo 2023", "Anglo 2025");
+                .containsExactly("Anglo 2020", "Anglo 2023", "Anglo 2025");
     }
 
     @Test
@@ -122,7 +121,7 @@ class MatchingServiceTest extends BaseIntegrationTest {
         assertThat(outroOnlyResponse.getResults()).extracting(MaterialDTO::getTitulo)
                 .containsExactly("Outro 2021");
 
-        PagedResponseDTO<MaterialDTO> angloWithOutroFallbackResponse = matchingService.findMatching(
+        PagedResponseDTO<MaterialDTO> angloExactMatchResponse = matchingService.findMatching(
                 SearchCriteriaDTO.builder()
                         .sistemaEnsino(SistemaEnsino.ANGLO)
                         .minAnoPublicacao(2018)
@@ -131,8 +130,8 @@ class MatchingServiceTest extends BaseIntegrationTest {
                 PageRequest.of(0, 10)
         );
 
-        assertThat(angloWithOutroFallbackResponse.getResults()).extracting(MaterialDTO::getTitulo)
-                .containsExactly("Anglo 2019", "Outro 2018");
+        assertThat(angloExactMatchResponse.getResults()).extracting(MaterialDTO::getTitulo)
+                .containsExactly("Anglo 2019");
     }
 
     @Test

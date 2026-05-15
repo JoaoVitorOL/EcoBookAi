@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
@@ -31,6 +32,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ecobook.model.DonationStep
 import com.ecobook.model.MaterialHighlight
@@ -214,7 +217,11 @@ fun MetricCard(
 fun FilterChipCard(
     label: String,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    minLines: Int = 1,
+    maxLines: Int = 1,
+    textAlign: TextAlign = TextAlign.Start
 ) {
     val background = if (selected) {
         MaterialTheme.colorScheme.primary
@@ -228,16 +235,23 @@ fun FilterChipCard(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(999.dp))
             .background(background)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             color = contentColor,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = textAlign,
+            minLines = minLines,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

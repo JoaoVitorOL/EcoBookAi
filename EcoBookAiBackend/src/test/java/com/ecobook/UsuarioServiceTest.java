@@ -176,12 +176,12 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("PUT /api/v1/usuarios/me should reject cities outside the southern Brazil coverage")
-    void shouldRejectUnsupportedCity() throws Exception {
+    @DisplayName("PUT /api/v1/usuarios/me should accept free-text cities and normalize them before saving")
+    void shouldAcceptFreeTextCityAndNormalizeIt() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
-                .email("unsupported-city@example.com")
+                .email("free-text-city@example.com")
                 .passwordHash(SEEDED_PASSWORD_HASH)
-                .nome("Unsupported City User")
+                .nome("Free Text City User")
                 .perfilCompleto(false)
                 .role(Role.USER)
                 .build()));
@@ -191,14 +191,15 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {
-                                  "nome": "Unsupported City User",
+                                  "nome": "Free Text City User",
                                   "whatsapp": "+5511991234567",
-                                  "cidade": "Sao Paulo",
-                                  "bairro": "Centro"
+                                  "cidade": " Ribeirão Preto ",
+                                  "bairro": " Jardim Botanico "
                                 }
                                 """))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.field_errors.cidade").value("Use uma cidade atendida em SC, PR ou RS."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.cidade").value("RIBEIRAO PRETO"))
+                .andExpect(jsonPath("$.data.bairro").value("JARDIM BOTANICO"));
     }
 
     private String tokenFor(Usuario usuario) {

@@ -135,11 +135,7 @@ public class MatchingService {
         if (criteria.getSistemaEnsino() == null) {
             return true;
         }
-        if (criteria.getSistemaEnsino() == com.ecobook.model.enums.SistemaEnsino.OUTRO) {
-            return material.getSistemaEnsino() == com.ecobook.model.enums.SistemaEnsino.OUTRO;
-        }
-        return material.getSistemaEnsino() == criteria.getSistemaEnsino()
-                || material.getSistemaEnsino() == com.ecobook.model.enums.SistemaEnsino.OUTRO;
+        return material.getSistemaEnsino() == criteria.getSistemaEnsino();
     }
 
     private boolean matchesPublicationYear(Material material, SearchCriteriaDTO criteria) {

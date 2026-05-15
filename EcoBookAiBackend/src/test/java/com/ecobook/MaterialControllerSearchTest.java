@@ -159,6 +159,36 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.data.results[0].titulo").value("Colecao 2012"));
     }
 
+    @Test
+    @DisplayName("GET /api/v1/materiais should require an exact sistema_ensino match")
+    void shouldRequireExactSystemMatch() throws Exception {
+        Usuario requester = createUser("system-search@example.com", "CURITIBA", "CENTRO");
+        Usuario donor = createUser("system-donor@example.com", "CURITIBA", "CENTRO");
+
+        createMaterial(donor, "Anglo Exato", 2020);
+        materialRepository.saveAndFlush(Material.builder()
+                .doador(donor)
+                .titulo("Outro Excluido")
+                .descricao("Descricao de descoberta para Outro Excluido")
+                .disciplina(Disciplina.MATEMATICA)
+                .nivelEnsino(NivelEnsino.FUNDAMENTAL)
+                .ano(7)
+                .sistemaEnsino(SistemaEnsino.OUTRO)
+                .estadoConservacao(EstadoConservacao.BOM)
+                .status(StatusMaterial.DISPONIVEL)
+                .cidade(donor.getCidade())
+                .bairro(donor.getBairro())
+                .dataPublicacao(2021)
+                .build());
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("sistema_ensino", "ANGLO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.total").value(1))
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Anglo Exato"));
+    }
+
     private Usuario createUser(String email, String cidade, String bairro) {
         return usuarioRepository.saveAndFlush(Usuario.builder()
                 .email(email)

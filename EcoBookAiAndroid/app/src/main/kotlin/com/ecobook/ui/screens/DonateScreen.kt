@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -285,23 +285,35 @@ private fun DonateModeSwitchCard(
 ) {
     GlassCard {
         Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             FilterChipCard(
                 label = "Meus materiais",
                 selected = selectedMode == DonateMode.HISTORY,
-                onClick = onShowHistory
+                onClick = onShowHistory,
+                modifier = Modifier.weight(1f),
+                minLines = 2,
+                maxLines = 2,
+                textAlign = TextAlign.Center
             )
             FilterChipCard(
                 label = "Pedidos recebidos",
                 selected = false,
-                onClick = onOpenDonorRequests
+                onClick = onOpenDonorRequests,
+                modifier = Modifier.weight(1f),
+                minLines = 2,
+                maxLines = 2,
+                textAlign = TextAlign.Center
             )
             FilterChipCard(
                 label = "Publicar novo",
                 selected = selectedMode == DonateMode.PUBLISH,
-                onClick = onShowPublish
+                onClick = onShowPublish,
+                modifier = Modifier.weight(1f),
+                minLines = 2,
+                maxLines = 2,
+                textAlign = TextAlign.Center
             )
         }
     }
