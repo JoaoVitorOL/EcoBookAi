@@ -507,6 +507,7 @@ Represents a student's expressed learning requirements for discovery.
 
 ```json
 {
+  "upload_id": "temp-upload-uuid-abc123def",
   "titulo": "Livro de Matemática 7º Ano",
   "autor": "Autor Exemplo",
   "editora": "Editora Exemplo",
@@ -516,25 +517,28 @@ Represents a student's expressed learning requirements for discovery.
   "ano": 7,
   "sistema_ensino": "ANGLO",
   "estado_conservacao": "BOM",
+  "data_publicacao": 2010,
   "cidade": "Florianópolis",
-  "bairro": "Centro",
-  "imagem": "<base64-or-multipart-file>"
 }
 ```
 
 **Backend Processing**:
-1. Parse/validate multipart form
-2. Save image temporarily
-3. Call POST /materiais/preview (internal or separate endpoint)
-4. Merge preview results into request
-5. Validate all enums
-6. Persist Material with status = DISPONIVEL
-7. Promote temporary image to permanent storage
-8. Return HTTP 201 Created with full Material entity
+1. Validate JSON payload plus `upload_id`
+2. Load the staged upload created by `POST /materiais/preview`
+3. Validate donor ownership, expiration and enum/year rules
+4. Promote temporary image(s) to permanent storage
+5. Persist Material with status = DISPONIVEL
+6. Return HTTP 201 Created with full Material entity
+
+**Current runtime note**:
+- `cidade`, `bairro`, and direct image fields in the JSON sketch above are legacy planning remnants
+- current runtime derives `cidade` and `bairro` from the authenticated donor profile
+- image binaries are uploaded only in `POST /materiais/preview`; `POST /materiais` receives metadata plus `upload_id`
+- the legacy `imagem` field shown in the JSON sketch above is no longer part of the current runtime request body
 
 ---
 
-### 3. Material Response (GET /materiais/{id} - Backend Response)
+### 3. Material Runtime Response (GET /materiais or GET /materiais/me)
 
 ```json
 {
@@ -775,17 +779,19 @@ All error responses follow this structure:
 ### 2. Material Management
 
 #### POST /materiais
-- **Method**: POST (multipart/form-data)
+- **Method**: POST (application/json)
 - **RFC**: RF-005 through RF-010, RF-039
-- **Description**: Create new material with image upload
+- **Description**: Create new material from a previously staged `upload_id`
 - **Request**: Material data + image file (JPEG/PNG, ≤ 5MB)
 - **Response**: Material entity with `status = DISPONIVEL` and `upload_id` (HTTP 201)
+- **Current runtime request**: JSON metadata plus the staged `upload_id` returned by `POST /materiais/preview`
 - **Rules**:
   - User must have `perfil_completo = true` (HTTP 403 if false)
-  - Validate MIME type (JPEG/PNG only; HTTP 400 if not)
   - Validate all enums (HTTP 400 if invalid)
-  - Normalize cidade/bairro
-  - Save image temporarily, call Gemini, merge results, persist, promote image
+  - `ano` must be `1..9` for `FUNDAMENTAL`, `1..3` for `MEDIO`, and omitted for `SUPERIOR`
+  - Donor location is inherited from the authenticated profile
+  - `upload_id` must come from `POST /materiais/preview`, belong to the authenticated donor, and still exist in temporary storage
+  - Backend promotes the staged image(s) and persists the final material
 - **HTTP Codes**: 201 Created, 400 Bad Request, 403 Forbidden, 500 Internal Server Error
 
 #### POST /materiais/preview
@@ -805,10 +811,10 @@ All error responses follow this structure:
 - **Method**: GET
 - **RFC**: RF-022 through RF-025, RF-044
 - **Description**: Search available materials with matching algorithm
-- **Query Params**: `disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, min_ano_publicacao (optional), max_ano_publicacao (optional), page, limit`
+- **Query Params**: `disciplina, nivel_ensino, ano, sistema_ensino, cidade, bairro, min_ano_publicacao (optional), max_ano_publicacao (optional), page, size`
 - **Response**: Paginated array of Material entities (HTTP 200)
 - **Rules**:
-  - Filter by: status=DISPONIVEL, disciplina (exact), nivel_ensino (exact), school year (ano: 1-12), sistema_ensino (exact), city/neighborhood
+  - Filter by: status=DISPONIVEL, disciplina (exact), nivel_ensino (exact), school year (`ano`: `1..9` for FUNDAMENTAL, `1..3` for MEDIO), sistema_ensino (exact), city/neighborhood
   - Optional publication date range filter (min_ano_publicacao, max_ano_publicacao): if both provided, must satisfy min <= max and both in [1900, 2100]
   - Sort by: same bairro > same cidade > data_publicacao DESC (newest publication first) > id
   - SUPERIOR ignores school year filter (ano)
@@ -817,12 +823,12 @@ All error responses follow this structure:
   - If min or max outside [1900, 2100]: HTTP 400 Bad Request
 - **HTTP Codes**: 200 OK, 400 Bad Request (invalid enum, invalid publication range), 403 Forbidden (profile incomplete)
 
-#### GET /materiais/{id}
-- **Method**: GET
-- **RFC**: RF-008
-- **Description**: Get single material details
-- **Response**: Material entity with doador info (HTTP 200)
-- **HTTP Codes**: 200 OK, 404 Not Found
+#### Runtime Note - GET /materiais/{id}
+
+The current runtime does not expose a dedicated `GET /materiais/{id}` endpoint.
+
+- Material details used by the Android runtime are carried in `GET /materiais` and `GET /materiais/me`
+- Any future single-item endpoint should mirror the same `MaterialDTO` payload shape
 
 #### Runtime Note - Current Material Write Endpoints
 

@@ -27,12 +27,17 @@ fun StudentRequestCard(
     request: SolicitacaoDTO,
     isWorking: Boolean,
     onCancel: () -> Unit,
-    onContactDonor: () -> Unit
+    onContactDonor: () -> Unit,
+    onReportNonReceipt: (() -> Unit)? = null,
+    hasReportedNonReceipt: Boolean = false
 ) {
     val material = request.material
     val statusColors = requestStatusColors(request.status)
     val canCancel = request.status == "PENDENTE" || request.status == "APROVADA"
     val canContact = request.status == "APROVADA" && !request.contatoDoador.isNullOrEmpty()
+    val canReportNonReceipt = request.status == "CONCLUIDA" &&
+        material?.status == "DOADO" &&
+        onReportNonReceipt != null
 
     GlassCard {
         Row(
@@ -114,24 +119,44 @@ fun StudentRequestCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                if (canCancel || canContact) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        if (canContact) {
-                            Button(
-                                onClick = onContactDonor,
-                                enabled = !isWorking,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Falar com doador")
+                if (canCancel || canContact || canReportNonReceipt || hasReportedNonReceipt) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        if (canCancel || canContact) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                if (canContact) {
+                                    Button(
+                                        onClick = onContactDonor,
+                                        enabled = !isWorking,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Falar com doador")
+                                    }
+                                }
+                                if (canCancel) {
+                                    OutlinedButton(
+                                        onClick = onCancel,
+                                        enabled = !isWorking,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(if (isWorking) "Atualizando..." else "Cancelar")
+                                    }
+                                }
                             }
                         }
-                        if (canCancel) {
+
+                        if (canReportNonReceipt || hasReportedNonReceipt) {
                             OutlinedButton(
-                                onClick = onCancel,
-                                enabled = !isWorking,
-                                modifier = Modifier.weight(1f)
+                                onClick = { onReportNonReceipt?.invoke() },
+                                enabled = !isWorking && !hasReportedNonReceipt,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(if (isWorking) "Atualizando..." else "Cancelar")
+                                Text(
+                                    when {
+                                        hasReportedNonReceipt -> "Reporte enviado"
+                                        isWorking -> "Enviando reporte..."
+                                        else -> "Reportar nao recebimento"
+                                    }
+                                )
                             }
                         }
                     }

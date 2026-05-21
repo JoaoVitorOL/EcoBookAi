@@ -20,6 +20,9 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, UUID> 
     List<Solicitacao> findByEstudanteId(UUID estudanteId);
     List<Solicitacao> findByStatus(StatusSolicitacao status);
     Optional<Solicitacao> findByMaterialIdAndEstudanteId(UUID materialId, UUID estudanteId);
+    Optional<Solicitacao> findFirstByMaterialIdAndEstudanteIdAndStatusOrderByCriadoEmDesc(UUID materialId,
+                                                                                           UUID estudanteId,
+                                                                                           StatusSolicitacao status);
     List<Solicitacao> findByStatusAndExpiresAtIsNotNull(StatusSolicitacao status);
     List<Solicitacao> findByMaterialIdAndStatus(UUID materialId, StatusSolicitacao status);
     List<Solicitacao> findByStatusAndExpiresAtBefore(StatusSolicitacao status, LocalDateTime expiresAt);

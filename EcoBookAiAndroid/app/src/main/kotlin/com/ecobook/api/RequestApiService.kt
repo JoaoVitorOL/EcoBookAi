@@ -1,8 +1,11 @@
 package com.ecobook.api
 
 import com.ecobook.dto.ApiEnvelopeDTO
+import com.ecobook.dto.CreateNonReceiptReportRequestDTO
+import com.ecobook.dto.MaterialNonReceiptReportDTO
 import com.ecobook.dto.SolicitacaoDTO
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -51,4 +54,10 @@ interface RequestApiService {
     suspend fun completeDonation(
         @Path("id") id: String
     ): Response<ApiEnvelopeDTO<SolicitacaoDTO>>
+
+    @POST("v1/materiais/{materialId}/nao-recebido")
+    suspend fun reportNonReceipt(
+        @Path("materialId") materialId: String,
+        @Body request: CreateNonReceiptReportRequestDTO
+    ): Response<ApiEnvelopeDTO<MaterialNonReceiptReportDTO>>
 }

@@ -2,31 +2,49 @@
 
 Backend Spring Boot do EcoBook AI.
 
-## Stack
+## O Que Este Modulo Entrega
 
-- Java 21+
-- Spring Boot 3.2
-- PostgreSQL
-- Flyway
-- Spring Security + JWT
-- Auth local por email e senha com hash forte no servidor
-
-## O que existe hoje
-
-- Auth local com `email + senha + JWT`, hashing forte no servidor e endpoints de perfil do usuario
-- Fluxo de materiais com `preview`, `create`, `search`, `list me`, `update` e `delete`, incluindo capa frontal obrigatoria e capa traseira opcional no cadastro
-- Fluxo de solicitacoes com `create`, `list minhas`, `list pendentes`, `list aprovadas`, `approve`, `decline`, `cancel` e `complete`
-- Expiracao automatica de reservas aprovadas
-- Registro de token FCM em `POST /api/v1/fcm/tokens`, disparo de notificacoes pos-commit com payload de navegacao para Android e fila persistida de retry para falhas transientes quando o Firebase estiver configurado
-- Contratos de runtime atualizados em `specs/001-ecobook-core/contracts/`
+- Autenticacao com `email + senha + JWT`
+- Perfil do usuario com onboarding e `perfil_completo`
+- Preview IA de material com capa frontal obrigatoria e capa traseira opcional
+- Publicacao, listagem, edicao e exclusao de materiais do doador
+- Discovery com filtros, ranking geografico e paginacao
+- Fluxo de solicitacoes com aprovar, recusar, cancelar, concluir e expiracao automatica
+- Registro de token FCM, retry persistente e inbox de notificacoes
 
 ## Requisitos
 
-- Java 21+
-- Maven 3.9+ instalado no sistema
-- Docker Desktop opcional, mas recomendado para o PostgreSQL
+- Java 21
+- Maven 3.9+
+- Docker Desktop opcional
 
-## Banco de dados
+## Modos De Execucao
+
+### Perfil `local` (recomendado para primeiro boot)
+
+Usa H2 em arquivo, nao depende de Docker e sobe com `Gemini` em modo mock.
+
+```bash
+cd EcoBookAiBackend
+mvn -q -DskipTests compile
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+No Windows PowerShell, use esta forma para evitar o parsing errado do `-D...`:
+
+```powershell
+$env:JAVA_HOME = 'C:\caminho\para\jdk-21-ou-superior'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Valide:
+
+```bash
+curl http://127.0.0.1:8080/api/v1/health
+```
+
+### Perfil default (`PostgreSQL + Flyway`)
 
 Na raiz do repositorio:
 
@@ -34,163 +52,105 @@ Na raiz do repositorio:
 docker compose up -d postgres
 ```
 
-## Como rodar
+Depois:
 
-Na pasta `EcoBookAiBackend`:
-
-```powershell
+```bash
+cd EcoBookAiBackend
 mvn spring-boot:run
 ```
 
-Para testes com o emulador Android usando `http://10.0.2.2:8080/api`, prefira iniciar o backend no host Windows. Quando o Spring Boot roda dentro do WSL, o relay de localhost pode ficar visivel apenas em `::1`, e o emulador passa a enxergar o servidor como indisponivel.
+Esse perfil espera:
 
-## Como validar a saude
+- banco em `jdbc:postgresql://localhost:5432/ecobook`
+- usuario `ecobook`
+- senha vinda de `DB_PASSWORD` ou default `dev_password_123`
 
-Com o backend rodando:
+Use esse modo quando o processo do backend realmente consegue alcancar o mesmo `localhost:5432` onde o PostgreSQL esta exposto. Se voce estiver no WSL e o banco estiver publicado em outro host/rede, ajuste `SPRING_DATASOURCE_URL` para um endereco alcancavel pelo backend.
 
-```text
-http://localhost:8080/api/v1/health
-```
-
-Se voce quiser confirmar que o backend tambem esta acessivel por IPv4 para o emulador, valide:
-
-```text
-http://127.0.0.1:8080/api/v1/health
-```
-
-## Variaveis importantes
+## Variaveis Importantes
 
 - `DB_PASSWORD`
 - `JWT_SECRET`
 - `SERVER_PORT`
 - `GEMINI_API_KEY`
 - `FIREBASE_SERVICE_ACCOUNT_PATH`
-- `FIREBASE_DATABASE_URL` (opcional)
+- `FIREBASE_DATABASE_URL`
+- `STORAGE_UPLOAD_DIR`
 
-## Fonte de verdade dos endpoints
+## Smoke Test Validado
 
-Para o shape atual das respostas e dos endpoints entregues, use estes contratos:
+O fluxo abaixo foi revalidado no perfil `local` em `2026-05-21`:
 
-- `specs/001-ecobook-core/contracts/user-api.md`
-- `specs/001-ecobook-core/contracts/material-api.md`
-- `specs/001-ecobook-core/contracts/solicitacao-api.md`
+1. `POST /api/v1/auth/register`
+2. `GET /api/v1/usuarios/me`
+3. `PUT /api/v1/usuarios/me`
+4. `GET /api/v1/materiais?page=0&size=5`
+5. `POST /api/v1/auth/login`
 
-## Firebase para push real
+Exemplo de cadastro:
 
-O backend so envia push real quando existe um JSON valido da conta de servico do Firebase Admin SDK.
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "teste@example.com",
+    "password": "SenhaSegura123",
+    "nome": "Usuario Teste"
+  }'
+```
 
-O app Android deste repositorio esta ligado ao projeto Firebase `ecobook-148f2` via `EcoBookAiAndroid/app/google-services.json`. Gere a chave de service account nesse mesmo projeto.
+Se voce repetir esse smoke test no mesmo banco local, troque o email do exemplo ou limpe os arquivos `EcoBookAiBackend/data/ecobook-local*`.
 
-Passo a passo:
+Exemplo de onboarding:
 
-1. Abra o Firebase Console no projeto `ecobook-148f2`.
-2. Va em `Project settings` > `Service accounts`.
-3. Clique em `Generate new private key`.
-4. Salve o JSON com seguranca. Uma opcao local segura para este repo e `EcoBookAiBackend/credentials/ecobook-adminsdk.json`.
+```bash
+curl -X PUT http://127.0.0.1:8080/api/v1/usuarios/me \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Usuario Teste",
+    "whatsapp": "+5511999999999",
+    "cidade": "Florianopolis",
+    "bairro": "Centro",
+    "consentimento_ia": true,
+    "necessidades_academicas": ["TEXTBOOKS", "WORKBOOKS"]
+  }'
+```
 
-O backend aceita duas variaveis de ambiente:
+## Firebase Para Push Real
+
+O backend so envia push real quando existe uma credencial valida do Firebase Admin SDK.
+
+Opcoes aceitas:
 
 - `FIREBASE_SERVICE_ACCOUNT_PATH`
-- `GOOGLE_APPLICATION_CREDENTIALS` (fallback alinhado ao padrao oficial do Firebase Admin SDK)
+- `GOOGLE_APPLICATION_CREDENTIALS`
 
-Sem essa configuracao, a Fase 6 continua compilada e o app ainda registra token/local inbox/deep link, mas o envio backend fica dormente. Agora, quando isso acontecer, o servidor tambem registra a tentativa na fila persistida de retry com motivo explicito.
-
-### Subir com PowerShell
+Script PowerShell:
 
 ```powershell
+cd ..
 .\scripts\Run-BackendWithFirebase.ps1 -ServiceAccountPath .\EcoBookAiBackend\credentials\ecobook-adminsdk.json
 ```
 
-### Subir com WSL
+Script WSL:
 
 ```bash
+cd ..
 chmod +x ./scripts/run-backend-with-firebase.sh
-./scripts/run-backend-with-firebase.sh /mnt/c/Users/jvol2/OneDrive/Area\ de\ Trabalho/projIntegrador/EcoBookAi/EcoBookAiBackend/credentials/ecobook-adminsdk.json
+./scripts/run-backend-with-firebase.sh /mnt/c/caminho/ecobook-adminsdk.json
 ```
 
-### Sem script
+Sem essa configuracao, o app continua usando inbox local e a fila persistida de tentativas, mas o envio real fica dormente.
 
-Windows:
+## Contratos E Fontes De Verdade
 
-```powershell
-$env:FIREBASE_SERVICE_ACCOUNT_PATH="C:\caminho\firebase-adminsdk.json"
-$env:GOOGLE_APPLICATION_CREDENTIALS=$env:FIREBASE_SERVICE_ACCOUNT_PATH
-mvn spring-boot:run
-```
+- Contratos HTTP: `specs/001-ecobook-core/contracts/`
+- Migrations: `src/main/resources/db/migration/`
+- Perfil local H2: `src/main/resources/application-local.yml`
 
-WSL:
+## Troubleshooting
 
-```bash
-export FIREBASE_SERVICE_ACCOUNT_PATH="/mnt/c/caminho/firebase-adminsdk.json"
-export GOOGLE_APPLICATION_CREDENTIALS="$FIREBASE_SERVICE_ACCOUNT_PATH"
-mvn spring-boot:run
-```
-
-Importante:
-
-- reinicie o backend depois de definir a variavel
-- `google-services.json` do Android nao substitui a credencial Admin SDK do servidor
-- nao versione o JSON; a pasta `EcoBookAiBackend/credentials/` foi preparada para uso local e o `.gitignore` ja ignora `*.json`
-
-## Flyway via Maven
-
-O `pom.xml` agora deixa `flyway:info`, `flyway:validate` e `flyway:repair` apontando por padrao para o banco local de desenvolvimento:
-
-- URL: `jdbc:postgresql://localhost:5432/ecobook`
-- Usuario: `ecobook`
-- Senha default local: `dev_password_123`
-
-Exemplos:
-
-```bash
-mvn flyway:info
-mvn flyway:repair
-```
-
-Se o seu ambiente usar outra credencial, voce pode sobrescrever na linha de comando:
-
-```bash
-mvn -Dflyway.password=sua_senha flyway:repair
-```
-
-## Gemini no ambiente local
-
-O backend so habilita a classificacao assistida quando `GEMINI_API_KEY` existe no processo que inicia o Spring Boot.
-
-Se voce rodar no Windows host:
-
-```powershell
-$env:GEMINI_API_KEY="sua-chave"
-mvn spring-boot:run
-```
-
-Se voce rodar no WSL:
-
-```bash
-export GEMINI_API_KEY="sua-chave"
-mvn spring-boot:run
-```
-
-Importante:
-
-- definir `GEMINI_API_KEY=...` sem `export` no shell do WSL nao basta; o Maven e o Spring nao herdam essa variavel
-- uma chave configurada no WSL nao aparece automaticamente no `PowerShell` do Windows
-- o modelo padrao `gemini-2.5-flash` nao aceita `google_search` combinado com `responseMimeType=application/json` nesse fluxo; por isso o backend passa a desligar grounding automaticamente fora dos modelos `gemini-3*` para evitar `HTTP 400` da API
-
-## Regra atual de autenticacao
-
-- Cadastro e login usam `email + senha`.
-- A senha nunca deve ser salva em texto puro; o backend deve persistir apenas `password_hash`.
-- O backend emite JWT apos `register` e `login`.
-- O app deve limpar a sessao local ao receber `401`.
-
-## Observacao importante
-
-Neste ciclo, a suite do backend nao foi revalidada nesta maquina.
-
-Detalhe importante sobre a infraestrutura de teste atual:
-
-- a suite tenta usar Testcontainers PostgreSQL primeiro
-- se o Docker engine local estiver novo demais para a versao atual do cliente Testcontainers do projeto, o bootstrap cai automaticamente para um banco `ecobook_test` criado no PostgreSQL do `docker compose`
-- por isso, antes de `mvn test`, mantenha `docker compose up -d postgres` ativo na raiz do repositorio, ou configure explicitamente `ECOBOOK_TEST_DB_*`
-- se o Maven estiver rodando com Java 17 no host Windows, a suite atual pode falhar porque o backend esta alinhado com Java 21
+- `release version 21 not supported`: seu terminal esta usando Java 17 ou inferior; troque para Java 21.
+- Emulador nao alcanca o backend no WSL: descubra o IP do Linux com `wsl.exe -e bash -lc "hostname -I"` e use esse IP no app Android.
+- Push nao chega ao aparelho: confirme `FIREBASE_SERVICE_ACCOUNT_PATH` e teste em dispositivo/emulador com Google Play services.

@@ -6,7 +6,7 @@ spring:
     password:
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: com.ecobook.config.LocalH2Dialect
     hibernate:
       ddl-auto: update
     show-sql: false

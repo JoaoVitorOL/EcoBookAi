@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented  
-**Date**: 2026-05-14  
-**Status**: Phase 5 request workflow and Phase 6 notification workflow are implemented across backend and Android; the remaining closeout item is end-to-end Firebase validation on real-capable devices
+**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Module 7 Implemented / 8 Module 8 Started  
+**Date**: 2026-05-21  
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, and Phase 7 non-receipt reporting are implemented across backend and Android; admin moderation has now started with report listing/resolution endpoints while Firebase device validation and the remaining LGPD/hardening fronts stay pending
 
 ---
 
@@ -86,7 +86,7 @@ All planning now aligns with Constitution v2.0.0:
 | Component | Technology | Notes |
 |-----------|-----------|-------|
 | Frontend | Kotlin + Jetpack Compose | Android native only |
-| Backend | Spring Boot 3.x + Java 17+ | REST API + JWT issuance |
+| Backend | Spring Boot 3.x + Java 21 | REST API + JWT issuance |
 | Database | PostgreSQL 14+ | Stores profile and password hash |
 | Authentication | Email/password + JWT | No Google sign-in for MVP |
 | AI | Google Gemini 2.5 Flash | Unchanged |
@@ -146,6 +146,15 @@ What is already implemented in the repository:
    - backend now accepts FCM device tokens, dispatches notifications after commit, standardizes payloads and persists transient failures for hourly retry
    - Android now requests notification permission contextually, syncs the FCM token, handles deep links, persists a local notifications inbox, exposes an unread bell entry point inside the main screens instead of a dedicated bottom-nav tab, keeps foreground receipt inside the in-app inbox and lets the user mark notifications as read individually or in batch from the notifications center
 
+7. Phase 7 module 7 reporting runtime
+   - backend now exposes `POST /api/v1/materiais/{id}/nao-recebido`, persists `material_non_receipt_report` rows and emits a moderation-seed event after commit
+   - Android now lets the student report non-receipt directly from completed request cards in `MyRequestsScreen`, with optional reason text and duplicate-open-report feedback
+
+8. Phase 8 admin moderation kickoff
+   - backend now exposes `GET /api/v1/admin/reports` with optional status filtering and pagination for moderation triage
+   - backend now exposes `PATCH /api/v1/admin/reports/{id}/resolve` so an admin can close an `OPEN` report with optional resolution notes
+   - role enforcement for these moderation endpoints is active through `hasRole('ADMIN')`; real usage still depends on at least one seeded/admin-promoted account
+
 What closed Phase 3 formally:
 
 1. Backend automated coverage at the end of the Phase 3 closeout included preview/create material scenarios and passed with `57` tests via `mvn test` on Java 21, using a real PostgreSQL test database
@@ -169,6 +178,17 @@ What remains to close Phase 6 formally:
 1. Revalidate the implemented notification flow end to end with a real Firebase setup and updated execution notes
 2. Capture device-level evidence for foreground/background receipt on hardware or emulator with Google Play services
 3. Fold any Firebase-project-specific findings back into the local runbooks
+
+What opened Phase 7 concretely:
+
+1. Non-receipt reporting is no longer backlog-only; the persistence model, endpoint, Android action and a backend unit test now exist in runtime
+2. Admin resolution for those reports is still pending and remains the next natural backend/dashboard front
+
+Validation update on 2026-05-21:
+
+1. The backend local profile is now a reliable quickstart path again through `mvn spring-boot:run -Dspring-boot.run.profiles=local`, backed by H2-compatible enum domains and a dedicated `LocalH2Dialect`
+2. That path was revalidated with `health -> register -> get me -> onboarding -> search -> login`
+3. Android local validation was reconfirmed with `app:compileDebugKotlin` and `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
 ---
 
@@ -198,4 +218,4 @@ What is now accurate about readiness:
 
 ## Historical Note
 
-Some historical reports in the repository still mention Google OAuth2 because they describe an already-executed earlier direction. They are being kept as historical artifacts and are now explicitly marked as legacy where needed.
+Some historical reports in the repository still mention Google OAuth2 because they describe an already-executed earlier direction. They are being kept as historical artifacts and are explicitly marked as legacy where needed.

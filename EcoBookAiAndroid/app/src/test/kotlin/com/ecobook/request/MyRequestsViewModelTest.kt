@@ -1,6 +1,8 @@
 package com.ecobook.request
 
+import com.ecobook.data.ApiException
 import com.ecobook.data.RequestRepository
+import com.ecobook.dto.MaterialNonReceiptReportDTO
 import com.ecobook.dto.SolicitacaoDTO
 import com.ecobook.testutil.MainDispatcherRule
 import io.mockk.clearMocks
@@ -57,6 +59,56 @@ class MyRequestsViewModelTest {
         assertEquals("Solicitacao cancelada com sucesso.", state.toastMessage)
         assertNull(state.activeRequestId)
         assertTrue(state.errorMessage == null)
+    }
+
+    @Test
+    fun reportNonReceiptShouldTrackTheRequestAndExposeSuccessToast() = runTest {
+        val repository = mockk<RequestRepository>()
+        val request = sampleRequest("req-report", "CONCLUIDA")
+
+        coEvery { repository.listMyRequests(null) } returns listOf(request)
+        coEvery { repository.reportNonReceipt("material-req-report", "Nao chegou") } returns
+            MaterialNonReceiptReportDTO(
+                id = "report-1",
+                materialId = "material-req-report",
+                solicitacaoId = "req-report",
+                estudanteId = "student-req-report",
+                reason = "Nao chegou",
+                status = "OPEN"
+            )
+
+        val viewModel = MyRequestsViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.reportNonReceipt(request, "Nao chegou")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue("req-report" in state.reportedRequestIds)
+        assertEquals("Reporte enviado. A equipe vai revisar o caso.", state.toastMessage)
+        assertNull(state.activeRequestId)
+        coVerify(exactly = 1) { repository.reportNonReceipt("material-req-report", "Nao chegou") }
+    }
+
+    @Test
+    fun reportNonReceiptShouldKeepLocalReportedStateWhenBackendReturnsConflict() = runTest {
+        val repository = mockk<RequestRepository>()
+        val request = sampleRequest("req-duplicate", "CONCLUIDA")
+
+        coEvery { repository.listMyRequests(null) } returns listOf(request)
+        coEvery { repository.reportNonReceipt("material-req-duplicate", "Tentativa repetida") } throws
+            ApiException(409, "Ja existe um reporte aberto para esse material.")
+
+        val viewModel = MyRequestsViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.reportNonReceipt(request, "Tentativa repetida")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue("req-duplicate" in state.reportedRequestIds)
+        assertEquals("Ja existe um reporte aberto para esse material.", state.toastMessage)
+        assertNull(state.activeRequestId)
     }
 
     private fun sampleRequest(id: String, status: String): SolicitacaoDTO {

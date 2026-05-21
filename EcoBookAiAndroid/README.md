@@ -2,58 +2,31 @@
 
 Aplicativo Android nativo do EcoBook AI.
 
-## Stack
+## O Que O App Entrega Hoje
 
-- Kotlin
-- Jetpack Compose
-- Email/password + JWT
-- Hilt
-- Retrofit + OkHttp
-- Firebase Messaging
-
-## Diretriz obrigatoria para Android
-
-Este projeto deve seguir os padroes oficiais do Android em `developer.android.com`. Novas telas, navegacao, gerenciamento de estado, permissoes, notificacoes e testes devem usar as recomendacoes oficiais como base de implementacao.
-
-Referencias principais:
-
-- [Architecture recommendations](https://developer.android.com/topic/architecture/recommendations)
-- [Guide to app architecture](https://developer.android.com/topic/architecture)
-- [UI layer and state holders](https://developer.android.com/topic/architecture/ui-layer/stateholders)
-- [Navigation for Compose](https://developer.android.com/develop/ui/compose/navigation)
-- [Notification runtime permission](https://developer.android.com/develop/ui/views/notifications/notification-permission)
-
-## O que este app entrega agora
-
-- Navegacao com quatro areas principais: `Solicitacoes`, `Buscar`, `Doar` e `Perfil`, alem das rotas secundarias `Avisos` e `Pedidos recebidos`
-- Verificacao real do backend via `GET /api/v1/health`
-- Fluxo real de `login`, `cadastro`, `logout` e onboarding com `email + senha + JWT`
-- Fluxo real de doacao com galeria/camera, capa da frente obrigatoria, capa de tras opcional, `POST /materiais/preview`, revisao manual, `POST /materiais`, historico do doador com materiais disponiveis, reservados e doados, edicao e exclusao de materiais disponiveis
-- Tela `Buscar` conectada ao `GET /materiais` com filtros, paginacao, dialogo de detalhes e envio real de solicitacao
-- Tela `Minhas solicitacoes` com filtros, cancelamento e abertura de contato do doador apos aprovacao
-- Tela `Pedidos recebidos` para o doador aprovar, recusar, revogar aprovacao e concluir doacao
-- Sincronizacao de token FCM com o backend, prompt de permissao adiado ate a area principal do app, roteamento do toque da notificacao para as areas de solicitacoes, inbox local de avisos, sininho nas telas principais com variacao visual entre lido/nao lido e central de notificacoes com `Marcar como lida` individual e `Marcar todas como lidas` quando o Firebase estiver configurado
+- Login, cadastro, restauracao de sessao e logout com `JWT`
+- Onboarding com WhatsApp, cidade, bairro, instituicao, necessidades e consentimento de IA
+- Doacao com imagem frontal obrigatoria, imagem traseira opcional, preview IA e publicacao final
+- Busca de materiais com filtros, paginacao e dialogo de detalhes
+- `Minhas solicitacoes` para o estudante
+- `Pedidos recebidos` para o doador, incluindo aprovar, recusar, revogar e concluir
+- Inbox local de notificacoes, sininho de nao lidas e deep links para as areas corretas
 
 ## Requisitos
 
-- Java 17 ou Java 21 instalado
+- Java 17 ou Java 21
 - Android Studio
 - Android SDK Platform 34
 - Android Build-Tools
 - Platform-Tools
-- Emulator ou dispositivo fisico
+- Emulador ou dispositivo fisico
 
-## Configuracao inicial
+## Configuracao Inicial
 
-1. Instale o Android Studio.
-2. Abra o `SDK Manager` e instale:
-   - Android SDK Platform 34
-   - Android SDK Build-Tools
-   - Android SDK Platform-Tools
-   - Android Emulator
-3. Crie o arquivo `local.properties` na raiz de `EcoBookAiAndroid`.
-4. Use `local.properties.example` como base.
-5. Para ativar Firebase Cloud Messaging real, baixe `google-services.json` do Firebase Console e coloque em `app/google-services.json`.
+1. Abra `local.properties.example`.
+2. Crie ou ajuste `local.properties`.
+3. Configure `sdk.dir`.
+4. Configure `backend.url`.
 
 Exemplo:
 
@@ -62,138 +35,74 @@ sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
 ```
 
-`backend.url` em `local.properties` tem prioridade sobre `app/src/main/res/values/api_config.xml`. Isso e util quando voce roda o backend em outra porta, como `8081`.
-
-Se o backend estiver rodando dentro do WSL, `10.0.2.2` pode nao enxergar o relay corretamente. Nesse caso, use o IP atual do Linux, por exemplo:
-
-```properties
-backend.url=http://172.22.160.34:8080/api
-```
-
-Voce pode descobrir esse IP com:
+Se o backend estiver no WSL e `10.0.2.2` nao funcionar, use o IP atual do Linux:
 
 ```powershell
 wsl.exe -e bash -lc "hostname -I"
 ```
 
-## Como abrir no Android Studio
+e ajuste, por exemplo:
 
-1. Abra o Android Studio.
-2. Clique em `Open`.
-3. Selecione a pasta `EcoBookAiAndroid`.
-4. Aguarde o sync do Gradle.
-
-Se quiser executar `testDebugUnitTest` pelo Android Studio nesta mesma workspace Windows, abra o projeto por um alias ASCII temporario:
-
-```powershell
-subst X: "C:\caminho\real\para\EcoBookAiAndroid"
+```properties
+backend.url=http://172.22.160.34:8080/api
 ```
 
-Depois abra `X:\` no Android Studio. Quando terminar, remova o alias:
-
-```powershell
-subst X: /d
-```
-
-## Como rodar via terminal
+## Build E Testes
 
 Na pasta `EcoBookAiAndroid`:
 
 ```powershell
-.\gradlew.bat assembleDebug
-```
-
-Se a pasta local do projeto estiver em um caminho Windows com espacos/acentos, como esta workspace do OneDrive, o runner de `testDebugUnitTest` pode falhar com `ClassNotFoundException` apesar de a classe ter compilado corretamente. Nessa situacao, execute o Gradle pelo wrapper ASCII:
-
-```powershell
-.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
-```
-
-Validacao atual nesta maquina:
-
-```powershell
 .\gradlew.bat app:compileDebugKotlin
+.\gradlew.bat assembleDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
 ```
 
-Hoje, nesta workspace do OneDrive com caminho acentuado, `app:compileDebugKotlin` segue confiavel. O `testDebugUnitTest` e o wrapper `Invoke-GradleAsciiPath.ps1` ainda podem falhar por questoes de caminho/alias do Windows, entao nao devem ser tratados como sinal verde local automatico ate uma estabilizacao separada do ambiente.
+O wrapper ASCII continua sendo o caminho mais confiavel para `testDebugUnitTest` nesta workspace com espacos/acentos no caminho do Windows.
 
-Com um emulador Android ja iniciado, o fluxo auth E2E tambem pode ser validado por instrumentacao:
+## Rodando O App
 
-```powershell
-.\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest
+1. Abra a pasta `EcoBookAiAndroid` no Android Studio.
+2. Aguarde o sync do Gradle.
+3. Inicie um emulador API 34 ou conecte um dispositivo fisico.
+4. Clique em `Run`.
+
+## Firebase
+
+`google-services.json` e opcional para compile e para os fluxos principais de autenticacao, materiais e solicitacoes.
+
+Ele so e necessario quando voce quer validar:
+
+- FCM real
+- registro real de token Firebase
+- recebimento real de push no aparelho
+
+Coloque o arquivo em:
+
+```text
+app/google-services.json
 ```
 
-Sem `app/google-services.json`, o app continua compilando para o fluxo atual de autenticacao, discovery, solicitacoes, upload e publicacao de materiais. O plugin `google-services` so e aplicado automaticamente quando esse arquivo existe, o que evita quebrar o build antes da configuracao real do Firebase.
+## Managed Device
 
-## Como rodar pelo Android Studio
-
-1. Crie um emulador com Android 14 / API 34 ou conecte um celular com depuracao USB.
-2. Clique em `Run`.
-3. Escolha o dispositivo.
-
-## Managed device do Gradle
-
-O projeto tambem inclui o managed device `pixel6Api34` em `app/build.gradle.kts` para smoke tests automatizados.
-
-- Perfil: `Pixel 6`
-- API: `34`
-- System image: `aosp-atd`
-
-O Android Gradle Plugin gerencia automaticamente a criacao e a persistencia desse AVD no workspace de managed devices. A DSL oficial do `ManagedVirtualDevice` nao expoe campos dedicados para RAM manual ou caminho customizado de storage; por isso a configuracao usa o hardware profile do Pixel 6 como baseline acima de 1 GB de memoria.
-
-Para listar ou executar as tasks relacionadas, use:
-
-```powershell
-.\gradlew.bat tasks --all
-```
-
-Comandos confirmados nesta workspace:
+O projeto inclui o managed device `pixel6Api34` para smoke tests automatizados. Exemplos:
 
 ```powershell
 .\gradlew.bat app:pixel6Api34DebugAndroidTest
 .\gradlew.bat app:smokeGroupDebugAndroidTest
 ```
 
-Para testar FCM real, prefira um dispositivo fisico Android ou um emulador com Google Play services. O managed device `aosp-atd` continua util para smoke tests gerais, mas nao e o alvo ideal para push real.
+Para push real, prefira dispositivo fisico ou emulador com Google Play services.
 
-## Backend local no emulador
+## Validacao Executada
 
-O app aponta por padrao para:
+Validado em `2026-05-21`:
 
-```text
-http://10.0.2.2:8080/api
-```
+- `.\gradlew.bat app:compileDebugKotlin`
+- `.\gradlew.bat assembleDebug`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
-Isso funciona para emulador Android quando o backend roda na mesma maquina host.
+## Troubleshooting
 
-Se o backend estiver no WSL e o app continuar mostrando `Servidor indisponivel`, a causa mais comum e esta:
-- Windows consegue abrir `http://localhost:8080`, mas nao `http://127.0.0.1:8080`
-- nesse caso o backend esta acessivel apenas por IPv6/relay local e o emulador nao consegue usar `10.0.2.2`
-- a correcao pratica e rodar o backend no host Windows ou apontar `backend.url` para o IP atual do WSL
-
-## Regra atual de autenticacao
-
-- O fluxo alvo de entrada e `login` e `cadastro` com email e senha.
-- A API devolve JWT apos autenticacao bem-sucedida.
-- O JWT deve ficar armazenado de forma segura no dispositivo.
-- Se a API responder `401`, o app encerra a sessao local e volta para a tela de login.
-
-## Observacao sobre o estado atual do codigo
-
-O fluxo legado de autenticacao com Google foi removido do app. O estado atual do modulo Android ja inclui auth/perfil/materiais/discovery/solicitacoes/notificacoes em runtime. A Fase 6 agora cobre permissao contextual, deep links, IDs robustos, inbox local e sininho com estado visual; o principal fechamento restante fora do codigo e a validacao final com Firebase real e credenciais backend corretas.
-
-## Celular fisico
-
-Se for testar em um dispositivo fisico, ajuste `backend_url_physical` em:
-
-`app/src/main/res/values/api_config.xml`
-
-Use o IP local da sua maquina na mesma rede Wi-Fi, por exemplo:
-
-```text
-http://192.168.0.10:8080/api
-```
-
-## Observacao importante
-
-Se o app nao abrir no Android Studio, confirme que a pasta aberta e `EcoBookAiAndroid`, nao a raiz do repositorio nem a antiga pasta `android`.
+- O app nao abre no Android Studio: confirme que a pasta aberta e `EcoBookAiAndroid`, nao a raiz do repositorio.
+- O emulador nao encontra o backend: revise `backend.url` e, se preciso, troque `10.0.2.2` pelo IP atual do WSL.
+- O push nao chega: verifique `google-services.json`, permissao de notificacao e backend com credencial Admin SDK valida.

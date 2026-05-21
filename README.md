@@ -1,37 +1,175 @@
 # EcoBook AI
 
-O repositorio esta organizado em duas bases explicitas:
+Plataforma Android + backend Spring Boot para doacao e solicitacao de materiais de estudo, com classificacao assistida por IA, matching geografico e fluxo transacional entre doador e estudante.
 
-- `EcoBookAiBackend`: backend Spring Boot, PostgreSQL, Flyway, auth local por email e senha, e seguranca JWT.
-- `EcoBookAiAndroid`: aplicativo Android nativo em Kotlin + Jetpack Compose + Hilt + Retrofit.
+## Status Atual
 
-## O que existe hoje
+- Fases 1 a 6 estao implementadas em runtime.
+- O backend cobre autenticacao por `email + senha + JWT`, onboarding, preview IA, publicacao de materiais, discovery, solicitacoes, conclusao de doacao e inbox de notificacoes.
+- O app Android cobre login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador e central de avisos.
+- O principal fechamento funcional pendente antes dos modulos transversais restantes e a validacao ponta a ponta do push real com Firebase em dispositivo/emulador com Google Play services.
 
-- O backend ja tem auth local com `email + senha + JWT`, perfil de usuario com cidade/bairro em texto livre normalizados, migracoes Flyway, `GET /api/v1/health`, fluxo completo de materiais (`preview`, `create`, `search`, `list me`, `update`, `delete`) e fluxo transacional de solicitacoes (`create`, `list`, `approve`, `decline`, `cancel`, `complete`) com expiracao automatica de reservas.
-- O Android ja tem fluxo de login/cadastro, onboarding, logout, persistencia segura do JWT, fluxo real de doacao com galeria/camera, preview IA, revisao manual, publicacao final, discovery real conectada ao backend, solicitacao real de materiais, inbox do estudante, inbox do doador, historico do doador com itens doados e liberacao de contato apos aprovacao.
-- A base de notificacoes agora cobre o ciclo principal nos dois lados: sincronizacao de token FCM, endpoint backend para registrar token, disparo pos-commit com payload padronizado, fila persistida de retry no backend, notificacoes locais com IDs estaveis, inbox de avisos no Android, sininho com variacao visual por leitura nas telas principais, marcacao manual de leitura por item ou em lote e roteamento de toque para as areas corretas quando o Firebase estiver configurado. Em foreground, o FCM passa a alimentar a central interna sem duplicar aviso transitorio.
-- O fluxo de doacao agora aceita capa da frente obrigatoria e capa de tras opcional no cadastro de materiais; a analise inicial da IA passa a considerar as duas imagens em conjunto quando elas existem, e o enum `TODAS` deve ser usado quando o material cobrir multiplas disciplinas.
-- Estado atual das fases: Fases 1 a 4 concluidas, Fase 5 entregue em runtime e Fase 6 entregue em runtime. O principal pendente antes dos modulos transversais e a validacao ponta a ponta com Firebase real em dispositivo/emulador com Google Play services.
+## Stack
 
-## Diretriz Android
+- Backend: Java 21, Spring Boot 3.2, Spring Security, JWT, JPA/Hibernate, Flyway
+- Banco principal: PostgreSQL 15
+- Perfil rapido local: H2 em arquivo
+- Android: Kotlin, Jetpack Compose, Hilt, Retrofit, Firebase Messaging
 
-- Toda evolucao do app Android deve seguir referencias e padroes oficiais publicados em `developer.android.com`.
-- Arquitetura, gerenciamento de estado, navegacao, permissoes, notificacoes e testes devem priorizar as recomendacoes oficiais do Android antes de convencoes locais.
-- Referencias principais:
-  - [Architecture recommendations](https://developer.android.com/topic/architecture/recommendations)
-  - [Guide to app architecture](https://developer.android.com/topic/architecture)
-  - [UI layer and state holders](https://developer.android.com/topic/architecture/ui-layer/stateholders)
-  - [Notification runtime permission](https://developer.android.com/develop/ui/views/notifications/notification-permission)
+## Estrutura Do Repositorio
 
-## Estado de validacao
+```text
+.
+|-- EcoBookAiBackend/        # API REST e regras de negocio
+|-- EcoBookAiAndroid/        # App Android nativo
+|-- specs/001-ecobook-core/ # Spec kit, contratos e backlog
+|-- scripts/                # Scripts auxiliares de backend/Firebase
+`-- docker-compose.yml      # PostgreSQL local para o perfil default
+```
 
-- `EcoBookAiAndroid`: `gradlew.bat app:compileDebugKotlin` passou nesta maquina depois da rodada atual de notificacoes. O `testDebugUnitTest` continua sensivel ao caminho Windows com espacos/acentos desta workspace e ainda precisa de estabilizacao adicional antes de voltar a ser tratado como validacao confiavel local.
-- `EcoBookAiAndroid`: o fluxo instrumentado de auth continua disponivel via `.\EcoBookAiAndroid\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest` quando houver um emulador ativo.
-- `EcoBookAiBackend`: `mvn -q -DskipTests compile` passou no host e `mvn -q -Dtest=FcmServiceTest test` passou no WSL com Java 21. A suite completa continua dependente de Docker/Testcontainers ou de um PostgreSQL externo de teste.
-- Push real nao depende de uma fase futura: a Fase 6 ja cobre o fluxo. Quando ele nao chega ao aparelho, a causa mais comum no ambiente local e backend sem `FIREBASE_SERVICE_ACCOUNT_PATH` valido ou teste em emulador sem Google Play services.
+## Requisitos
 
-## Proximos passos
+- Java 21 para o backend
+- Maven 3.9+
+- Android Studio + Android SDK Platform 34
+- Android Emulator ou dispositivo fisico para rodar o app
+- Docker Desktop opcional para usar o perfil PostgreSQL
 
-- Para rodar o Android Studio: veja `EcoBookAiAndroid/README.md`.
-- Para subir o backend local: veja `EcoBookAiBackend/README.md`.
-- Para entender os contratos e a visao de produto: veja `specs/001-ecobook-core/`.
+## Instalacao Rapida
+
+### 1. Backend
+
+O caminho mais rapido e validado hoje usa o perfil `local`, que sobe o backend com H2 e `Gemini` em modo mock. Ele nao precisa de Docker.
+
+Em um terminal com Java 21:
+
+```bash
+cd EcoBookAiBackend
+mvn -q -DskipTests compile
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Se voce estiver usando Windows PowerShell, prefira esta variante:
+
+```powershell
+$env:JAVA_HOME = 'C:\caminho\para\jdk-21-ou-superior'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Com o backend no ar, valide:
+
+```bash
+curl http://127.0.0.1:8080/api/v1/health
+```
+
+Resposta esperada:
+
+```json
+{
+  "status": 200,
+  "message": "Backend online"
+}
+```
+
+### 2. Android
+
+Na pasta `EcoBookAiAndroid`, use `local.properties.example` como base para o seu `local.properties`.
+
+Exemplo:
+
+```properties
+sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
+backend.url=http://10.0.2.2:8080/api
+```
+
+Depois:
+
+```powershell
+cd EcoBookAiAndroid
+.\gradlew.bat assembleDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
+```
+
+Se o backend estiver rodando dentro do WSL e o emulador não enxergar `10.0.2.2`, descubra o IP atual do Linux:
+
+```powershell
+wsl.exe -e bash -lc "hostname -I"
+```
+
+e ajuste `backend.url`, por exemplo:
+
+```properties
+backend.url=http://172.22.160.34:8080/api
+```
+
+## Como Usar
+
+### Smoke Test Da API
+
+Com o backend `local` rodando, o fluxo abaixo foi validado:
+
+1. `POST /api/v1/auth/register`
+2. `GET /api/v1/usuarios/me`
+3. `PUT /api/v1/usuarios/me`
+4. `GET /api/v1/materiais?page=0&size=5`
+5. `POST /api/v1/auth/login`
+
+Endpoints base:
+
+- API: `http://127.0.0.1:8080/api/v1`
+- Health: `http://127.0.0.1:8080/api/v1/health`
+
+### Perfil PostgreSQL
+
+O perfil default continua sendo o caminho mais proximo do schema principal com Flyway. Ele espera um PostgreSQL acessivel para o mesmo processo do backend em `localhost:5432/ecobook`.
+
+Na raiz do repositorio:
+
+```powershell
+docker compose up -d postgres
+```
+
+Depois, em `EcoBookAiBackend`:
+
+```bash
+mvn spring-boot:run
+```
+
+Esse perfil e indicado quando voce precisa validar migrations e comportamento proximo do ambiente principal. Para o primeiro boot, prefira o perfil `local`.
+
+Observacao importante:
+
+- nesta workspace, o caminho totalmente revalidado foi o perfil `local`
+- se voce rodar o backend dentro do WSL enquanto o PostgreSQL estiver exposto em outro host/rede, ajuste `SPRING_DATASOURCE_URL` para um endereco realmente alcancavel pelo processo do backend
+
+## Validacao Executada
+
+Validado em `2026-05-21`:
+
+- Backend: `mvn -q -DskipTests compile`
+- Backend: `mvn spring-boot:run -Dspring-boot.run.profiles=local`
+- Backend: fluxo `health -> register -> get me -> onboarding -> search -> login`
+- Infra: `docker compose up -d postgres` deixa o container `ecobook-db` saudavel
+- Android: `.\gradlew.bat app:compileDebugKotlin`
+- Android: `.\gradlew.bat assembleDebug`
+- Android: `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+
+Observacao importante:
+
+- Nesta maquina, o backend foi validado com Java 21 via WSL.
+- O Android foi validado em compilacao e teste JVM local; execucao visual ainda depende de emulador/dispositivo configurado no Android Studio.
+
+## Limites Conhecidos
+
+- Push real com Firebase ainda precisa de validacao final em dispositivo/emulador com Google Play services.
+- Modulos de admin/moderacao, LGPD forte, auditoria e hardening de fase final ainda permanecem no backlog.
+
+## Documentacao
+
+- Backend: [EcoBookAiBackend/README.md](EcoBookAiBackend/README.md)
+- Android: [EcoBookAiAndroid/README.md](EcoBookAiAndroid/README.md)
+- Quickstart tecnico: [specs/001-ecobook-core/quickstart.md](specs/001-ecobook-core/quickstart.md)
+- Contratos de runtime: [specs/001-ecobook-core/contracts/README.md](specs/001-ecobook-core/contracts/README.md)
+- Estado do plano: [specs/001-ecobook-core/PLAN-SUMMARY.md](specs/001-ecobook-core/PLAN-SUMMARY.md)
+- Backlog por fase: [specs/001-ecobook-core/TASKS.md](specs/001-ecobook-core/TASKS.md)

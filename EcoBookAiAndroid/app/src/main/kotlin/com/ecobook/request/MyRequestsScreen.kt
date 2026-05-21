@@ -9,6 +9,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +53,8 @@ fun MyRequestsScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var pendingCancellation by remember { mutableStateOf<SolicitacaoDTO?>(null) }
+    var pendingReport by remember { mutableStateOf<SolicitacaoDTO?>(null) }
+    var reportReason by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
@@ -158,7 +162,16 @@ fun MyRequestsScreen(
                     request = request,
                     isWorking = uiState.activeRequestId == request.id,
                     onCancel = { pendingCancellation = request },
-                    onContactDonor = { openWhatsApp(context, request) }
+                    onContactDonor = { openWhatsApp(context, request) },
+                    onReportNonReceipt = if (request.status == "CONCLUIDA") {
+                        {
+                            pendingReport = request
+                            reportReason = ""
+                        }
+                    } else {
+                        null
+                    },
+                    hasReportedNonReceipt = request.id in uiState.reportedRequestIds
                 )
             }
         }
@@ -187,6 +200,60 @@ fun MyRequestsScreen(
             dismissButton = {
                 OutlinedButton(onClick = { pendingCancellation = null }) {
                     Text("Manter solicitacao")
+                }
+            }
+        )
+    }
+
+    pendingReport?.let { request ->
+        AlertDialog(
+            onDismissRequest = {
+                pendingReport = null
+                reportReason = ""
+            },
+            title = { Text("Reportar nao recebimento") },
+            text = {
+                androidx.compose.foundation.layout.Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        "Se voce concluiu a solicitacao, mas o material nao chegou, conte o que aconteceu. O motivo e opcional."
+                    )
+                    OutlinedTextField(
+                        value = reportReason,
+                        onValueChange = { reportReason = it.take(500) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5,
+                        label = { Text("Motivo (opcional)") },
+                        supportingText = { Text("${reportReason.length}/500") }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val selectedRequest = pendingReport
+                        val currentReason = reportReason
+                        pendingReport = null
+                        reportReason = ""
+                        if (selectedRequest != null) {
+                            viewModel.reportNonReceipt(selectedRequest, currentReason)
+                        }
+                    },
+                    enabled = uiState.activeRequestId == null
+                ) {
+                    Text(if (uiState.activeRequestId == request.id) "Enviando..." else "Enviar reporte")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        pendingReport = null
+                        reportReason = ""
+                    }
+                ) {
+                    Text("Fechar")
                 }
             }
         )

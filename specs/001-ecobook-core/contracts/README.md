@@ -1,90 +1,95 @@
 # API Contracts
 
-**Phase**: 1 (Design & Contracts)  
-**Date**: 2026-05-05  
-**Purpose**: Formal API contract definitions for all REST endpoints
+**Phase**: 1-7 runtime  
+**Date**: 2026-05-21  
+**Purpose**: Current contract index for the endpoints and payloads already implemented in the repository
 
 ---
 
-## Auth and User Contracts
+## Source Of Truth
+
+Use the files in this folder as the current runtime documentation for the implemented HTTP contracts.
+
+Shared runtime assumptions:
+
+- successful responses use the standard envelope `{ status, message, timestamp, path, data }`
+- authentication is `email + password + JWT`
+- `perfil_completo` gates material, request, and notifications inbox operations
+- the backend currently exposes both FCM token registration and a persisted notification inbox API
+
+---
+
+## Current Contract Files
 
 ### [user-api.md](user-api.md)
 
-User management and authentication endpoints:
+Authentication and profile endpoints:
 
-- `POST /api/v1/auth/register` - Create account with email and password
-- `POST /api/v1/auth/login` - Authenticate with email and password
-- `PUT /api/v1/usuarios/me` - Complete or update profile
-- `GET /api/v1/usuarios/me` - Retrieve current authenticated user
-
-Core rules:
-- Passwords are stored only as strong hashes on the backend
-- JWT authentication remains the session mechanism
-- `perfil_completo` gates material and request operations
-- WhatsApp uses E.164 format
-- Geographic normalization remains uppercase + NFD + ASCII
-- Successful responses are currently wrapped in a standard JSON envelope with `status`, `message`, `timestamp`, `path`, and `data`
-
----
-
-## Domain Contracts
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/usuarios/me`
+- `PUT /api/v1/usuarios/me`
+- `PATCH /api/v1/usuarios/me/consentimento-ia`
 
 ### [material-api.md](material-api.md)
 
-Material endpoints:
-- `POST /materiais`
-- `GET /materiais`
-- `GET /materiais/{id}`
-- `PATCH /materiais/{id}`
+Material and discovery endpoints:
 
-Current note:
-- Phase 3 runtime already implements `POST /materiais` and `POST /materiais/preview`
-- Search/detail/update endpoints remain target-state docs for later phases
-
-### [ai-response.md](ai-response.md)
-
-AI preview contract:
-- `POST /materiais/preview`
-
-Current note:
-- Phase 3 runtime always returns an `upload_id` on successful preview transport, even when `status_ia = FAILURE`, so the manual form can continue without reuploading the image
+- `POST /api/v1/materiais/preview`
+- `POST /api/v1/materiais`
+- `GET /api/v1/materiais`
+- `GET /api/v1/materiais/me`
+- `PUT /api/v1/materiais/{id}`
+- `DELETE /api/v1/materiais/{id}`
 
 ### [solicitacao-api.md](solicitacao-api.md)
 
 Request workflow endpoints:
-- `POST /solicitacoes`
-- `PATCH /solicitacoes/{id}`
-- `GET /solicitacoes`
-- `GET /solicitacoes/{id}`
+
+- `POST /api/v1/materiais/{id}/solicitacoes`
+- `GET /api/v1/solicitacoes/minhas`
+- `GET /api/v1/solicitacoes/pendentes`
+- `GET /api/v1/solicitacoes/aprovadas`
+- `GET /api/v1/solicitacoes/{id}`
+- `PATCH /api/v1/solicitacoes/{id}/aprovar`
+- `PATCH /api/v1/solicitacoes/{id}/recusar`
+- `PATCH /api/v1/solicitacoes/{id}/cancelar`
+- `PATCH /api/v1/solicitacoes/{id}/concluir`
+
+### [notification-api.md](notification-api.md)
+
+Notification management endpoints already exposed by the backend:
+
+- `POST /api/v1/fcm/tokens`
+- `GET /api/v1/notificacoes`
+- `PATCH /api/v1/notificacoes/{id}/ler`
+- `PATCH /api/v1/notificacoes/ler-todas`
+
+### [report-api.md](report-api.md)
+
+Post-donation moderation endpoints already exposed by the backend:
+
+- `POST /api/v1/materiais/{id}/nao-recebido`
+- `GET /api/v1/admin/reports`
+- `PATCH /api/v1/admin/reports/{id}/resolve`
 
 ### [notification-schema.md](notification-schema.md)
 
-FCM payloads for the donation workflow.
+FCM payload types, routes, retry behavior, and inbox persistence rules for the current notification runtime.
+
+### [ai-response.md](ai-response.md)
+
+Preview payload contract for `POST /api/v1/materiais/preview`.
 
 ### [error-response.md](error-response.md)
 
-Standard error envelope and HTTP code mapping.
-
----
-
-## Cross-Contract Rules
-
-Shared assumptions across contracts:
-
-- Authentication uses backend-issued JWT tokens
-- Registration and login are local email/password flows
-- Successful responses use the shared envelope `{ status, message, timestamp, path, data }`
-- `password_hash` is internal and never exposed by the API
-- `perfil_completo` stays separate from authentication success
-- Gemini, matching, and FCM flows remain unchanged by the auth pivot
+Shared error envelope and HTTP mapping guidance.
 
 ---
 
 ## Related Documents
 
-- [spec.md](../spec.md)
-- [plan.md](../plan.md)
-- [research.md](../research.md)
-- [data-model.md](../data-model.md)
 - [quickstart.md](../quickstart.md)
+- [data-model.md](../data-model.md)
+- [PLAN-SUMMARY.md](../PLAN-SUMMARY.md)
 - [TASKS.md](../TASKS.md)

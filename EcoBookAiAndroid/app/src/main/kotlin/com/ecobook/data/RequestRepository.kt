@@ -3,6 +3,8 @@ package com.ecobook.data
 import com.ecobook.api.RequestApiService
 import com.ecobook.dto.ApiEnvelopeDTO
 import com.ecobook.dto.ApiErrorResponseDTO
+import com.ecobook.dto.CreateNonReceiptReportRequestDTO
+import com.ecobook.dto.MaterialNonReceiptReportDTO
 import com.ecobook.dto.SolicitacaoDTO
 import com.google.gson.Gson
 import javax.inject.Inject
@@ -49,6 +51,15 @@ class RequestRepository @Inject constructor(
 
     suspend fun completeDonation(id: String): SolicitacaoDTO {
         return requireData(requestApiService.completeDonation(id))
+    }
+
+    suspend fun reportNonReceipt(materialId: String, reason: String? = null): MaterialNonReceiptReportDTO {
+        return requireData(
+            requestApiService.reportNonReceipt(
+                materialId,
+                CreateNonReceiptReportRequestDTO(reason = reason)
+            )
+        )
     }
 
     private fun <T> requireData(response: Response<ApiEnvelopeDTO<T>>): T {

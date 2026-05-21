@@ -1,8 +1,8 @@
 # Material API Contracts
 
 **Reference**: spec.md RF-005 through RF-025, RF-044  
-**Version**: 1.4  
-**Date**: 2026-05-13  
+**Version**: 1.5  
+**Date**: 2026-05-21  
 **Status**: Current runtime contract for preview, discovery and donor-owned CRUD flow
 
 ---
@@ -41,14 +41,15 @@ Authorization: Bearer <jwt_token>
 
 - `titulo`: required, max 255 chars
 - `descricao`: required, 10-2000 chars, manual-only field
-- `disciplina`: `MATEMATICA | PORTUGUES | HISTORIA | GEOGRAFIA | CIENCIAS | LITERATURA`
+- `disciplina`: `TODAS | MATEMATICA | PORTUGUES | HISTORIA | GEOGRAFIA | CIENCIAS | LITERATURA`
 - `nivel_ensino`: `FUNDAMENTAL | MEDIO | SUPERIOR`
-- `ano`: `1..12` for `FUNDAMENTAL`/`MEDIO`; omitted for `SUPERIOR`
-- `sistema_ensino`: `ANGLO | OBJETIVO | COC | POSITIVO | OUTRO`
+- `ano`: `1..9` for `FUNDAMENTAL`, `1..3` for `MEDIO`, omitted for `SUPERIOR`
+- `sistema_ensino`: `ANGLO | OBJETIVO | COC | POSITIVO | POLIEDRO | ETAPA | BERNOULLI | SAS | FTD | OUTRO`
 - `estado_conservacao`: `NOVO | BOM | USADO | DANIFICADO`
 - `data_publicacao`: optional, `1900..2100`
 - `upload_id`: must belong to the authenticated donor and still exist in temporary storage
 - User must have `perfil_completo = true`
+- `TODAS` should be used when the material clearly covers multiple disciplines
 
 ### Response
 
@@ -58,6 +59,8 @@ Authorization: Bearer <jwt_token>
 {
   "id": "material-uuid-1234567890",
   "titulo": "Geometria Plana 7o Ano",
+  "autor": "Autor Exemplo",
+  "editora": "Editora Exemplo",
   "descricao": "Livro em bom estado, com marcas de uso",
   "disciplina": "MATEMATICA",
   "nivel_ensino": "FUNDAMENTAL",
@@ -66,7 +69,12 @@ Authorization: Bearer <jwt_token>
   "estado_conservacao": "BOM",
   "status": "DISPONIVEL",
   "imagem_url": "/api/uploads/user/material.jpg",
+  "imagem_verso_url": "/api/uploads/user/material-back.jpg",
   "upload_id": "temp-upload-uuid-abc123def",
+  "doador": {
+    "id": "user-uuid-doador",
+    "nome": "Joao Silva"
+  },
   "cidade": "FLORIANOPOLIS",
   "bairro": "CENTRO",
   "data_publicacao": 2010,
@@ -104,7 +112,7 @@ Authorization: Bearer <jwt_token>
 | `query` | String | No | Accent-insensitive match against title, description, author, editor and location |
 | `disciplina` | String | No | Exact discipline filter |
 | `nivel_ensino` | String | No | Exact education-level filter |
-| `ano` | Integer | No | School year filter (`1..12`) |
+| `ano` | Integer | No | School year filter (`1..9` for `FUNDAMENTAL`, `1..3` for `MEDIO`) |
 | `sistema_ensino` | String | No | Teaching-system filter |
 | `cidade` | String | No | City anchor for filtering and ranking |
 | `bairro` | String | No | Neighborhood anchor for filtering and ranking |
@@ -123,6 +131,8 @@ Authorization: Bearer <jwt_token>
     {
       "id": "material-uuid-1",
       "titulo": "Geometria Plana 7o Ano",
+      "autor": "Autor Exemplo",
+      "editora": "Editora Exemplo",
       "descricao": "Livro em bom estado",
       "disciplina": "MATEMATICA",
       "nivel_ensino": "FUNDAMENTAL",
@@ -131,6 +141,11 @@ Authorization: Bearer <jwt_token>
       "estado_conservacao": "BOM",
       "status": "DISPONIVEL",
       "imagem_url": "/api/uploads/user/material.jpg",
+      "imagem_verso_url": "/api/uploads/user/material-back.jpg",
+      "doador": {
+        "id": "user-uuid-doador",
+        "nome": "Joao Silva"
+      },
       "cidade": "FLORIANOPOLIS",
       "bairro": "CENTRO",
       "data_publicacao": 2010,
@@ -151,6 +166,7 @@ Authorization: Bearer <jwt_token>
 - Only materials still stored as `DISPONIVEL` are returned
 - Sorting prioritizes same neighborhood, then same city, then newer `data_publicacao`, then stable `id`
 - If the image URL fails client-side, the Android app must render a neutral placeholder
+- `imagem_verso_url` may be null when the donor published only the front cover
 
 ### Error Responses
 

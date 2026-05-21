@@ -1,0 +1,5 @@
+ALTER TYPE sistema_ensino_enum ADD VALUE IF NOT EXISTS 'POLIEDRO';
+ALTER TYPE sistema_ensino_enum ADD VALUE IF NOT EXISTS 'ETAPA';
+ALTER TYPE sistema_ensino_enum ADD VALUE IF NOT EXISTS 'BERNOULLI';
+ALTER TYPE sistema_ensino_enum ADD VALUE IF NOT EXISTS 'SAS';
+ALTER TYPE sistema_ensino_enum ADD VALUE IF NOT EXISTS 'FTD';

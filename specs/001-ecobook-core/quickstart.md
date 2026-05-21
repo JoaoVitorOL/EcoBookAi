@@ -1,8 +1,8 @@
-# Quickstart Guide: EcoBook IA Development
+# Quickstart Guide: EcoBook IA
 
-**Phase**: 1-2 baseline  
-**Date**: 2026-05-05  
-**Purpose**: Boot the current backend and validate the implemented email/password auth flow
+**Phase**: 1-6 runtime  
+**Date**: 2026-05-21  
+**Purpose**: Boot the current backend, validate the implemented auth/onboarding/search flow, and compile the Android app with the current local runbook.
 
 ---
 
@@ -10,70 +10,148 @@
 
 ### Backend
 
-- Java 21+ compatible JDK
-- Maven
-- PostgreSQL 14+ for the main profile, or H2 for the local profile
+- Java 21
+- Maven 3.9+
+- PostgreSQL 15+ only if you want the default profile
 
 ### Android
 
+- Java 17 or 21
 - Android Studio
-- Android SDK 34
+- Android SDK Platform 34
 - Emulator or physical device
 
 ---
 
-## Backend Setup
+## Recommended Backend Path
 
-### 1. Choose a runtime profile
+The recommended first boot is the `local` profile.
 
-**PostgreSQL profile**
-- Uses Flyway migrations
-- Default server port: `8080`
+Why this path:
 
-**Local H2 profile**
-- Uses a local file database and compatibility bootstrap
-- Useful for fast local auth testing
+- no Docker dependency
+- H2-backed local database
+- Gemini mock enabled
+- validated end to end on `2026-05-21`
 
-### 2. Configure environment
-
-The current backend reads these keys directly:
-
-```bash
-DB_PASSWORD=dev_password_123
-JWT_SECRET=change-this-jwt-secret-in-production-and-keep-it-at-least-64-characters-long
-SERVER_PORT=8080
-GEMINI_API_KEY=
-```
-
-### 3. Run backend
-
-**PostgreSQL**
+### 1. Compile
 
 ```bash
 cd EcoBookAiBackend
-mvn spring-boot:run
+mvn -q -DskipTests compile
 ```
 
-**Local H2**
+### 2. Start the backend
 
 ```bash
-cd EcoBookAiBackend
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-### 4. Validate health
+On Windows PowerShell, prefer:
 
-```bash
-curl http://localhost:8080/api/v1/health
+```powershell
+$env:JAVA_HOME = 'C:\caminho\para\jdk-21-ou-superior'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-Expected response:
+### 3. Validate health
+
+```bash
+curl http://127.0.0.1:8080/api/v1/health
+```
+
+Expected response excerpt:
 
 ```json
 {
-  "status": "UP"
+  "status": 200,
+  "message": "Backend online"
 }
 ```
+
+---
+
+## Verified API Smoke Flow
+
+The following flow was revalidated against the `local` profile.
+
+### 1. Register
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "quickstart@example.com",
+    "password": "SenhaSegura123",
+    "nome": "Quickstart User"
+  }'
+```
+
+Expected result:
+
+- HTTP `201`
+- JWT returned
+- `perfil_completo = false`
+- if you rerun the same flow against the same local database, use a different email or clear `EcoBookAiBackend/data/ecobook-local*`
+
+### 2. Load current profile
+
+```bash
+curl -X GET http://127.0.0.1:8080/api/v1/usuarios/me \
+  -H "Authorization: Bearer <jwt>"
+```
+
+### 3. Complete onboarding fields
+
+```bash
+curl -X PUT http://127.0.0.1:8080/api/v1/usuarios/me \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Quickstart User",
+    "whatsapp": "+5511999999999",
+    "cidade": "Florianopolis",
+    "bairro": "Centro",
+    "consentimento_ia": true,
+    "necessidades_academicas": ["TEXTBOOKS", "WORKBOOKS"]
+  }'
+```
+
+Expected result:
+
+- HTTP `200`
+- `perfil_completo = true`
+- normalized `cidade` and `bairro`
+
+### 4. Run a first discovery query
+
+```bash
+curl -X GET "http://127.0.0.1:8080/api/v1/materiais?page=0&size=5" \
+  -H "Authorization: Bearer <jwt>"
+```
+
+Expected result:
+
+- HTTP `200`
+- paged envelope
+- empty list is acceptable on a fresh database
+
+### 5. Login again
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "quickstart@example.com",
+    "password": "SenhaSegura123"
+  }'
+```
+
+Expected result:
+
+- HTTP `200`
+- JWT returned again
 
 ---
 
@@ -81,117 +159,65 @@ Expected response:
 
 ### 1. Configure local properties
 
-Set the emulator override in `EcoBookAiAndroid/local.properties`:
+Use `EcoBookAiAndroid/local.properties.example` as the base:
 
 ```properties
 sdk.dir=C\:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
 ```
 
-### 2. Firebase note
+If your backend runs inside WSL and the emulator cannot reach `10.0.2.2`, replace the host with the current WSL IP.
 
-`google-services.json` is now relevant only for Firebase Messaging and notification tests. Authentication no longer depends on Google Sign-In.
+### 2. Compile and validate
 
-### 3. Build app
-
-```bash
+```powershell
 cd EcoBookAiAndroid
-./gradlew assembleDebug
+.\gradlew.bat app:compileDebugKotlin
+.\gradlew.bat assembleDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
+```
+
+### 3. Optional instrumentation
+
+With an emulator already started:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest
 ```
 
 ---
 
-## First Authentication Flow Test
+## Default PostgreSQL Profile
 
-### 1. Register account
+Use this profile when you need Flyway + PostgreSQL parity.
 
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "SenhaSegura123",
-    "nome": "Test User"
-  }'
+From the repository root:
+
+```powershell
+docker compose up -d postgres
 ```
 
-Expected result:
-- user created
-- `perfil_completo = false`
-- JWT returned
-
-### 2. Save token and inspect profile
+Then:
 
 ```bash
-TOKEN="jwt-token-value"
-
-curl -X GET http://localhost:8080/api/v1/usuarios/me \
-  -H "Authorization: Bearer $TOKEN"
+cd EcoBookAiBackend
+mvn spring-boot:run
 ```
 
-### 3. Complete onboarding fields
+This profile expects:
 
-```bash
-curl -X PUT http://localhost:8080/api/v1/usuarios/me \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Test User",
-    "whatsapp": "+5548999999999",
-    "cidade": "Florianopolis",
-    "bairro": "Centro",
-    "consentimento_ia": false,
-    "necessidades_academicas": ["TEXTBOOKS"]
-  }'
-```
+- `jdbc:postgresql://localhost:5432/ecobook`
+- user `ecobook`
+- password `dev_password_123` unless overridden by `DB_PASSWORD`
 
-Expected result:
-- normalized geography
-- `perfil_completo = true`
-- `consentimento_ia` can remain `false` and be changed later through `PUT /api/v1/usuarios/me`
+Environment note:
 
-### 4. Login with the same credentials
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "SenhaSegura123"
-  }'
-```
-
-Expected result:
-- JWT returned
-- same user profile loaded
+- the fully revalidated quickstart in this repository is still the `local` profile
+- use the default profile only when the backend process can really reach that same `localhost:5432`, or override `SPRING_DATASOURCE_URL` with a reachable host
 
 ---
 
-## Troubleshooting
+## Current Closeout Notes
 
-### Backend
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `Connection refused: 5432` | PostgreSQL not running | Start PostgreSQL or use the `local` H2 profile |
-| `JWT validation failed` | Expired token or wrong secret | Re-login via `POST /api/v1/auth/login` |
-| `Email ou senha invalidos` | Wrong email/password | Confirm user exists and password matches |
-| `Port 8080 already in use` | Another service using the port | Stop the existing process or change `SERVER_PORT` |
-| `Este email ja esta cadastrado` | Existing account uses the same email | Login instead of registering, or run a manual account recovery flow |
-
-### Android
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Emulator cannot reach backend | Wrong host alias | Use `10.0.2.2` instead of `localhost` |
-| App returns to login after request | API responded `401` | Check JWT storage and backend secret |
-| Auth request fails after backend change | App still points to old port | Rebuild after updating `backend.url` |
-
----
-
-## Current Focus
-
-1. Start the real `/materiais/preview` implementation path for Phase 3.
-2. Keep consent updates on `PUT /usuarios/me` unless a dedicated endpoint is intentionally added later.
-3. Continue the remaining MVP work on material listing, matching, and request flows.
-4. Keep manual/environment backlog items (Firebase provisioning, emulator tuning) synchronized outside the core phase gates.
+- Phase 6 notification runtime is implemented, but real-device Firebase validation is still the main remaining closeout step.
+- Admin/moderation, LGPD hardening, and final polish phases remain backlog work.

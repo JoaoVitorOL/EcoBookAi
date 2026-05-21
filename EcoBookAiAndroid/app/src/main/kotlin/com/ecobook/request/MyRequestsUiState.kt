@@ -16,6 +16,7 @@ data class MyRequestsUiState(
     val selectedFilter: MyRequestFilter = MyRequestFilter.ALL,
     val isLoading: Boolean = false,
     val activeRequestId: String? = null,
+    val reportedRequestIds: Set<String> = emptySet(),
     val errorMessage: String? = null,
     val toastMessage: String? = null
 ) {

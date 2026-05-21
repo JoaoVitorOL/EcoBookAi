@@ -87,6 +87,38 @@ class MyRequestsViewModel @Inject constructor(
         }
     }
 
+    fun reportNonReceipt(request: com.ecobook.dto.SolicitacaoDTO, reason: String) {
+        _uiState.update { it.copy(activeRequestId = request.id, errorMessage = null) }
+        viewModelScope.launch {
+            runCatching {
+                requestRepository.reportNonReceipt(
+                    materialId = request.materialId,
+                    reason = reason.trim().takeIf { it.isNotBlank() }
+                )
+            }.onSuccess {
+                _uiState.update { state ->
+                    state.copy(
+                        activeRequestId = null,
+                        reportedRequestIds = state.reportedRequestIds + request.id,
+                        toastMessage = "Reporte enviado. A equipe vai revisar o caso."
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update { state ->
+                    state.copy(
+                        activeRequestId = null,
+                        reportedRequestIds = if (error is ApiException && error.statusCode == 409) {
+                            state.reportedRequestIds + request.id
+                        } else {
+                            state.reportedRequestIds
+                        },
+                        toastMessage = resolveReportError(error)
+                    )
+                }
+            }
+        }
+    }
+
     fun consumeToast() {
         _uiState.update { it.copy(toastMessage = null) }
     }
@@ -121,6 +153,25 @@ class MyRequestsViewModel @Inject constructor(
             is UnknownHostException,
             is IOException -> "Nao foi possivel atualizar a solicitacao porque o backend nao respondeu."
             else -> error.message ?: "Falha inesperada ao atualizar a solicitacao."
+        }
+    }
+
+    private fun resolveReportError(error: Throwable): String {
+        return when (error) {
+            is ApiException -> when (error.statusCode) {
+                400 -> error.fieldErrors["reason"] ?: error.message
+                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                403 -> "Somente o estudante da solicitacao concluida pode enviar esse reporte."
+                404 -> "Esse material nao foi encontrado."
+                409 -> "Ja existe um reporte aberto para esse material."
+                422 -> "Esse material ainda nao pode ser reportado como nao recebido."
+                else -> error.message
+            }
+
+            is ConnectException,
+            is UnknownHostException,
+            is IOException -> "Nao foi possivel enviar o reporte porque o backend nao respondeu."
+            else -> error.message ?: "Falha inesperada ao enviar o reporte."
         }
     }
 }

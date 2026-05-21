@@ -33,6 +33,7 @@ Historical note:
 - Some unchecked items below are environment/manual setup tasks or legacy follow-ups whose original intent is already covered elsewhere after the auth rebaseline. They should not be treated as phase gates by themselves.
 - Phase 5 request workflow and part of Phase 6 notifications were implemented after the original checkbox pass.
 - Some unchecked Phase 5/6 items below were not backfilled one by one; use `PLAN-SUMMARY.md` and `contracts/` as the current runtime truth.
+- Local operational startup is now revalidated through the `local` backend profile plus the README/quickstart runbooks updated on `2026-05-21`.
 
 ---
 
@@ -717,12 +718,12 @@ Runtime note on 2026-05-14:
 
 #### Backend: Request Creation
 
-- [ ] **T131** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java`:
+- [x] **T131** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java`:
   - **POST /api/v1/materiais/{id}/solicitacoes**: Student requests material
   - Path param: material_id (UUID)
   - Response: SolicitacaoDto (id, status=PENDENTE, created_at)
   - Error: 400 (solicitante = doador), 403 (profile incomplete), 404 (material not found), 409 (already requested), 422 (invalid state)
-- [ ] **T132** [US4] Implement `SolicitacaoService.createRequest()` method:
+- [x] **T132** [US4] Implement `SolicitacaoService.createRequest()` method:
   - Validate material exists and status = DISPONIVEL
   - Validate requestor ≠ donor (HTTP 400)
   - Check if student already has PENDENTE/APROVADA request for this material (HTTP 409 Conflict)
@@ -730,7 +731,7 @@ Runtime note on 2026-05-14:
   - Persist to database
   - Emit SolicitacaoCreatedEvent (for FCM notification trigger)
   - Return SolicitacaoDto
-- [ ] **T133** [US4] Create request creation test in `src/test/java/com/ecobook/service/SolicitacaoServiceTest.java`:
+- [x] **T133** [US4] Create request creation test in `src/test/java/com/ecobook/service/SolicitacaoServiceTest.java`:
   - Student requests available material → 201 PENDENTE
   - Student requests own material → 400
   - Donor requests own material → 400
@@ -739,12 +740,12 @@ Runtime note on 2026-05-14:
 
 #### Backend: Atomic Approval with Locking
 
-- [ ] **T134** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+- [x] **T134** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
   - **PATCH /api/v1/solicitacoes/{id}/aprovar**: Donor approves request
   - Path param: request_id (UUID)
   - Response: SolicitacaoDto (updated with status=APROVADA, contato_doador, approved_at, expires_at)
   - Error: 401 (not donor), 403 (profile incomplete), 404 (not found), 422 (invalid state)
-- [ ] **T135** [US4] Implement atomic approval transaction in `SolicitacaoService.approveRequest()`:
+- [x] **T135** [US4] Implement atomic approval transaction in `SolicitacaoService.approveRequest()`:
   - Use `@Transactional(isolation = Isolation.SERIALIZABLE)` annotation
   - Lock Material record: `SELECT ... FOR UPDATE` (PostgreSQL)
   - Validate Solicitacao status = PENDENTE
@@ -756,11 +757,11 @@ Runtime note on 2026-05-14:
   - Persist atomically (all or nothing)
   - Emit SolicitacaoApprovedEvent (for FCM notification)
   - Return updated SolicitacaoDto
-- [ ] **T136** [US4] Create rejection logic in approval transaction:
+- [x] **T136** [US4] Create rejection logic in approval transaction:
   - Query all other PENDENTE Solicitacoes for same Material
   - Update all to status=RECUSADA, declined_reason="Material already reserved"
   - Emit SolicitacaoRejectedEvent for each (FCM notification to affected students)
-- [ ] **T137** [US4] Create locking test in `src/test/java/com/ecobook/service/SolicitacaoServiceLockingTest.java`:
+- [x] **T137** [US4] Create locking test in `src/test/java/com/ecobook/service/SolicitacaoServiceLockingTest.java`:
   - Two concurrent requests for same material
   - First approval succeeds: Material → RESERVADO, Solicitacao → APROVADA
   - Second approval fails: HTTP 422 (invalid state), Solicitacao → RECUSADA
@@ -768,26 +769,26 @@ Runtime note on 2026-05-14:
 
 #### Backend: Approval Endpoints & Decline
 
-- [ ] **T138** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+- [x] **T138** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
   - **PATCH /api/v1/solicitacoes/{id}/recusar**: Donor declines request
   - Response: SolicitacaoDto (updated with status=RECUSADA, declined_reason)
   - Error: 401 (not donor), 404 (not found), 422 (invalid state)
-- [ ] **T139** [US4] Implement `SolicitacaoService.declineRequest()`:
+- [x] **T139** [US4] Implement `SolicitacaoService.declineRequest()`:
   - Validate requestor is donor
   - Validate Solicitacao status = PENDENTE
   - Update status=RECUSADA, declined_reason (optional)
   - Material status remains DISPONIVEL
   - Emit SolicitacaoRejectedEvent (FCM notification)
-- [ ] **T140** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+- [x] **T140** [US4] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
   - **PATCH /api/v1/solicitacoes/{id}/cancelar**: Student/Donor cancels request
   - Response: SolicitacaoDto (updated with status=CANCELADA)
   - Error: 401 (not requestor/donor), 404 (not found), 422 (invalid state)
-- [ ] **T141** [US4] Implement `SolicitacaoService.cancelRequest()`:
+- [x] **T141** [US4] Implement `SolicitacaoService.cancelRequest()`:
   - Validate requestor is student or donor
   - If status=APROVADA: revert Material status=DISPONIVEL (atomic transaction)
   - Update Solicitacao status=CANCELADA
   - Emit SolicitacaoCanceledEvent (FCM notification)
-- [ ] **T142** [US4] Create approval workflow integration test in `src/test/java/com/ecobook/SolicitacaoWorkflowTest.java`:
+- [x] **T142** [US4] Create approval workflow integration test in `src/test/java/com/ecobook/SolicitacaoWorkflowTest.java`:
   - Create material, student requests → PENDENTE
   - Donor approves → Material RESERVADO, Solicitacao APROVADA
   - Another student requests same material → 409 Conflict
@@ -795,11 +796,11 @@ Runtime note on 2026-05-14:
 
 #### Backend: Donation Completion & Material State
 
-- [ ] **T143** [US5] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
+- [x] **T143** [US5] Create `src/main/java/com/ecobook/controller/SolicitacaoController.java` endpoint:
   - **PATCH /api/v1/solicitacoes/{id}/concluir**: Mark donation as completed
   - Response: SolicitacaoDto (updated with status=CONCLUIDA)
   - Error: 401 (not donor), 404 (not found), 422 (invalid state)
-- [ ] **T144** [US5] Implement `SolicitacaoService.completeDonation()`:
+- [x] **T144** [US5] Implement `SolicitacaoService.completeDonation()`:
   - Validate requestor is donor
   - Validate Solicitacao status = APROVADA
   - Validate Material status = RESERVADO
@@ -807,29 +808,29 @@ Runtime note on 2026-05-14:
   - Update Material: status=DOADO, donated_at=now
   - Emit SolicitacaoCompletedEvent (FCM notification)
   - Material becomes final state (no further transitions)
-- [ ] **T145** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+- [x] **T145** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
   - **PUT /api/v1/materiais/{id}**: Edit material (only DISPONIVEL state)
   - Request: titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao (optional), descricao
   - Response: MaterialDto (updated)
   - Error: 400 (invalid enum), 403 (profile incomplete), 404 (not found), 422 (invalid state)
-- [ ] **T146** [US5] Implement material editing in `MaterialService.updateMaterial()`:
+- [x] **T146** [US5] Implement material editing in `MaterialService.updateMaterial()`:
   - Validate status = DISPONIVEL (reject if RESERVADO/DOADO/CANCELADO)
   - Validate requestor is donor
   - Validate enums
   - Update all mutable fields
   - Persist
-- [ ] **T147** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
+- [x] **T147** [US5] Create `src/main/java/com/ecobook/controller/MaterialController.java` endpoint:
   - **DELETE /api/v1/materiais/{id}**: Cancel material (donor only)
   - Response: HTTP 204 No Content
   - Error: 401 (not donor), 404 (not found), 422 (invalid state)
-- [ ] **T148** [US5] Implement material cancellation in `MaterialService.cancelMaterial()`:
+- [x] **T148** [US5] Implement material cancellation in `MaterialService.cancelMaterial()`:
   - Update Material status=CANCELADO
   - Cancel all related PENDENTE/APROVADA Solicitacoes: status=CANCELADA
   - Emit MaterialCanceledEvent (FCM notification to affected students)
 
 #### Backend: Expiry Job
 
-- [ ] **T149** [US5] Create `src/main/java/com/ecobook/scheduler/ReservationExpiryJob.java`:
+- [x] **T149** [US5] Create `src/main/java/com/ecobook/scheduler/ReservationExpiryJob.java`:
   - Scheduled task: runs daily at 2 AM UTC
   - Query: all Solicitacoes with status=APROVADA AND expires_at < now
   - For each expired request:
@@ -837,15 +838,15 @@ Runtime note on 2026-05-14:
     - Update Material: status=DISPONIVEL (revert reservation)
     - Emit SolicitacaoExpiredEvent (FCM notification to student)
   - Log summary: "Expired 3 reservations"
-- [ ] **T150** [US5] Add `@Scheduled(cron = "0 0 2 * * ?")` annotation (daily 2 AM UTC)
-- [ ] **T151** [US5] Create expiry job test in `src/test/java/com/ecobook/scheduler/ReservationExpiryJobTest.java`:
+- [x] **T150** [US5] Add `@Scheduled(cron = "0 0 2 * * ?")` annotation (daily 2 AM UTC)
+- [x] **T151** [US5] Create expiry job test in `src/test/java/com/ecobook/scheduler/ReservationExpiryJobTest.java`:
   - Insert APROVADA Solicitacao with expires_at = yesterday
   - Run expiry job
   - Verify Solicitacao → CANCELADA, Material → DISPONIVEL
 
 #### Backend: State Validation
 
-- [ ] **T152** [US4] Create `src/main/java/com/ecobook/service/MaterialStateValidator.java`:
+- [x] **T152** [US4] Create `src/main/java/com/ecobook/service/MaterialStateValidator.java`:
   - Method: `validateTransition(currentStatus, newStatus)` → throws if invalid
   - Valid transitions:
     - DISPONIVEL → RESERVADO (approval)
@@ -853,18 +854,18 @@ Runtime note on 2026-05-14:
     - RESERVADO → DISPONIVEL (expiry auto-revert)
     - RESERVADO → DISPONIVEL (manual cancel of approved request)
     - Any other → throw InvalidStateTransitionException (HTTP 422)
-- [ ] **T153** [US4] Create state validation test in `src/test/java/com/ecobook/service/MaterialStateValidatorTest.java`:
+- [x] **T153** [US4] Create state validation test in `src/test/java/com/ecobook/service/MaterialStateValidatorTest.java`:
   - Test all valid transitions
   - Test all invalid transitions (should throw)
 
 #### Android: Request Creation UI
 
-- [ ] **T154** [P] [US4] Create "Request Material" action in MaterialDetailScreen:
+- [x] **T154** [P] [US4] Create "Request Material" action in MaterialDetailScreen:
   - Button: "Request Material"
   - On click: Call `POST /materiais/{material_id}/solicitacoes`
   - Success: Show confirmation dialog "Material requested! Waiting for donor approval."
   - Navigate to "My Requests" screen
-- [ ] **T155** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/RequestViewModel.kt`:
+- [x] **T155** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/RequestViewModel.kt`:
   - `createRequest(materialId)`: POST /api/v1/materiais/{materialId}/solicitacoes
   - Handle 409 Conflict: Show "You already have a pending request for this material"
   - Handle 422 Invalid State: Show "Material no longer available"
@@ -872,7 +873,7 @@ Runtime note on 2026-05-14:
 
 #### Android: My Requests Screen
 
-- [ ] **T156** [P] [US4] Create `EcoBookAiAndroid/src/main/java/com/ecobook/request/MyRequestsScreen.kt` Compose screen:
+- [x] **T156** [P] [US4] Create `EcoBookAiAndroid/src/main/java/com/ecobook/request/MyRequestsScreen.kt` Compose screen:
   - Display list of student's requests (all statuses: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA)
   - For each request, show:
     - Material title + image
@@ -880,15 +881,15 @@ Runtime note on 2026-05-14:
     - Status indicator (hourglass for PENDENTE, checkmark for APROVADA, X for RECUSADA, done for CONCLUIDA)
     - Days remaining (if APROVADA): "3 days left to complete"
     - Action button: "Contact Donor" (if APROVADA), "Cancel" (if PENDENTE/APROVADA)
-- [ ] **T157** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/MyRequestsViewModel.kt`:
+- [x] **T157** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/request/MyRequestsViewModel.kt`:
   - Load student's requests: GET /api/v1/solicitacoes/minhas
   - Filter by status (optional)
   - `cancelRequest(requestId)`: PATCH /solicitacoes/{id}/cancelar
   - `contactDonor(solicitacaoId)`: Open WhatsApp contact from contato_doador JSONB
-- [ ] **T158** [P] [US4] Create contact donor action:
+- [x] **T158** [P] [US4] Create contact donor action:
   - Only visible when status=APROVADA (contato_doador populated)
   - On click: Open WhatsApp intent with donor's WhatsApp number + pre-filled message: "Hi! I'm requesting your [material title]. Can we arrange pickup?"
-- [ ] **T159** [P] [US4] Create request list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/RequestListItem.kt`:
+- [x] **T159** [P] [US4] Create request list UI in `EcoBookAiAndroid/src/main/java/com/ecobook/ui/RequestListItem.kt`:
   - Show request status with color code (orange=PENDENTE, green=APROVADA, red=RECUSADA, gray=CANCELADA/CONCLUIDA)
   - Show material thumbnail + title
   - Show donor name + location
@@ -896,7 +897,7 @@ Runtime note on 2026-05-14:
 
 #### Android: Donor Approval UI
 
-- [ ] **T160** [P] [US4] Create `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsScreen.kt` Compose screen:
+- [x] **T160** [P] [US4] Create `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsScreen.kt` Compose screen:
   - Display list of incoming requests for donor's materials (status=PENDENTE only)
   - For each request, show:
     - Student name + location
@@ -905,25 +906,25 @@ Runtime note on 2026-05-14:
   - Tapping "Accept": PATCH /solicitacoes/{id}/aprovar
   - Tapping "Decline": PATCH /solicitacoes/{id}/recusar
   - On accept: Show confirmation, navigate back (request status → APROVADA)
-- [ ] **T161** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsViewModel.kt`:
+- [x] **T161** [P] [US4] Implement `EcoBookAiAndroid/src/main/java/com/ecobook/donor/DonorRequestsViewModel.kt`:
   - Load incoming requests: GET /api/v1/solicitacoes/pendentes
   - `approveRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/aprovar
   - `declineRequest(solicitacaoId)`: PATCH /solicitacoes/{id}/recusar
   - Handle success: Refresh list, show toast "Request approved"
-- [ ] **T162** [P] [US4] Create donor incoming requests endpoint:
+- [x] **T162** [P] [US4] Create donor incoming requests endpoint:
   - **GET /api/v1/solicitacoes/pendentes**: List pending requests for donor's materials
   - Filters by authenticated donor's materials with PENDENTE requests
 
 #### Android: Completion UI
 
-- [ ] **T163** [P] [US5] Create "Mark as Donated" action in DonorRequestsScreen:
+- [x] **T163** [P] [US5] Create "Mark as Donated" action in DonorRequestsScreen:
   - Only show when status=APROVADA (after student confirms receipt)
   - Button: "Mark as Donated"
   - On click: PATCH /solicitacoes/{id}/concluir
   - Success: Show "Material marked as donated", navigate back
-- [ ] **T164** [P] [US5] Implement in `DonorRequestsViewModel`:
+- [x] **T164** [P] [US5] Implement in `DonorRequestsViewModel`:
   - `completeDonation(solicitacaoId)`: PATCH /solicitacoes/{id}/concluir
-- [ ] **T165** [P] [US5] Create endpoint for listing donor's approved requests:
+- [x] **T165** [P] [US5] Create endpoint for listing donor's approved requests:
   - **GET /api/v1/solicitacoes/aprovadas**: List donor's approved requests (awaiting completion)
 
 ---
@@ -1015,18 +1016,18 @@ Runtime note on 2026-05-14:
 
 ### Module 7: Non-Received Material Reporting
 
-- [ ] **T181** [US5] Create `src/main/java/com/ecobook/controller/ReportController.java` endpoint:
+- [x] **T181** [US5] Create `src/main/java/com/ecobook/controller/ReportController.java` endpoint:
   - **POST /api/v1/materiais/{id}/nao-recebido**: Report non-receipt
   - Request: reason (optional text, max 500 chars)
   - Response: ReportDto (id, created_at, status=OPEN)
   - Error: 403 (not student), 404 (not found), 422 (material not DOADO)
-- [ ] **T182** [US5] Implement `ReportService.reportNonReceipt()`:
+- [x] **T182** [US5] Implement `ReportService.reportNonReceipt()`:
   - Validate material status = DOADO
   - Validate requestor is student from CONCLUIDA Solicitacao
   - Create MaterialNonReceiptReport record
   - Emit ReportCreatedEvent (notify admin via backend alert, email, or dashboard)
-- [ ] **T183** [US5] Create Android UI for non-receipt reporting:
-  - Button visible on MaterialDetailScreen only when status=DOADO
+- [x] **T183** [US5] Create Android UI for non-receipt reporting:
+  - Runtime implementation surfaces the action on completed request cards inside `MyRequestsScreen`, where the student already has the concluded donation context
   - Show dialog: "Report Non-Receipt" with optional reason text
   - Send reason to backend
   - Show confirmation: "Report submitted. Admin will review."
@@ -1370,6 +1371,7 @@ What is already true in the repository:
 - ✅ `GET /api/v1/materiais` now delivers the Phase 4 discovery flow end to end
 - ✅ Phase 5 request workflow is already present in runtime on backend and Android
 - ✅ FCM token registration plus basic notification dispatch/permission flow already exist as the start of Phase 6
+- ✅ Phase 7 module 7 non-receipt reporting now exists in runtime on backend and Android
 
 Phase 3 closeout notes:
 
@@ -1385,13 +1387,13 @@ Phase 3 closeout notes:
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
 4. **Revalidate Phase 6 End to End**: run the implemented notification stack against a real Firebase project/device flow and capture execution notes
-5. **Keep backlog hygiene**: update Phase 5/6 checkbox history and manual/env tasks as Firebase and emulator setup decisions land
-6. **Prepare the next fronts**: admin/moderation, LGPD/anonymization, observability and hardening
+5. **Open Module 8**: add admin report listing and resolution on top of the new `material_non_receipt_report` persistence
+6. **Prepare the next fronts**: LGPD/anonymization, observability and hardening
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 5 and Phase 6 runtime delivery recorded; use this file as a living backlog for Firebase validation plus Phase 7+ execution  
+**Status**: Phase 5, Phase 6 and Phase 7 Module 7 runtime delivery recorded; use this file as a living backlog for Firebase validation plus Module 8/LGPD execution  
 **Document Owner**: Product/Tech Lead  
-**Last Updated**: 2026-05-14
+**Last Updated**: 2026-05-21
 
