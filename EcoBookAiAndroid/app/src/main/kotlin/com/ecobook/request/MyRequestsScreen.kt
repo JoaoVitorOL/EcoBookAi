@@ -81,8 +81,8 @@ fun MyRequestsScreen(
     ) {
         item {
             SectionHeading(
-                title = "Minhas solicitacoes",
-                subtitle = "Acompanhe os pedidos que voce abriu, veja quando o contato for liberado e cancele quando precisar.",
+                title = "Minhas solicitações",
+                subtitle = "Acompanhe os pedidos que você abriu, veja quando o contato for liberado e cancele quando precisar.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,
@@ -113,7 +113,7 @@ fun MyRequestsScreen(
             item {
                 GlassCard {
                     Text(
-                        text = "Nao foi possivel carregar suas solicitacoes.",
+                        text = "Não foi possível carregar suas solicitações.",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -131,7 +131,7 @@ fun MyRequestsScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         CircularProgressIndicator()
                         Text(
-                            text = "Carregando suas solicitacoes...",
+                            text = "Carregando suas solicitações...",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -143,14 +143,14 @@ fun MyRequestsScreen(
                 GlassCard {
                     Text(
                         text = if (uiState.requests.isEmpty()) {
-                            "Voce ainda nao solicitou nenhum material."
+                            "Você ainda não solicitou nenhum material."
                         } else {
-                            "Nenhuma solicitacao encontrada nesse filtro."
+                            "Nenhuma solicitação encontrada nesse filtro."
                         },
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Quando voce pedir um material pela busca, o acompanhamento passa a aparecer aqui.",
+                        text = "Quando você pedir um material pela busca, o acompanhamento passa a aparecer aqui.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -180,10 +180,10 @@ fun MyRequestsScreen(
     pendingCancellation?.let { request ->
         AlertDialog(
             onDismissRequest = { pendingCancellation = null },
-            title = { Text("Cancelar solicitacao") },
+            title = { Text("Cancelar solicitação") },
             text = {
                 Text(
-                    "Voce vai cancelar a solicitacao de \"${request.material?.titulo ?: "este material"}\". Depois disso, sera preciso fazer um novo pedido se ainda quiser receber esse material."
+                    "Você vai cancelar a solicitação de \"${request.material?.titulo ?: "este material"}\". Depois disso, será preciso fazer um novo pedido se ainda quiser receber esse material."
                 )
             },
             confirmButton = {
@@ -194,12 +194,12 @@ fun MyRequestsScreen(
                     },
                     enabled = uiState.activeRequestId == null
                 ) {
-                    Text(if (uiState.activeRequestId == request.id) "Cancelando..." else "Cancelar solicitacao")
+                    Text(if (uiState.activeRequestId == request.id) "Cancelando..." else "Cancelar solicitação")
                 }
             },
             dismissButton = {
                 OutlinedButton(onClick = { pendingCancellation = null }) {
-                    Text("Manter solicitacao")
+                    Text("Manter solicitação")
                 }
             }
         )
@@ -211,13 +211,13 @@ fun MyRequestsScreen(
                 pendingReport = null
                 reportReason = ""
             },
-            title = { Text("Reportar nao recebimento") },
+            title = { Text("Reportar não recebimento") },
             text = {
                 androidx.compose.foundation.layout.Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        "Se voce concluiu a solicitacao, mas o material nao chegou, conte o que aconteceu. O motivo e opcional."
+                        "Se você concluiu a solicitação, mas o material não chegou, conte o que aconteceu. O motivo é opcional."
                     )
                     OutlinedTextField(
                         value = reportReason,
@@ -264,7 +264,7 @@ private fun openWhatsApp(context: android.content.Context, request: SolicitacaoD
     val donorWhatsapp = request.contatoDoador?.get("whatsapp").orEmpty()
     val normalized = WhatsAppFormatter.format(donorWhatsapp).filter(Char::isDigit)
     if (normalized.isBlank()) {
-        Toast.makeText(context, "O contato do doador ainda nao esta disponivel.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "O contato do doador ainda não está disponível.", Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -289,7 +289,7 @@ private fun openWhatsApp(context: android.content.Context, request: SolicitacaoD
         copyContactToClipboard(context, donorWhatsapp.ifBlank { normalized })
         Toast.makeText(
             context,
-            "Nenhum app compativel foi encontrado. O contato do doador foi copiado.",
+            "Nenhum app compatível foi encontrado. O contato do doador foi copiado.",
             Toast.LENGTH_LONG
         ).show()
     }

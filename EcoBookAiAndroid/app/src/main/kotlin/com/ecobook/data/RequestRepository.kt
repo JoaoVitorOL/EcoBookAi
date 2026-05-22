@@ -74,7 +74,7 @@ class RequestRepository @Inject constructor(
 
         throw ApiException(
             statusCode = response.code(),
-            message = error?.message ?: "Falha ao processar a requisicao",
+            message = error?.message ?: "Falha ao processar a requisição",
             fieldErrors = error?.fieldErrors ?: emptyMap()
         )
     }

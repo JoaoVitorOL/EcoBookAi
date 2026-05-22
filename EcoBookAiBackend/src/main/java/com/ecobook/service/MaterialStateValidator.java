@@ -24,7 +24,7 @@ public class MaterialStateValidator {
 
         if (!isValid) {
             throw new InvalidStateTransitionException(
-                    "Nao e permitido mudar o material de " + currentStatus + " para " + targetStatus
+                    "Não é permitido mudar o material de " + currentStatus + " para " + targetStatus
             );
         }
     }

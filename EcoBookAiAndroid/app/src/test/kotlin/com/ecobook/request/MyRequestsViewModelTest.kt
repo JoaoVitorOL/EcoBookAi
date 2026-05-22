@@ -56,7 +56,7 @@ class MyRequestsViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals("CANCELADA", state.requests.single().status)
-        assertEquals("Solicitacao cancelada com sucesso.", state.toastMessage)
+        assertEquals("Solicitação cancelada com sucesso.", state.toastMessage)
         assertNull(state.activeRequestId)
         assertTrue(state.errorMessage == null)
     }
@@ -97,7 +97,7 @@ class MyRequestsViewModelTest {
 
         coEvery { repository.listMyRequests(null) } returns listOf(request)
         coEvery { repository.reportNonReceipt("material-req-duplicate", "Tentativa repetida") } throws
-            ApiException(409, "Ja existe um reporte aberto para esse material.")
+            ApiException(409, "Já existe um reporte aberto para esse material.")
 
         val viewModel = MyRequestsViewModel(repository)
         advanceUntilIdle()
@@ -107,7 +107,7 @@ class MyRequestsViewModelTest {
 
         val state = viewModel.uiState.value
         assertTrue("req-duplicate" in state.reportedRequestIds)
-        assertEquals("Ja existe um reporte aberto para esse material.", state.toastMessage)
+        assertEquals("Já existe um reporte aberto para esse material.", state.toastMessage)
         assertNull(state.activeRequestId)
     }
 

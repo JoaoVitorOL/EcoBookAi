@@ -91,17 +91,17 @@ fun NotificationsScreen(
             GlassCard {
                 Text(
                     text = if (uiState.unreadCount > 0) {
-                        "Voce tem ${uiState.unreadCount} notificacoes pendentes."
+                        "Você tem ${uiState.unreadCount} notificações pendentes."
                     } else {
-                        "Central de notificacoes"
+                        "Central de notificações"
                     },
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
                     text = if (uiState.unreadCount > 0) {
-                        "Aqui ficam apenas avisos ainda nao lidos. Assim que voce marcar uma notificacao como lida, ela sai da lista."
+                        "Aqui ficam apenas avisos ainda não lidos. Assim que você marcar uma notificação como lida, ela sai da lista."
                     } else {
-                        "A central sincroniza automaticamente ao abrir esta tela e ao voltar para ela. So aparecem avisos ainda pendentes de leitura."
+                        "A central sincroniza automaticamente ao abrir esta tela e ao voltar para ela. Só aparecem avisos ainda pendentes de leitura."
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -151,7 +151,7 @@ fun NotificationsScreen(
             item {
                 GlassCard {
                     Text(
-                        text = "A central registrou uma falha na ultima sincronizacao.",
+                        text = "A central registrou uma falha na última sincronização.",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -160,7 +160,7 @@ fun NotificationsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Quando esta tela voltar ao foco, a sincronizacao sera tentada novamente automaticamente.",
+                        text = "Quando esta tela voltar ao foco, a sincronização será tentada novamente automaticamente.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -172,11 +172,11 @@ fun NotificationsScreen(
             item {
                 GlassCard {
                     Text(
-                        text = "Nenhuma notificacao pendente no momento.",
+                        text = "Nenhuma notificação pendente no momento.",
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Quando houver movimentacao nas solicitacoes e doacoes, os avisos novos aparecem aqui ate voce marca-los como lidos.",
+                        text = "Quando houver movimentação nas solicitações e doações, os avisos novos aparecem aqui até você marcá-los como lidos.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -186,7 +186,7 @@ fun NotificationsScreen(
             item {
                 GlassCard {
                     Text(
-                        text = "A central ainda nao conseguiu buscar novas notificacoes.",
+                        text = "A central ainda não conseguiu buscar novas notificações.",
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
@@ -195,7 +195,7 @@ fun NotificationsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Quando esta tela for reaberta ou voltar ao foco, uma nova sincronizacao sera tentada automaticamente.",
+                        text = "Quando esta tela for reaberta ou voltar ao foco, uma nova sincronização será tentada automaticamente.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -317,11 +317,11 @@ private fun notificationContextLines(notification: NotificationInboxEntry): List
     metadata["doador_nome"]?.let { lines += "Doador" to it }
     formatLocation(metadata["doador_bairro"], metadata["doador_cidade"])
         ?.let { lines += "Local do doador" to it }
-    metadata["doador_instituicao"]?.let { lines += "Instituicao do doador" to it }
+    metadata["doador_instituicao"]?.let { lines += "Instituição do doador" to it }
     metadata["solicitante_nome"]?.let { lines += "Solicitante" to it }
     formatLocation(metadata["solicitante_bairro"], metadata["solicitante_cidade"])
         ?.let { lines += "Local do solicitante" to it }
-    metadata["solicitante_instituicao"]?.let { lines += "Instituicao do solicitante" to it }
+    metadata["solicitante_instituicao"]?.let { lines += "Instituição do solicitante" to it }
 
     return lines
 }
@@ -420,7 +420,7 @@ private fun notificationSemanticHint(notification: NotificationInboxEntry): Noti
         "removid" in haystack || "removeu o material" in haystack || "exclu" in haystack -> NotificationSemantic.REMOVED
         "expir" in haystack -> NotificationSemantic.EXPIRED
         "cancelad" in haystack -> NotificationSemantic.CANCELED
-        "doacao concluida" in haystack || "foi concluida" in haystack -> NotificationSemantic.DONATED
+        "doação concluída" in haystack || "foi concluída" in haystack -> NotificationSemantic.DONATED
         else -> NotificationSemantic.GENERIC
     }
 }

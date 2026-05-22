@@ -48,7 +48,7 @@ class EcoBookRepository @Inject constructor(
             bairro = secureStorage.getUserBairro().orEmpty(),
             instituicao = secureStorage.getUserInstituicao().orEmpty(),
             consentimentoIa = secureStorage.getConsentimentoIa(),
-            roleLabel = secureStorage.getUserRole()?.replace('_', ' ')?.ifBlank { "Usuario" } ?: "Usuario",
+            roleLabel = secureStorage.getUserRole()?.replace('_', ' ')?.ifBlank { "Usuário" } ?: "Usuário",
             hasSavedSession = secureStorage.hasToken()
         )
     }
@@ -59,13 +59,13 @@ class EcoBookRepository @Inject constructor(
                 onSuccess = { envelope ->
                     val response = envelope.data ?: return@fold BackendStatus(
                         state = BackendConnectionState.OFFLINE,
-                        headline = "Backend indisponivel",
+                        headline = "Backend indisponível",
                         detail = envelope.message
                     )
                     BackendStatus(
                         state = BackendConnectionState.ONLINE,
                         headline = "Backend online",
-                        detail = "${response.application} respondeu ${response.status} e esta pronto para integracao local.",
+                        detail = "${response.application} respondeu ${response.status} e está pronto para integração local.",
                         application = response.application,
                         version = response.version,
                         timestamp = response.timestamp
@@ -74,9 +74,9 @@ class EcoBookRepository @Inject constructor(
                 onFailure = { error ->
                     BackendStatus(
                         state = BackendConnectionState.OFFLINE,
-                        headline = "Backend indisponivel",
+                        headline = "Backend indisponível",
                         detail = error.message
-                            ?: "Nao foi possivel acessar o endpoint /api/v1/health. Verifique a URL e a porta configuradas no app."
+                            ?: "Não foi possível acessar o endpoint /api/v1/health. Verifique a URL e a porta configuradas no app."
                     )
                 }
             )
@@ -86,15 +86,15 @@ class EcoBookRepository @Inject constructor(
         return listOf(
             ProjectInsight(
                 title = "EcoBookAiBackend",
-                description = "Backend Spring Boot com seguranca JWT, entidades principais, DTOs, Flyway e endpoint de saude em /api/v1/health."
+                description = "Backend Spring Boot com segurança JWT, entidades principais, DTOs, Flyway e endpoint de saúde em /api/v1/health."
             ),
             ProjectInsight(
                 title = "EcoBookAiAndroid",
                 description = "App Android nativo em Kotlin + Compose + Hilt + Retrofit, agora organizado para abrir direto no Android Studio."
             ),
             ProjectInsight(
-                title = "Integracao atual",
-                description = "Auth, perfil, sessao local, upload com camera/galeria, preview com IA, publicacao final e busca paginada de materiais ja funcionam ponta a ponta. Solicitacoes e notificacoes de negocio seguem como a proxima frente."
+                title = "Integração atual",
+                description = "Auth, perfil, sessão local, upload com câmera/galeria, preview com IA, publicação final e busca paginada de materiais já funcionam ponta a ponta. Solicitações e notificações de negócio seguem como a próxima frente."
             )
         )
     }
@@ -103,26 +103,26 @@ class EcoBookRepository @Inject constructor(
         val steps = listOf(
             DonationStep(
                 title = "1. Capturar o material",
-                description = "Foto do livro, escolha da imagem e preparacao para o endpoint de preview."
+                description = "Foto do livro, escolha da imagem e preparação para o endpoint de preview."
             ),
             DonationStep(
-                title = "2. Revisar a classificacao IA",
-                description = "Confianca alta preenche automatico; baixa confianca pede revisao manual."
+                title = "2. Revisar a classificação IA",
+                description = "Confiança alta preenche automático; baixa confiança pede revisão manual."
             ),
             DonationStep(
                 title = "3. Publicar e aguardar matching",
-                description = "Depois da confirmacao, o material entra como DISPONIVEL para descoberta."
+                description = "Depois da confirmação, o material entra como DISPONÍVEL para descoberta."
             )
         )
 
         return DonationPreview(
             aiStatus = AiAssistStatus.SUCCESS,
             confidence = 0.82,
-            description = "Exemplo visual alinhado ao retorno atual de /materiais/preview para revisar os campos antes da publicacao final.",
+            description = "Exemplo visual alinhado ao retorno atual de /materiais/preview para revisar os campos antes da publicação final.",
             fields = listOf(
-                AIPreviewField("Titulo sugerido", "Colecao Anglo Matematica 7"),
-                AIPreviewField("Disciplina", "Matematica"),
-                AIPreviewField("Nivel de ensino", "Fundamental"),
+                AIPreviewField("Título sugerido", "Coleção Anglo Matemática 7"),
+                AIPreviewField("Disciplina", "Matemática"),
+                AIPreviewField("Nível de ensino", "Fundamental"),
                 AIPreviewField("Ano escolar", "7o ano"),
                 AIPreviewField("Sistema", "Anglo"),
                 AIPreviewField("Estado", "Bom")

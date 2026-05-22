@@ -18,14 +18,14 @@ class GeoNormalizationServiceTest {
     @Test
     @DisplayName("normalize should uppercase, trim, and remove accents from a city name")
     void shouldNormalizeCityName() {
-        assertThat(geoNormalizationService.normalize("  S\u00E3o Jos\u00E9 dos Campos  "))
+        assertThat(geoNormalizationService.normalize("  São José dos Campos  "))
                 .isEqualTo("SAO JOSE DOS CAMPOS");
     }
 
     @Test
     @DisplayName("normalize should collapse repeated whitespace and keep ASCII-only output")
     void shouldCollapseWhitespaceAndRemoveAccents() {
-        assertThat(geoNormalizationService.normalize("  centro   hist\u00F3rico  "))
+        assertThat(geoNormalizationService.normalize("  centro   histórico  "))
                 .isEqualTo("CENTRO HISTORICO");
     }
 
@@ -33,11 +33,18 @@ class GeoNormalizationServiceTest {
     @DisplayName("normalize should process city and neighborhood together")
     void shouldNormalizeCityAndNeighborhoodTogether() {
         GeoNormalizationService.NormalizedGeo normalizedGeo = geoNormalizationService.normalize(
-                "Florian\u00F3polis",
-                "  Lagoa da Concei\u00E7\u00E3o "
+                "Florianópolis",
+                "  Lagoa da Conceição "
         );
 
         assertThat(normalizedGeo.city()).isEqualTo("FLORIANOPOLIS");
-        assertThat(normalizedGeo.neighborhood()).isEqualTo("LAGOA DA CONCEICAO");
+        assertThat(normalizedGeo.neighborhood()).isEqualTo("Lagoa da Conceição");
+    }
+
+    @Test
+    @DisplayName("sanitizeDisplayText should preserve accents while trimming repeated whitespace")
+    void shouldPreserveAccentsForDisplayText() {
+        assertThat(geoNormalizationService.sanitizeDisplayText("  Jardim   Botânico  "))
+                .isEqualTo("Jardim Botânico");
     }
 }

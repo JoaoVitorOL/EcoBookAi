@@ -106,8 +106,8 @@ fun MaterialUploadScreen(
 
         item {
             SectionHeading(
-                title = "Fluxo de doacao com IA",
-                subtitle = "Agora o app ja envia a imagem real para /materiais/preview, deixa voce revisar os campos sugeridos e publica o material usando o upload temporario do backend.",
+                title = "Fluxo de doação com IA",
+                subtitle = "Agora o app já envia a imagem real para /materiais/preview, deixa você revisar os campos sugeridos e publica o material usando o upload temporário do backend.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,
@@ -220,7 +220,7 @@ private fun UploadSelectionContent(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Envie a capa da frente para a analise principal e, se quiser, adicione tambem a capa de tras. O app valida JPEG/PNG e comprime quando necessario para ficar abaixo de 5MB por imagem.",
+            text = "Envie a capa da frente para a análise principal e, se quiser, adicione também a capa de trás. O app valida JPEG/PNG e comprime quando necessário para ficar abaixo de 5MB por imagem.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -256,7 +256,7 @@ private fun UploadSelectionContent(
 
         ImageSelectionSlot(
             title = "Capa da frente",
-            subtitle = "Obrigatoria. E a imagem usada na analise inicial da IA.",
+            subtitle = "Obrigatória. É a imagem usada na análise inicial da IA.",
             selectedImage = uiState.selectedFrontImage,
             onChooseFromGallery = onChooseFrontFromGallery,
             onCaptureWithCamera = onCaptureFrontWithCamera,
@@ -264,7 +264,7 @@ private fun UploadSelectionContent(
         )
 
         ImageSelectionSlot(
-            title = "Capa de tras",
+            title = "Capa de trás",
             subtitle = "Opcional. Fica salva junto com o material para dar mais contexto a quem for receber.",
             selectedImage = uiState.selectedBackImage,
             onChooseFromGallery = onChooseBackFromGallery,
@@ -286,7 +286,7 @@ private fun UploadSelectionContent(
             onDismissRequest = { showClearAllConfirmation = false },
             title = { Text("Limpar imagens") },
             text = {
-                Text("Voce vai remover as imagens selecionadas deste rascunho. A escolha precisara ser feita novamente para continuar.")
+                Text("Você vai remover as imagens selecionadas deste rascunho. A escolha precisará ser feita novamente para continuar.")
             },
             confirmButton = {
                 Button(
@@ -343,7 +343,7 @@ private fun ImageSelectionSlot(
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = "Origem: ${if (image.source == ImageSource.CAMERA) "Camera" else "Galeria"} | ${if (image.mimeType.isBlank()) "Tipo a confirmar" else image.mimeType} | ${Formatter.formatShortFileSize(context, image.sizeBytes)}",
+                text = "Origem: ${if (image.source == ImageSource.CAMERA) "Câmera" else "Galeria"} | ${if (image.mimeType.isBlank()) "Tipo a confirmar" else image.mimeType} | ${Formatter.formatShortFileSize(context, image.sizeBytes)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -364,7 +364,7 @@ private fun ImageSelectionSlot(
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Usar a camera")
+                Text("Usar a câmera")
             }
             if (selectedImage != null) {
                 FilledTonalButton(
@@ -388,7 +388,7 @@ private fun ImageSelectionSlot(
             onDismissRequest = { showRemoveConfirmation = false },
             title = { Text("Remover imagem") },
             text = {
-                Text("Esta imagem sera removida do rascunho atual. Se precisar dela depois, voce tera que seleciona-la novamente.")
+                Text("Esta imagem será removida do rascunho atual. Se precisar dela depois, você terá que selecioná-la novamente.")
             },
             confirmButton = {
                 Button(
@@ -428,13 +428,13 @@ private fun SuccessContent(
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = uiState.backendMessage ?: "A publicacao foi concluida com sucesso.",
+            text = uiState.backendMessage ?: "A publicação foi concluída com sucesso.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         uiState.createdMaterial?.let { material ->
             Text(
-                text = "Titulo: ${material.titulo}",
+                text = "Título: ${material.titulo}",
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
@@ -443,7 +443,7 @@ private fun SuccessContent(
             )
             if (material.imagemVersoUrl != null) {
                 Text(
-                    text = "As capas da frente e de tras foram salvas neste cadastro.",
+                    text = "As capas da frente e de trás foram salvas neste cadastro.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

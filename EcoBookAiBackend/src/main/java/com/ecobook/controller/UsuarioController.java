@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,6 +59,17 @@ public class UsuarioController {
                 servletRequest,
                 "Consentimento de IA atualizado com sucesso",
                 usuarioService.updateAiConsent(authentication.getName(), Boolean.TRUE.equals(request.getConsentimentoIa()))
+        );
+    }
+
+    @DeleteMapping("/me/consent/ai-classification")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiEnvelope<UsuarioDTO>> revokeAiConsent(Authentication authentication,
+                                                                   HttpServletRequest servletRequest) {
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Consentimento de IA revogado com sucesso",
+                usuarioService.updateAiConsent(authentication.getName(), false)
         );
     }
 }

@@ -159,7 +159,7 @@ fun DiscoveryScreen(
             item {
                 GlassCard {
                     Text(
-                        text = "Nao foi possivel carregar a busca.",
+                        text = "Não foi possível carregar a busca.",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -177,7 +177,7 @@ fun DiscoveryScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         CircularProgressIndicator()
                         Text(
-                            text = "Consultando materiais disponiveis...",
+                            text = "Consultando materiais disponíveis...",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -219,7 +219,7 @@ private fun ResultsSummary(
     val regionLabel = when {
         activeCity != null && activeNeighborhood != null -> "$activeNeighborhood, $activeCity"
         activeCity != null -> activeCity
-        else -> "todo o catalogo disponivel"
+        else -> "todo o catálogo disponível"
     }
 
     val summary = if (uiState.total == 0L) {
@@ -245,7 +245,7 @@ private fun EmptyDiscoveryState(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Ajuste os filtros ou abra todos os materiais disponiveis para ampliar a busca.",
+            text = "Ajuste os filtros ou abra todos os materiais disponíveis para ampliar a busca.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -288,7 +288,7 @@ private fun DiscoveryFiltersCard(
                 )
                 Text(
                     text = if (expanded) {
-                        "Ajuste disciplina, nivel, sistema de ensino e local quando quiser refinar os resultados."
+                        "Ajuste disciplina, nível, sistema de ensino e local quando quiser refinar os resultados."
                     } else {
                         collapsedFiltersSummary(uiState)
                     },
@@ -312,7 +312,7 @@ private fun DiscoveryFiltersCard(
                 OutlinedTextField(
                     value = uiState.filters.query,
                     onValueChange = onQueryChange,
-                    label = { Text("Buscar por titulo, descricao, autor ou local") },
+                    label = { Text("Buscar por título, descrição, autor ou local") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -351,8 +351,8 @@ private fun DiscoveryFiltersCard(
                     supportingText = {
                         Text(
                             when (uiState.filters.nivelEnsino) {
-                                NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino medio."
-                                NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                                NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino médio."
+                                NivelEnsino.SUPERIOR -> "Não se aplica a materiais de ensino superior."
                                 else -> "Use um valor de 1 a 9."
                             }
                         )
@@ -366,7 +366,7 @@ private fun DiscoveryFiltersCard(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                     supportingText = {
-                        Text("Opcional. A busca normaliza a cidade informada antes de filtrar.")
+                        Text("Opcional. A busca padroniza a cidade sem acento antes de filtrar.")
                     }
                 )
                 OutlinedTextField(
@@ -380,7 +380,7 @@ private fun DiscoveryFiltersCard(
                     OutlinedTextField(
                         value = uiState.filters.minAnoPublicacao,
                         onValueChange = onMinAnoPublicacaoChange,
-                        label = { Text("Publicacao de") },
+                        label = { Text("Publicação de") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -388,7 +388,7 @@ private fun DiscoveryFiltersCard(
                     OutlinedTextField(
                         value = uiState.filters.maxAnoPublicacao,
                         onValueChange = onMaxAnoPublicacaoChange,
-                        label = { Text("Publicacao ate") },
+                        label = { Text("Publicação até") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -428,7 +428,7 @@ private fun collapsedFiltersSummary(uiState: DiscoveryUiState): String {
     return if (activeFilters.isEmpty()) {
         "Filtros recolhidos. Toque para expandir quando quiser refinar a busca."
     } else {
-        "Filtros recolhidos com ${activeFilters.size} criterio(s) ativo(s): ${activeFilters.joinToString(", ")}."
+        "Filtros recolhidos com ${activeFilters.size} critério(s) ativo(s): ${activeFilters.joinToString(", ")}."
     }
 }
 

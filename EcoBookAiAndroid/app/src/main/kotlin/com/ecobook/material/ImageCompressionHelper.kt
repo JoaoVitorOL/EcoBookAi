@@ -21,7 +21,7 @@ object ImageCompressionHelper {
 
     fun prepareForUpload(context: Context, uri: Uri, originalFileName: String): PreparedImage {
         val rawBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-            ?: throw IllegalArgumentException("Nao foi possivel ler a imagem selecionada.")
+            ?: throw IllegalArgumentException("Não foi possível ler a imagem selecionada.")
 
         val mimeType = detectMimeType(rawBytes, context.contentResolver.getType(uri))
         require(isSupportedMimeType(mimeType)) {
@@ -37,7 +37,7 @@ object ImageCompressionHelper {
         }
 
         val bitmap = decodeBitmap(context, uri)
-            ?: throw IllegalArgumentException("Nao foi possivel decodificar a imagem selecionada.")
+            ?: throw IllegalArgumentException("Não foi possível decodificar a imagem selecionada.")
         val scaled = scaleBitmap(bitmap, TARGET_MAX_DIMENSION)
 
         if (mimeType == "image/png") {
@@ -65,7 +65,7 @@ object ImageCompressionHelper {
             quality -= 5
         }
 
-        throw IllegalArgumentException("Nao foi possivel reduzir a imagem para ate 5MB.")
+        throw IllegalArgumentException("Não foi possível reduzir a imagem para até 5MB.")
     }
 
     private fun decodeBitmap(context: Context, uri: Uri): Bitmap? {

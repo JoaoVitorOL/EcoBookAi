@@ -64,7 +64,7 @@ fun HomeScreen(
                         color = Color.White
                     )
                     Text(
-                        text = "Transformamos o que ja existe no repositorio em um app Android pronto para evoluir com o backend.",
+                        text = "Transformamos o que já existe no repositório em um app Android pronto para evoluir com o backend.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color.White.copy(alpha = 0.92f)
                     )
@@ -73,12 +73,12 @@ fun HomeScreen(
                             Text("Buscar materiais")
                         }
                         OutlinedButton(onClick = onOpenDonate) {
-                            Text("Fluxo de doacao")
+                            Text("Fluxo de doação")
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         FilledTonalButton(onClick = onOpenMyRequests) {
-                            Text("Minhas solicitacoes")
+                            Text("Minhas solicitações")
                         }
                         OutlinedButton(onClick = onOpenDonorRequests) {
                             Text("Pedidos recebidos")
@@ -128,7 +128,7 @@ fun HomeScreen(
                 )
                 uiState.backendStatus.version?.let { version ->
                     Text(
-                        text = "Versao reportada: $version",
+                        text = "Versão reportada: $version",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -148,7 +148,7 @@ fun HomeScreen(
                 MetricCard(
                     title = "Perfil",
                     value = "${uiState.profile.completionPercent}%",
-                    description = "Prontidao do onboarding local para integrar com /usuarios.",
+                    description = "Prontidão do onboarding local para integrar com /usuarios.",
                     icon = Icons.Rounded.AccountCircle,
                     modifier = Modifier.weight(1f)
                 )
@@ -159,7 +159,7 @@ fun HomeScreen(
             MetricCard(
                 title = "API real conectada",
                 value = "/v1/health",
-                description = "Ponto de integracao ja validado entre Android e Spring Boot.",
+                description = "Ponto de integração já validado entre Android e Spring Boot.",
                 icon = Icons.Rounded.CloudDone
             )
         }
@@ -167,7 +167,7 @@ fun HomeScreen(
         item {
             SectionHeading(
                 title = "Raio-X do projeto atual",
-                subtitle = "Resumo da analise do que ja existia e do que agora ficou pronto para o Android Studio."
+                subtitle = "Resumo da análise do que já existia e do que agora ficou pronto para o Android Studio."
             )
         }
 

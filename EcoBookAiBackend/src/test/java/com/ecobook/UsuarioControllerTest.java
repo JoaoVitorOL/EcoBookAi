@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -117,5 +118,34 @@ class UsuarioControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.data.email").value("consent@example.com"))
                 .andExpect(jsonPath("$.data.consentimento_ia").value(true))
                 .andExpect(jsonPath("$.data.cidade").value("SAO PAULO"));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/usuarios/me/consent/ai-classification should revoke AI consent")
+    void shouldRevokeAiConsent() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("consent-revoke@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Consent Revoke User")
+                .whatsapp("+5511991234567")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
+                .perfilCompleto(true)
+                .consentimentoIa(true)
+                .role(Role.USER)
+                .build());
+
+        String token = jwtTokenProvider.generateToken(
+                usuario.getEmail(),
+                usuario.getRole().name(),
+                usuario.isPerfilCompleto(),
+                usuario.getId().toString()
+        );
+
+        mockMvc.perform(delete("/v1/usuarios/me/consent/ai-classification")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("consent-revoke@example.com"))
+                .andExpect(jsonPath("$.data.consentimento_ia").value(false));
     }
 }

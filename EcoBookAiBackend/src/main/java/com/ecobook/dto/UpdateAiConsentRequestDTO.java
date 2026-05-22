@@ -15,6 +15,6 @@ import lombok.NoArgsConstructor;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UpdateAiConsentRequestDTO {
 
-    @NotNull(message = "Informe se o consentimento de IA deve ficar ativo ou nao")
+    @NotNull(message = "Informe se o consentimento de IA deve ficar ativo ou não")
     private Boolean consentimentoIa;
 }

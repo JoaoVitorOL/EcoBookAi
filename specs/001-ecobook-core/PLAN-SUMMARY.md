@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Module 7 Implemented / 8 Module 8 Started  
+**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Started  
 **Date**: 2026-05-21  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, and Phase 7 non-receipt reporting are implemented across backend and Android; admin moderation has now started with report listing/resolution endpoints while Firebase device validation and the remaining LGPD/hardening fronts stay pending
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, and the full Phase 7 admin/moderation runtime are implemented; Phase 8 has started with live AI consent update/revocation endpoints while Firebase device validation and the remaining LGPD/hardening fronts stay pending
 
 ---
 
@@ -146,14 +146,15 @@ What is already implemented in the repository:
    - backend now accepts FCM device tokens, dispatches notifications after commit, standardizes payloads and persists transient failures for hourly retry
    - Android now requests notification permission contextually, syncs the FCM token, handles deep links, persists a local notifications inbox, exposes an unread bell entry point inside the main screens instead of a dedicated bottom-nav tab, keeps foreground receipt inside the in-app inbox and lets the user mark notifications as read individually or in batch from the notifications center
 
-7. Phase 7 module 7 reporting runtime
+7. Phase 7 admin and moderation runtime
    - backend now exposes `POST /api/v1/materiais/{id}/nao-recebido`, persists `material_non_receipt_report` rows and emits a moderation-seed event after commit
    - Android now lets the student report non-receipt directly from completed request cards in `MyRequestsScreen`, with optional reason text and duplicate-open-report feedback
+   - backend now also exposes `GET /api/v1/admin/reports`, `PATCH /api/v1/admin/reports/{id}/resolve`, `GET /api/v1/admin/materials`, `DELETE /api/v1/admin/materials/{id}` and `GET /api/v1/admin/users`
+   - admin authorization is complete through `hasRole('ADMIN')` plus startup bootstrap/promotion via `ADMIN_BOOTSTRAP_*`
 
-8. Phase 8 admin moderation kickoff
-   - backend now exposes `GET /api/v1/admin/reports` with optional status filtering and pagination for moderation triage
-   - backend now exposes `PATCH /api/v1/admin/reports/{id}/resolve` so an admin can close an `OPEN` report with optional resolution notes
-   - role enforcement for these moderation endpoints is active through `hasRole('ADMIN')`; real usage still depends on at least one seeded/admin-promoted account
+8. Phase 8 consent-management kickoff
+   - backend already enforces `consentimento_ia=false` by short-circuiting `/api/v1/materiais/preview` before any Gemini call
+   - backend now exposes both `PATCH /api/v1/usuarios/me/consentimento-ia` and `DELETE /api/v1/usuarios/me/consent/ai-classification`
 
 What closed Phase 3 formally:
 
@@ -179,10 +180,16 @@ What remains to close Phase 6 formally:
 2. Capture device-level evidence for foreground/background receipt on hardware or emulator with Google Play services
 3. Fold any Firebase-project-specific findings back into the local runbooks
 
-What opened Phase 7 concretely:
+What closed Phase 7 concretely:
 
-1. Non-receipt reporting is no longer backlog-only; the persistence model, endpoint, Android action and a backend unit test now exist in runtime
-2. Admin resolution for those reports is still pending and remains the next natural backend/dashboard front
+1. Non-receipt reporting is no longer backlog-only; the persistence model, endpoint, Android action and backend tests exist in runtime
+2. Admin moderation is now usable end to end at the API layer through report triage/resolution, material listing/removal and user listing with activity metrics
+3. Admin access no longer depends on manual SQL only; an existing account can be promoted, or a local/admin-only account can be created, through `ADMIN_BOOTSTRAP_*`
+
+What opened Phase 8 concretely:
+
+1. The AI consent gate is already enforced in material preview and no longer depends on full-profile rewrites to change state
+2. The new revoke endpoint starts the LGPD consent-management surface while `ConsentRecord`, anonymization and deletion audit persistence remain backlog work
 
 Validation update on 2026-05-21:
 

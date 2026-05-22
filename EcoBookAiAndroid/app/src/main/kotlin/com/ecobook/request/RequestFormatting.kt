@@ -9,7 +9,7 @@ internal fun formatRequestStatus(status: String): String {
         "APROVADA" -> "Aprovada"
         "RECUSADA" -> "Recusada"
         "CANCELADA" -> "Cancelada"
-        "CONCLUIDA" -> "Concluida"
+        "CONCLUIDA" -> "Concluída"
         else -> status
             .split('_')
             .joinToString(" ") { token ->

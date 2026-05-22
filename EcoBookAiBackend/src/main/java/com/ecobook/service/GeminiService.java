@@ -101,7 +101,7 @@ public class GeminiService {
         if (!StringUtils.hasText(apiKey)) {
             log.warn("Gemini API key is not configured in the backend process; returning manual fallback");
             return failureResponse(
-                    "Integracao Gemini indisponivel: GEMINI_API_KEY ausente no processo do backend",
+                    "Integração Gemini indisponível: GEMINI_API_KEY ausente no processo do backend",
                     false,
                     false,
                     List.of(),
@@ -180,7 +180,7 @@ public class GeminiService {
                     .build();
         } catch (JsonProcessingException ex) {
             log.warn("Gemini returned malformed JSON: {}", rawGeminiText, ex);
-            return failureResponse("Resposta do Gemini em formato invalido", false, true, List.of(), List.of());
+            return failureResponse("Resposta do Gemini em formato inválido", false, true, List.of(), List.of());
         }
     }
 
@@ -262,7 +262,7 @@ public class GeminiService {
             if (response.code() == 429) {
                 throw new RetryableGeminiException(
                         RetryCategory.RATE_LIMIT,
-                        "Gemini atingiu limite temporario de requisicoes",
+                        "Gemini atingiu limite temporário de requisições",
                         false,
                         null
                 );
@@ -299,25 +299,25 @@ public class GeminiService {
                 root = objectMapper.readTree(payload);
             } catch (JsonProcessingException ex) {
                 log.warn("Gemini returned malformed payload: {}", payload, ex);
-                return failureResponse("Gemini retornou payload invalido", false, true, List.of(), List.of());
+                return failureResponse("Gemini retornou payload inválido", false, true, List.of(), List.of());
             }
             String rawText = root.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
             if (!StringUtils.hasText(rawText)) {
-                return failureResponse("Gemini nao retornou conteudo utilizavel", false, true, List.of(), List.of());
+                return failureResponse("Gemini não retornou conteúdo utilizável", false, true, List.of(), List.of());
             }
 
             return parseGeminiResponse(rawText);
         } catch (java.net.SocketTimeoutException ex) {
             throw new RetryableGeminiException(
                     RetryCategory.TIMEOUT_OR_CONNECTION,
-                    "Timeout do Gemini apos 10s",
+                    "Timeout do Gemini após 10s",
                     true,
                     ex
             );
         } catch (IOException ex) {
             throw new RetryableGeminiException(
                     RetryCategory.TIMEOUT_OR_CONNECTION,
-                    "Falha temporaria de conexao com o Gemini",
+                    "Falha temporária de conexão com o Gemini",
                     false,
                     ex
             );
@@ -365,24 +365,24 @@ public class GeminiService {
     private String prompt(boolean includeGoogleSearchTool) {
         List<String> lines = new ArrayList<>(List.of(
                 "Analise as imagens de um material educacional brasileiro.",
-                "Considere todas as imagens enviadas em conjunto; frente e verso podem trazer informacoes complementares.",
-                "Retorne sua resposta SOMENTE em formato JSON valido com a chave best_prediction.",
+                "Considere todas as imagens enviadas em conjunto; frente e verso podem trazer informações complementares.",
+                "Retorne sua resposta SOMENTE em formato JSON válido com a chave best_prediction.",
                 "Cada campo deve seguir o formato {\"value\": \"...\", \"confidence\": 0.0}.",
                 "Campos aceitos: titulo, autor, editora, disciplina, nivel_ensino, ano, sistema_ensino, data_publicacao.",
                 "Valores de disciplina: TODAS, MATEMATICA, PORTUGUES, HISTORIA, GEOGRAFIA, CIENCIAS, LITERATURA.",
-                "Use disciplina TODAS quando o material reunir multiplas materias, for uma colecao multidisciplinar ou as imagens indicarem mais de uma disciplina no mesmo volume.",
+                "Use disciplina TODAS quando o material reunir múltiplas matérias, for uma coleção multidisciplinar ou as imagens indicarem mais de uma disciplina no mesmo volume.",
                 "Valores de nivel_ensino: FUNDAMENTAL, MEDIO, SUPERIOR.",
                 "Valores de sistema_ensino: ANGLO, OBJETIVO, COC, POSITIVO, POLIEDRO, ETAPA, BERNOULLI, SAS, FTD, OUTRO.",
-                "Para campos nao identificados, use value null e confidence null.",
-                "Nunca invente descricao. Nunca retorne texto fora do JSON.",
-                "Autor e editora devem ser extraidos da capa, lombada, contracapa ou outras partes visiveis das imagens sempre que possivel.",
-                "So preencha autor ou editora quando houver evidencia forte; se houver duvida, use value null e confidence null.",
-                "Nao retorne estado_conservacao. Esse campo e sempre preenchido manualmente pelo usuario.",
-                "Seja conservador nas predicoes e priorize a precisao da informacao."
+                "Para campos não identificados, use value null e confidence null.",
+                "Nunca invente descrição. Nunca retorne texto fora do JSON.",
+                "Autor e editora devem ser extraídos da capa, lombada, contracapa ou outras partes visíveis das imagens sempre que possível.",
+                "Só preencha autor ou editora quando houver evidência forte; se houver dúvida, use value null e confidence null.",
+                "Não retorne estado_conservacao. Esse campo é sempre preenchido manualmente pelo usuário.",
+                "Seja conservador nas predições e priorize a precisão da informação."
         ));
 
         if (includeGoogleSearchTool) {
-            lines.add(12, "Se autor ou editora nao estiverem claramente visiveis, voce pode usar Google Search grounding para tentar confirmar essas informacoes com base no titulo e no contexto visual do livro.");
+            lines.add(12, "Se autor ou editora não estiverem claramente visíveis, você pode usar Google Search grounding para tentar confirmar essas informações com base no título e no contexto visual do livro.");
         }
 
         return String.join("\n", lines);
@@ -432,7 +432,7 @@ public class GeminiService {
             JsonNode root = objectMapper.readTree(payload);
             return root.path("error").path("message").asText("");
         } catch (JsonProcessingException ex) {
-            log.debug("Nao foi possivel extrair a mensagem de erro do Gemini a partir do payload: {}", payload, ex);
+            log.debug("Não foi possível extrair a mensagem de erro do Gemini a partir do payload: {}", payload, ex);
             return "";
         }
     }
@@ -545,14 +545,14 @@ public class GeminiService {
 
     private String inferTitle(String originalFilename) {
         if (!StringUtils.hasText(originalFilename)) {
-            return "Material para revisao manual";
+            return "Material para revisão manual";
         }
 
         String baseName = originalFilename.contains(".")
                 ? originalFilename.substring(0, originalFilename.lastIndexOf('.'))
                 : originalFilename;
         String normalized = baseName.replace('_', ' ').replace('-', ' ').trim();
-        return normalized.isBlank() ? "Material para revisao manual" : normalized;
+        return normalized.isBlank() ? "Material para revisão manual" : normalized;
     }
 
     public GeminiResponseDTO failureResponse(String message,

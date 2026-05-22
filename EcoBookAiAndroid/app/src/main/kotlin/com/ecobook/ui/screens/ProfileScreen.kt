@@ -35,7 +35,7 @@ fun ProfileScreen(
         item {
             SectionHeading(
                 title = "Conta e perfil",
-                subtitle = "Resumo do usuario autenticado e dos dados enviados no onboarding.",
+                subtitle = "Resumo do usuário autenticado e dos dados enviados no onboarding.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,
@@ -61,7 +61,7 @@ fun ProfileScreen(
                     }
                 )
                 Text(
-                    text = "JWT ativo: ${if (uiState.session.isAuthenticated) "sim" else "nao"}",
+                    text = "JWT ativo: ${if (uiState.session.isAuthenticated) "sim" else "não"}",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
@@ -69,7 +69,7 @@ fun ProfileScreen(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = "Conclusao do perfil: ${uiState.profile.completionPercent}%",
+                    text = "Conclusão do perfil: ${uiState.profile.completionPercent}%",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -83,18 +83,18 @@ fun ProfileScreen(
                 ReadOnlyProfileField(label = "WhatsApp", value = uiState.profile.whatsapp)
                 ReadOnlyProfileField(label = "Cidade", value = uiState.profile.cidade)
                 ReadOnlyProfileField(label = "Bairro", value = uiState.profile.bairro)
-                ReadOnlyProfileField(label = "Instituicao", value = uiState.profile.instituicao)
+                ReadOnlyProfileField(label = "Instituição", value = uiState.profile.instituicao)
             }
         }
 
         item {
             GlassCard {
                 SectionHeading(
-                    title = "Sessao e seguranca",
-                    subtitle = "Use esta opcao para encerrar a sessao atual e entrar com outra conta neste dispositivo."
+                    title = "Sessão e segurança",
+                    subtitle = "Use esta opção para encerrar a sessão atual e entrar com outra conta neste dispositivo."
                 )
                 Text(
-                    text = "Controle aqui se suas imagens podem passar pela classificacao assistida com Gemini durante o fluxo de doacao.",
+                    text = "Controle aqui se suas imagens podem passar pela classificação assistida com Gemini durante o fluxo de doação.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -114,7 +114,7 @@ fun ProfileScreen(
                 }
                 if (uiState.isUpdatingAiConsent) {
                     Text(
-                        text = "Salvando preferencia...",
+                        text = "Salvando preferência...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -148,7 +148,7 @@ private fun ReadOnlyProfileField(
     value: String
 ) {
     OutlinedTextField(
-        value = value.ifBlank { "Nao informado" },
+        value = value.ifBlank { "Não informado" },
         onValueChange = {},
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),

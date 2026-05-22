@@ -35,10 +35,10 @@ public class NotificationPayloadFactory {
                                                   Usuario solicitante) {
         return build(
                 NotificationType.SOLICITACAO_APROVADA,
-                "Solicitacao aprovada",
-                "Sua solicitacao do material \"" + materialTitle + "\" foi aprovada por " +
+                "Solicitação aprovada",
+                "Sua solicitação do material \"" + materialTitle + "\" foi aprovada por " +
                         safeName(doador, "o doador") +
-                        ". O contato do doador ja esta disponivel no pedido.",
+                        ". O contato do doador já está disponível no pedido.",
                 requestId,
                 materialId,
                 participantMetadata(materialTitle, doador, solicitante)
@@ -52,8 +52,8 @@ public class NotificationPayloadFactory {
                                                   Usuario solicitante) {
         return build(
                 NotificationType.SOLICITACAO_RECUSADA,
-                "Solicitacao recusada",
-                "Sua solicitacao do material \"" + materialTitle + "\" foi recusada por " +
+                "Solicitação recusada",
+                "Sua solicitação do material \"" + materialTitle + "\" foi recusada por " +
                         safeName(doador, "o doador") + ".",
                 requestId,
                 materialId,
@@ -70,9 +70,9 @@ public class NotificationPayloadFactory {
         metadata.put("cancelado_por", "DOADOR");
         return build(
                 NotificationType.SOLICITACAO_CANCELADA,
-                "Solicitacao cancelada pelo doador",
-                "Sua solicitacao do material \"" + materialTitle + "\" foi cancelada pelo doador " +
-                        safeName(doador, "responsavel pelo material") + ".",
+                "Solicitação cancelada pelo doador",
+                "Sua solicitação do material \"" + materialTitle + "\" foi cancelada pelo doador " +
+                        safeName(doador, "responsável pelo material") + ".",
                 requestId,
                 materialId,
                 metadata
@@ -88,8 +88,8 @@ public class NotificationPayloadFactory {
         metadata.put("cancelado_por", "SOLICITANTE");
         return build(
                 NotificationType.SOLICITACAO_CANCELADA,
-                "Solicitacao cancelada pelo solicitante",
-                "O solicitante " + safeName(solicitante, "responsavel pelo pedido") +
+                "Solicitação cancelada pelo solicitante",
+                "O solicitante " + safeName(solicitante, "responsável pelo pedido") +
                         " cancelou o pedido do material \"" + materialTitle + "\".",
                 requestId,
                 materialId,
@@ -107,7 +107,7 @@ public class NotificationPayloadFactory {
         return build(
                 NotificationType.SOLICITACAO_CANCELADA,
                 "Reserva expirada",
-                "A reserva do material \"" + materialTitle + "\" expirou porque a doacao nao foi concluida dentro do prazo.",
+                "A reserva do material \"" + materialTitle + "\" expirou porque a doação não foi concluída dentro do prazo.",
                 requestId,
                 materialId,
                 metadata
@@ -121,8 +121,8 @@ public class NotificationPayloadFactory {
                                                     Usuario solicitante) {
         return build(
                 NotificationType.MATERIAL_DOADO,
-                "Doacao concluida",
-                "A doacao do material \"" + materialTitle + "\" foi concluida entre " +
+                "Doação concluída",
+                "A doação do material \"" + materialTitle + "\" foi concluída entre " +
                         safeName(doador, "o doador") +
                         " e " + safeName(solicitante, "o solicitante") + ".",
                 requestId,
@@ -139,8 +139,24 @@ public class NotificationPayloadFactory {
         return build(
                 NotificationType.MATERIAL_CANCELADO,
                 "Material removido",
-                "O doador " + safeName(doador, "responsavel pelo material") +
-                        " removeu o material \"" + materialTitle + "\" e a solicitacao associada foi encerrada.",
+                "O doador " + safeName(doador, "responsável pelo material") +
+                        " removeu o material \"" + materialTitle + "\" e a solicitação associada foi encerrada.",
+                requestId,
+                materialId,
+                participantMetadata(materialTitle, doador, solicitante)
+        );
+    }
+
+    public NotificationPayloadDTO materialRemovedByAdmin(String requestId,
+                                                         String materialId,
+                                                         String materialTitle,
+                                                         Usuario doador,
+                                                         Usuario solicitante) {
+        return build(
+                NotificationType.MATERIAL_CANCELADO,
+                "Material removido pela equipe",
+                "A equipe EcoBook removeu o material \"" + materialTitle +
+                        "\" da plataforma durante uma revisão administrativa.",
                 requestId,
                 materialId,
                 participantMetadata(materialTitle, doador, solicitante)

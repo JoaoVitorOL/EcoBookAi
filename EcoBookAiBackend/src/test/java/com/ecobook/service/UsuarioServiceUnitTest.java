@@ -20,8 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +48,7 @@ class UsuarioServiceUnitTest {
     }
 
     @Test
-    @DisplayName("updateProfile should accept arbitrary city text and normalize it before saving")
+    @DisplayName("updateProfile should accept arbitrary city text and preserve neighborhood accentuation")
     void shouldAcceptFreeTextCityAndNormalizeIt() {
         Usuario usuario = Usuario.builder()
                 .id(UUID.randomUUID())
@@ -66,15 +66,15 @@ class UsuarioServiceUnitTest {
                 .nome("Pessoa")
                 .whatsapp("+5511991234567")
                 .cidade(" Ribeirão Preto ")
-                .bairro(" Jardim Botanico ")
+                .bairro(" Jardim Botânico ")
                 .build();
 
         UsuarioDTO response = usuarioService.updateProfile("user@example.com", request);
 
         assertThat(response.getCidade()).isEqualTo("RIBEIRAO PRETO");
-        assertThat(response.getBairro()).isEqualTo("JARDIM BOTANICO");
+        assertThat(response.getBairro()).isEqualTo("Jardim Botânico");
         assertThat(response.getPerfilCompleto()).isTrue();
-        verify(usuarioRepository).save(argThat(hasNormalizedGeo("RIBEIRAO PRETO", "JARDIM BOTANICO")));
+        verify(usuarioRepository).save(argThat(hasNormalizedGeo("RIBEIRAO PRETO", "Jardim Botânico")));
     }
 
     private ArgumentMatcher<Usuario> hasNormalizedGeo(String cidade, String bairro) {

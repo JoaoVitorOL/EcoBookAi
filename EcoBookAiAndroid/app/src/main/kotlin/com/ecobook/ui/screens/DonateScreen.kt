@@ -145,7 +145,7 @@ fun DonateScreen(
             title = { Text("Excluir material") },
             text = {
                 Text(
-                    "O material \"${material.titulo}\" sera removido da sua conta e deixara de aparecer na busca publica."
+                    "O material \"${material.titulo}\" será removido da sua conta e deixará de aparecer na busca pública."
                 )
             },
             confirmButton = {
@@ -184,8 +184,8 @@ private fun DonateHistoryContent(
     ) {
         item {
             SectionHeading(
-                title = "Area do doador",
-                subtitle = "Acompanhe tudo o que voce ja publicou, edite materiais disponiveis e abra novos cadastros quando quiser.",
+                title = "Área do doador",
+                subtitle = "Acompanhe tudo o que você já publicou, edite materiais disponíveis e abra novos cadastros quando quiser.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,
@@ -208,9 +208,9 @@ private fun DonateHistoryContent(
             GlassCard {
                 Text(
                     text = if (visibleMaterials.isEmpty()) {
-                        "Voce ainda nao publicou materiais."
+                        "Você ainda não publicou materiais."
                     } else {
-                        "Voce tem ${visibleMaterials.size} materiais ativos cadastrados nesta conta."
+                        "Você tem ${visibleMaterials.size} materiais ativos cadastrados nesta conta."
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -222,7 +222,7 @@ private fun DonateHistoryContent(
             item {
                 GlassCard {
                     Text(
-                        text = "Nao foi possivel carregar seus materiais.",
+                        text = "Não foi possível carregar seus materiais.",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -255,7 +255,7 @@ private fun DonateHistoryContent(
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Use o modo de publicacao para cadastrar seu primeiro material e faze-lo aparecer aqui.",
+                        text = "Use o modo de publicação para cadastrar seu primeiro material e fazê-lo aparecer aqui.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -378,7 +378,7 @@ private fun DonateMaterialCard(
                 )
                 if (!isAvailable) {
                     Text(
-                        text = "Edicao e exclusao ficam disponiveis apenas enquanto o material estiver DISPONIVEL.",
+                        text = "Edição e exclusão ficam disponíveis apenas enquanto o material estiver DISPONÍVEL.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -463,7 +463,7 @@ private fun EditMaterialDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Capa de tras",
+                                text = "Capa de trás",
                                 style = MaterialTheme.typography.titleSmall
                             )
                             MaterialImage(
@@ -486,7 +486,7 @@ private fun EditMaterialDialog(
                 EditableField(
                     value = uiState.editDraft.titulo,
                     onValueChange = onTituloChange,
-                    label = "Titulo",
+                    label = "Título",
                     modifier = Modifier.fillMaxWidth(),
                     errorMessage = uiState.validationErrors["titulo"]
                 )
@@ -507,7 +507,7 @@ private fun EditMaterialDialog(
                 EditableField(
                     value = uiState.editDraft.descricao,
                     onValueChange = onDescricaoChange,
-                    label = "Descricao",
+                    label = "Descrição",
                     modifier = Modifier.fillMaxWidth(),
                     errorMessage = uiState.validationErrors["descricao"],
                     singleLine = false,
@@ -523,7 +523,7 @@ private fun EditMaterialDialog(
                     errorMessage = uiState.validationErrors["disciplina"]
                 )
                 EnumDropdown(
-                    label = "Nivel de ensino",
+                    label = "Nível de ensino",
                     selectedValue = uiState.editDraft.nivelEnsino,
                     options = NivelEnsino.entries.toList(),
                     optionLabel = { it.label },
@@ -538,8 +538,8 @@ private fun EditMaterialDialog(
                     modifier = Modifier.fillMaxWidth(),
                     errorMessage = uiState.validationErrors["ano"],
                     supportingMessage = when (uiState.editDraft.nivelEnsino) {
-                        NivelEnsino.MEDIO -> "Para ensino medio, use apenas 1, 2 ou 3."
-                        NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                        NivelEnsino.MEDIO -> "Para ensino médio, use apenas 1, 2 ou 3."
+                        NivelEnsino.SUPERIOR -> "Não se aplica a materiais de ensino superior."
                         else -> "Para ensino fundamental, use um valor de 1 a 9."
                     },
                     enabled = uiState.editDraft.nivelEnsino != NivelEnsino.SUPERIOR
@@ -554,7 +554,7 @@ private fun EditMaterialDialog(
                     errorMessage = uiState.validationErrors["sistema_ensino"]
                 )
                 EnumDropdown(
-                    label = "Estado de conservacao",
+                    label = "Estado de conservação",
                     selectedValue = uiState.editDraft.estadoConservacao,
                     options = EstadoConservacao.entries.toList(),
                     optionLabel = { it.label },
@@ -565,7 +565,7 @@ private fun EditMaterialDialog(
                 EditableField(
                     value = uiState.editDraft.dataPublicacao,
                     onValueChange = onDataPublicacaoChange,
-                    label = "Ano de publicacao",
+                    label = "Ano de publicação",
                     modifier = Modifier.fillMaxWidth(),
                     errorMessage = uiState.validationErrors["data_publicacao"]
                 )
@@ -589,7 +589,7 @@ private fun EditMaterialDialog(
 
 private fun humanizeStatus(value: String): String {
     return when (value) {
-        "DISPONIVEL" -> "Disponivel"
+        "DISPONIVEL" -> "Disponível"
         "RESERVADO" -> "Reservado"
         "DOADO" -> "Doado"
         "CANCELADO" -> "Cancelado"

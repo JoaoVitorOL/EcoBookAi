@@ -92,7 +92,7 @@ class DiscoveryViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals(
-            "O ano inicial de publicacao nao pode ser maior que o ano final.",
+            "O ano inicial de publicação não pode ser maior que o ano final.",
             state.toastMessage
         )
 

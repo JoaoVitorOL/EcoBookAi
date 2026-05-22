@@ -48,15 +48,15 @@ public class SolicitacaoService {
         Material material = loadMaterial(materialId);
 
         if (material.getDoador().getId().equals(estudante.getId())) {
-            throw new BadRequestException("Nao e possivel solicitar o proprio material", Map.of());
+            throw new BadRequestException("Não é possível solicitar o próprio material", Map.of());
         }
 
         if (material.getStatus() == StatusMaterial.RESERVADO) {
-            throw new ConflictException("O material ja possui uma solicitacao aprovada");
+            throw new ConflictException("O material já possui uma solicitação aprovada");
         }
 
         if (material.getStatus() != StatusMaterial.DISPONIVEL) {
-            throw new UnprocessableEntityException("O material nao esta disponivel para novas solicitacoes");
+            throw new UnprocessableEntityException("O material não está disponível para novas solicitações");
         }
 
         if (solicitacaoRepository.existsByMaterialIdAndEstudanteIdAndStatusIn(
@@ -64,7 +64,7 @@ public class SolicitacaoService {
                 estudante.getId(),
                 List.of(StatusSolicitacao.PENDENTE, StatusSolicitacao.APROVADA)
         )) {
-            throw new ConflictException("Voce ja possui uma solicitacao ativa para este material");
+            throw new ConflictException("Você já possui uma solicitação ativa para este material");
         }
 
         Solicitacao solicitacao = solicitacaoRepository.save(Solicitacao.builder()
@@ -130,10 +130,10 @@ public class SolicitacaoService {
         Material material = lockMaterial(solicitacao.getMaterial().getId());
 
         ensureDonor(solicitacao, doador);
-        ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitacoes pendentes podem ser aprovadas");
+        ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitações pendentes podem ser aprovadas");
         materialStateValidator.requireAvailable(
                 material.getStatus(),
-                "O material precisa estar DISPONIVEL para aprovar uma solicitacao"
+                "O material precisa estar DISPONÍVEL para aprovar uma solicitação"
         );
 
         if (solicitacaoRepository.existsByMaterialIdAndStatusAndIdNot(
@@ -141,7 +141,7 @@ public class SolicitacaoService {
                 StatusSolicitacao.APROVADA,
                 solicitacao.getId()
         )) {
-            throw new ConflictException("Ja existe outra solicitacao aprovada para este material");
+            throw new ConflictException("Já existe outra solicitação aprovada para este material");
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -176,7 +176,7 @@ public class SolicitacaoService {
         Usuario doador = loadUsuario(email);
         Solicitacao solicitacao = loadSolicitacao(requestId);
         ensureDonor(solicitacao, doador);
-        ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitacoes pendentes podem ser recusadas");
+        ensureRequestStatus(solicitacao, StatusSolicitacao.PENDENTE, "Somente solicitações pendentes podem ser recusadas");
 
         solicitacao.setStatus(StatusSolicitacao.RECUSADA);
         clearApprovalContext(solicitacao, false);
@@ -193,7 +193,7 @@ public class SolicitacaoService {
         ensureParticipant(solicitacao, actor);
 
         if (!EnumSet.of(StatusSolicitacao.PENDENTE, StatusSolicitacao.APROVADA).contains(solicitacao.getStatus())) {
-            throw new UnprocessableEntityException("Somente solicitacoes pendentes ou aprovadas podem ser canceladas");
+            throw new UnprocessableEntityException("Somente solicitações pendentes ou aprovadas podem ser canceladas");
         }
 
         if (solicitacao.getStatus() == StatusSolicitacao.APROVADA) {
@@ -219,7 +219,7 @@ public class SolicitacaoService {
         Material material = lockMaterial(solicitacao.getMaterial().getId());
 
         ensureDonor(solicitacao, doador);
-        ensureRequestStatus(solicitacao, StatusSolicitacao.APROVADA, "Somente solicitacoes aprovadas podem ser concluidas");
+        ensureRequestStatus(solicitacao, StatusSolicitacao.APROVADA, "Somente solicitações aprovadas podem ser concluídas");
         materialStateValidator.validateTransition(material.getStatus(), StatusMaterial.DOADO);
 
         LocalDateTime now = LocalDateTime.now();
@@ -270,33 +270,33 @@ public class SolicitacaoService {
 
     private Usuario loadUsuario(String email) {
         return usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 
     private Material loadMaterial(String materialId) {
         return materialRepository.findById(parseUuid(materialId, "material"))
-                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Material não encontrado"));
     }
 
     private Material lockMaterial(UUID materialId) {
         return materialRepository.findByIdForUpdate(materialId)
-                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Material não encontrado"));
     }
 
     private Solicitacao loadSolicitacao(String requestId) {
         return solicitacaoRepository.findById(parseUuid(requestId, "solicitacao"))
-                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitação não encontrada"));
     }
 
     private Solicitacao loadSolicitacaoForUpdate(String requestId) {
         return solicitacaoRepository.findByIdForUpdate(parseUuid(requestId, "solicitacao"))
-                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitação não encontrada"));
     }
 
     private void ensureDonor(Solicitacao solicitacao, Usuario usuario) {
         if (!solicitacao.getMaterial().getDoador().getId().equals(usuario.getId())) {
             throw new org.springframework.security.access.AccessDeniedException(
-                    "Apenas o doador do material pode alterar esta solicitacao"
+                    "Apenas o doador do material pode alterar esta solicitação"
             );
         }
     }
@@ -306,7 +306,7 @@ public class SolicitacaoService {
         boolean isDonor = solicitacao.getMaterial().getDoador().getId().equals(usuario.getId());
         if (!isStudent && !isDonor) {
             throw new org.springframework.security.access.AccessDeniedException(
-                    "Apenas o estudante solicitante ou o doador podem acessar esta solicitacao"
+                    "Apenas o estudante solicitante ou o doador podem acessar esta solicitação"
             );
         }
     }
@@ -327,13 +327,13 @@ public class SolicitacaoService {
 
     private UUID parseUuid(String rawValue, String label) {
         if (!StringUtils.hasText(rawValue)) {
-            throw new BadRequestException("Identificador de " + label + " invalido", Map.of(label, "Informe um UUID valido"));
+            throw new BadRequestException("Identificador de " + label + " inválido", Map.of(label, "Informe um UUID válido"));
         }
 
         try {
             return UUID.fromString(rawValue.trim());
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de " + label + " invalido", Map.of(label, "Informe um UUID valido"));
+            throw new BadRequestException("Identificador de " + label + " inválido", Map.of(label, "Informe um UUID válido"));
         }
     }
 

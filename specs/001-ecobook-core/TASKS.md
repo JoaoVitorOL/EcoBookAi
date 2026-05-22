@@ -3,14 +3,14 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phase 5 request workflow and Phase 6 notification workflow are implemented in runtime; final Firebase real-device validation remains the main external closeout item  
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, and Phase 7 admin/moderation runtime are implemented; Phase 8 has started through the live AI consent management endpoints while Firebase real-device validation remains the main external closeout item  
 **Generated**: 2026-04-15
 
 ---
 
 ## Overview
 
-This document organizes all implementation tasks for EcoBook IA across **5 implementation phases** (Weeks 5–17). Tasks are:
+This document organizes all implementation tasks for EcoBook IA across **10 implementation phases** (Weeks 5–17). Tasks are:
 - **Organized by user story** (5 P1 stories → 3 P2 stories → Polish)
 - **Granular and independently implementable** (each task ≤ 4 hours work)
 - **Labeled with RFC references** (maps to spec.md requirements)
@@ -34,6 +34,7 @@ Historical note:
 - Phase 5 request workflow and part of Phase 6 notifications were implemented after the original checkbox pass.
 - Some unchecked Phase 5/6 items below were not backfilled one by one; use `PLAN-SUMMARY.md` and `contracts/` as the current runtime truth.
 - Local operational startup is now revalidated through the `local` backend profile plus the README/quickstart runbooks updated on `2026-05-21`.
+- The dependency graph and several summary ranges below came from an earlier 370-task draft; the detailed sections `T181–T230` plus `PLAN-SUMMARY.md` are the current runtime truth for Phases 7–10.
 
 ---
 
@@ -73,24 +74,25 @@ Phase 6: User Story 5 (US5) — Donation Completion
 ├─ T241–T250: Completion UI (mark donated, confirmation)
 └─ [Depends on: Phase 5 complete]
 
-Phase 7: FCM Notifications (RF06 — Cross-Cutting)
-├─ T251–T270: Firebase setup, 6 notification types
-└─ [Depends on: Phase 2, 5 (triggers defined)]
-
-Phase 8: Admin & Moderation (Modules 7–8)
-├─ T271–T285: Non-received material reporting
-├─ T286–T300: Admin dashboard, moderation
+Phase 7: Admin & Moderation (Modules 7–8)
+├─ T181–T183: Non-received material reporting
+├─ T184–T185: Admin dashboard, moderation, admin authorization
 └─ [Depends on: Phase 5]
 
-Phase 9: Security & LGPD (Module 9 — Cross-Cutting)
-├─ T301–T320: Soft-delete with anonymization
-├─ T321–T335: Consent management, audit trails
+Phase 8: Security & LGPD (Module 9 — Cross-Cutting)
+├─ T186–T191: Soft-delete with anonymization
+├─ T192–T206: Consent management, image access control, audit trails
 └─ [Depends on: All modules, run in parallel if possible]
 
-Phase 10: Polish & Integration
-├─ T336–T350: Performance optimization, index tuning
-├─ T351–T360: End-to-end integration tests (20+ scenarios)
-├─ T361–T370: Error handling and edge cases
+Phase 9: Performance, Optimization & Edge Cases
+├─ T207–T212: Performance tuning and monitoring
+├─ T213–T215: Error handling, rollback and boundary scenarios
+├─ T216–T218: End-to-end, load and smoke testing
+└─ [Run after the functional modules are stable]
+
+Phase 10: Polish & Documentation
+├─ T219–T225: Documentation, code quality and API descriptions
+├─ T226–T230: Final quality gates and release validation
 └─ [Final validation before launch]
 ```
 
@@ -1034,16 +1036,17 @@ Runtime note on 2026-05-14:
 
 ### Module 8: Admin Dashboard (Optional for MVP)
 
-- [ ] **T184** Create `src/main/java/com/ecobook/controller/AdminController.java` (admin-only endpoints):
+- [x] **T184** Create `src/main/java/com/ecobook/controller/AdminController.java` (admin-only endpoints):
   - **GET /api/v1/admin/reports**: List all non-receipt reports (pagination, filtering by status)
   - **PATCH /api/v1/admin/reports/{id}/resolve**: Mark report as resolved
   - **GET /api/v1/admin/materials**: List all materials (including CANCELADO)
   - **DELETE /api/v1/admin/materials/{id}**: Remove material from platform (hard delete)
   - **GET /api/v1/admin/users**: List all users with activity metrics
-- [ ] **T185** Create admin authorization:
+- [x] **T185** Create admin authorization:
   - Add `role` field to Usuario (ADMIN, USER)
   - Add `@PreAuthorize("hasRole('ADMIN')")` to admin endpoints
   - Support admin role setting via database seeding or special endpoint
+  - Runtime note: the repository now supports startup bootstrap/promotion through `ADMIN_BOOTSTRAP_*`
 
 ---
 
@@ -1093,18 +1096,18 @@ Runtime note on 2026-05-14:
   - First consent: PLATFORM granted automatically on signup
   - Second consent: AI_CLASSIFICATION may be requested during onboarding or later from profile/settings before POST /materiais/preview
   - Store ConsentRecord for each grant/revocation
-- [ ] **T194** [P] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
+- [x] **T194** [P] Create `src/main/java/com/ecobook/controller/UsuarioController.java` endpoint:
   - **PATCH /api/v1/usuarios/me/consent**: Update consent for AI classification
   - Request: consentimento_ia (boolean)
   - Response: Updated UsuarioDto
   - Must support enabling or disabling consent after profile creation at any time
-- [ ] **T195** [P] Implement consent enforcement:
+- [x] **T195** [P] Implement consent enforcement:
   - If consentimento_ia = false: POST /materiais/preview returns FAILURE status immediately (no Gemini call)
   - Respect user's choice throughout session
-- [ ] **T196** [P] Create consent revocation endpoint:
+- [x] **T196** [P] Create consent revocation endpoint:
   - **DELETE /api/v1/usuarios/me/consent/ai-classification**: Revoke AI consent
   - Update consentimento_ia = false
-  - Store ConsentRecord with revoked_at
+  - Store ConsentRecord with revoked_at (backlog persistence still pending under T192–T193)
 
 #### Backend: Image Access Control
 
@@ -1371,7 +1374,8 @@ What is already true in the repository:
 - ✅ `GET /api/v1/materiais` now delivers the Phase 4 discovery flow end to end
 - ✅ Phase 5 request workflow is already present in runtime on backend and Android
 - ✅ FCM token registration plus basic notification dispatch/permission flow already exist as the start of Phase 6
-- ✅ Phase 7 module 7 non-receipt reporting now exists in runtime on backend and Android
+- ✅ Phase 7 reporting plus admin moderation/runtime authorization are now implemented on backend, with the Android student reporting flow already live
+- ✅ Phase 8 consent-management kickoff is now live through PATCH/DELETE AI consent endpoints plus preview enforcement
 
 Phase 3 closeout notes:
 
@@ -1387,13 +1391,13 @@ Phase 3 closeout notes:
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
 4. **Revalidate Phase 6 End to End**: run the implemented notification stack against a real Firebase project/device flow and capture execution notes
-5. **Open Module 8**: add admin report listing and resolution on top of the new `material_non_receipt_report` persistence
-6. **Prepare the next fronts**: LGPD/anonymization, observability and hardening
+5. **Advance Phase 8**: persist consent history, add account deletion/anonymization and secure image access
+6. **Prepare the next fronts**: LGPD completion, observability and hardening
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 5, Phase 6 and Phase 7 Module 7 runtime delivery recorded; use this file as a living backlog for Firebase validation plus Module 8/LGPD execution  
+**Status**: Phase 5, Phase 6 and Phase 7 runtime delivery recorded; use this file as a living backlog for Firebase validation plus the remaining Phase 8/LGPD execution  
 **Document Owner**: Product/Tech Lead  
 **Last Updated**: 2026-05-21
 

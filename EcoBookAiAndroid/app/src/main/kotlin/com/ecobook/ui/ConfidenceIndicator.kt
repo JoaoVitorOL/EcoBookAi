@@ -43,7 +43,7 @@ fun ConfidenceIndicator(
             tint = color
         )
         Text(
-            text = confidence?.let { "${(it * 100).toInt()}% confianca" } ?: "Manual",
+            text = confidence?.let { "${(it * 100).toInt()}% confiança" } ?: "Manual",
             style = MaterialTheme.typography.labelMedium,
             color = color
         )

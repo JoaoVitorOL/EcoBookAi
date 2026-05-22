@@ -32,7 +32,15 @@ public class GeoNormalizationService {
     }
 
     public NormalizedGeo normalize(String city, String neighborhood) {
-        return new NormalizedGeo(normalize(city), normalize(neighborhood));
+        return new NormalizedGeo(normalize(city), sanitizeDisplayText(neighborhood));
+    }
+
+    public String sanitizeDisplayText(String text) {
+        if (text == null) {
+            return null;
+        }
+
+        return text.replaceAll("\\s+", " ").trim();
     }
 
     public record NormalizedGeo(String city, String neighborhood) {

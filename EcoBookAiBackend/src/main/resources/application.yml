@@ -90,6 +90,13 @@ storage:
   max-file-size-mb: ${STORAGE_MAX_FILE_SIZE_MB:5}
   retention-days: ${STORAGE_RETENTION_DAYS:730}
 
+admin:
+  bootstrap:
+    enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
+    email: ${ADMIN_BOOTSTRAP_EMAIL:}
+    password: ${ADMIN_BOOTSTRAP_PASSWORD:}
+    nome: ${ADMIN_BOOTSTRAP_NAME:Administrador EcoBook}
+
 management:
   endpoints:
     web:

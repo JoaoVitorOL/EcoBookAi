@@ -1,18 +1,23 @@
 package com.ecobook.controller;
 
 import com.ecobook.dto.AdminNonReceiptReportDTO;
+import com.ecobook.dto.AdminUserSummaryDTO;
 import com.ecobook.dto.ApiEnvelope;
 import com.ecobook.dto.ApiEnvelopeResponses;
+import com.ecobook.dto.MaterialDTO;
 import com.ecobook.dto.PagedResponseDTO;
 import com.ecobook.dto.ResolveNonReceiptReportRequestDTO;
 import com.ecobook.exception.BadRequestException;
 import com.ecobook.model.enums.NonReceiptReportStatus;
+import com.ecobook.model.enums.StatusMaterial;
+import com.ecobook.service.AdminPlatformService;
 import com.ecobook.service.AdminReportService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +36,7 @@ import java.util.Map;
 public class AdminController {
 
     private final AdminReportService adminReportService;
+    private final AdminPlatformService adminPlatformService;
 
     @GetMapping("/reports")
     @PreAuthorize("hasRole('ADMIN')")
@@ -45,7 +51,7 @@ public class AdminController {
         validatePagination(page, size, fieldErrors);
 
         if (!fieldErrors.isEmpty()) {
-            throw new BadRequestException("Os filtros de reportes sao invalidos", fieldErrors);
+            throw new BadRequestException("Os filtros de reportes são inválidos", fieldErrors);
         }
 
         return ApiEnvelopeResponses.ok(
@@ -69,12 +75,63 @@ public class AdminController {
         );
     }
 
+    @GetMapping("/materials")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiEnvelope<PagedResponseDTO<MaterialDTO>>> listMaterials(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            HttpServletRequest servletRequest
+    ) {
+        LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
+        StatusMaterial parsedStatus = parseMaterialStatus(status, fieldErrors);
+        validatePagination(page, size, fieldErrors);
+
+        if (!fieldErrors.isEmpty()) {
+            throw new BadRequestException("Os filtros de materiais são inválidos", fieldErrors);
+        }
+
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Materiais carregados com sucesso",
+                adminPlatformService.listMaterials(parsedStatus, PageRequest.of(page, size))
+        );
+    }
+
+    @DeleteMapping("/materials/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteMaterial(@PathVariable String id) {
+        adminPlatformService.deleteMaterial(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiEnvelope<PagedResponseDTO<AdminUserSummaryDTO>>> listUsers(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            HttpServletRequest servletRequest
+    ) {
+        LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
+        validatePagination(page, size, fieldErrors);
+
+        if (!fieldErrors.isEmpty()) {
+            throw new BadRequestException("Os filtros de usuários são inválidos", fieldErrors);
+        }
+
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Usuarios carregados com sucesso",
+                adminPlatformService.listUsers(PageRequest.of(page, size))
+        );
+    }
+
     private void validatePagination(Integer page, Integer size, Map<String, String> fieldErrors) {
         if (page == null || page < 0) {
-            fieldErrors.put("page", "Informe uma pagina maior ou igual a zero");
+            fieldErrors.put("page", "Informe uma página maior ou igual a zero");
         }
         if (size == null || size < 1 || size > 100) {
-            fieldErrors.put("size", "Informe um tamanho de pagina entre 1 e 100");
+            fieldErrors.put("size", "Informe um tamanho de página entre 1 e 100");
         }
     }
 
@@ -87,6 +144,19 @@ public class AdminController {
             return NonReceiptReportStatus.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             fieldErrors.put("status", "Use um dos valores: OPEN ou RESOLVED");
+            return null;
+        }
+    }
+
+    private StatusMaterial parseMaterialStatus(String rawValue, Map<String, String> fieldErrors) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return null;
+        }
+
+        try {
+            return StatusMaterial.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            fieldErrors.put("status", "Use um dos valores: DISPONIVEL, RESERVADO, DOADO ou CANCELADO");
             return null;
         }
     }

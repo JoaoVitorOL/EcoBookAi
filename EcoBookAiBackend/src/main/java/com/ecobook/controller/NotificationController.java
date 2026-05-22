@@ -32,7 +32,7 @@ public class NotificationController {
     ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Notificacoes carregadas com sucesso",
+                "Notificações carregadas com sucesso",
                 userNotificationService.listCurrentUserNotifications(authentication.getName())
         );
     }
@@ -45,7 +45,7 @@ public class NotificationController {
             HttpServletRequest servletRequest
     ) {
         userNotificationService.markAsRead(authentication.getName(), id);
-        return ApiEnvelopeResponses.ok(servletRequest, "Notificacao marcada como lida");
+        return ApiEnvelopeResponses.ok(servletRequest, "Notificação marcada como lida");
     }
 
     @PatchMapping("/ler-todas")
@@ -55,6 +55,6 @@ public class NotificationController {
             HttpServletRequest servletRequest
     ) {
         userNotificationService.markAllAsRead(authentication.getName());
-        return ApiEnvelopeResponses.ok(servletRequest, "Notificacoes marcadas como lidas");
+        return ApiEnvelopeResponses.ok(servletRequest, "Notificações marcadas como lidas");
     }
 }

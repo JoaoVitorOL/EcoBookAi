@@ -60,7 +60,7 @@ class DonateViewModel @Inject constructor(
 
     fun onMaterialPublished(material: MaterialDTO) {
         _uiState.update {
-            it.copy(toastMessage = "\"${material.titulo}\" foi publicado e ja entrou na sua lista.")
+            it.copy(toastMessage = "\"${material.titulo}\" foi publicado e já entrou na sua lista.")
         }
         refreshMaterials()
     }
@@ -221,9 +221,9 @@ class DonateViewModel @Inject constructor(
         val errors = linkedMapOf<String, String>()
 
         if (draft.titulo.isBlank()) {
-            errors["titulo"] = "Informe um titulo para o material."
+            errors["titulo"] = "Informe um título para o material."
         } else if (draft.titulo.length > 255) {
-            errors["titulo"] = "O titulo precisa ter no maximo 255 caracteres."
+            errors["titulo"] = "O título precisa ter no máximo 255 caracteres."
         }
 
         if (draft.autor.length > 255) {
@@ -237,38 +237,38 @@ class DonateViewModel @Inject constructor(
         if (draft.descricao.isBlank()) {
             errors["descricao"] = "Descreva o estado e o contexto de uso do material."
         } else if (draft.descricao.length !in 10..2000) {
-            errors["descricao"] = "A descricao precisa ter entre 10 e 2000 caracteres."
+            errors["descricao"] = "A descrição precisa ter entre 10 e 2000 caracteres."
         }
 
         if (draft.disciplina == null) {
             errors["disciplina"] = "Escolha a disciplina."
         }
         if (draft.nivelEnsino == null) {
-            errors["nivel_ensino"] = "Escolha o nivel de ensino."
+            errors["nivel_ensino"] = "Escolha o nível de ensino."
         }
         if (draft.sistemaEnsino == null) {
             errors["sistema_ensino"] = "Escolha o sistema de ensino."
         }
         if (draft.estadoConservacao == null) {
-            errors["estado_conservacao"] = "Escolha o estado de conservacao."
+            errors["estado_conservacao"] = "Escolha o estado de conservação."
         }
 
         if (draft.nivelEnsino == NivelEnsino.SUPERIOR) {
             if (draft.ano.isNotBlank()) {
-                errors["ano"] = "Materiais de nivel superior nao usam ano escolar."
+                errors["ano"] = "Materiais de nível superior não usam ano escolar."
             }
         } else {
             val parsedYear = draft.ano.toIntOrNull()
             val maxAno = maxAnoEscolar(draft.nivelEnsino)
             if (parsedYear == null || parsedYear !in 1..maxAno) {
-                errors["ano"] = "Informe um ano escolar valido para o nivel selecionado."
+                errors["ano"] = "Informe um ano escolar válido para o nível selecionado."
             }
         }
 
         if (draft.dataPublicacao.isNotBlank()) {
             val publicationYear = draft.dataPublicacao.toIntOrNull()
             if (publicationYear == null || publicationYear !in 1900..2100) {
-                errors["data_publicacao"] = "Informe um ano de publicacao entre 1900 e 2100."
+                errors["data_publicacao"] = "Informe um ano de publicação entre 1900 e 2100."
             }
         }
 
@@ -278,7 +278,7 @@ class DonateViewModel @Inject constructor(
     private fun resolveLoadError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
                 403 -> "Conclua o onboarding para gerenciar seus materiais."
                 else -> error.message
             }
@@ -286,7 +286,7 @@ class DonateViewModel @Inject constructor(
             is SocketTimeoutException -> "A listagem demorou demais para responder."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel conectar ao backend configurado no app."
+            is IOException -> "Não foi possível conectar ao backend configurado no app."
             else -> error.message ?: "Falha inesperada ao carregar seus materiais."
         }
     }
@@ -296,13 +296,13 @@ class DonateViewModel @Inject constructor(
             is ApiException -> when (error.statusCode) {
                 400, 422 -> error.message
                 403 -> "Somente o doador do material pode editar este cadastro."
-                404 -> "Esse material nao foi encontrado."
+                404 -> "Esse material não foi encontrado."
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel salvar as alteracoes porque o backend nao respondeu."
+            is IOException -> "Não foi possível salvar as alterações porque o backend não respondeu."
             else -> error.message ?: "Falha inesperada ao atualizar o material."
         }
     }
@@ -311,14 +311,14 @@ class DonateViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 403 -> "Somente o doador do material pode excluir este cadastro."
-                404 -> "Esse material nao foi encontrado."
+                404 -> "Esse material não foi encontrado."
                 422 -> error.message
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel excluir o material porque o backend nao respondeu."
+            is IOException -> "Não foi possível excluir o material porque o backend não respondeu."
             else -> error.message ?: "Falha inesperada ao excluir o material."
         }
     }

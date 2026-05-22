@@ -196,7 +196,7 @@ fun NavGraph(
                     }
                     composable(AppDestination.Notifications.route) {
                         ChildDestinationScaffold(
-                            title = "Notificacoes",
+                            title = "Notificações",
                             onNavigateUp = { navController.navigateUp() }
                         ) { topPadding ->
                             NotificationsScreen(
@@ -281,8 +281,8 @@ private sealed class AppDestination(
         icon = Icons.Rounded.VolunteerActivism,
         selectedRoutes = setOf(AppRoutes.DONATE, AppRoutes.DONOR_REQUESTS)
     )
-    data object MyRequests : AppDestination(AppRoutes.MY_REQUESTS, "Solicitacoes", Icons.Rounded.MenuBook)
-    data object Notifications : AppDestination(AppRoutes.NOTIFICATIONS, "Notificacoes", Icons.Rounded.MenuBook)
+    data object MyRequests : AppDestination(AppRoutes.MY_REQUESTS, "Solicitações", Icons.Rounded.MenuBook)
+    data object Notifications : AppDestination(AppRoutes.NOTIFICATIONS, "Notificações", Icons.Rounded.MenuBook)
     data object DonorRequests : AppDestination(AppRoutes.DONOR_REQUESTS, "Pedidos", Icons.Rounded.VolunteerActivism)
     data object Profile : AppDestination(AppRoutes.PROFILE, "Perfil", Icons.Rounded.AccountCircle)
 }

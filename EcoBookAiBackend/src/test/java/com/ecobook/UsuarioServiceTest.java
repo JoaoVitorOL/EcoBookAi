@@ -29,7 +29,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Test
-    @DisplayName("PUT /api/v1/usuarios/me should complete the user profile and normalize geo fields")
+    @DisplayName("PUT /api/v1/usuarios/me should complete the user profile and normalize only the city field")
     void shouldUpdateProfile() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("profile@example.com")
@@ -55,7 +55,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.perfil_completo").value(true))
                 .andExpect(jsonPath("$.data.cidade").value("SAO JOSE"))
-                .andExpect(jsonPath("$.data.bairro").value("CENTRO"))
+                .andExpect(jsonPath("$.data.bairro").value("centro"))
                 .andExpect(jsonPath("$.data.consentimento_ia").value(true));
     }
 
@@ -176,7 +176,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("PUT /api/v1/usuarios/me should accept free-text cities and normalize them before saving")
+    @DisplayName("PUT /api/v1/usuarios/me should accept free-text cities and keep neighborhood accentuation")
     void shouldAcceptFreeTextCityAndNormalizeIt() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("free-text-city@example.com")
@@ -194,12 +194,12 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                   "nome": "Free Text City User",
                                   "whatsapp": "+5511991234567",
                                   "cidade": " Ribeirão Preto ",
-                                  "bairro": " Jardim Botanico "
+                                  "bairro": " Jardim Botânico "
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.cidade").value("RIBEIRAO PRETO"))
-                .andExpect(jsonPath("$.data.bairro").value("JARDIM BOTANICO"));
+                .andExpect(jsonPath("$.data.bairro").value("Jardim Botânico"));
     }
 
     private String tokenFor(Usuario usuario) {

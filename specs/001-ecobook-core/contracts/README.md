@@ -1,6 +1,6 @@
 # API Contracts
 
-**Phase**: 1-7 runtime  
+**Phase**: 1-8 runtime  
 **Date**: 2026-05-21  
 **Purpose**: Current contract index for the endpoints and payloads already implemented in the repository
 
@@ -30,6 +30,7 @@ Authentication and profile endpoints:
 - `GET /api/v1/usuarios/me`
 - `PUT /api/v1/usuarios/me`
 - `PATCH /api/v1/usuarios/me/consentimento-ia`
+- `DELETE /api/v1/usuarios/me/consent/ai-classification`
 
 ### [material-api.md](material-api.md)
 
@@ -72,6 +73,14 @@ Post-donation moderation endpoints already exposed by the backend:
 - `POST /api/v1/materiais/{id}/nao-recebido`
 - `GET /api/v1/admin/reports`
 - `PATCH /api/v1/admin/reports/{id}/resolve`
+
+### [admin-api.md](admin-api.md)
+
+Broader admin catalog and moderation endpoints already exposed by the backend:
+
+- `GET /api/v1/admin/materials`
+- `DELETE /api/v1/admin/materials/{id}`
+- `GET /api/v1/admin/users`
 
 ### [notification-schema.md](notification-schema.md)
 

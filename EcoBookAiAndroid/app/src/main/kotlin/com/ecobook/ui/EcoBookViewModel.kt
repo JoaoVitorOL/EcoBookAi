@@ -153,15 +153,15 @@ class EcoBookViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400, 422 -> error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
                 403 -> "Conclua o onboarding antes de alterar o consentimento."
-                else -> "Nao foi possivel atualizar o consentimento agora."
+                else -> "Não foi possível atualizar o consentimento agora."
             }
 
-            is SocketTimeoutException -> "A atualizacao demorou demais. Tente novamente."
+            is SocketTimeoutException -> "A atualização demorou demais. Tente novamente."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel falar com o backend para atualizar o consentimento."
+            is IOException -> "Não foi possível falar com o backend para atualizar o consentimento."
             else -> error.message ?: "Falha inesperada ao atualizar o consentimento."
         }
     }

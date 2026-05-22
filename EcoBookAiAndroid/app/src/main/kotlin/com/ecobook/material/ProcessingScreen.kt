@@ -18,7 +18,7 @@ fun ProcessingScreen(
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         LoadingSpinner(
             title = "Analisando seu material",
-            subtitle = "Estamos validando a imagem, preparando o upload e consultando a IA. Esse passo costuma levar ate 10 segundos."
+            subtitle = "Estamos validando a imagem, preparando o upload e consultando a IA. Esse passo costuma levar até 10 segundos."
         )
 
         selectedFrontImage?.let { image ->
@@ -32,13 +32,13 @@ fun ProcessingScreen(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = "Se a IA falhar ou o consentimento estiver desligado, voce ainda podera preencher tudo manualmente.",
+                    text = "Se a IA falhar ou o consentimento estiver desligado, você ainda poderá preencher tudo manualmente.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF5F746B)
                 )
                 if (selectedBackImage != null) {
                     Text(
-                        text = "A capa de tras tambem sera salva junto com o cadastro.",
+                        text = "A capa de trás também será salva junto com o cadastro.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF5F746B)
                     )

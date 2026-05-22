@@ -41,14 +41,14 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public UsuarioDTO getByEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         return toDto(usuario);
     }
 
     @Transactional
     public UsuarioDTO updateProfile(String email, UpdateProfileRequestDTO request) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         validateRequiredFields(request);
         validateWhatsApp(request.getWhatsapp());
@@ -78,7 +78,7 @@ public class UsuarioService {
     @Transactional
     public void updateFcmToken(String email, String token) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         String normalizedToken = token.trim();
         if (normalizedToken.equals(usuario.getFcmToken())) {
@@ -92,7 +92,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioDTO updateAiConsent(String email, boolean consentimentoIa) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (Boolean.valueOf(consentimentoIa).equals(usuario.getConsentimentoIa())) {
             return toDto(usuario);
@@ -139,7 +139,7 @@ public class UsuarioService {
         }
 
         if (!fieldErrors.isEmpty()) {
-            throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
+            throw new UnprocessableEntityException("Preencha todos os campos obrigatórios do perfil", fieldErrors);
         }
     }
 
@@ -160,7 +160,7 @@ public class UsuarioService {
 
         if (!violations.isEmpty()) {
             throw new BadRequestException(
-                    "O perfil contem campos invalidos",
+                    "O perfil contém campos inválidos",
                     violations.stream().collect(Collectors.toMap(
                             violation -> violation.getPropertyPath().toString(),
                             ConstraintViolation::getMessage,
@@ -187,10 +187,10 @@ public class UsuarioService {
         }
 
         if (fieldErrors.keySet().stream().allMatch(field -> field.equals("whatsapp"))) {
-            throw new BadRequestException("O perfil contem campos invalidos", fieldErrors);
+            throw new BadRequestException("O perfil contém campos inválidos", fieldErrors);
         }
 
-        throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
+        throw new UnprocessableEntityException("Preencha todos os campos obrigatórios do perfil", fieldErrors);
     }
 
     private Set<NecessidadeAcademica> resolveNeeds(Set<NecessidadeAcademica> necessidadesAcademicas) {

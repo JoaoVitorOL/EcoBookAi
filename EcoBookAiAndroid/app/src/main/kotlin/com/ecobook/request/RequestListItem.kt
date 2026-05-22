@@ -102,7 +102,7 @@ fun StudentRequestCard(
                 }
                 request.concluidoEm?.takeIf { request.status == "CONCLUIDA" }?.let { completedAt ->
                     Text(
-                        text = "Doacao concluida em ${formatAbsoluteDateTime(completedAt) ?: completedAt}",
+                        text = "Doação concluída em ${formatAbsoluteDateTime(completedAt) ?: completedAt}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -111,7 +111,7 @@ fun StudentRequestCard(
                     val expiry = request.expiresAt?.let { formatAbsoluteDateTime(it) ?: it }
                     Text(
                         text = if (expiry != null) {
-                            "Contato liberado. Reserva ativa ate $expiry."
+                            "Contato liberado. Reserva ativa até $expiry."
                         } else {
                             "Contato liberado. Combine a retirada com o doador."
                         },
@@ -154,7 +154,7 @@ fun StudentRequestCard(
                                     when {
                                         hasReportedNonReceipt -> "Reporte enviado"
                                         isWorking -> "Enviando reporte..."
-                                        else -> "Reportar nao recebimento"
+                                        else -> "Reportar não recebimento"
                                     }
                                 )
                             }
@@ -242,7 +242,7 @@ fun DonorRequestCard(
                 if (request.status == "APROVADA") {
                     request.expiresAt?.let { expiry ->
                         Text(
-                            text = "Reserva ativa ate ${formatAbsoluteDateTime(expiry) ?: expiry}",
+                            text = "Reserva ativa até ${formatAbsoluteDateTime(expiry) ?: expiry}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -283,7 +283,7 @@ fun DonorRequestCard(
                                     enabled = !isWorking,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(if (isWorking) "Processando..." else "Revogar aprovacao")
+                                    Text(if (isWorking) "Processando..." else "Revogar aprovação")
                                 }
                             }
                         }

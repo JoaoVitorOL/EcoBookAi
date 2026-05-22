@@ -87,7 +87,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .error("ACCESS_DENIED")
                 .message(StringUtils.hasText(ex.getMessage())
                         ? ex.getMessage()
-                        : "Voce nao tem permissao para acessar este recurso")
+                        : "Você não tem permissão para acessar este recurso")
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
@@ -201,7 +201,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(400)
                 .error("VALIDATION_ERROR")
-                .message("Falha de validacao")
+                .message("Falha de validação")
                 .fieldErrors(errors)
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))

@@ -159,7 +159,7 @@ internal fun MaterialImagePlaceholder(
 }
 
 private fun buildMetaLine(material: MaterialDTO): String {
-    val publication = material.dataPublicacao?.let { "Publicacao $it" } ?: "Publicacao nao informada"
+    val publication = material.dataPublicacao?.let { "Publicação $it" } ?: "Publicação não informada"
     val system = formatSistemaEnsino(material.sistemaEnsino)
     val created = formatRelativeDate(material.criadoEm)?.let { "Cadastro $it" } ?: "Cadastro recente"
     return "$system | $publication | $created"

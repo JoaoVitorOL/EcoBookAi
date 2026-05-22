@@ -155,12 +155,12 @@ public class MatchingService {
 
     private boolean isSameNeighborhood(Material material, SearchCriteriaDTO criteria) {
         return StringUtils.hasText(criteria.getBairro())
-                && criteria.getBairro().equals(material.getBairro());
+                && criteria.getBairro().equals(geoNormalizationService.normalize(material.getBairro()));
     }
 
     private boolean isSameCity(Material material, SearchCriteriaDTO criteria) {
         return StringUtils.hasText(criteria.getCidade())
-                && criteria.getCidade().equals(material.getCidade());
+                && criteria.getCidade().equals(geoNormalizationService.normalize(material.getCidade()));
     }
 
     private String trimToNull(String value) {

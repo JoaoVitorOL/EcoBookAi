@@ -96,7 +96,7 @@ class NotificationRepository @Inject constructor(
 
         return ApiException(
             statusCode = response.code(),
-            message = error?.message ?: "Falha ao processar a requisicao",
+            message = error?.message ?: "Falha ao processar a requisição",
             fieldErrors = error?.fieldErrors ?: emptyMap()
         )
     }
@@ -129,24 +129,24 @@ class NotificationRepository @Inject constructor(
     private fun fallbackTitle(notificationType: String): String {
         return when (notificationType) {
             "SOLICITACAO_RECEBIDA" -> "Novo pedido recebido"
-            "SOLICITACAO_APROVADA" -> "Solicitacao aprovada"
-            "SOLICITACAO_RECUSADA" -> "Solicitacao recusada"
-            "SOLICITACAO_CANCELADA" -> "Solicitacao cancelada"
-            "MATERIAL_DOADO" -> "Doacao concluida"
+            "SOLICITACAO_APROVADA" -> "Solicitação aprovada"
+            "SOLICITACAO_RECUSADA" -> "Solicitação recusada"
+            "SOLICITACAO_CANCELADA" -> "Solicitação cancelada"
+            "MATERIAL_DOADO" -> "Doação concluída"
             "MATERIAL_CANCELADO" -> "Material removido"
-            else -> "Nova notificacao"
+            else -> "Nova notificação"
         }
     }
 
     private fun fallbackBody(notificationType: String): String {
         return when (notificationType) {
-            "SOLICITACAO_RECEBIDA" -> "Sua doacao recebeu uma nova solicitacao."
-            "SOLICITACAO_APROVADA" -> "Sua solicitacao foi aprovada."
-            "SOLICITACAO_RECUSADA" -> "Sua solicitacao foi recusada."
-            "SOLICITACAO_CANCELADA" -> "Houve uma atualizacao de cancelamento na sua solicitacao."
+            "SOLICITACAO_RECEBIDA" -> "Sua doação recebeu uma nova solicitação."
+            "SOLICITACAO_APROVADA" -> "Sua solicitação foi aprovada."
+            "SOLICITACAO_RECUSADA" -> "Sua solicitação foi recusada."
+            "SOLICITACAO_CANCELADA" -> "Houve uma atualização de cancelamento na sua solicitação."
             "MATERIAL_DOADO" -> "O material foi marcado como doado."
             "MATERIAL_CANCELADO" -> "O material foi removido pelo doador."
-            else -> "Abra a central para revisar os detalhes desta notificacao."
+            else -> "Abra a central para revisar os detalhes desta notificação."
         }
     }
 

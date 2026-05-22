@@ -175,19 +175,19 @@ class AuthViewModel @Inject constructor(
                 )
 
                 401 -> ResolvedAuthError(
-                    message = "Email ou senha invalidos.",
+                    message = "Email ou senha inválidos.",
                     fieldErrors = emptyMap()
                 )
 
                 409 -> ResolvedAuthError(
-                    message = "Este email ja esta cadastrado. Entre com a conta existente ou use outro email.",
+                    message = "Este email já está cadastrado. Entre com a conta existente ou use outro email.",
                     fieldErrors = fieldErrors.ifEmpty {
-                        mapOf("email" to "Este email ja esta cadastrado.")
+                        mapOf("email" to "Este email já está cadastrado.")
                     }
                 )
 
                 500 -> ResolvedAuthError(
-                    message = "O backend respondeu com erro interno. Verifique se a API local esta ativa."
+                    message = "O backend respondeu com erro interno. Verifique se a API local está ativa."
                 )
 
                 else -> ResolvedAuthError(message = message)
@@ -197,10 +197,10 @@ class AuthViewModel @Inject constructor(
             is ConnectException,
             is UnknownHostException,
             is IOException -> ResolvedAuthError(
-                message = "Nao foi possivel conectar ao backend configurado no app. Verifique se a API local esta ativa e se a URL/porta estao corretas antes de tentar novamente."
+                message = "Não foi possível conectar ao backend configurado no app. Verifique se a API local está ativa e se a URL/porta estão corretas antes de tentar novamente."
             )
 
-            else -> ResolvedAuthError(message = message ?: "Falha inesperada durante a autenticacao.")
+            else -> ResolvedAuthError(message = message ?: "Falha inesperada durante a autenticação.")
         }
     }
 }

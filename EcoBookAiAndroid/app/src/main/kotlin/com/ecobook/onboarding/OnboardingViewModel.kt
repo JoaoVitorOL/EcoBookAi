@@ -65,7 +65,7 @@ class OnboardingViewModel @Inject constructor(
     fun onWhatsappFocusLost() {
         if (_uiState.value.whatsapp.isNotBlank() && !WhatsAppFormatter.isValidInput(_uiState.value.whatsapp)) {
             _uiState.update {
-                it.copy(fieldErrors = it.fieldErrors + ("whatsapp" to "Digite DDD + numero, por exemplo 48 99999-9999."))
+                it.copy(fieldErrors = it.fieldErrors + ("whatsapp" to "Digite DDD + número, por exemplo 48 99999-9999."))
             }
         }
     }
@@ -138,7 +138,7 @@ class OnboardingViewModel @Inject constructor(
                         current.copy(
                             isSubmitting = false,
                             fieldErrors = emptyMap(),
-                            message = "Perfil concluido. Abrindo o app principal."
+                            message = "Perfil concluído. Abrindo o app principal."
                         )
                     }
                 }
@@ -163,7 +163,7 @@ class OnboardingViewModel @Inject constructor(
                 if (_uiState.value.whatsapp.isBlank()) {
                     put("whatsapp", "Informe um WhatsApp para contato.")
                 } else if (!WhatsAppFormatter.isValidInput(_uiState.value.whatsapp)) {
-                    put("whatsapp", "Digite DDD + numero, por exemplo 48 99999-9999.")
+                    put("whatsapp", "Digite DDD + número, por exemplo 48 99999-9999.")
                 }
             }
 
@@ -172,7 +172,7 @@ class OnboardingViewModel @Inject constructor(
                     put("cidade", "Digite sua cidade.")
                 }
                 if (_uiState.value.bairro.isBlank()) {
-                    put("bairro", "Informe o bairro onde voce pode receber ou doar materiais.")
+                    put("bairro", "Informe o bairro onde você pode receber ou doar materiais.")
                 }
             }
 
@@ -195,8 +195,8 @@ class OnboardingViewModel @Inject constructor(
         return when (this) {
             is ApiException -> when (statusCode) {
                 400, 422 -> message
-                403 -> "Seu perfil ja esta completo. Vamos seguir para o app principal."
-                else -> "Nao foi possivel salvar o onboarding agora."
+                403 -> "Seu perfil já está completo. Vamos seguir para o app principal."
+                else -> "Não foi possível salvar o onboarding agora."
             }
 
             else -> message ?: "Falha inesperada ao concluir o onboarding."

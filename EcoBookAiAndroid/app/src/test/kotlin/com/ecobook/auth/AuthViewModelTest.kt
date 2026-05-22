@@ -75,7 +75,7 @@ class AuthViewModelTest {
             repository.register("new@example.com", "SenhaSegura123", "Novo Usuario")
         } throws ApiException(
             statusCode = 409,
-            message = "Este email ja esta cadastrado",
+            message = "Este email já está cadastrado",
             fieldErrors = emptyMap()
         )
 
@@ -91,8 +91,8 @@ class AuthViewModelTest {
 
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
-        assertTrue(state.errorMessage?.contains("Este email ja esta cadastrado") == true)
-        assertEquals("Este email ja esta cadastrado.", state.fieldErrors["email"])
+        assertTrue(state.errorMessage?.contains("Este email já está cadastrado") == true)
+        assertEquals("Este email já está cadastrado.", state.fieldErrors["email"])
 
         coVerify(exactly = 1) {
             repository.register("new@example.com", "SenhaSegura123", "Novo Usuario")
@@ -116,7 +116,7 @@ class AuthViewModelTest {
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
         assertTrue(
-            state.errorMessage?.contains("Nao foi possivel conectar ao backend configurado no app") == true
+            state.errorMessage?.contains("Não foi possível conectar ao backend configurado no app") == true
         )
         assertTrue(state.fieldErrors.isEmpty())
 

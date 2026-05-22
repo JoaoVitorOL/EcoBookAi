@@ -33,7 +33,7 @@ public class ReportController {
     ) {
         return ApiEnvelopeResponses.created(
                 servletRequest,
-                "Reporte de nao recebimento enviado com sucesso",
+                "Reporte de não recebimento enviado com sucesso",
                 reportService.reportNonReceipt(authentication.getName(), id, request)
         );
     }

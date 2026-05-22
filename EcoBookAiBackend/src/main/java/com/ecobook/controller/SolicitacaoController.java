@@ -39,7 +39,7 @@ public class SolicitacaoController {
         return ApiEnvelopeResponses.status(
                 HttpStatus.CREATED,
                 servletRequest,
-                "Solicitacao criada com sucesso",
+                "Solicitação criada com sucesso",
                 solicitacaoService.createRequest(authentication.getName(), materialId)
         );
     }
@@ -52,7 +52,7 @@ public class SolicitacaoController {
             HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacoes do estudante carregadas com sucesso",
+                "Solicitações do estudante carregadas com sucesso",
                 solicitacaoService.listCurrentUserRequests(
                         authentication.getName(),
                         parseStatus(status)
@@ -67,7 +67,7 @@ public class SolicitacaoController {
             HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacoes pendentes do doador carregadas com sucesso",
+                "Solicitações pendentes do doador carregadas com sucesso",
                 solicitacaoService.listPendingRequestsForDonor(authentication.getName())
         );
     }
@@ -79,7 +79,7 @@ public class SolicitacaoController {
             HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacoes aprovadas do doador carregadas com sucesso",
+                "Solicitações aprovadas do doador carregadas com sucesso",
                 solicitacaoService.listApprovedRequestsForDonor(authentication.getName())
         );
     }
@@ -91,7 +91,7 @@ public class SolicitacaoController {
                                                                   HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao carregada com sucesso",
+                "Solicitação carregada com sucesso",
                 solicitacaoService.getRequest(authentication.getName(), id)
         );
     }
@@ -103,7 +103,7 @@ public class SolicitacaoController {
                                                                       HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao aprovada com sucesso",
+                "Solicitação aprovada com sucesso",
                 solicitacaoService.approveRequest(authentication.getName(), id)
         );
     }
@@ -115,7 +115,7 @@ public class SolicitacaoController {
                                                                       HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao recusada com sucesso",
+                "Solicitação recusada com sucesso",
                 solicitacaoService.declineRequest(authentication.getName(), id)
         );
     }
@@ -127,7 +127,7 @@ public class SolicitacaoController {
                                                                      HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao cancelada com sucesso",
+                "Solicitação cancelada com sucesso",
                 solicitacaoService.cancelRequest(authentication.getName(), id)
         );
     }
@@ -139,7 +139,7 @@ public class SolicitacaoController {
                                                                         HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Doacao concluida com sucesso",
+                "Doação concluída com sucesso",
                 solicitacaoService.completeDonation(authentication.getName(), id)
         );
     }
@@ -153,8 +153,8 @@ public class SolicitacaoController {
             return StatusSolicitacao.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException(
-                    "O filtro de status informado e invalido",
-                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA")
+                    "O filtro de status informado é inválido",
+                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUÍDA")
             );
         }
     }

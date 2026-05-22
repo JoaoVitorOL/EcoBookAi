@@ -73,7 +73,7 @@ public class UserNotificationService {
                         usuario.getId(),
                         notificationId == null ? "" : notificationId.trim()
                 )
-                .orElseThrow(() -> new ResourceNotFoundException("Notificacao nao encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notificação não encontrada"));
 
         if (notification.getReadAt() == null) {
             notification.setReadAt(LocalDateTime.now());
@@ -98,7 +98,7 @@ public class UserNotificationService {
 
     private Usuario loadUsuario(String email) {
         return usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 
     private UserNotificationDTO toDto(UserNotification notification) {

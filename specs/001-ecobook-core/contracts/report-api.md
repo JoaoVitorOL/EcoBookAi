@@ -1,9 +1,9 @@
 # Report API Contracts
 
-**Reference**: spec.md Phase 7 / backlog T181-T183  
+**Reference**: spec.md Phase 7 / backlog T181-T185  
 **Version**: 1.0  
 **Date**: 2026-05-21  
-**Status**: Current runtime contract for student reporting plus the first admin moderation endpoints
+**Status**: Current runtime contract for student reporting plus the report-specific admin moderation endpoints; broader admin catalog/user APIs live in `admin-api.md`
 
 ---
 

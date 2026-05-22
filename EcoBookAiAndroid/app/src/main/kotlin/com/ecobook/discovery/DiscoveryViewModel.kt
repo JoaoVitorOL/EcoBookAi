@@ -240,22 +240,22 @@ class DiscoveryViewModel @Inject constructor(
         val maxAnoPublicacao = filters.maxAnoPublicacao.toIntOrNull()
 
         if (filters.nivelEnsino == NivelEnsino.SUPERIOR && filters.ano.isNotBlank()) {
-            return "Materiais de nivel superior nao usam ano escolar."
+            return "Materiais de nível superior não usam ano escolar."
         }
         if (filters.ano.isNotBlank()) {
             val maxAno = maxAnoEscolar(filters.nivelEnsino)
             if (ano == null || ano !in 1..maxAno) {
-                return "Informe um ano escolar valido para o nivel selecionado."
+                return "Informe um ano escolar válido para o nível selecionado."
             }
         }
         if (filters.minAnoPublicacao.isNotBlank() && (minAnoPublicacao == null || minAnoPublicacao !in 1900..2100)) {
-            return "O ano inicial de publicacao deve ficar entre 1900 e 2100."
+            return "O ano inicial de publicação deve ficar entre 1900 e 2100."
         }
         if (filters.maxAnoPublicacao.isNotBlank() && (maxAnoPublicacao == null || maxAnoPublicacao !in 1900..2100)) {
-            return "O ano final de publicacao deve ficar entre 1900 e 2100."
+            return "O ano final de publicação deve ficar entre 1900 e 2100."
         }
         if (minAnoPublicacao != null && maxAnoPublicacao != null && minAnoPublicacao > maxAnoPublicacao) {
-            return "O ano inicial de publicacao nao pode ser maior que o ano final."
+            return "O ano inicial de publicação não pode ser maior que o ano final."
         }
         return null
     }
@@ -264,15 +264,15 @@ class DiscoveryViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400, 422 -> error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding para buscar materiais disponiveis."
-                else -> "Nao foi possivel carregar os materiais agora."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Conclua o onboarding para buscar materiais disponíveis."
+                else -> "Não foi possível carregar os materiais agora."
             }
 
             is SocketTimeoutException -> "A busca demorou demais para responder."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel conectar ao backend configurado no app."
+            is IOException -> "Não foi possível conectar ao backend configurado no app."
             else -> error.message ?: "Falha inesperada ao buscar materiais."
         }
     }
@@ -281,18 +281,18 @@ class DiscoveryViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400 -> error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
                 403 -> "Conclua o onboarding para solicitar materiais."
-                404 -> "Esse material nao foi encontrado."
+                404 -> "Esse material não foi encontrado."
                 409 -> error.message
-                422 -> "Esse material nao esta mais disponivel para novas solicitacoes."
+                422 -> "Esse material não está mais disponível para novas solicitações."
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel enviar a solicitacao porque o backend nao respondeu."
-            else -> error.message ?: "Falha inesperada ao enviar a solicitacao."
+            is IOException -> "Não foi possível enviar a solicitação porque o backend não respondeu."
+            else -> error.message ?: "Falha inesperada ao enviar a solicitação."
         }
     }
 

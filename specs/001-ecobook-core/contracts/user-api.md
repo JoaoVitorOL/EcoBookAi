@@ -1,8 +1,8 @@
 # User API Contracts
 
 **Reference**: spec.md RF-001, RF-002, RF-003, RF-004  
-**Version**: 2.1  
-**Date**: 2026-05-05  
+**Version**: 2.2  
+**Date**: 2026-05-21  
 **Status**: Aligned with the current backend implementation
 
 ---
@@ -275,7 +275,7 @@ Authorization: Bearer <jwt_token>
 - `perfil_completo` becomes `true` only when `nome`, `whatsapp`, `cidade`, and `bairro` are present and valid
 - Geographic normalization happens on save
 - `consentimento_ia` controls whether Gemini can be called for AI classification
-- `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this endpoint or the dedicated consent endpoint below
+- `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this endpoint, the dedicated PATCH endpoint, or the DELETE revoke endpoint below
 - The frontend should use free-text city and neighborhood inputs; the API normalizes the values before persisting and using them for matching
 
 ---
@@ -331,6 +331,60 @@ Authorization: Bearer <jwt_token>
   "field_errors": {
     "consentimento_ia": "Informe se o consentimento de IA deve ficar ativo ou nao"
   }
+}
+```
+
+---
+
+## DELETE /usuarios/me/consent/ai-classification
+
+Revoke AI consent explicitly without sending a request body.
+
+### Request
+
+```http
+DELETE /api/v1/usuarios/me/consent/ai-classification
+Authorization: Bearer <jwt_token>
+```
+
+### Runtime Rules
+
+- Requires an authenticated user with role `USER`
+- Sets `consentimento_ia = false`
+- Is idempotent: if consent was already disabled, the current profile is still returned with `consentimento_ia = false`
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "user-uuid-1234567890",
+  "email": "joao@example.com",
+  "nome": "Joao Pedro Silva",
+  "whatsapp": "+5548988888888",
+  "cidade": "SAO JOSE",
+  "bairro": "CENTRO",
+  "instituicao": "Escola Municipal ABC",
+  "perfil_completo": true,
+  "consentimento_ia": false,
+  "role": "USER",
+  "necessidades_academicas": [
+    "TEXTBOOKS",
+    "TEST_PREP"
+  ],
+  "criado_em": "2026-05-05T10:30:00",
+  "atualizado_em": "2026-05-21T14:10:00"
+}
+```
+
+### Error Response
+
+**HTTP 401 Unauthorized**
+```json
+{
+  "status": 401,
+  "error": "UNAUTHORIZED",
+  "message": "Um token JWT valido e obrigatorio"
 }
 ```
 

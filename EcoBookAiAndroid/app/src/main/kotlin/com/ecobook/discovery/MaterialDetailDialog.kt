@@ -77,7 +77,7 @@ fun MaterialDetailDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Capa de tras",
+                                text = "Capa de trás",
                                 style = MaterialTheme.typography.titleSmall
                             )
                             MaterialImage(
@@ -91,12 +91,12 @@ fun MaterialDetailDialog(
                     }
                 }
                 Text(
-                    text = "Descricao",
+                    text = "Descrição",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = material.descricao.ifBlank { "Sem descricao adicional." },
+                    text = material.descricao.ifBlank { "Sem descrição adicional." },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -126,12 +126,12 @@ fun MaterialDetailDialog(
                 }
                 MetadataLine("Sistema de ensino", formatSistemaEnsino(material.sistemaEnsino))
                 MetadataLine("Local", "${material.bairro}, ${material.cidade}")
-                MetadataLine("Ano de publicacao", material.dataPublicacao?.toString() ?: "Nao informado")
-                MetadataLine("Autor", material.autor ?: "Nao informado")
-                MetadataLine("Editora", material.editora ?: "Nao informada")
+                MetadataLine("Ano de publicação", material.dataPublicacao?.toString() ?: "Não informado")
+                MetadataLine("Autor", material.autor ?: "Não informado")
+                MetadataLine("Editora", material.editora ?: "Não informada")
                 MetadataLine("Doador", material.doador.nome)
                 Text(
-                    text = "O contato do doador so aparece depois que a solicitacao for aprovada.",
+                    text = "O contato do doador só aparece depois que a solicitação for aprovada.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

@@ -160,19 +160,19 @@ class NotificationsViewModel @Inject constructor(
     }
 
     private fun resolveSyncError(error: Throwable): String {
-        val fallbackMessage = "Nao foi possivel sincronizar a central agora. Confira o backend configurado no app e tente novamente."
+        val fallbackMessage = "Não foi possível sincronizar a central agora. Confira o backend configurado no app e tente novamente."
 
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Voce nao tem permissao para acessar essa central de notificacoes."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Você não tem permissão para acessar essa central de notificações."
                 else -> sanitizeBackendMessage(error.message, fallbackMessage)
             }
 
-            is SocketTimeoutException -> "A sincronizacao das notificacoes demorou demais para responder."
+            is SocketTimeoutException -> "A sincronização das notificações demorou demais para responder."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel sincronizar a central de notificacoes com o backend configurado no app."
+            is IOException -> "Não foi possível sincronizar a central de notificações com o backend configurado no app."
             else -> sanitizeBackendMessage(error.message, fallbackMessage)
         }
     }
@@ -186,7 +186,7 @@ class NotificationsViewModel @Inject constructor(
         return when {
             normalized.equals("text", ignoreCase = true) -> fallbackMessage
             normalized.equals("unknown error", ignoreCase = true) -> fallbackMessage
-            normalized.equals("falha ao processar a requisicao", ignoreCase = true) -> fallbackMessage
+            normalized.equals("falha ao processar a requisição", ignoreCase = true) -> fallbackMessage
             normalized.length < 4 -> fallbackMessage
             else -> normalized
         }

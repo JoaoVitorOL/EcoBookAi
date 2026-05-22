@@ -46,7 +46,7 @@ class MaterialUploadViewModel @Inject constructor(
             .onFailure { error ->
                 _uiState.update {
                     it.copy(
-                        backendMessage = error.message ?: "Nao foi possivel abrir a imagem selecionada."
+                        backendMessage = error.message ?: "Não foi possível abrir a imagem selecionada."
                     )
                 }
             }
@@ -55,7 +55,7 @@ class MaterialUploadViewModel @Inject constructor(
     fun onCameraPermissionDenied() {
         _uiState.update {
             it.copy(
-                backendMessage = "Permita o uso da camera para capturar uma nova foto do material."
+                backendMessage = "Permita o uso da câmera para capturar uma nova foto do material."
             )
         }
     }
@@ -150,7 +150,7 @@ class MaterialUploadViewModel @Inject constructor(
         val request = buildRequest(currentState)
             ?: run {
                 _uiState.update {
-                    it.copy(backendMessage = "Nao foi possivel montar a solicitacao do material.")
+                    it.copy(backendMessage = "Não foi possível montar a solicitação do material.")
                 }
                 return
             }
@@ -245,9 +245,9 @@ class MaterialUploadViewModel @Inject constructor(
 
     private fun defaultPreviewMessage(response: GeminiResponseDTO): String {
         return when (response.statusIa.toAssistStatus()) {
-            AiAssistStatus.SUCCESS -> "A IA encontrou um conjunto consistente de campos. Voce ainda pode editar tudo antes de publicar."
-            AiAssistStatus.LOW_CONFIDENCE -> "A IA trouxe pistas uteis, mas alguns campos pedem revisao manual antes da publicacao."
-            AiAssistStatus.FAILURE -> "A IA nao conseguiu sugerir campos confiaveis. Complete o formulario manualmente. A capa traseira, quando enviada, segue vinculada ao cadastro."
+            AiAssistStatus.SUCCESS -> "A IA encontrou um conjunto consistente de campos. Você ainda pode editar tudo antes de publicar."
+            AiAssistStatus.LOW_CONFIDENCE -> "A IA trouxe pistas úteis, mas alguns campos pedem revisão manual antes da publicação."
+            AiAssistStatus.FAILURE -> "A IA não conseguiu sugerir campos confiáveis. Complete o formulário manualmente. A capa traseira, quando enviada, segue vinculada ao cadastro."
             null -> "Revise os campos antes de continuar."
         }
     }
@@ -256,57 +256,57 @@ class MaterialUploadViewModel @Inject constructor(
         val errors = linkedMapOf<String, String>()
 
         if (uploadId.isNullOrBlank()) {
-            errors["upload_id"] = "Envie a imagem novamente para gerar um upload_id valido."
+            errors["upload_id"] = "Envie a imagem novamente para gerar um upload_id válido."
         }
         if (draft.titulo.isBlank()) {
-            errors["titulo"] = "Informe um titulo para o material."
+            errors["titulo"] = "Informe um título para o material."
         } else if (draft.titulo.length > 255) {
-            errors["titulo"] = "O titulo precisa ter no maximo 255 caracteres."
+            errors["titulo"] = "O título precisa ter no máximo 255 caracteres."
         }
 
         if (draft.autor.length > 255) {
-            errors["autor"] = "O autor precisa ter no maximo 255 caracteres."
+            errors["autor"] = "O autor precisa ter no máximo 255 caracteres."
         }
 
         if (draft.editora.length > 255) {
-            errors["editora"] = "A editora precisa ter no maximo 255 caracteres."
+            errors["editora"] = "A editora precisa ter no máximo 255 caracteres."
         }
 
         if (draft.descricao.isBlank()) {
             errors["descricao"] = "Descreva o estado e o contexto de uso do material."
         } else if (draft.descricao.length !in 10..2000) {
-            errors["descricao"] = "A descricao precisa ter entre 10 e 2000 caracteres."
+            errors["descricao"] = "A descrição precisa ter entre 10 e 2000 caracteres."
         }
 
         if (draft.disciplina == null) {
             errors["disciplina"] = "Escolha a disciplina."
         }
         if (draft.nivelEnsino == null) {
-            errors["nivel_ensino"] = "Escolha o nivel de ensino."
+            errors["nivel_ensino"] = "Escolha o nível de ensino."
         }
         if (draft.sistemaEnsino == null) {
             errors["sistema_ensino"] = "Escolha o sistema de ensino."
         }
         if (draft.estadoConservacao == null) {
-            errors["estado_conservacao"] = "Escolha o estado de conservacao."
+            errors["estado_conservacao"] = "Escolha o estado de conservação."
         }
 
         if (draft.nivelEnsino == NivelEnsino.SUPERIOR) {
             if (draft.ano.isNotBlank()) {
-                errors["ano"] = "Materiais de nivel superior nao usam ano escolar."
+                errors["ano"] = "Materiais de nível superior não usam ano escolar."
             }
         } else {
             val parsedYear = draft.ano.toIntOrNull()
             val maxAno = maxAnoEscolar(draft.nivelEnsino)
             if (parsedYear == null || parsedYear !in 1..maxAno) {
-                errors["ano"] = "Informe um ano escolar valido para o nivel selecionado."
+                errors["ano"] = "Informe um ano escolar válido para o nível selecionado."
             }
         }
 
         if (draft.dataPublicacao.isNotBlank()) {
             val publicationYear = draft.dataPublicacao.toIntOrNull()
             if (publicationYear == null || publicationYear !in 1900..2100) {
-                errors["data_publicacao"] = "Informe um ano de publicacao entre 1900 e 2100."
+                errors["data_publicacao"] = "Informe um ano de publicação entre 1900 e 2100."
             }
         }
 
@@ -335,17 +335,17 @@ class MaterialUploadViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400 -> error.message.ifBlank { "A imagem precisa estar em JPEG ou PNG." }
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
                 403 -> "Conclua seu perfil antes de enviar materiais."
-                413 -> "A imagem excede 5MB. Tente outra foto ou deixe o app compactar uma versao menor."
+                413 -> "A imagem excede 5MB. Tente outra foto ou deixe o app compactar uma versão menor."
                 else -> error.message
             }
 
-            is IllegalArgumentException -> error.message ?: "Selecione uma imagem JPEG ou PNG valida."
-            is SocketTimeoutException -> "A analise demorou demais. Tente novamente em alguns instantes."
+            is IllegalArgumentException -> error.message ?: "Selecione uma imagem JPEG ou PNG válida."
+            is SocketTimeoutException -> "A análise demorou demais. Tente novamente em alguns instantes."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel conectar ao backend configurado no app."
+            is IOException -> "Não foi possível conectar ao backend configurado no app."
             else -> error.message ?: "Falha inesperada ao enviar a imagem."
         }
     }
@@ -355,14 +355,14 @@ class MaterialUploadViewModel @Inject constructor(
             is ApiException -> when (error.statusCode) {
                 400 -> error.message.ifBlank { "Revise os campos antes de publicar." }
                 403 -> "Conclua seu perfil antes de publicar materiais."
-                404 -> "O upload temporario expirou. Reenvie a imagem para continuar."
+                404 -> "O upload temporário expirou. Reenvie a imagem para continuar."
                 409 -> error.message
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel salvar o material porque o backend nao respondeu."
+            is IOException -> "Não foi possível salvar o material porque o backend não respondeu."
             else -> error.message ?: "Falha inesperada ao publicar o material."
         }
     }

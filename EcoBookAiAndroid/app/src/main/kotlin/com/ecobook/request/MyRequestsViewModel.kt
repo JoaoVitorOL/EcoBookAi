@@ -72,7 +72,7 @@ class MyRequestsViewModel @Inject constructor(
                                 if (current.id == updatedRequest.id) updatedRequest else current
                             },
                             activeRequestId = null,
-                            toastMessage = "Solicitacao cancelada com sucesso."
+                            toastMessage = "Solicitação cancelada com sucesso."
                         )
                     }
                 }
@@ -126,33 +126,33 @@ class MyRequestsViewModel @Inject constructor(
     private fun resolveLoadError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding para acompanhar suas solicitacoes."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Conclua o onboarding para acompanhar suas solicitações."
                 else -> error.message
             }
 
             is SocketTimeoutException -> "A listagem demorou demais para responder."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel conectar ao backend configurado no app."
-            else -> error.message ?: "Falha inesperada ao carregar suas solicitacoes."
+            is IOException -> "Não foi possível conectar ao backend configurado no app."
+            else -> error.message ?: "Falha inesperada ao carregar suas solicitações."
         }
     }
 
     private fun resolveActionError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Voce nao tem permissao para alterar essa solicitacao."
-                404 -> "Essa solicitacao nao foi encontrada."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Você não tem permissão para alterar essa solicitação."
+                404 -> "Essa solicitação não foi encontrada."
                 422 -> error.message
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel atualizar a solicitacao porque o backend nao respondeu."
-            else -> error.message ?: "Falha inesperada ao atualizar a solicitacao."
+            is IOException -> "Não foi possível atualizar a solicitação porque o backend não respondeu."
+            else -> error.message ?: "Falha inesperada ao atualizar a solicitação."
         }
     }
 
@@ -160,17 +160,17 @@ class MyRequestsViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400 -> error.fieldErrors["reason"] ?: error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Somente o estudante da solicitacao concluida pode enviar esse reporte."
-                404 -> "Esse material nao foi encontrado."
-                409 -> "Ja existe um reporte aberto para esse material."
-                422 -> "Esse material ainda nao pode ser reportado como nao recebido."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Somente o estudante da solicitação concluída pode enviar esse reporte."
+                404 -> "Esse material não foi encontrado."
+                409 -> "Já existe um reporte aberto para esse material."
+                422 -> "Esse material ainda não pode ser reportado como não recebido."
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel enviar o reporte porque o backend nao respondeu."
+            is IOException -> "Não foi possível enviar o reporte porque o backend não respondeu."
             else -> error.message ?: "Falha inesperada ao enviar o reporte."
         }
     }

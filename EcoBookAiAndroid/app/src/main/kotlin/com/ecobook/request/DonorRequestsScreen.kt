@@ -75,7 +75,7 @@ fun DonorRequestsScreen(
     ) {
         item {
             Text(
-                text = "Aprove ou recuse novas solicitacoes e finalize as reservas que ja viraram entrega.",
+                text = "Aprove ou recuse novas solicitações e finalize as reservas que já viraram entrega.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -102,7 +102,7 @@ fun DonorRequestsScreen(
             item {
                 GlassCard {
                     Text(
-                        text = "Nao foi possivel carregar os pedidos recebidos.",
+                        text = "Não foi possível carregar os pedidos recebidos.",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -133,12 +133,12 @@ fun DonorRequestsScreen(
                     Text(
                         text = when (uiState.selectedTab) {
                             DonorRequestsTab.PENDING -> "Nenhum pedido pendente por enquanto."
-                            DonorRequestsTab.APPROVED -> "Nenhuma reserva aprovada aguardando conclusao."
+                            DonorRequestsTab.APPROVED -> "Nenhuma reserva aprovada aguardando conclusão."
                         },
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Assim que outros usuarios solicitarem os seus materiais, o acompanhamento passa a aparecer aqui.",
+                        text = "Assim que outros usuários solicitarem os seus materiais, o acompanhamento passa a aparecer aqui.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -180,9 +180,9 @@ fun DonorRequestsScreen(
                 Text(
                     when (action.type) {
                         DonorActionType.DECLINE ->
-                            "Voce vai recusar o pedido de \"${action.request.estudante?.nome ?: "este estudante"}\" para \"${action.request.material?.titulo ?: "este material"}\"."
+                            "Você vai recusar o pedido de \"${action.request.estudante?.nome ?: "este estudante"}\" para \"${action.request.material?.titulo ?: "este material"}\"."
                         DonorActionType.REVOKE_APPROVAL ->
-                            "Voce vai cancelar a reserva aprovada de \"${action.request.material?.titulo ?: "este material"}\". O estudante perdera o acesso atual a essa reserva."
+                            "Você vai cancelar a reserva aprovada de \"${action.request.material?.titulo ?: "este material"}\". O estudante perderá o acesso atual a essa reserva."
                     }
                 )
             },

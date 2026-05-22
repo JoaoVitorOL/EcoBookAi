@@ -24,7 +24,7 @@ class AuthInterceptor @Inject constructor(
 
         val response = chain.proceed(finalRequest)
         if (response.code == 401) {
-            sessionManager.clearSession("Sua sessao expirou. Entre novamente para continuar.")
+            sessionManager.clearSession("Sua sessão expirou. Entre novamente para continuar.")
         }
         return response
     }

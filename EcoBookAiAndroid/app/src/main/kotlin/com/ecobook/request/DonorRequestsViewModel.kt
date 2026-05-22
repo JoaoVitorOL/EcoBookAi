@@ -131,7 +131,7 @@ class DonorRequestsViewModel @Inject constructor(
     private fun resolveLoadError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
                 403 -> "Conclua o onboarding para acompanhar os pedidos recebidos."
                 else -> error.message
             }
@@ -139,7 +139,7 @@ class DonorRequestsViewModel @Inject constructor(
             is SocketTimeoutException -> "A listagem demorou demais para responder."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel conectar ao backend configurado no app."
+            is IOException -> "Não foi possível conectar ao backend configurado no app."
             else -> error.message ?: "Falha inesperada ao carregar os pedidos recebidos."
         }
     }
@@ -147,16 +147,16 @@ class DonorRequestsViewModel @Inject constructor(
     private fun resolveActionError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Voce nao tem permissao para alterar essa solicitacao."
-                404 -> "Essa solicitacao nao foi encontrada."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Você não tem permissão para alterar essa solicitação."
+                404 -> "Essa solicitação não foi encontrada."
                 409, 422 -> error.message
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel atualizar o pedido porque o backend nao respondeu."
+            is IOException -> "Não foi possível atualizar o pedido porque o backend não respondeu."
             else -> error.message ?: "Falha inesperada ao atualizar o pedido."
         }
     }

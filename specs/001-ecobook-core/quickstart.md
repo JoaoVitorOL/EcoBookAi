@@ -1,6 +1,6 @@
 # Quickstart Guide: EcoBook IA
 
-**Phase**: 1-6 runtime  
+**Phase**: 1-8 runtime  
 **Date**: 2026-05-21  
 **Purpose**: Boot the current backend, validate the implemented auth/onboarding/search flow, and compile the Android app with the current local runbook.
 
@@ -69,6 +69,24 @@ Expected response excerpt:
   "message": "Backend online"
 }
 ```
+
+### 4. Optional: bootstrap an admin account
+
+If you want to exercise the admin endpoints locally, start the backend with these environment variables:
+
+```powershell
+$env:ADMIN_BOOTSTRAP_ENABLED = 'true'
+$env:ADMIN_BOOTSTRAP_EMAIL = 'admin@example.com'
+$env:ADMIN_BOOTSTRAP_PASSWORD = 'SenhaAdmin123'
+$env:ADMIN_BOOTSTRAP_NAME = 'Admin Local'
+mvn --% spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Runtime behavior:
+
+- if the email already exists, the account is promoted to `ADMIN`
+- if the email does not exist, a lightweight admin account is created
+- leaving `ADMIN_BOOTSTRAP_ENABLED=false` keeps the feature inactive
 
 ---
 
@@ -220,4 +238,5 @@ Environment note:
 ## Current Closeout Notes
 
 - Phase 6 notification runtime is implemented, but real-device Firebase validation is still the main remaining closeout step.
-- Admin/moderation, LGPD hardening, and final polish phases remain backlog work.
+- Phase 7 admin/moderation runtime is already live on the backend.
+- Phase 8 has started through AI consent update/revocation plus preview enforcement; consent history, deletion/anonymization and image-access hardening remain backlog work.

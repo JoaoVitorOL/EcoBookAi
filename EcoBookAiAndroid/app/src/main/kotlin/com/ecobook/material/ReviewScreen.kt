@@ -78,7 +78,7 @@ fun ReviewScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Capa de tras",
+                            text = "Capa de trás",
                             style = MaterialTheme.typography.titleSmall
                         )
                         AsyncImage(
@@ -97,7 +97,7 @@ fun ReviewScreen(
                 StatusBadge(
                     text = when (uiState.overallStatus) {
                         com.ecobook.model.AiAssistStatus.SUCCESS -> "IA confiante"
-                        com.ecobook.model.AiAssistStatus.LOW_CONFIDENCE -> "Revisao recomendada"
+                        com.ecobook.model.AiAssistStatus.LOW_CONFIDENCE -> "Revisão recomendada"
                         com.ecobook.model.AiAssistStatus.FAILURE, null -> "Preenchimento manual"
                     },
                     containerColor = when (uiState.overallStatus) {
@@ -120,7 +120,7 @@ fun ReviewScreen(
                 }
                 if (uiState.selectedBackImage != null) {
                     StatusBadge(
-                        text = "verso incluido",
+                        text = "verso incluído",
                         containerColor = androidx.compose.ui.graphics.Color(0xFFE3EEF9),
                         contentColor = androidx.compose.ui.graphics.Color(0xFF214A73)
                     )
@@ -128,7 +128,7 @@ fun ReviewScreen(
             }
 
             Text(
-                text = uiState.previewMessage ?: "Revise os campos e ajuste tudo o que for necessario antes de publicar.",
+                text = uiState.previewMessage ?: "Revise os campos e ajuste tudo o que for necessário antes de publicar.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -144,7 +144,7 @@ fun ReviewScreen(
             EditableField(
                 value = uiState.draft.titulo,
                 onValueChange = onTituloChange,
-                label = "Titulo",
+                label = "Título",
                 modifier = Modifier.fillMaxWidth(),
                 errorMessage = uiState.validationErrors["titulo"]
             )
@@ -171,7 +171,7 @@ fun ReviewScreen(
             EditableField(
                 value = uiState.draft.descricao,
                 onValueChange = onDescricaoChange,
-                label = "Descricao",
+                label = "Descrição",
                 modifier = Modifier.fillMaxWidth(),
                 errorMessage = uiState.validationErrors["descricao"],
                 singleLine = false,
@@ -191,7 +191,7 @@ fun ReviewScreen(
 
             ConfidenceIndicator(confidence = uiState.confidenceByField["nivel_ensino"])
             EnumDropdown(
-                label = "Nivel de ensino",
+                label = "Nível de ensino",
                 selectedValue = uiState.draft.nivelEnsino,
                 options = NivelEnsino.entries.toList(),
                 optionLabel = { it.label },
@@ -208,8 +208,8 @@ fun ReviewScreen(
                 modifier = Modifier.fillMaxWidth(),
                 errorMessage = uiState.validationErrors["ano"],
                 supportingMessage = when (uiState.draft.nivelEnsino) {
-                    NivelEnsino.MEDIO -> "Para ensino medio, use apenas 1, 2 ou 3."
-                    NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
+                    NivelEnsino.MEDIO -> "Para ensino médio, use apenas 1, 2 ou 3."
+                    NivelEnsino.SUPERIOR -> "Não se aplica a materiais de ensino superior."
                     else -> "Para ensino fundamental, use um valor de 1 a 9."
                 },
                 enabled = uiState.draft.nivelEnsino != NivelEnsino.SUPERIOR
@@ -228,7 +228,7 @@ fun ReviewScreen(
 
             ConfidenceIndicator(confidence = null)
             EnumDropdown(
-                label = "Estado de conservacao",
+                label = "Estado de conservação",
                 selectedValue = uiState.draft.estadoConservacao,
                 options = EstadoConservacao.entries.toList(),
                 optionLabel = { it.label },
@@ -241,7 +241,7 @@ fun ReviewScreen(
             EditableField(
                 value = uiState.draft.dataPublicacao,
                 onValueChange = onDataPublicacaoChange,
-                label = "Ano de publicacao",
+                label = "Ano de publicação",
                 modifier = Modifier.fillMaxWidth(),
                 errorMessage = uiState.validationErrors["data_publicacao"]
             )
@@ -277,7 +277,7 @@ fun ReviewScreen(
             title = { Text("Confirmar material") },
             text = {
                 Text(
-                    "Voce vai publicar \"${uiState.draft.titulo.ifBlank { "Material sem titulo" }}\" como DISPONIVEL. Ainda podera ajustar o fluxo nas fases seguintes, mas esta publicacao ja entra pronta para matching."
+                    "Você vai publicar \"${uiState.draft.titulo.ifBlank { "Material sem título" }}\" como DISPONÍVEL. Ainda poderá ajustar o fluxo nas fases seguintes, mas esta publicação já entra pronta para matching."
                 )
             },
             confirmButton = {
@@ -302,9 +302,9 @@ fun ReviewScreen(
     if (showRestartConfirmation) {
         AlertDialog(
             onDismissRequest = { showRestartConfirmation = false },
-            title = { Text("Descartar revisao") },
+            title = { Text("Descartar revisão") },
             text = {
-                Text("Voce vai apagar a revisao atual e voltar para a etapa de escolha das imagens. Use isso apenas se realmente quiser recomecar.")
+                Text("Você vai apagar a revisão atual e voltar para a etapa de escolha das imagens. Use isso apenas se realmente quiser recomeçar.")
             },
             confirmButton = {
                 Button(

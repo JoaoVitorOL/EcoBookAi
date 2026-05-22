@@ -63,8 +63,8 @@ public class MaterialService {
     public GeminiResponseDTO previewMaterial(String email, MultipartFile file, MultipartFile secondaryFile) {
         Usuario usuario = loadUsuario(email);
         if (file == null || file.isEmpty()) {
-            throw new BadRequestException("Imagem invalida", Map.of(
-                    "image", "Envie uma imagem frontal JPEG ou PNG valida"
+            throw new BadRequestException("Imagem inválida", Map.of(
+                    "image", "Envie uma imagem frontal JPEG ou PNG válida"
             ));
         }
 
@@ -110,7 +110,7 @@ public class MaterialService {
                 .orElseThrow(() -> new ResourceNotFoundException("Temporary upload not found or expired"));
 
         if (upload.getMaterial() != null) {
-            throw new ConflictException("Este upload_id ja foi utilizado");
+            throw new ConflictException("Este upload_id já foi utilizado");
         }
 
         if (upload.getUsuario() == null || !upload.getUsuario().getId().equals(usuario.getId())) {
@@ -229,13 +229,13 @@ public class MaterialService {
 
     private Usuario loadUsuario(String email) {
         return usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 
     private Material loadOwnedMaterial(String materialId, Usuario usuario) {
         UUID id = parseMaterialId(materialId);
         Material material = materialRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Material não encontrado"));
 
         if (!material.getDoador().getId().equals(usuario.getId())) {
             throw new AccessDeniedException("Apenas o doador do material pode alterar este cadastro");
@@ -248,8 +248,8 @@ public class MaterialService {
         try {
             return UUID.fromString(materialId);
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de material invalido", Map.of(
-                    "id", "Informe um identificador de material valido"
+            throw new BadRequestException("Identificador de material inválido", Map.of(
+                    "id", "Informe um identificador de material válido"
             ));
         }
     }
@@ -298,7 +298,7 @@ public class MaterialService {
         );
 
         if (!errors.isEmpty()) {
-            throw new BadRequestException("Os dados do material sao invalidos", errors);
+            throw new BadRequestException("Os dados do material são inválidos", errors);
         }
 
         return new ValidatedMaterialRequest(uploadId, data);
@@ -321,7 +321,7 @@ public class MaterialService {
         );
 
         if (!errors.isEmpty()) {
-            throw new BadRequestException("Os dados do material sao invalidos", errors);
+            throw new BadRequestException("Os dados do material são inválidos", errors);
         }
 
         return data;
@@ -340,26 +340,26 @@ public class MaterialService {
                                                        Map<String, String> errors) {
         String titulo = trimToNull(rawTitulo);
         if (titulo == null) {
-            errors.put("titulo", "Informe o titulo do material");
+            errors.put("titulo", "Informe o título do material");
         } else if (titulo.length() > 255) {
-            errors.put("titulo", "O titulo deve ter no maximo 255 caracteres");
+            errors.put("titulo", "O título deve ter no máximo 255 caracteres");
         }
 
         String autor = trimToNull(rawAutor);
         if (autor != null && autor.length() > 255) {
-            errors.put("autor", "O autor deve ter no maximo 255 caracteres");
+            errors.put("autor", "O autor deve ter no máximo 255 caracteres");
         }
 
         String editora = trimToNull(rawEditora);
         if (editora != null && editora.length() > 255) {
-            errors.put("editora", "A editora deve ter no maximo 255 caracteres");
+            errors.put("editora", "A editora deve ter no máximo 255 caracteres");
         }
 
         String descricao = trimToNull(rawDescricao);
         if (descricao == null) {
-            errors.put("descricao", "Informe a descricao do material");
+            errors.put("descricao", "Informe a descrição do material");
         } else if (descricao.length() < 10 || descricao.length() > 2000) {
-            errors.put("descricao", "A descricao deve ter entre 10 e 2000 caracteres");
+            errors.put("descricao", "A descrição deve ter entre 10 e 2000 caracteres");
         }
 
         Disciplina disciplina = parseEnum(rawDisciplina, Disciplina.class, "disciplina", errors);
@@ -371,16 +371,16 @@ public class MaterialService {
         if (nivelEnsino != null) {
             if (nivelEnsino == NivelEnsino.SUPERIOR) {
                 if (ano != null) {
-                    errors.put("ano", "Materiais de nivel SUPERIOR nao usam ano escolar");
+                    errors.put("ano", "Materiais de nível SUPERIOR não usam ano escolar");
                 }
             } else if (ano == null || ano < 1 || ano > maxAnoEscolar(nivelEnsino)) {
-                errors.put("ano", "Informe um ano escolar valido para o nivel selecionado");
+                errors.put("ano", "Informe um ano escolar válido para o nível selecionado");
             }
         }
 
         Integer dataPublicacao = rawDataPublicacao;
         if (dataPublicacao != null && (dataPublicacao < 1900 || dataPublicacao > 2100)) {
-            errors.put("data_publicacao", "Informe um ano de publicacao entre 1900 e 2100");
+            errors.put("data_publicacao", "Informe um ano de publicação entre 1900 e 2100");
         }
 
         return new ValidatedMaterialData(
@@ -399,13 +399,13 @@ public class MaterialService {
 
     private void ensureStatusAllowsEditing(Material material) {
         if (material.getStatus() != StatusMaterial.DISPONIVEL) {
-            throw new UnprocessableEntityException("Somente materiais disponiveis podem ser editados");
+            throw new UnprocessableEntityException("Somente materiais disponíveis podem ser editados");
         }
     }
 
     private void ensureStatusAllowsDeletion(Material material) {
         if (material.getStatus() != StatusMaterial.DISPONIVEL) {
-            throw new UnprocessableEntityException("Somente materiais disponiveis podem ser excluidos");
+            throw new UnprocessableEntityException("Somente materiais disponíveis podem ser excluídos");
         }
     }
 
@@ -422,7 +422,7 @@ public class MaterialService {
         try {
             return Enum.valueOf(enumType, normalizeEnum(value));
         } catch (IllegalArgumentException ex) {
-            errors.put(field, "Valor invalido para " + field);
+            errors.put(field, "Valor inválido para " + field);
             return null;
         }
     }

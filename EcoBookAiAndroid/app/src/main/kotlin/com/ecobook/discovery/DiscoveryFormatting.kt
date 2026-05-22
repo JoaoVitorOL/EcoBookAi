@@ -30,19 +30,19 @@ internal fun formatEstadoConservacao(value: String): String {
 
 internal fun formatAnoEscolar(value: Int?): String {
     return when (value) {
-        null -> "Nao informado"
-        1 -> "1o ano"
-        2 -> "2o ano"
-        3 -> "3o ano"
-        4 -> "4o ano"
-        5 -> "5o ano"
-        6 -> "6o ano"
-        7 -> "7o ano"
-        8 -> "8o ano"
-        9 -> "9o ano"
-        10 -> "1a serie"
-        11 -> "2a serie"
-        12 -> "3a serie"
+        null -> "Não informado"
+        1 -> "1º ano"
+        2 -> "2º ano"
+        3 -> "3º ano"
+        4 -> "4º ano"
+        5 -> "5º ano"
+        6 -> "6º ano"
+        7 -> "7º ano"
+        8 -> "8º ano"
+        9 -> "9º ano"
+        10 -> "1ª série"
+        11 -> "2ª série"
+        12 -> "3ª série"
         else -> value.toString()
     }
 }
@@ -56,14 +56,14 @@ internal fun formatRelativeDate(rawValue: String?): String? {
     return when {
         daysBetween <= 0 -> "Hoje"
         daysBetween == 1L -> "Ontem"
-        daysBetween in 2..6 -> "$daysBetween dias atras"
+        daysBetween in 2..6 -> "$daysBetween dias atrás"
         else -> localDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale("pt", "BR")))
     }
 }
 
 internal fun formatAbsoluteDateTime(rawValue: String?): String? {
     val localDateTime = parseBackendDateTime(rawValue) ?: return null
-    return localDateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'as' HH:mm", Locale("pt", "BR")))
+    return localDateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm", Locale("pt", "BR")))
 }
 
 private fun parseBackendDateTime(rawValue: String?): LocalDateTime? {

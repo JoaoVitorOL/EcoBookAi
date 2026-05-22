@@ -66,7 +66,7 @@ fun OnboardingScreen(
         ) {
             SectionHeading(
                 title = "Completar onboarding",
-                subtitle = "Esses dados desbloqueiam upload, matching e solicitacoes protegidas pelo backend."
+                subtitle = "Esses dados desbloqueiam upload, matching e solicitações protegidas pelo backend."
             )
 
             GlassCard {
@@ -87,9 +87,9 @@ fun OnboardingScreen(
                 }
                 Text(
                     text = when (uiState.currentStep) {
-                        0 -> "Primeiro confirmamos quem voce e e como entrar em contato."
-                        1 -> "Depois registramos a regiao para normalizacao geografica e matching."
-                        else -> "Por fim, configuramos preferencias academicas e consentimento para IA."
+                        0 -> "Primeiro confirmamos quem você é e como entrar em contato."
+                        1 -> "Depois registramos a região para normalização geográfica e matching."
+                        else -> "Por fim, configuramos preferências acadêmicas e consentimento para IA."
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -165,7 +165,7 @@ fun OnboardingScreen(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
-                        Text(if (uiState.isLastStep) "Concluir perfil" else "Proxima etapa")
+                        Text(if (uiState.isLastStep) "Concluir perfil" else "Próxima etapa")
                     }
                 }
             }
@@ -198,7 +198,7 @@ private fun ContactStep(
             placeholder = { Text("(48) 99999-9999") },
             prefix = { Text("+55 ") },
             supportingText = {
-                Text(uiState.fieldErrors["whatsapp"] ?: "Digite so DDD + numero. O codigo do Brasil ja e adicionado automaticamente.")
+                Text(uiState.fieldErrors["whatsapp"] ?: "Digite só DDD + número. O código do Brasil já é adicionado automaticamente.")
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -227,7 +227,7 @@ private fun LocationStep(
             label = { Text("Cidade") },
             isError = uiState.fieldErrors.containsKey("cidade"),
             supportingText = {
-                Text(uiState.fieldErrors["cidade"] ?: "Digite manualmente. O sistema normaliza a cidade antes de salvar o perfil.")
+                Text(uiState.fieldErrors["cidade"] ?: "Digite manualmente. A cidade é padronizada sem acento antes de salvar o perfil.")
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -246,7 +246,7 @@ private fun LocationStep(
         OutlinedTextField(
             value = uiState.instituicao,
             onValueChange = onInstitutionChange,
-            label = { Text("Instituicao (opcional)") },
+            label = { Text("Instituição (opcional)") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -262,11 +262,11 @@ private fun NeedsStep(
 ) {
     GlassCard {
         Text(
-            text = "Necessidades academicas",
+            text = "Necessidades acadêmicas",
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Essas preferencias ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
+            text = "Essas preferências ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -287,7 +287,7 @@ private fun NeedsStep(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Quando ativado, o backend podera usar Gemini nas futuras etapas de classificacao assistida de materiais.",
+            text = "Quando ativado, o backend poderá usar Gemini nas futuras etapas de classificação assistida de materiais.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

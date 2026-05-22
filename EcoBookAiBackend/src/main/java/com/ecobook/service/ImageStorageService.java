@@ -92,13 +92,13 @@ public class ImageStorageService {
                     secondaryMimeType
             );
         } catch (IOException ex) {
-            throw new ResourceNotFoundException("Nao foi possivel armazenar a imagem temporaria", ex);
+            throw new ResourceNotFoundException("Não foi possível armazenar a imagem temporária", ex);
         }
     }
 
     public String validateImage(byte[] imageBytes) {
         if (imageBytes.length == 0) {
-            throw invalidImage("image", "Envie uma imagem JPEG ou PNG valida");
+            throw invalidImage("image", "Envie uma imagem JPEG ou PNG válida");
         }
 
         if (imageBytes.length > maxFileSizeBytes()) {
@@ -113,10 +113,10 @@ public class ImageStorageService {
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
-                throw invalidImage("image", "Nao foi possivel decodificar a imagem enviada");
+                throw invalidImage("image", "Não foi possível decodificar a imagem enviada");
             }
         } catch (IOException ex) {
-            throw invalidImage("image", "Nao foi possivel decodificar a imagem enviada");
+            throw invalidImage("image", "Não foi possível decodificar a imagem enviada");
         }
 
         return mimeType;
@@ -150,7 +150,7 @@ public class ImageStorageService {
             String publicUrl = buildPublicUrl(userId, destination.getFileName().toString());
             return new PromotedImage(destination, publicUrl);
         } catch (IOException ex) {
-            throw new ResourceNotFoundException("Nao foi possivel promover a imagem para armazenamento permanente", ex);
+            throw new ResourceNotFoundException("Não foi possível promover a imagem para armazenamento permanente", ex);
         }
     }
 
@@ -183,7 +183,7 @@ public class ImageStorageService {
         try {
             return file.getBytes();
         } catch (IOException ex) {
-            throw invalidImage("image", "Nao foi possivel ler a imagem enviada");
+            throw invalidImage("image", "Não foi possível ler a imagem enviada");
         }
     }
 
@@ -226,7 +226,7 @@ public class ImageStorageService {
     private BadRequestException invalidImage(String field, String message) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         fieldErrors.put(field, message);
-        return new BadRequestException("Imagem invalida", fieldErrors);
+        return new BadRequestException("Imagem inválida", fieldErrors);
     }
 
     private Path resolvePath(String filePath) {

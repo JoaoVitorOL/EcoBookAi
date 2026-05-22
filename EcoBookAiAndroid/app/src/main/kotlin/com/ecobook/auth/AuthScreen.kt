@@ -154,7 +154,7 @@ private fun AuthCard(
     GlassCard {
         Text(
             text = if (uiState.mode == AuthMode.LOGIN) {
-                "Use o email e a senha cadastrados para retomar sua sessao."
+                "Use o email e a senha cadastrados para retomar sua sessão."
             } else {
                 "Crie sua conta com nome, email e senha. Os demais dados ficam para o onboarding."
             },
@@ -232,9 +232,9 @@ private fun AuthCard(
         ) {
             Text(
                 if (uiState.mode == AuthMode.LOGIN) {
-                    "Ainda nao tem conta? Criar conta"
+                    "Ainda não tem conta? Criar conta"
                 } else {
-                    "Ja tem conta? Entrar"
+                    "Já tem conta? Entrar"
                 }
             )
         }
@@ -273,7 +273,7 @@ private fun BackendStatusCard(
     GlassCard {
         val (badgeLabel, badgeContainer, badgeContent) = when (backendStatus.state) {
             BackendConnectionState.CHECKING -> Triple("Verificando servidor", Color(0xFFFCE7D8), Color(0xFF8A4C1F))
-            BackendConnectionState.OFFLINE -> Triple("Servidor indisponivel", Color(0xFFF7DDDB), Color(0xFF8D3D30))
+            BackendConnectionState.OFFLINE -> Triple("Servidor indisponível", Color(0xFFF7DDDB), Color(0xFF8D3D30))
             BackendConnectionState.ONLINE -> Triple("Servidor online", Color(0xFFE0EFE4), Color(0xFF205447))
         }
 
@@ -284,8 +284,8 @@ private fun BackendStatusCard(
         )
         Text(
             text = when (backendStatus.state) {
-                BackendConnectionState.CHECKING -> "Estamos verificando a conexao com o backend local."
-                BackendConnectionState.OFFLINE -> "Nao foi possivel falar com o backend agora. Enquanto a API estiver offline, entrar e criar conta nao vao concluir."
+                BackendConnectionState.CHECKING -> "Estamos verificando a conexão com o backend local."
+                BackendConnectionState.OFFLINE -> "Não foi possível falar com o backend agora. Enquanto a API estiver offline, entrar e criar conta não vão concluir."
                 BackendConnectionState.ONLINE -> backendStatus.detail
             },
             style = MaterialTheme.typography.bodyLarge,
@@ -329,11 +329,11 @@ private fun backendOfflineHint(
 
     return when {
         configuredBackendUrl.contains("10.0.2.2") -> {
-            "Dica: $emulatorUrl funciona no emulador Android. Se o backend estiver no WSL ou se voce estiver usando um celular fisico, troque para o IP real da maquina, por exemplo $physicalUrl."
+            "Dica: $emulatorUrl funciona no emulador Android. Se o backend estiver no WSL ou se você estiver usando um celular físico, troque para o IP real da máquina, por exemplo $physicalUrl."
         }
 
         configuredBackendUrl.contains("192.168.0.10") -> {
-            "Dica: $physicalUrl e apenas um exemplo. Substitua esse endpoint pelo IP real da maquina host na mesma rede Wi-Fi."
+            "Dica: $physicalUrl é apenas um exemplo. Substitua esse endpoint pelo IP real da máquina host na mesma rede Wi-Fi."
         }
 
         else -> null

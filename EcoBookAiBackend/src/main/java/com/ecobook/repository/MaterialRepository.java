@@ -6,6 +6,8 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -20,6 +22,8 @@ public interface MaterialRepository extends JpaRepository<Material, UUID> {
     List<Material> findByDoadorIdAndStatusInOrderByCriadoEmDesc(UUID doadorId, Collection<StatusMaterial> statuses);
     List<Material> findByStatus(StatusMaterial status);
     List<Material> findByCidadeAndBairro(String cidade, String bairro);
+    Page<Material> findAllByOrderByCriadoEmDesc(Pageable pageable);
+    Page<Material> findByStatusOrderByCriadoEmDesc(StatusMaterial status, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from Material m where m.id = :id")
