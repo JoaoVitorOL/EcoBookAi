@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface FailedNotificationRepository extends JpaRepository<FailedNotification, UUID> {
 
+    List<FailedNotification> findByUserIdOrderByCreatedAtDesc(UUID userId);
+
     List<FailedNotification> findTop100ByDeliveredAtIsNullAndPermanentlyFailedAtIsNullAndNextAttemptAtLessThanEqualOrderByCreatedAtAsc(
             LocalDateTime nextAttemptAt
     );

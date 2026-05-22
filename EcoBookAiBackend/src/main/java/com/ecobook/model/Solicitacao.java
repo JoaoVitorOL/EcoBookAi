@@ -4,6 +4,9 @@ import com.ecobook.model.enums.StatusSolicitacao;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
@@ -28,19 +31,22 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"material", "estudante"})
-public class Solicitacao {
+@SQLRestriction("deleted_at IS NULL")
+public class Solicitacao extends AuditedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "material_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Material material;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "estudante_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Usuario estudante;
 
     @Enumerated(EnumType.STRING)

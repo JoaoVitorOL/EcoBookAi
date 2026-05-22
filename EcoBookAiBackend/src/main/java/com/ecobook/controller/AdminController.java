@@ -1,5 +1,7 @@
 package com.ecobook.controller;
 
+import com.ecobook.annotation.AuditAction;
+import com.ecobook.dto.AuditLogDTO;
 import com.ecobook.dto.AdminNonReceiptReportDTO;
 import com.ecobook.dto.AdminUserSummaryDTO;
 import com.ecobook.dto.ApiEnvelope;
@@ -10,10 +12,12 @@ import com.ecobook.dto.ResolveNonReceiptReportRequestDTO;
 import com.ecobook.exception.BadRequestException;
 import com.ecobook.model.enums.NonReceiptReportStatus;
 import com.ecobook.model.enums.StatusMaterial;
+import com.ecobook.service.AdminAuditService;
 import com.ecobook.service.AdminPlatformService;
 import com.ecobook.service.AdminReportService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +41,7 @@ public class AdminController {
 
     private final AdminReportService adminReportService;
     private final AdminPlatformService adminPlatformService;
+    private final AdminAuditService adminAuditService;
 
     @GetMapping("/reports")
     @PreAuthorize("hasRole('ADMIN')")
@@ -63,6 +68,7 @@ public class AdminController {
 
     @PatchMapping("/reports/{id}/resolve")
     @PreAuthorize("hasRole('ADMIN')")
+    @AuditAction(action = "ADMIN_REPORT_RESOLVED", resourceType = "NON_RECEIPT_REPORT", resourceIdExpression = "#id")
     public ResponseEntity<ApiEnvelope<AdminNonReceiptReportDTO>> resolveReport(
             @PathVariable String id,
             @RequestBody(required = false) ResolveNonReceiptReportRequestDTO request,
@@ -123,6 +129,32 @@ public class AdminController {
                 servletRequest,
                 "Usuarios carregados com sucesso",
                 adminPlatformService.listUsers(PageRequest.of(page, size))
+        );
+    }
+
+    @GetMapping("/audit-log")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiEnvelope<PagedResponseDTO<AuditLogDTO>>> listAuditLogs(
+            @RequestParam(required = false, name = "actor_user_id") String actorUserId,
+            @RequestParam(required = false, name = "target_user_id") String targetUserId,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime to,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            HttpServletRequest servletRequest
+    ) {
+        LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
+        validatePagination(page, size, fieldErrors);
+
+        if (!fieldErrors.isEmpty()) {
+            throw new BadRequestException("Os filtros de auditoria são inválidos", fieldErrors);
+        }
+
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Auditoria carregada com sucesso",
+                adminAuditService.listAuditLogs(actorUserId, targetUserId, action, from, to, PageRequest.of(page, size))
         );
     }
 

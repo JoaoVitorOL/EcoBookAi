@@ -141,9 +141,10 @@ public class MaterialService {
                     .sistemaEnsino(validated.data().sistemaEnsino())
                     .estadoConservacao(validated.data().estadoConservacao())
                     .status(StatusMaterial.DISPONIVEL)
-                    .imagemUrl(promotedImage.publicUrl())
-                    .imagemVersoUrl(promotedBackImage != null ? promotedBackImage.publicUrl() : null)
+                    .imagemUrl(secureImageUrl(upload.getId(), false))
+                    .imagemVersoUrl(promotedBackImage != null ? secureImageUrl(upload.getId(), true) : null)
                     .uploadId(validated.uploadId())
+                    .uploadTrackingId(upload.getId())
                     .cidade(usuario.getCidade())
                     .bairro(usuario.getBairro())
                     .dataPublicacao(validated.data().dataPublicacao())
@@ -252,6 +253,10 @@ public class MaterialService {
                     "id", "Informe um identificador de material válido"
             ));
         }
+    }
+
+    private String secureImageUrl(UUID uploadTrackingId, boolean backImage) {
+        return "/api/v1/images/" + uploadTrackingId + (backImage ? "?side=back" : "");
     }
 
     private void updatePreviewTracking(TemporaryUpload upload, GeminiResponseDTO response) {

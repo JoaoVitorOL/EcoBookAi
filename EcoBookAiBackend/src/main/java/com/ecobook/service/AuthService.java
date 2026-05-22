@@ -27,6 +27,7 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final ConsentService consentService;
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -41,6 +42,7 @@ public class AuthService {
 
         usuario.refreshPerfilCompleto();
         Usuario savedUser = usuarioRepository.save(usuario);
+        consentService.recordPlatformConsent(savedUser);
         return buildAuthResponse(savedUser);
     }
 

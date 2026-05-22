@@ -75,8 +75,6 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/v1/health",
                                 "/api/v1/health",
-                                "/uploads/**",
-                                "/api/uploads/**",
                                 "/actuator/health",
                                 "/api/actuator/health"
                         ).permitAll()

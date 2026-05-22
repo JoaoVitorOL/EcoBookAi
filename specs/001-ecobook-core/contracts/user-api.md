@@ -1,9 +1,9 @@
 # User API Contracts
 
 **Reference**: spec.md RF-001, RF-002, RF-003, RF-004  
-**Version**: 2.2  
-**Date**: 2026-05-21  
-**Status**: Aligned with the current backend implementation
+**Version**: 2.3  
+**Date**: 2026-05-22  
+**Status**: Aligned with the current backend implementation, including Phase 8 privacy/LGPD endpoints
 
 ---
 
@@ -387,6 +387,115 @@ Authorization: Bearer <jwt_token>
   "message": "Um token JWT valido e obrigatorio"
 }
 ```
+
+---
+
+## GET /usuarios/me/consent
+
+Return the current consent summary plus the recorded history for the authenticated user.
+
+### Request
+
+```http
+GET /api/v1/usuarios/me/consent
+Authorization: Bearer <jwt_token>
+```
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "platform_consent_given": true,
+  "platform_consent_given_at": "2026-05-22T18:10:00",
+  "ai_consent_enabled": false,
+  "ai_consent_given_at": "2026-05-22T18:25:00",
+  "ai_consent_revoked_at": "2026-05-22T18:40:00",
+  "history": [
+    {
+      "id": "consent-uuid-1",
+      "consent_type": "PLATFORM",
+      "status": "GIVEN",
+      "created_at": "2026-05-22T18:10:00",
+      "revoked_at": null
+    },
+    {
+      "id": "consent-uuid-2",
+      "consent_type": "AI_CLASSIFICATION",
+      "status": "REVOKED",
+      "created_at": "2026-05-22T18:40:00",
+      "revoked_at": "2026-05-22T18:40:00"
+    }
+  ]
+}
+```
+
+---
+
+## POST /usuarios/delete
+
+Delete the current authenticated account with password confirmation.
+
+### Request
+
+```http
+POST /api/v1/usuarios/delete
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+
+{
+  "password": "SenhaSegura123",
+  "reason": "Nao utilizo mais a plataforma"
+}
+```
+
+### Runtime Rules
+
+- Requires an authenticated user with role `USER`
+- Verifies the submitted password against the stored password hash
+- Soft-deletes the current account, anonymizes profile data, revokes the active JWT, removes stored images, and clears the Android local session
+- Cancels active materials and requests associated with the deleted account
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "user_id": "user-uuid-1234567890",
+  "deleted_at": "2026-05-22T19:10:00"
+}
+```
+
+### Error Responses
+
+- `400 VALIDATION_ERROR`: password missing or reason too long
+- `401 UNAUTHORIZED`: invalid password
+- `404 NOT_FOUND`: user not found
+
+---
+
+## POST /usuarios/me/export
+
+Export the authenticated user's personal data bundle.
+
+### Request
+
+```http
+POST /api/v1/usuarios/me/export
+Authorization: Bearer <jwt_token>
+```
+
+### Runtime Rules
+
+- Requires an authenticated user with role `USER`
+- Returns a ZIP file immediately in the HTTP response
+- Current ZIP entries include `profile.json`, `materials.json`, `requests.json`, `notifications.json`, `failed-notifications.json`, `consents.json`, `audit-log.json`, and `summary.json`
+
+### Response
+
+**HTTP 200 OK**
+- `Content-Type: application/octet-stream`
+- `Content-Disposition: attachment; filename="ecobook-dados-YYYY-MM-DD.zip"`
 
 ---
 

@@ -102,9 +102,9 @@ fun NotificationsEntryPointButton(
     onClick: () -> Unit
 ) {
     val contentDescription = if (unreadCount > 0) {
-        "Abrir notificacoes. $unreadCount novas notificacoes."
+        "Abrir notificações. $unreadCount novas notificações."
     } else {
-        "Abrir notificacoes. Nenhuma novidade."
+        "Abrir notificações. Nenhuma novidade."
     }
 
     if (unreadCount > 0) {
@@ -287,7 +287,7 @@ fun MaterialHighlightCard(material: MaterialHighlight) {
             )
         }
         Text(
-            text = "Ano: ${material.schoolYear} | Publicacao: ${material.publicationYear}",
+            text = "Ano: ${material.schoolYear} | Publicação: ${material.publicationYear}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -297,7 +297,7 @@ fun MaterialHighlightCard(material: MaterialHighlight) {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "Conservacao: ${material.conservationState.label}",
+            text = "Conservação: ${material.conservationState.label}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )

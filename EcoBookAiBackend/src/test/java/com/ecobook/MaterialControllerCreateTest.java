@@ -79,7 +79,7 @@ class MaterialControllerCreateTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.data.descricao").value("Livro em bom estado, usado em 2024 e pronto para nova doacao."))
                 .andExpect(jsonPath("$.data.status").value("DISPONIVEL"))
                 .andExpect(jsonPath("$.data.upload_id").value(uploadId))
-                .andExpect(jsonPath("$.data.imagem_url").value(org.hamcrest.Matchers.containsString("/api/uploads/")))
+                .andExpect(jsonPath("$.data.imagem_url").value(org.hamcrest.Matchers.containsString("/api/v1/images/")))
                 .andExpect(jsonPath("$.data.doador.nome").value("Create User"))
                 .andExpect(jsonPath("$.data.cidade").value("FLORIANOPOLIS"))
                 .andExpect(jsonPath("$.data.bairro").value("CENTRO"));

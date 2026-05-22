@@ -5,10 +5,13 @@ import com.ecobook.auth.SessionManager
 import com.ecobook.dto.ApiEnvelopeDTO
 import com.ecobook.dto.ApiErrorResponseDTO
 import com.ecobook.dto.AuthResponseDTO
+import com.ecobook.dto.DeleteAccountRequestDTO
+import com.ecobook.dto.DeleteAccountResponseDTO
 import com.ecobook.dto.LoginRequestDTO
 import com.ecobook.dto.RegisterRequestDTO
 import com.ecobook.dto.UpdateAiConsentRequestDTO
 import com.ecobook.dto.UpdateProfileRequestDTO
+import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.dto.UsuarioDTO
 import com.ecobook.fcm.FcmTokenSyncManager
 import com.google.gson.Gson
@@ -58,6 +61,11 @@ class AuthRepository @Inject constructor(
         return body
     }
 
+    suspend fun fetchConsentStatus(): UserConsentStatusDTO {
+        val response = authApiService.getConsentStatus()
+        return requireData(response)
+    }
+
     suspend fun updateProfile(request: UpdateProfileRequestDTO): UsuarioDTO {
         val response = authApiService.updateProfile(request)
         val body = requireData(response)
@@ -66,11 +74,27 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun updateAiConsent(consentimentoIa: Boolean): UsuarioDTO {
-        val response = authApiService.updateAiConsent(
-            UpdateAiConsentRequestDTO(consentimentoIa = consentimentoIa)
-        )
+        val response = if (consentimentoIa) {
+            authApiService.updateAiConsent(
+                UpdateAiConsentRequestDTO(consentimentoIa = true)
+            )
+        } else {
+            authApiService.revokeAiConsent()
+        }
         val body = requireData(response)
         sessionManager.onUserLoaded(body)
+        return body
+    }
+
+    suspend fun deleteAccount(password: String, reason: String?): DeleteAccountResponseDTO {
+        val response = authApiService.deleteAccount(
+            DeleteAccountRequestDTO(
+                password = password,
+                reason = reason?.trim()?.ifBlank { null }
+            )
+        )
+        val body = requireData(response)
+        sessionManager.clearSession("Conta removida com sucesso.")
         return body
     }
 

@@ -4,6 +4,8 @@ import com.ecobook.dto.UpdateProfileRequestDTO;
 import com.ecobook.dto.UsuarioDTO;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Role;
+import com.ecobook.repository.AuditLogRepository;
+import com.ecobook.repository.ConsentRecordRepository;
 import com.ecobook.repository.UsuarioRepository;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -39,11 +41,14 @@ class UsuarioServiceUnitTest {
     @BeforeEach
     void setUp() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        AuditLogService auditLogService = new AuditLogService(org.mockito.Mockito.mock(AuditLogRepository.class));
+        ConsentService consentService = new ConsentService(org.mockito.Mockito.mock(ConsentRecordRepository.class), auditLogService);
         usuarioService = new UsuarioService(
                 usuarioRepository,
                 new GeoNormalizationService(),
                 validator,
-                eventPublisher
+                eventPublisher,
+                consentService
         );
     }
 

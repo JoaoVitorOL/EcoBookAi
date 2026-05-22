@@ -70,7 +70,14 @@ public class ReportService {
         }
 
         String reason = trimToNull(request != null ? request.getReason() : null);
-        if (reason != null && reason.length() > 500) {
+        if (reason == null) {
+            throw new BadRequestException(
+                    "O motivo informado é inválido",
+                    Map.of("reason", "Informe o motivo do reporte")
+            );
+        }
+
+        if (reason.length() > 500) {
             throw new BadRequestException(
                     "O motivo informado é inválido",
                     Map.of("reason", "O motivo deve ter no máximo 500 caracteres")

@@ -34,6 +34,7 @@ class EcoBookViewModel @Inject constructor(
         observeSession()
         refreshCurrentUserSilently()
         refreshBackendStatus()
+        refreshConsentStatus()
     }
 
     fun refreshBackendStatus() {
@@ -96,9 +97,11 @@ class EcoBookViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { authRepository.updateAiConsent(enabled) }
                 .onSuccess {
+                    val consentStatus = runCatching { authRepository.fetchConsentStatus() }.getOrNull()
                     _uiState.update { state ->
                         state.copy(
                             profile = repository.buildProfileDraft(),
+                            consentStatus = consentStatus ?: state.consentStatus,
                             isUpdatingAiConsent = false,
                             pendingAiConsent = null,
                             profileMessage = if (enabled) {
@@ -123,14 +126,92 @@ class EcoBookViewModel @Inject constructor(
         }
     }
 
+    fun refreshConsentStatus() {
+        if (!sessionManager.hasActiveSession()) {
+            _uiState.update { state ->
+                state.copy(
+                    isLoadingConsentStatus = false,
+                    consentStatus = null
+                )
+            }
+            return
+        }
+
+        _uiState.update { state -> state.copy(isLoadingConsentStatus = true) }
+
+        viewModelScope.launch {
+            runCatching { authRepository.fetchConsentStatus() }
+                .onSuccess { consentStatus ->
+                    _uiState.update { state ->
+                        state.copy(
+                            isLoadingConsentStatus = false,
+                            consentStatus = consentStatus
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { state -> state.copy(isLoadingConsentStatus = false) }
+                }
+        }
+    }
+
+    fun deleteAccount(password: String, reason: String) {
+        if (_uiState.value.isDeletingAccount) {
+            return
+        }
+
+        _uiState.update { state ->
+            state.copy(
+                isDeletingAccount = true,
+                accountDeletionMessage = null,
+                accountDeletionMessageIsError = false
+            )
+        }
+
+        viewModelScope.launch {
+            runCatching { authRepository.deleteAccount(password, reason) }
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(
+                            isDeletingAccount = false,
+                            accountDeletionMessage = "Conta removida com sucesso.",
+                            accountDeletionMessageIsError = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { state ->
+                        state.copy(
+                            isDeletingAccount = false,
+                            accountDeletionMessage = resolveAccountDeletionError(error),
+                            accountDeletionMessageIsError = true
+                        )
+                    }
+                }
+        }
+    }
+
+    fun clearAccountDeletionMessage() {
+        _uiState.update { state ->
+            state.copy(
+                accountDeletionMessage = null,
+                accountDeletionMessageIsError = false
+            )
+        }
+    }
+
     private fun observeSession() {
         viewModelScope.launch {
             sessionManager.sessionState.collectLatest { session ->
                 _uiState.update { state ->
                     state.copy(
                         session = session,
-                        profile = repository.buildProfileDraft()
+                        profile = repository.buildProfileDraft(),
+                        consentStatus = if (session.isAuthenticated) state.consentStatus else null
                     )
+                }
+                if (session.isAuthenticated) {
+                    refreshConsentStatus()
                 }
             }
         }
@@ -143,6 +224,9 @@ class EcoBookViewModel @Inject constructor(
 
         viewModelScope.launch {
             runCatching { authRepository.refreshCurrentUser() }
+                .onSuccess {
+                    refreshConsentStatus()
+                }
                 .onFailure {
                     _uiState.update { state -> state.copy(profile = repository.buildProfileDraft()) }
                 }
@@ -163,6 +247,22 @@ class EcoBookViewModel @Inject constructor(
             is UnknownHostException,
             is IOException -> "Não foi possível falar com o backend para atualizar o consentimento."
             else -> error.message ?: "Falha inesperada ao atualizar o consentimento."
+        }
+    }
+
+    private fun resolveAccountDeletionError(error: Throwable): String {
+        return when (error) {
+            is ApiException -> when (error.statusCode) {
+                400 -> error.fieldErrors["password"] ?: error.message
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                else -> error.message
+            }
+
+            is SocketTimeoutException -> "A exclusão da conta demorou demais. Tente novamente."
+            is ConnectException,
+            is UnknownHostException,
+            is IOException -> "Não foi possível falar com o backend para excluir a conta."
+            else -> error.message ?: "Falha inesperada ao excluir a conta."
         }
     }
 }

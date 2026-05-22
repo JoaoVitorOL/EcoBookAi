@@ -179,6 +179,10 @@ public class ImageStorageService {
     public record PromotedImage(Path absolutePath, String publicUrl) {
     }
 
+    public String getUploadDir() {
+        return uploadDir;
+    }
+
     private byte[] readFileBytes(MultipartFile file) {
         try {
             return file.getBytes();

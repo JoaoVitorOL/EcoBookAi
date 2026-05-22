@@ -88,12 +88,20 @@ class MyRequestsViewModel @Inject constructor(
     }
 
     fun reportNonReceipt(request: com.ecobook.dto.SolicitacaoDTO, reason: String) {
+        val normalizedReason = reason.trim()
+        if (normalizedReason.isBlank()) {
+            _uiState.update {
+                it.copy(toastMessage = "Informe o motivo do reporte.")
+            }
+            return
+        }
+
         _uiState.update { it.copy(activeRequestId = request.id, errorMessage = null) }
         viewModelScope.launch {
             runCatching {
                 requestRepository.reportNonReceipt(
                     materialId = request.materialId,
-                    reason = reason.trim().takeIf { it.isNotBlank() }
+                    reason = normalizedReason
                 )
             }.onSuccess {
                 _uiState.update { state ->

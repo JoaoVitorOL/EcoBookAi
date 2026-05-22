@@ -22,6 +22,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -50,14 +52,17 @@ public class MaterialNonReceiptReport {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "material_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Material material;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "solicitacao_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Solicitacao solicitacao;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "estudante_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Usuario estudante;
 
     @Column(length = 500)

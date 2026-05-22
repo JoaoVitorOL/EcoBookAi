@@ -1,10 +1,14 @@
 package com.ecobook.controller;
 
 import com.ecobook.dto.UpdateAiConsentRequestDTO;
+import com.ecobook.dto.DeleteAccountResponseDTO;
+import com.ecobook.dto.UserConsentStatusDTO;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Role;
 import com.ecobook.repository.UsuarioRepository;
 import com.ecobook.service.GeoNormalizationService;
+import com.ecobook.service.UserDataExportService;
+import com.ecobook.service.UserDeletionService;
 import com.ecobook.service.UsuarioService;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +29,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,6 +62,12 @@ class UsuarioControllerWebMvcTest {
 
     @MockBean
     private ApplicationEventPublisher eventPublisher;
+
+    @MockBean
+    private UserDeletionService userDeletionService;
+
+    @MockBean
+    private UserDataExportService userDataExportService;
 
     @Test
     @DisplayName("PATCH /v1/usuarios/me/consentimento-ia should update AI consent")
@@ -92,6 +103,45 @@ class UsuarioControllerWebMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value("consent-revoke-webmvc@example.com"))
                 .andExpect(jsonPath("$.data.consentimento_ia").value(false));
+    }
+
+    @Test
+    @DisplayName("GET /v1/usuarios/me/consent should return consent status")
+    @WithMockUser(username = "consent-status-webmvc@example.com", roles = "USER")
+    void shouldReturnConsentStatus() throws Exception {
+        when(usuarioRepository.findByEmailIgnoreCase("consent-status-webmvc@example.com"))
+                .thenReturn(Optional.of(sampleUser("consent-status-webmvc@example.com", true)));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/v1/usuarios/me/consent"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.platform_consent_given").value(false))
+                .andExpect(jsonPath("$.data.ai_consent_enabled").value(true));
+    }
+
+    @Test
+    @DisplayName("POST /v1/usuarios/delete should delegate account deletion")
+    @WithMockUser(username = "delete-webmvc@example.com", roles = "USER")
+    void shouldDeleteAccount() throws Exception {
+        when(userDeletionService.deleteCurrentUser(
+                org.mockito.ArgumentMatchers.eq("delete-webmvc@example.com"),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()
+        )).thenReturn(DeleteAccountResponseDTO.builder()
+                .userId(UUID.randomUUID().toString())
+                .deletedAt(LocalDateTime.parse("2026-05-22T13:00:00"))
+                .build());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/v1/usuarios/delete")
+                        .header("Authorization", "Bearer token-value")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "password": "SenhaSegura123",
+                                  "reason": "Teste"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.deleted_at").value("2026-05-22T13:00:00"));
     }
 
     private Usuario sampleUser(String email, boolean consentimentoIa) {

@@ -55,6 +55,7 @@ fun MyRequestsScreen(
     var pendingCancellation by remember { mutableStateOf<SolicitacaoDTO?>(null) }
     var pendingReport by remember { mutableStateOf<SolicitacaoDTO?>(null) }
     var reportReason by remember { mutableStateOf("") }
+    var reportReasonTouched by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
@@ -167,6 +168,7 @@ fun MyRequestsScreen(
                         {
                             pendingReport = request
                             reportReason = ""
+                            reportReasonTouched = false
                         }
                     } else {
                         null
@@ -210,6 +212,7 @@ fun MyRequestsScreen(
             onDismissRequest = {
                 pendingReport = null
                 reportReason = ""
+                reportReasonTouched = false
             },
             title = { Text("Reportar não recebimento") },
             text = {
@@ -217,29 +220,45 @@ fun MyRequestsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        "Se você concluiu a solicitação, mas o material não chegou, conte o que aconteceu. O motivo é opcional."
+                        "Se você concluiu a solicitação, mas o material não chegou, conte o que aconteceu. O motivo é obrigatório."
                     )
                     OutlinedTextField(
                         value = reportReason,
-                        onValueChange = { reportReason = it.take(500) },
+                        onValueChange = {
+                            reportReason = it.take(500)
+                            if (reportReasonTouched) {
+                                reportReasonTouched = reportReason.trim().isBlank()
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 3,
                         maxLines = 5,
-                        label = { Text("Motivo (opcional)") },
-                        supportingText = { Text("${reportReason.length}/500") }
+                        isError = reportReasonTouched && reportReason.trim().isBlank(),
+                        label = { Text("Motivo") },
+                        supportingText = {
+                            if (reportReasonTouched && reportReason.trim().isBlank()) {
+                                Text("Informe o motivo do reporte.")
+                            } else {
+                                Text("${reportReason.length}/500")
+                            }
+                        }
                     )
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        val selectedRequest = pendingReport
-                        val currentReason = reportReason
+                        val selectedRequest = pendingReport ?: return@Button
+                        val currentReason = reportReason.trim()
+                        reportReasonTouched = true
+                        if (currentReason.isBlank()) {
+                            return@Button
+                        }
+
                         pendingReport = null
                         reportReason = ""
-                        if (selectedRequest != null) {
-                            viewModel.reportNonReceipt(selectedRequest, currentReason)
-                        }
+                        reportReasonTouched = false
+                        viewModel.reportNonReceipt(selectedRequest, currentReason)
                     },
                     enabled = uiState.activeRequestId == null
                 ) {
@@ -251,6 +270,7 @@ fun MyRequestsScreen(
                     onClick = {
                         pendingReport = null
                         reportReason = ""
+                        reportReasonTouched = false
                     }
                 ) {
                     Text("Fechar")

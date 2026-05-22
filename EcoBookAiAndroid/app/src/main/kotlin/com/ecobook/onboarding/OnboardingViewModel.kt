@@ -24,6 +24,7 @@ data class OnboardingUiState(
     val cidade: String = "",
     val bairro: String = "",
     val instituicao: String = "",
+    val platformConsentAccepted: Boolean = false,
     val consentimentoIa: Boolean = false,
     val necessidadesAcademicas: Set<NecessidadeAcademica> = emptySet(),
     val isSubmitting: Boolean = false,
@@ -80,6 +81,16 @@ class OnboardingViewModel @Inject constructor(
 
     fun updateInstituicao(value: String) {
         _uiState.update { it.copy(instituicao = value, message = null) }
+    }
+
+    fun togglePlatformConsentAccepted() {
+        _uiState.update {
+            it.copy(
+                platformConsentAccepted = !it.platformConsentAccepted,
+                fieldErrors = it.fieldErrors - "platform_consent",
+                message = null
+            )
+        }
     }
 
     fun toggleConsentimentoIa() {
@@ -181,7 +192,11 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun validateAll(): Map<String, String> {
-        return validateCurrentStep(0) + validateCurrentStep(1)
+        return validateCurrentStep(0) + validateCurrentStep(1) + buildMap {
+            if (!_uiState.value.platformConsentAccepted) {
+                put("platform_consent", "Aceite os termos da plataforma para concluir o perfil.")
+            }
+        }
     }
 
     private fun Throwable.toFieldErrors(): Map<String, String> {

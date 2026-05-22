@@ -22,9 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -42,7 +39,6 @@ import com.ecobook.discovery.formatEstadoConservacao
 import com.ecobook.discovery.formatNivelEnsino
 import com.ecobook.discovery.formatRelativeDate
 import com.ecobook.dto.MaterialDTO
-import com.ecobook.material.MaterialUploadScreen
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
 import com.ecobook.model.NivelEnsino
@@ -62,6 +58,7 @@ private enum class DonateMode {
 @Composable
 fun DonateScreen(
     onOpenDonorRequests: () -> Unit = {},
+    onOpenPublishNew: () -> Unit = {},
     unreadNotifications: Int = 0,
     onOpenNotifications: () -> Unit = {},
     viewModel: DonateViewModel = hiltViewModel()
@@ -69,7 +66,6 @@ fun DonateScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var selectedMode by rememberSaveable { mutableStateOf(DonateMode.HISTORY) }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
@@ -90,35 +86,15 @@ fun DonateScreen(
         }
     }
 
-    when (selectedMode) {
-        DonateMode.HISTORY -> DonateHistoryContent(
-            uiState = uiState,
-            onOpenEditor = viewModel::openEditor,
-            onDelete = viewModel::promptDelete,
-            onSwitchToPublish = { selectedMode = DonateMode.PUBLISH },
-            onOpenDonorRequests = onOpenDonorRequests,
-            unreadNotifications = unreadNotifications,
-            onOpenNotifications = onOpenNotifications
-        )
-
-        DonateMode.PUBLISH -> MaterialUploadScreen(
-            topContent = {
-                DonateModeSwitchCard(
-                    selectedMode = selectedMode,
-                    onShowHistory = { selectedMode = DonateMode.HISTORY },
-                    onShowPublish = { selectedMode = DonateMode.PUBLISH },
-                    onOpenDonorRequests = onOpenDonorRequests
-                )
-            },
-            unreadNotifications = unreadNotifications,
-            onOpenNotifications = onOpenNotifications,
-            onMaterialPublished = { material ->
-                viewModel.onMaterialPublished(material)
-                selectedMode = DonateMode.HISTORY
-            },
-            autoResetAfterPublish = true
-        )
-    }
+    DonateHistoryContent(
+        uiState = uiState,
+        onOpenEditor = viewModel::openEditor,
+        onDelete = viewModel::promptDelete,
+        onSwitchToPublish = onOpenPublishNew,
+        onOpenDonorRequests = onOpenDonorRequests,
+        unreadNotifications = unreadNotifications,
+        onOpenNotifications = onOpenNotifications
+    )
 
     uiState.materialBeingEdited?.let { material ->
         EditMaterialDialog(
@@ -204,20 +180,17 @@ private fun DonateHistoryContent(
             )
         }
 
-        item {
-            GlassCard {
-                Text(
-                    text = if (visibleMaterials.isEmpty()) {
-                        "Você ainda não publicou materiais."
-                    } else {
-                        "Você tem ${visibleMaterials.size} materiais ativos cadastrados nesta conta."
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        if (visibleMaterials.isNotEmpty()) {
+            item {
+                GlassCard {
+                    Text(
+                        text = "Você tem ${visibleMaterials.size} materiais ativos cadastrados nesta conta.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
-
         uiState.errorMessage?.let { message ->
             item {
                 GlassCard {

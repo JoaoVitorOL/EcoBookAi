@@ -2,6 +2,7 @@ package com.ecobook.service;
 
 import com.ecobook.dto.CreateNonReceiptReportRequestDTO;
 import com.ecobook.event.NonReceiptReportCreatedEvent;
+import com.ecobook.exception.BadRequestException;
 import com.ecobook.exception.ConflictException;
 import com.ecobook.exception.UnprocessableEntityException;
 import com.ecobook.model.Material;
@@ -138,7 +139,33 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("Tentativa repetida")
         ))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("Ja existe um reporte aberto para este material");
+                .hasMessage("Já existe um reporte aberto para este material");
+    }
+
+    @Test
+    @DisplayName("reportNonReceipt should require a reason")
+    void shouldRequireReason() {
+        Usuario student = createStudent("student-report-service-reason@example.com");
+        Material material = createMaterial(StatusMaterial.DOADO);
+        Solicitacao request = createCompletedRequest(material, student);
+
+        when(usuarioRepository.findByEmailIgnoreCase(student.getEmail())).thenReturn(Optional.of(student));
+        when(materialRepository.findById(material.getId())).thenReturn(Optional.of(material));
+        when(solicitacaoRepository.findFirstByMaterialIdAndEstudanteIdAndStatusOrderByCriadoEmDesc(
+                material.getId(),
+                student.getId(),
+                StatusSolicitacao.CONCLUIDA
+        )).thenReturn(Optional.of(request));
+        when(materialNonReceiptReportRepository.existsBySolicitacaoIdAndStatus(request.getId(), NonReceiptReportStatus.OPEN))
+                .thenReturn(false);
+
+        assertThatThrownBy(() -> reportService.reportNonReceipt(
+                student.getEmail(),
+                material.getId().toString(),
+                new CreateNonReceiptReportRequestDTO("   ")
+        ))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("O motivo informado é inválido");
     }
 
     @Test
@@ -161,7 +188,7 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("Nao chegou")
         ))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("Apenas o estudante com solicitacao concluida pode reportar nao recebimento");
+                .hasMessage("Apenas o estudante com solicitação concluída pode reportar não recebimento");
     }
 
     private Usuario createStudent(String email) {

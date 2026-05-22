@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -43,6 +44,7 @@ import com.ecobook.auth.AuthScreen
 import com.ecobook.auth.LogoutViewModel
 import com.ecobook.discovery.DiscoveryScreen
 import com.ecobook.fcm.NotificationNavigationManager
+import com.ecobook.material.MaterialUploadScreen
 import com.ecobook.model.SessionDestination
 import com.ecobook.notifications.NotificationsScreen
 import com.ecobook.notifications.NotificationsViewModel
@@ -50,7 +52,9 @@ import com.ecobook.onboarding.OnboardingScreen
 import com.ecobook.request.DonorRequestsScreen
 import com.ecobook.request.MyRequestsScreen
 import com.ecobook.ui.EcoBookViewModel
+import com.ecobook.ui.screens.DeleteAccountScreen
 import com.ecobook.ui.screens.DonateScreen
+import com.ecobook.ui.screens.DonateViewModel
 import com.ecobook.ui.screens.ProfileScreen
 
 @Composable
@@ -180,11 +184,43 @@ fun NavGraph(
                     composable(AppDestination.Donate.route) {
                         DonateScreen(
                             onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) },
+                            onOpenPublishNew = { navController.navigate(AppDestination.DonatePublish.route) },
                             unreadNotifications = notificationsUiState.unreadCount,
                             onOpenNotifications = {
                                 navController.navigateToNotifications()
                             }
                         )
+                    }
+                    composable(AppDestination.DonatePublish.route) {
+                        val donateEntry = remember(navController) {
+                            navController.getBackStackEntry(AppDestination.Donate.route)
+                        }
+                        val donateViewModel: DonateViewModel = hiltViewModel(donateEntry)
+
+                        ChildDestinationScaffold(
+                            title = "Publicar novo",
+                            onNavigateUp = { navController.navigateUp() }
+                        ) { topPadding ->
+                            MaterialUploadScreen(
+                                modifier = Modifier.padding(topPadding),
+                                topContent = {
+                                    Text(
+                                        text = "Escolha as imagens do material, revise os dados sugeridos e finalize a publicação quando tudo estiver certo.",
+                                        color = Color(0xFF4B635A)
+                                    )
+                                },
+                                showSectionHeading = false,
+                                unreadNotifications = notificationsUiState.unreadCount,
+                                onOpenNotifications = {
+                                    navController.navigateToNotifications()
+                                },
+                                onMaterialPublished = { material ->
+                                    donateViewModel.onMaterialPublished(material)
+                                    navController.navigateUp()
+                                },
+                                autoResetAfterPublish = true
+                            )
+                        }
                     }
                     composable(AppDestination.MyRequests.route) {
                         MyRequestsScreen(
@@ -226,8 +262,30 @@ fun NavGraph(
                                 navController.navigateToNotifications()
                             },
                             onToggleAiConsent = viewModel::updateAiConsent,
+                            onOpenDeleteAccount = {
+                                navController.navigate(AppDestination.AccountDelete.route)
+                            },
                             onLogout = logoutViewModel::logout
                         )
+                    }
+                    composable(AppDestination.AccountDelete.route) {
+                        ChildDestinationScaffold(
+                            title = "Excluir conta",
+                            onNavigateUp = {
+                                viewModel.clearAccountDeletionMessage()
+                                navController.navigateUp()
+                            }
+                        ) { topPadding ->
+                            DeleteAccountScreen(
+                                topPadding = topPadding,
+                                uiState = uiState,
+                                onDeleteAccount = viewModel::deleteAccount,
+                                onNavigateUp = {
+                                    viewModel.clearAccountDeletionMessage()
+                                    navController.navigateUp()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -279,12 +337,19 @@ private sealed class AppDestination(
         route = AppRoutes.DONATE,
         label = "Doar",
         icon = Icons.Rounded.VolunteerActivism,
-        selectedRoutes = setOf(AppRoutes.DONATE, AppRoutes.DONOR_REQUESTS)
+        selectedRoutes = setOf(AppRoutes.DONATE, AppRoutes.DONATE_PUBLISH, AppRoutes.DONOR_REQUESTS)
     )
+    data object DonatePublish : AppDestination(AppRoutes.DONATE_PUBLISH, "Publicar", Icons.Rounded.VolunteerActivism)
     data object MyRequests : AppDestination(AppRoutes.MY_REQUESTS, "Solicitações", Icons.Rounded.MenuBook)
     data object Notifications : AppDestination(AppRoutes.NOTIFICATIONS, "Notificações", Icons.Rounded.MenuBook)
     data object DonorRequests : AppDestination(AppRoutes.DONOR_REQUESTS, "Pedidos", Icons.Rounded.VolunteerActivism)
-    data object Profile : AppDestination(AppRoutes.PROFILE, "Perfil", Icons.Rounded.AccountCircle)
+    data object Profile : AppDestination(
+        route = AppRoutes.PROFILE,
+        label = "Perfil",
+        icon = Icons.Rounded.AccountCircle,
+        selectedRoutes = setOf(AppRoutes.PROFILE, AppRoutes.ACCOUNT_DELETE)
+    )
+    data object AccountDelete : AppDestination(AppRoutes.ACCOUNT_DELETE, "Excluir conta", Icons.Rounded.AccountCircle)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

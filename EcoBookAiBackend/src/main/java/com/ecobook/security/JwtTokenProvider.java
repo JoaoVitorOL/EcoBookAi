@@ -71,6 +71,10 @@ public class JwtTokenProvider {
         return jwtExpiration / 1000L;
     }
 
+    public Date getExpiration(String token) {
+        return getAllClaimsFromToken(token).getExpiration();
+    }
+
     /**
      * Get all claims from token
      */

@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 import org.springframework.util.StringUtils;
 
@@ -30,7 +31,8 @@ import java.util.*;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"passwordHash", "materiais", "solicitacoes"})
-public class Usuario {
+@SQLRestriction("deleted_at IS NULL")
+public class Usuario extends AuditedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

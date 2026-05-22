@@ -4,6 +4,9 @@ import com.ecobook.model.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -32,15 +35,17 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"doador", "solicitacoes"})
-public class Material {
+@SQLRestriction("deleted_at IS NULL")
+public class Material extends AuditedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "doador_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Usuario doador;
 
     @Column(nullable = false, length = 255)
@@ -92,6 +97,9 @@ public class Material {
 
     @Column(length = 100)
     private String uploadId;
+
+    @Column(name = "upload_tracking_id")
+    private UUID uploadTrackingId;
 
     @Column(nullable = false, length = 100)
     private String cidade;

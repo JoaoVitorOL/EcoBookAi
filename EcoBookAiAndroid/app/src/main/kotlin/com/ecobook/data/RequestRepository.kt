@@ -53,7 +53,7 @@ class RequestRepository @Inject constructor(
         return requireData(requestApiService.completeDonation(id))
     }
 
-    suspend fun reportNonReceipt(materialId: String, reason: String? = null): MaterialNonReceiptReportDTO {
+    suspend fun reportNonReceipt(materialId: String, reason: String): MaterialNonReceiptReportDTO {
         return requireData(
             requestApiService.reportNonReceipt(
                 materialId,

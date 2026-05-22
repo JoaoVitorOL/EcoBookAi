@@ -38,20 +38,20 @@ public class AdminBootstrapInitializer implements ApplicationRunner {
 
         usuarioRepository.findByEmailIgnoreCase(normalizedEmail).ifPresentOrElse(existingAdmin -> {
             if (existingAdmin.getRole() == Role.ADMIN) {
-                log.info("Admin bootstrap: usuario {} ja possui role ADMIN", normalizedEmail);
+                log.info("Admin bootstrap: usuário {} já possui role ADMIN", normalizedEmail);
                 return;
             }
 
             existingAdmin.setRole(Role.ADMIN);
             usuarioRepository.save(existingAdmin);
-            log.info("Admin bootstrap: usuario {} promovido para ADMIN", normalizedEmail);
+            log.info("Admin bootstrap: usuário {} promovido para ADMIN", normalizedEmail);
         }, () -> createAdminIfConfigured(normalizedEmail));
     }
 
     private void createAdminIfConfigured(String normalizedEmail) {
         String password = trimToNull(properties.getPassword());
         if (password == null) {
-            log.warn("Admin bootstrap ignorado: usuario {} nao existe e nenhum admin.bootstrap.password foi informado", normalizedEmail);
+            log.warn("Admin bootstrap ignorado: usuário {} não existe e nenhum admin.bootstrap.password foi informado", normalizedEmail);
             return;
         }
 

@@ -21,15 +21,15 @@ public class MaterialMapper {
                 .sistemaEnsino(material.getSistemaEnsino().name())
                 .estadoConservacao(material.getEstadoConservacao().name())
                 .status(material.getStatus().name())
-                .imagemUrl(material.getImagemUrl())
-                .imagemVersoUrl(material.getImagemVersoUrl())
+                .imagemUrl(resolvePrimaryImageUrl(material))
+                .imagemVersoUrl(resolveBackImageUrl(material))
                 .uploadId(material.getUploadId())
                 .doador(MaterialDonorDTO.builder()
-                        .id(material.getDoador().getId().toString())
-                        .nome(material.getDoador().getNome())
-                        .whatsapp(material.getDoador().getWhatsapp())
-                        .cidade(material.getDoador().getCidade())
-                        .bairro(material.getDoador().getBairro())
+                        .id(material.getDoador() == null || material.getDoador().getId() == null ? null : material.getDoador().getId().toString())
+                        .nome(material.getDoador() == null ? "Conta removida" : material.getDoador().getNome())
+                        .whatsapp(material.getDoador() == null ? null : material.getDoador().getWhatsapp())
+                        .cidade(material.getDoador() == null ? null : material.getDoador().getCidade())
+                        .bairro(material.getDoador() == null ? null : material.getDoador().getBairro())
                         .build())
                 .cidade(material.getCidade())
                 .bairro(material.getBairro())
@@ -39,5 +39,19 @@ public class MaterialMapper {
                 .criadoEm(material.getCriadoEm())
                 .atualizadoEm(material.getAtualizadoEm())
                 .build();
+    }
+
+    private String resolvePrimaryImageUrl(Material material) {
+        if (material.getUploadTrackingId() != null) {
+            return "/api/v1/images/" + material.getUploadTrackingId();
+        }
+        return material.getImagemUrl();
+    }
+
+    private String resolveBackImageUrl(Material material) {
+        if (material.getUploadTrackingId() != null) {
+            return "/api/v1/images/" + material.getUploadTrackingId() + "?side=back";
+        }
+        return material.getImagemVersoUrl();
     }
 }

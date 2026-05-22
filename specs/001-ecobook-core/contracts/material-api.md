@@ -1,9 +1,9 @@
 # Material API Contracts
 
 **Reference**: spec.md RF-005 through RF-025, RF-044  
-**Version**: 1.5  
-**Date**: 2026-05-21  
-**Status**: Current runtime contract for preview, discovery and donor-owned CRUD flow
+**Version**: 1.6  
+**Date**: 2026-05-22  
+**Status**: Current runtime contract for preview, discovery, secure image access and donor-owned CRUD flow
 
 ---
 
@@ -11,6 +11,7 @@ Runtime notes:
 - Successful responses are wrapped in `{ status, message, timestamp, path, data }`.
 - The JSON examples below describe the inner `data` payload.
 - Material images are staged in `POST /api/v1/materiais/preview` and then promoted during `POST /api/v1/materiais`.
+- Promoted images are no longer served from public `/uploads/...` URLs; the runtime now returns authenticated `/api/v1/images/{upload_tracking_id}` URLs in `imagem_url` and `imagem_verso_url`.
 - Donor location (`cidade`, `bairro`) is inherited from the authenticated profile instead of being resent by the Android app.
 
 ## POST /materiais
@@ -68,8 +69,8 @@ Authorization: Bearer <jwt_token>
   "sistema_ensino": "ANGLO",
   "estado_conservacao": "BOM",
   "status": "DISPONIVEL",
-  "imagem_url": "/api/uploads/user/material.jpg",
-  "imagem_verso_url": "/api/uploads/user/material-back.jpg",
+  "imagem_url": "/api/v1/images/upload-tracking-uuid",
+  "imagem_verso_url": "/api/v1/images/upload-tracking-uuid?side=back",
   "upload_id": "temp-upload-uuid-abc123def",
   "doador": {
     "id": "user-uuid-doador",
@@ -140,8 +141,8 @@ Authorization: Bearer <jwt_token>
       "sistema_ensino": "ANGLO",
       "estado_conservacao": "BOM",
       "status": "DISPONIVEL",
-      "imagem_url": "/api/uploads/user/material.jpg",
-      "imagem_verso_url": "/api/uploads/user/material-back.jpg",
+      "imagem_url": "/api/v1/images/upload-tracking-uuid",
+      "imagem_verso_url": "/api/v1/images/upload-tracking-uuid?side=back",
       "doador": {
         "id": "user-uuid-doador",
         "nome": "Joao Silva"
@@ -167,6 +168,40 @@ Authorization: Bearer <jwt_token>
 - Sorting prioritizes same neighborhood, then same city, then newer `data_publicacao`, then stable `id`
 - If the image URL fails client-side, the Android app must render a neutral placeholder
 - `imagem_verso_url` may be null when the donor published only the front cover
+
+---
+
+## GET /images/{image_id}
+
+Download a promoted image through the authenticated image gateway.
+
+### Request
+
+```http
+GET /api/v1/images/upload-tracking-uuid
+Authorization: Bearer <jwt_token>
+```
+
+Optional back-cover access:
+
+```http
+GET /api/v1/images/upload-tracking-uuid?side=back
+Authorization: Bearer <jwt_token>
+```
+
+### Runtime Rules
+
+- Requires authentication
+- Donors and admins may access the stored image set
+- Front-cover discovery remains available to authenticated users while the material is still `DISPONIVEL`
+- Back-cover access is restricted to donor, approved/completed requester, or admin
+- Missing files return `404 NOT_FOUND`
+
+### Response
+
+**HTTP 200 OK**
+- Binary image body
+- `Content-Type: image/jpeg` or `image/png`
 
 ### Error Responses
 

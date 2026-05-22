@@ -12,6 +12,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ecobook.ui.EcoBookUiState
 import com.ecobook.ui.components.GlassCard
@@ -24,9 +25,11 @@ fun ProfileScreen(
     unreadNotifications: Int = 0,
     onOpenNotifications: () -> Unit = {},
     onToggleAiConsent: (Boolean) -> Unit,
+    onOpenDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
     val consentimentoIa = uiState.pendingAiConsent ?: uiState.profile.consentimentoIa
+    val consentStatus = uiState.consentStatus
 
     LazyColumn(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
@@ -35,7 +38,7 @@ fun ProfileScreen(
         item {
             SectionHeading(
                 title = "Conta e perfil",
-                subtitle = "Resumo do usuário autenticado e dos dados enviados no onboarding.",
+                subtitle = "Resumo do usuário autenticado, consentimentos e controles de privacidade.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,
@@ -50,14 +53,14 @@ fun ProfileScreen(
                 StatusBadge(
                     text = if (uiState.session.profileComplete) "Perfil completo" else "Onboarding pendente",
                     containerColor = if (uiState.session.profileComplete) {
-                        androidx.compose.ui.graphics.Color(0xFFE0EFE4)
+                        Color(0xFFE0EFE4)
                     } else {
-                        androidx.compose.ui.graphics.Color(0xFFFCE7D8)
+                        Color(0xFFFCE7D8)
                     },
                     contentColor = if (uiState.session.profileComplete) {
-                        androidx.compose.ui.graphics.Color(0xFF205447)
+                        Color(0xFF205447)
                     } else {
-                        androidx.compose.ui.graphics.Color(0xFF8A4C1F)
+                        Color(0xFF8A4C1F)
                     }
                 )
                 Text(
@@ -90,12 +93,24 @@ fun ProfileScreen(
         item {
             GlassCard {
                 SectionHeading(
-                    title = "Sessão e segurança",
-                    subtitle = "Use esta opção para encerrar a sessão atual e entrar com outra conta neste dispositivo."
+                    title = "Consentimentos",
+                    subtitle = "Acompanhe o aceite da plataforma e controle o uso opcional de IA."
                 )
                 Text(
-                    text = "Controle aqui se suas imagens podem passar pela classificação assistida com Gemini durante o fluxo de doação.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = if (consentStatus?.platformConsentGiven == true) {
+                        "Plataforma: concedido${consentStatus.platformConsentGivenAt?.let { " em ${formatDate(it)}" } ?: ""}."
+                    } else {
+                        "Plataforma: aguardando sincronização do aceite."
+                    },
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = if (consentimentoIa) {
+                        "IA para classificação: ativa${consentStatus?.aiConsentGivenAt?.let { " desde ${formatDate(it)}" } ?: ""}."
+                    } else {
+                        "IA para classificação: desativada${consentStatus?.aiConsentRevokedAt?.let { " desde ${formatDate(it)}" } ?: ""}."
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(
@@ -103,13 +118,20 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (consentimentoIa) "Consentimento para IA ativo" else "Consentimento para IA desativado",
+                        text = if (consentimentoIa) "Consentimento de IA ativo" else "Consentimento de IA desativado",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Switch(
                         checked = consentimentoIa,
                         enabled = !uiState.isUpdatingAiConsent,
                         onCheckedChange = onToggleAiConsent
+                    )
+                }
+                if (uiState.isLoadingConsentStatus) {
+                    Text(
+                        text = "Atualizando status de consentimento...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 if (uiState.isUpdatingAiConsent) {
@@ -126,9 +148,29 @@ fun ProfileScreen(
                         color = if (uiState.profileMessageIsError) {
                             MaterialTheme.colorScheme.error
                         } else {
-                            androidx.compose.ui.graphics.Color(0xFF205447)
+                            Color(0xFF205447)
                         }
                     )
+                }
+            }
+        }
+
+        item {
+            GlassCard {
+                SectionHeading(
+                    title = "Sessão e segurança",
+                    subtitle = "Exporte seus dados, revise a conta atual ou encerre a sessão neste dispositivo."
+                )
+                Text(
+                    text = "A exclusão da conta cancela materiais publicados, remove imagens armazenadas e encerra sua sessão.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedButton(
+                    onClick = onOpenDeleteAccount,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Excluir conta")
                 }
                 OutlinedButton(
                     onClick = onLogout,
@@ -155,4 +197,12 @@ private fun ReadOnlyProfileField(
         singleLine = true,
         readOnly = true
     )
+}
+
+private fun formatDate(rawValue: String): String {
+    val normalized = rawValue.trim()
+    if (normalized.length < 10) {
+        return normalized
+    }
+    return normalized.substring(0, 10)
 }

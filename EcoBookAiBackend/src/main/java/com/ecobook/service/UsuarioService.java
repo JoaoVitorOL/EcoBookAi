@@ -2,6 +2,7 @@ package com.ecobook.service;
 
 import com.ecobook.dto.UpdateProfileRequestDTO;
 import com.ecobook.dto.UsuarioDTO;
+import com.ecobook.dto.UserConsentStatusDTO;
 import com.ecobook.exception.BadRequestException;
 import com.ecobook.event.ProfileCompletedEvent;
 import com.ecobook.exception.ResourceNotFoundException;
@@ -34,6 +35,7 @@ public class UsuarioService {
     private final GeoNormalizationService geoNormalizationService;
     private final Validator validator;
     private final ApplicationEventPublisher eventPublisher;
+    private final ConsentService consentService;
 
     /**
      * Update user profile with validation
@@ -54,6 +56,7 @@ public class UsuarioService {
         validateWhatsApp(request.getWhatsapp());
 
         boolean profileWasComplete = usuario.isPerfilCompleto();
+        boolean aiConsentWasEnabled = Boolean.TRUE.equals(usuario.getConsentimentoIa());
         GeoNormalizationService.NormalizedGeo normalizedGeo =
                 geoNormalizationService.normalize(request.getCidade(), request.getBairro());
 
@@ -68,6 +71,9 @@ public class UsuarioService {
         usuario.refreshPerfilCompleto();
 
         Usuario savedUser = usuarioRepository.save(usuario);
+        if (aiConsentWasEnabled != Boolean.TRUE.equals(savedUser.getConsentimentoIa())) {
+            consentService.recordAiConsentChange(savedUser, Boolean.TRUE.equals(savedUser.getConsentimentoIa()));
+        }
         if (!profileWasComplete && savedUser.isPerfilCompleto()) {
             eventPublisher.publishEvent(new ProfileCompletedEvent(savedUser.getId(), savedUser.getEmail()));
         }
@@ -100,7 +106,15 @@ public class UsuarioService {
 
         usuario.setConsentimentoIa(consentimentoIa);
         Usuario savedUser = usuarioRepository.save(usuario);
+        consentService.recordAiConsentChange(savedUser, consentimentoIa);
         return toDto(savedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public UserConsentStatusDTO getConsentStatus(String email) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("UsuÃ¡rio nÃ£o encontrado"));
+        return consentService.getConsentStatus(usuario);
     }
 
     public UsuarioDTO toDto(Usuario usuario) {

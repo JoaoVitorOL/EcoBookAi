@@ -56,8 +56,8 @@ class NotificationRepositoryTest {
         val notifications = repository.listNotifications()
 
         assertEquals(1, notifications.size)
-        assertEquals("Solicitacao aprovada", notifications.single().title)
-        assertEquals("Sua solicitacao foi aprovada.", notifications.single().body)
+        assertEquals("Solicitação aprovada", notifications.single().title)
+        assertEquals("Sua solicitação foi aprovada.", notifications.single().body)
         assertEquals(AppRoutes.MY_REQUESTS, notifications.single().route)
         assertTrue(notifications.single().unread)
         assertTrue(notifications.single().receivedAtEpochMillis > 0)

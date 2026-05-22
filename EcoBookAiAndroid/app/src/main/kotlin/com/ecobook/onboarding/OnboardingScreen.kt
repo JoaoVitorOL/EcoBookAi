@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -121,6 +122,7 @@ fun OnboardingScreen(
                 else -> NeedsStep(
                     uiState = uiState,
                     onToggleNeed = viewModel::toggleNecessidade,
+                    onTogglePlatformConsent = viewModel::togglePlatformConsentAccepted,
                     onToggleConsent = viewModel::toggleConsentimentoIa
                 )
             }
@@ -258,6 +260,7 @@ private fun LocationStep(
 private fun NeedsStep(
     uiState: OnboardingUiState,
     onToggleNeed: (NecessidadeAcademica) -> Unit,
+    onTogglePlatformConsent: () -> Unit,
     onToggleConsent: () -> Unit
 ) {
     GlassCard {
@@ -278,6 +281,39 @@ private fun NeedsStep(
                     label = { Text(necessidade.label) }
                 )
             }
+        }
+    }
+
+    GlassCard {
+        Text(
+            text = "Consentimento da plataforma",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Text(
+            text = "Para concluir o perfil, confirme que você concorda com os termos de uso e a política de privacidade do EcoBook.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Aceito os termos e a política de privacidade",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            Checkbox(
+                checked = uiState.platformConsentAccepted,
+                onCheckedChange = { onTogglePlatformConsent() }
+            )
+        }
+        uiState.fieldErrors["platform_consent"]?.let { message ->
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 

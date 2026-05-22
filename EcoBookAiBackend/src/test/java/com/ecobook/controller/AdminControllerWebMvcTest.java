@@ -19,6 +19,7 @@ import com.ecobook.repository.SolicitacaoRepository;
 import com.ecobook.repository.TemporaryUploadRepository;
 import com.ecobook.repository.UsuarioRepository;
 import com.ecobook.repository.projection.AdminUserMetricsProjection;
+import com.ecobook.service.AdminAuditService;
 import com.ecobook.service.AdminPlatformService;
 import com.ecobook.service.AdminReportService;
 import com.ecobook.service.ImageStorageService;
@@ -90,6 +91,9 @@ class AdminControllerWebMvcTest {
 
     @MockBean
     private TemporaryUploadRepository temporaryUploadRepository;
+
+    @MockBean
+    private AdminAuditService adminAuditService;
 
     @Test
     @DisplayName("GET /v1/admin/reports should return reports for admin users")

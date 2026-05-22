@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, and Phase 7 admin/moderation runtime are implemented; Phase 8 has started through the live AI consent management endpoints while Firebase real-device validation remains the main external closeout item  
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, Phase 7 admin/moderation runtime, and the Phase 8 LGPD/security runtime are implemented; Phase 9 has started through the already-live response compression baseline while Firebase real-device validation remains the main external closeout item  
 **Generated**: 2026-04-15
 
 ---
@@ -1056,10 +1056,10 @@ Runtime note on 2026-05-14:
 
 #### Backend: Soft Delete & Anonymization
 
-- [ ] **T186** [P] Create `src/main/java/com/ecobook/entity/AuditedEntity.java` base class:
+- [x] **T186** [P] Create `src/main/java/com/ecobook/entity/AuditedEntity.java` base class:
   - Fields: deleted_at (nullable), deleted_by (nullable), anonymized (boolean)
   - All entities extend AuditedEntity
-- [ ] **T187** [P] Implement soft delete in `src/main/java/com/ecobook/service/UserDeletionService.java`:
+- [x] **T187** [P] Implement soft delete in `src/main/java/com/ecobook/service/UserDeletionService.java`:
   - `deleteUser(userId)` method:
     1. Set deleted_at = now, anonymized = true
     2. Update nome = "Usuário Removido"
@@ -1071,28 +1071,27 @@ Runtime note on 2026-05-14:
     8. Cancel all open requests (PENDENTE/APROVADA → CANCELADA)
     9. Anonymize all CONCLUIDA requests (remove donor/student identifiable info, keep transaction history)
     10. Log deletion event for audit trail
-- [ ] **T188** [P] Implement query filtering to exclude deleted records:
-  - Add `@Where(clause = "deleted_at IS NULL")` to all entities
-  - Ensures deleted records never appear in queries
-- [ ] **T189** [P] Create account deletion endpoint:
+- [x] **T188** [P] Implement query filtering to exclude deleted records:
+  - Runtime note: the live code filters core runtime entities (`usuario`, `material`, `solicitacao`) and keeps moderation/report rows visible for admin review even when related actors are soft-deleted
+- [x] **T189** [P] Create account deletion endpoint:
   - **POST /api/v1/usuarios/delete**: Delete current user account
   - Request: password confirmation
-  - Response: HTTP 204 No Content
-  - Error: 403 (invalid password), 404 (user not found)
-- [ ] **T190** [P] Implement `UserController.deleteAccount()`:
+  - Response: envelope with deletion timestamp
+  - Error: 401 (invalid password), 404 (user not found)
+- [x] **T190** [P] Implement `UserController.deleteAccount()`:
   - Call UserDeletionService.deleteUser()
   - Revoke JWT token (add to blacklist)
   - Clear local Android session
-- [ ] **T191** [P] Create deletion audit log:
+- [x] **T191** [P] Create deletion audit log:
   - Store all deletions in AuditLog table (for compliance)
   - Fields: deleted_user_id, deleted_at, deleted_by (admin or user self), reason
 
 #### Backend: Consent Management
 
-- [ ] **T192** [P] Create `src/main/java/com/ecobook/entity/ConsentRecord.java` entity:
+- [x] **T192** [P] Create `src/main/java/com/ecobook/entity/ConsentRecord.java` entity:
   - Fields: id (UUID), user_id, consent_type (PLATFORM, AI_CLASSIFICATION), status (GIVEN, REVOKED), created_at, revoked_at
   - Two-stage consent: PLATFORM (sign-up) + AI_CLASSIFICATION (before first material upload)
-- [ ] **T193** [P] Create consent tracking in registration:
+- [x] **T193** [P] Create consent tracking in registration:
   - First consent: PLATFORM granted automatically on signup
   - Second consent: AI_CLASSIFICATION may be requested during onboarding or later from profile/settings before POST /materiais/preview
   - Store ConsentRecord for each grant/revocation
@@ -1107,40 +1106,39 @@ Runtime note on 2026-05-14:
 - [x] **T196** [P] Create consent revocation endpoint:
   - **DELETE /api/v1/usuarios/me/consent/ai-classification**: Revoke AI consent
   - Update consentimento_ia = false
-  - Store ConsentRecord with revoked_at (backlog persistence still pending under T192–T193)
+  - Store ConsentRecord with revoked_at
 
 #### Backend: Image Access Control
 
-- [ ] **T197** [P] Create `src/main/java/com/ecobook/controller/ImageController.java`:
+- [x] **T197** [P] Create `src/main/java/com/ecobook/controller/ImageController.java`:
   - **GET /api/v1/images/{image_id}**: Download image (authenticated only)
   - Path param: image_id (UUID)
   - Response: Binary image data with Content-Type (image/jpeg or image/png)
   - Error: 401 (not authenticated), 403 (not authorized), 404 (image not found)
-- [ ] **T198** [P] Implement image authorization in `ImageController.getImage()`:
+- [x] **T198** [P] Implement image authorization in `ImageController.getImage()`:
   - Check if user is:
     - Image owner (donor), OR
     - Student with APROVADA+ Solicitacao for material, OR
     - Admin
   - Reject if none of above (HTTP 403)
+  - Runtime note: the live implementation keeps front-cover discovery for authenticated users and restricts back-cover/relationship-sensitive access to donor, approved requester or admin
   - Serve image from filesystem
-- [ ] **T199** [P] Update Material entity:
-  - Remove `imagem_url` field (was direct URL, security risk)
-  - Add `image_id` field (references ImageController for authenticated access)
-  - Example: `/api/v1/images/{image_id}` instead of `/uploads/{user}/{uuid}.ext`
+- [x] **T199** [P] Update Material entity:
+  - Runtime note: the live code preserves `imagem_url`/`imagem_verso_url` in the API shape for backward compatibility, but both now resolve to authenticated `/api/v1/images/{upload_tracking_id}` URLs instead of public `/uploads/...`
 
 #### Backend: Audit Logging
 
-- [ ] **T200** [P] Create `src/main/java/com/ecobook/entity/AuditLog.java` entity:
+- [x] **T200** [P] Create `src/main/java/com/ecobook/entity/AuditLog.java` entity:
   - Fields: id (UUID), user_id, action (CREATE_MATERIAL, APPROVE_REQUEST, etc.), resource_id, resource_type, old_values (JSONB), new_values (JSONB), ip_address, timestamp
-- [ ] **T201** [P] Create AOP aspect for audit logging:
+- [x] **T201** [P] Create AOP aspect for audit logging:
   - `@AuditLog` annotation on sensitive methods
   - Capture method parameters, return value, user, timestamp, IP
   - Store in AuditLog table
-- [ ] **T202** [P] Create audit trail query endpoint (admin only):
+- [x] **T202** [P] Create audit trail query endpoint (admin only):
   - **GET /api/v1/admin/audit-log**: Query audit logs
   - Filters: user_id, action, resource_type, date_range
   - Response: Paginated list of AuditLogDto
-- [ ] **T203** [P] Create data export endpoint (LGPD right-to-data):
+- [x] **T203** [P] Create data export endpoint (LGPD right-to-data):
   - **POST /api/v1/usuarios/me/export**: Request personal data export
   - Backend generates ZIP with:
     - User profile JSON
@@ -1148,20 +1146,19 @@ Runtime note on 2026-05-14:
     - All requests (anonymized as needed)
     - All consent records
     - All audit events involving user
-  - Email user download link
-  - Data available for 30 days
+  - Runtime note: the current backend streams the ZIP response synchronously instead of emailing a deferred link
 
 #### Android: Consent UI
 
-- [ ] **T204** [P] Create consent dialogs in onboarding:
+- [x] **T204** [P] Create consent dialogs in onboarding:
   - Platform consent: "I agree to EcoBook IA's terms and conditions and privacy policy" (checkbox)
   - AI consent prompt: "I consent to use of AI for analyzing material images" (optional at onboarding; can be enabled later from profile)
   - Platform consent remains required before proceeding; AI consent does not block profile completion
-- [ ] **T205** [P] Create consent management screen:
+- [x] **T205** [P] Create consent management screen:
   - Show current consent status (PLATFORM: given, AI: given/not-given)
   - Option to grant, re-enable, or revoke AI consent anytime
   - Link to privacy policy + terms
-- [ ] **T206** [P] Create account deletion screen:
+- [x] **T206** [P] Create account deletion screen:
   - Button: "Delete Account Permanently"
   - Confirmation dialog: "Are you sure? All your data will be anonymized."
   - Show what will happen: materials cancelled, requests anonymized, images deleted
@@ -1182,7 +1179,7 @@ Runtime note on 2026-05-14:
   - HikariCP max_connections = 20, min_idle = 5
   - Test with concurrent load (10+ simultaneous users)
   - Monitor connection utilization
-- [ ] **T209** [P] Implement response compression:
+- [x] **T209** [P] Implement response compression:
   - Add `compression: true` to Spring Boot actuator
   - Enable gzip compression for JSON responses > 1KB
   - Reduces network latency

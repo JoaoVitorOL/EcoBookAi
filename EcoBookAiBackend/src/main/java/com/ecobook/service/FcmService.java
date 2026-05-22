@@ -104,7 +104,7 @@ public class FcmService {
 
         FirebaseMessaging messaging = getFirebaseMessagingClient();
         if (messaging == null) {
-            String errorMessage = "Firebase Admin SDK indisponivel; verifique FIREBASE_SERVICE_ACCOUNT_PATH no backend";
+            String errorMessage = "Firebase Admin SDK indisponível; verifique FIREBASE_SERVICE_ACCOUNT_PATH no backend";
             log.warn("FCM unavailable for user {}: {}", userId, errorMessage);
             queueFailedNotification(usuario.getId(), title, body, data, errorMessage);
             return false;
@@ -129,19 +129,19 @@ public class FcmService {
     private void retryFailedNotification(FailedNotification failedNotification, LocalDateTime now) {
         Optional<Usuario> usuarioOptional = usuarioRepository.findById(failedNotification.getUserId());
         if (usuarioOptional.isEmpty()) {
-            markAsPermanentlyFailed(failedNotification, now, "Usuario nao encontrado para retry");
+            markAsPermanentlyFailed(failedNotification, now, "Usuário não encontrado para retry");
             return;
         }
 
         Usuario usuario = usuarioOptional.get();
         if (!StringUtils.hasText(usuario.getFcmToken())) {
-            markAsPermanentlyFailed(failedNotification, now, "Usuario sem token FCM registrado");
+            markAsPermanentlyFailed(failedNotification, now, "Usuário sem token FCM registrado");
             return;
         }
 
         FirebaseMessaging messaging = getFirebaseMessagingClient();
         if (messaging == null) {
-            scheduleRetry(failedNotification, now, "Firebase Admin SDK indisponivel no momento");
+            scheduleRetry(failedNotification, now, "Firebase Admin SDK indisponível no momento");
             return;
         }
 

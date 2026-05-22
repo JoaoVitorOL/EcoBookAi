@@ -27,6 +27,7 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, UUID> 
     List<Solicitacao> findByMaterialIdAndStatus(UUID materialId, StatusSolicitacao status);
     List<Solicitacao> findByStatusAndExpiresAtBefore(StatusSolicitacao status, LocalDateTime expiresAt);
     List<Solicitacao> findByEstudanteIdOrderByCriadoEmDesc(UUID estudanteId);
+    List<Solicitacao> findByMaterialDoadorIdOrderByCriadoEmDesc(UUID doadorId);
     List<Solicitacao> findByMaterialDoadorIdAndStatusOrderByCriadoEmDesc(UUID doadorId, StatusSolicitacao status);
     boolean existsByMaterialIdAndEstudanteIdAndStatusIn(UUID materialId,
                                                         UUID estudanteId,

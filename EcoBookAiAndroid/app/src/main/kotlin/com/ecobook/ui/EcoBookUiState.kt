@@ -1,5 +1,6 @@
 package com.ecobook.ui
 
+import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.model.BackendStatus
 import com.ecobook.model.DonationPreview
 import com.ecobook.model.ProjectInsight
@@ -11,6 +12,11 @@ data class EcoBookUiState(
     val backendStatus: BackendStatus = BackendStatus.checking(),
     val profile: UserProfileDraft = UserProfileDraft(),
     val isUpdatingAiConsent: Boolean = false,
+    val isLoadingConsentStatus: Boolean = false,
+    val consentStatus: UserConsentStatusDTO? = null,
+    val isDeletingAccount: Boolean = false,
+    val accountDeletionMessage: String? = null,
+    val accountDeletionMessageIsError: Boolean = false,
     val pendingAiConsent: Boolean? = null,
     val profileMessage: String? = null,
     val profileMessageIsError: Boolean = false,

@@ -48,8 +48,10 @@ import com.ecobook.ui.components.SectionHeading
 
 @Composable
 fun MaterialUploadScreen(
+    modifier: Modifier = Modifier,
     viewModel: MaterialUploadViewModel = hiltViewModel(),
     topContent: (@Composable () -> Unit)? = null,
+    showSectionHeading: Boolean = true,
     unreadNotifications: Int = 0,
     onOpenNotifications: () -> Unit = {},
     onMaterialPublished: (MaterialDTO) -> Unit = {},
@@ -96,25 +98,26 @@ fun MaterialUploadScreen(
     }
 
     LazyColumn(
-        modifier = Modifier,
+        modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         topContent?.let { content ->
             item { content() }
         }
-
-        item {
-            SectionHeading(
-                title = "Fluxo de doação com IA",
-                subtitle = "Agora o app já envia a imagem real para /materiais/preview, deixa você revisar os campos sugeridos e publica o material usando o upload temporário do backend.",
-                trailingContent = {
-                    com.ecobook.ui.components.NotificationsEntryPointButton(
-                        unreadCount = unreadNotifications,
-                        onClick = onOpenNotifications
-                    )
-                }
-            )
+        if (showSectionHeading) {
+            item {
+                SectionHeading(
+                    title = "Fluxo de doação com IA",
+                    subtitle = "Agora o app já envia a imagem real para /materiais/preview, deixa você revisar os campos sugeridos e publica o material usando o upload temporário do backend.",
+                    trailingContent = {
+                        com.ecobook.ui.components.NotificationsEntryPointButton(
+                            unreadCount = unreadNotifications,
+                            onClick = onOpenNotifications
+                        )
+                    }
+                )
+            }
         }
 
         item {

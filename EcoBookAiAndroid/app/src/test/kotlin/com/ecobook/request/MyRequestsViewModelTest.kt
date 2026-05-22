@@ -91,6 +91,25 @@ class MyRequestsViewModelTest {
     }
 
     @Test
+    fun reportNonReceiptShouldRequireReasonBeforeCallingRepository() = runTest {
+        val repository = mockk<RequestRepository>()
+        val request = sampleRequest("req-report-empty", "CONCLUIDA")
+
+        coEvery { repository.listMyRequests(null) } returns listOf(request)
+
+        val viewModel = MyRequestsViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.reportNonReceipt(request, "   ")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("Informe o motivo do reporte.", state.toastMessage)
+        assertNull(state.activeRequestId)
+        coVerify(exactly = 0) { repository.reportNonReceipt(any(), any()) }
+    }
+
+    @Test
     fun reportNonReceiptShouldKeepLocalReportedStateWhenBackendReturnsConflict() = runTest {
         val repository = mockk<RequestRepository>()
         val request = sampleRequest("req-duplicate", "CONCLUIDA")
