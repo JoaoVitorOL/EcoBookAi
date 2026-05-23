@@ -182,7 +182,7 @@ fun ReviewScreen(
             EnumDropdown(
                 label = "Disciplina",
                 selectedValue = uiState.draft.disciplina,
-                options = Disciplina.entries.toList(),
+                options = uiState.disciplinas,
                 optionLabel = { it.label },
                 onSelected = { onDisciplinaChange(it) },
                 modifier = Modifier.fillMaxWidth(),
@@ -193,7 +193,7 @@ fun ReviewScreen(
             EnumDropdown(
                 label = "Nível de ensino",
                 selectedValue = uiState.draft.nivelEnsino,
-                options = NivelEnsino.entries.toList(),
+                options = uiState.niveisEnsino,
                 optionLabel = { it.label },
                 onSelected = { onNivelEnsinoChange(it) },
                 modifier = Modifier.fillMaxWidth(),
@@ -219,7 +219,7 @@ fun ReviewScreen(
             EnumDropdown(
                 label = "Sistema de ensino",
                 selectedValue = uiState.draft.sistemaEnsino,
-                options = SistemaEnsino.entries.toList(),
+                options = uiState.sistemasEnsino,
                 optionLabel = { it.label },
                 onSelected = { onSistemaEnsinoChange(it) },
                 modifier = Modifier.fillMaxWidth(),
@@ -230,7 +230,7 @@ fun ReviewScreen(
             EnumDropdown(
                 label = "Estado de conservação",
                 selectedValue = uiState.draft.estadoConservacao,
-                options = EstadoConservacao.entries.toList(),
+                options = uiState.estadosConservacao,
                 optionLabel = { it.label },
                 onSelected = { onEstadoConservacaoChange(it) },
                 modifier = Modifier.fillMaxWidth(),

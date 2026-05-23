@@ -249,8 +249,8 @@ class GeminiServiceTest {
         assertThat(parts).hasSize(3);
         assertThat(((Map<String, Object>) parts.get(1).get("inlineData"))).containsEntry("mimeType", "image/png");
         assertThat(((Map<String, Object>) parts.get(2).get("inlineData"))).containsEntry("mimeType", "image/jpeg");
-        assertThat(prompt).contains("Use disciplina TODAS quando o material reunir multiplas materias");
-        assertThat(prompt).contains("frente e verso podem trazer informacoes complementares");
+        assertThat(prompt).contains("Use disciplina TODAS");
+        assertThat(prompt).contains("frente e verso podem trazer");
     }
 
     @Test

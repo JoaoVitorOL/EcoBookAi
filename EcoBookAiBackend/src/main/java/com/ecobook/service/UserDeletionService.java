@@ -1,5 +1,6 @@
 package com.ecobook.service;
 
+import com.ecobook.config.CacheNames;
 import com.ecobook.dto.DeleteAccountRequestDTO;
 import com.ecobook.dto.DeleteAccountResponseDTO;
 import com.ecobook.event.NotificationRequestedEvent;
@@ -15,6 +16,8 @@ import com.ecobook.repository.SolicitacaoRepository;
 import com.ecobook.repository.TemporaryUploadRepository;
 import com.ecobook.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,6 +52,11 @@ public class UserDeletionService {
     private final TokenRevocationService tokenRevocationService;
     private final AuditLogService auditLogService;
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
+            @CacheEvict(value = CacheNames.USER_CONSENT_STATUS, key = "#email"),
+            @CacheEvict(value = CacheNames.USER_AUTH_CONTEXT, key = "#email")
+    })
     @Transactional
     public DeleteAccountResponseDTO deleteCurrentUser(String email,
                                                       String rawToken,

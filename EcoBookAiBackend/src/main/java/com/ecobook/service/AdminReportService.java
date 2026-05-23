@@ -48,13 +48,13 @@ public class AdminReportService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reporte não encontrado"));
 
         if (report.getStatus() == NonReceiptReportStatus.RESOLVED) {
-            throw new ConflictException("Este reporte já foi resolvido");
+            throw new ConflictException("Este reporte ja foi resolvido");
         }
 
         String resolutionNotes = trimToNull(request != null ? request.getResolutionNotes() : null);
         if (resolutionNotes != null && resolutionNotes.length() > 1000) {
             throw new BadRequestException(
-                    "As notas de resolução são inválidas",
+                    "As notas de resolucao sao invalidas",
                     Map.of("resolution_notes", "As notas de resolução devem ter no máximo 1000 caracteres")
             );
         }
@@ -70,7 +70,7 @@ public class AdminReportService {
 
     private UUID parseReportId(String reportId) {
         if (!StringUtils.hasText(reportId)) {
-            throw new BadRequestException("Identificador de reporte inválido", Map.of(
+            throw new BadRequestException("Identificador de reporte invalido", Map.of(
                     "report_id", "Informe um UUID válido"
             ));
         }
@@ -78,7 +78,7 @@ public class AdminReportService {
         try {
             return UUID.fromString(reportId.trim());
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de reporte inválido", Map.of(
+            throw new BadRequestException("Identificador de reporte invalido", Map.of(
                     "report_id", "Informe um UUID válido"
             ));
         }

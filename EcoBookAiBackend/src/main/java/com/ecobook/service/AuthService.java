@@ -35,7 +35,7 @@ public class AuthService {
         String normalizedNome = normalizeNome(request.getNome());
 
         if (usuarioRepository.findByEmailIgnoreCase(normalizedEmail).isPresent()) {
-            throw new ConflictException("Este e-mail já está cadastrado");
+            throw new ConflictException("Este email ja esta cadastrado");
         }
 
         Usuario usuario = createUser(normalizedEmail, normalizedNome, request.getPassword());
@@ -105,6 +105,6 @@ public class AuthService {
     }
 
     private BadCredentialsException invalidCredentials() {
-        return new BadCredentialsException("E-mail ou senha inválidos");
+        return new BadCredentialsException("Email ou senha invalidos");
     }
 }

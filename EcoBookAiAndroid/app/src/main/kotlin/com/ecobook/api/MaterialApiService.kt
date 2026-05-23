@@ -31,6 +31,7 @@ interface MaterialApiService {
         @Query("bairro") bairro: String? = null,
         @Query("min_ano_publicacao") minAnoPublicacao: Int? = null,
         @Query("max_ano_publicacao") maxAnoPublicacao: Int? = null,
+        @Query("after_id") afterId: String? = null,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
     ): Response<ApiEnvelopeDTO<PagedResponseDTO<MaterialDTO>>>

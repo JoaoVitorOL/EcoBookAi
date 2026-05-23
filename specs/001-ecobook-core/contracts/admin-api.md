@@ -181,6 +181,63 @@ Authorization: Bearer <admin_jwt_token>
 
 ---
 
+## GET /admin/audit-log
+
+List the audit trail captured for sensitive user, moderation and LGPD actions.
+
+### Request
+
+```http
+GET /api/v1/admin/audit-log?actor_user_id=user-uuid-1&target_user_id=user-uuid-2&action=ACCOUNT_DELETED&from=2026-05-20T00:00:00&to=2026-05-23T23:59:59&page=0&size=20
+Authorization: Bearer <admin_jwt_token>
+```
+
+### Runtime Rules
+
+- All filters are optional.
+- `actor_user_id` and `target_user_id` must be valid UUIDs when provided.
+- `page` must be `>= 0`.
+- `size` must be between `1` and `100`.
+- Results are returned in descending `created_at` order.
+
+### Response
+
+**HTTP 200 OK**
+
+```json
+{
+  "results": [
+    {
+      "id": "audit-uuid-1234567890",
+      "actor_user_id": "user-uuid-admin",
+      "actor_email": "admin@example.com",
+      "target_user_id": "user-uuid-target",
+      "action": "ACCOUNT_DELETED",
+      "resource_type": "USER",
+      "resource_id": "user-uuid-target",
+      "details": {
+        "reason": "Nao utilizo mais a plataforma",
+        "deleted_at": "2026-05-22T19:10:00"
+      },
+      "created_at": "2026-05-22T19:10:01"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "total": 1,
+  "total_pages": 1,
+  "has_next": false
+}
+```
+
+### Error Responses
+
+- `400 INVALID_FORMAT`: invalid UUID or invalid pagination values
+- `401 UNAUTHORIZED`: missing or invalid JWT
+- `403 ACCESS_DENIED`: authenticated user is not an admin
+
+---
+
 ## Admin Bootstrap Note
 
 The backend now supports startup bootstrap/promotion through environment variables:

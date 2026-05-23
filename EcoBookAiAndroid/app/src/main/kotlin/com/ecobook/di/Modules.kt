@@ -9,6 +9,7 @@ import com.ecobook.api.EcoBookApiClient
 import com.ecobook.api.FcmApiService
 import com.ecobook.api.MaterialApiService
 import com.ecobook.api.NotificationApiService
+import com.ecobook.api.ReferenceDataApiService
 import com.ecobook.api.RequestApiService
 import com.ecobook.api.RuntimeBackendUrlOverride
 import com.ecobook.fcm.NotificationInboxStore
@@ -125,6 +126,12 @@ object NetworkModule {
     @Singleton
     fun provideNotificationApiService(retrofit: Retrofit): NotificationApiService {
         return retrofit.create(NotificationApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideReferenceDataApiService(retrofit: Retrofit): ReferenceDataApiService {
+        return retrofit.create(ReferenceDataApiService::class.java)
     }
 
     @Provides

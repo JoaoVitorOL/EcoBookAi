@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -16,9 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -32,8 +35,9 @@ fun DeleteAccountScreen(
     onDeleteAccount: (String, String) -> Unit,
     onNavigateUp: () -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
-    var reason by remember { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var reason by rememberSaveable { mutableStateOf("") }
+    var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -48,7 +52,7 @@ fun DeleteAccountScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
             Text(
-                text = "Os materiais publicados serão removidos, as solicitações serão encerradas, as imagens salvas serão apagadas e o acesso atual será encerrado.",
+                text = "Os materiais publicados serao removidos, as solicitacoes serao encerradas, as imagens salvas serao apagadas e o acesso atual sera encerrado.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -82,13 +86,6 @@ fun DeleteAccountScreen(
                     }
                 )
             }
-            Button(
-                onClick = { onDeleteAccount(password, reason) },
-                enabled = !uiState.isDeletingAccount && password.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (uiState.isDeletingAccount) "Excluindo..." else "Confirmar exclusão")
-            }
             OutlinedButton(
                 onClick = onNavigateUp,
                 enabled = !uiState.isDeletingAccount,
@@ -96,6 +93,50 @@ fun DeleteAccountScreen(
             ) {
                 Text("Cancelar")
             }
+            Button(
+                onClick = { showConfirmationDialog = true },
+                enabled = !uiState.isDeletingAccount && password.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF7D6D9),
+                    contentColor = Color(0xFF8A2432)
+                )
+            ) {
+                Text(if (uiState.isDeletingAccount) "Excluindo..." else "Excluir conta")
+            }
         }
+    }
+
+    if (showConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmationDialog = false },
+            title = {
+                Text("Deseja realmente excluir sua conta?")
+            },
+            text = {
+                Text("Essa acao e permanente. Seus materiais ativos, imagens e a sessao atual serao encerrados.")
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showConfirmationDialog = false }
+                ) {
+                    Text("Voltar")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showConfirmationDialog = false
+                        onDeleteAccount(password, reason)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF7D6D9),
+                        contentColor = Color(0xFF8A2432)
+                    )
+                ) {
+                    Text("Sim, excluir")
+                }
+            }
+        )
     }
 }

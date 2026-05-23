@@ -134,6 +134,9 @@ Example:
 }
 ```
 
+Note:
+- For endpoints protected by the JWT filter, if the token principal no longer resolves to an existing user, runtime now returns `401 UNAUTHORIZED` before controller execution instead of surfacing a controller-level `404`.
+
 ### 409 - Conflict
 
 Used when the current resource state prevents the requested operation.

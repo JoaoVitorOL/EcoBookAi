@@ -5,7 +5,7 @@ package com.ecobook.model.enums;
  */
 public enum NivelEnsino {
     FUNDAMENTAL("Ensino Fundamental"),
-    MEDIO("Ensino Médio"),
+    MEDIO("Ensino Medio"),
     SUPERIOR("Ensino Superior");
 
     private final String label;

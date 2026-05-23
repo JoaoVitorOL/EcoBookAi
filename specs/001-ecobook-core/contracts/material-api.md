@@ -1,9 +1,9 @@
 # Material API Contracts
 
 **Reference**: spec.md RF-005 through RF-025, RF-044  
-**Version**: 1.6  
-**Date**: 2026-05-22  
-**Status**: Current runtime contract for preview, discovery, secure image access and donor-owned CRUD flow
+**Version**: 1.7  
+**Date**: 2026-05-23  
+**Status**: Current runtime contract for preview, discovery with offset/cursor pagination, secure image access and donor-owned CRUD flow
 
 ---
 
@@ -102,7 +102,7 @@ Search available materials.
 ### Request
 
 ```http
-GET /api/v1/materiais?query=algebra&disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=florianopolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=0&size=20
+GET /api/v1/materiais?query=algebra&disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=florianopolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=0&size=20&after_id=material-uuid-20
 Authorization: Bearer <jwt_token>
 ```
 
@@ -115,12 +115,13 @@ Authorization: Bearer <jwt_token>
 | `nivel_ensino` | String | No | Exact education-level filter |
 | `ano` | Integer | No | School year filter (`1..9` for `FUNDAMENTAL`, `1..3` for `MEDIO`) |
 | `sistema_ensino` | String | No | Teaching-system filter |
-| `cidade` | String | No | City anchor for filtering and ranking |
-| `bairro` | String | No | Neighborhood anchor for filtering and ranking |
+| `cidade` | String | No | City anchor for ranking and tie-breaking; does not exclude other cities by itself |
+| `bairro` | String | No | Neighborhood anchor for ranking and tie-breaking; does not exclude other neighborhoods by itself |
 | `min_ano_publicacao` | Integer | No | Lower bound for publication year |
 | `max_ano_publicacao` | Integer | No | Upper bound for publication year |
-| `page` | Integer | No | Zero-based page number |
+| `page` | Integer | No | Zero-based page number echoed for UI state; the first page uses offset pagination |
 | `size` | Integer | No | Page size (`1..100`) |
+| `after_id` | UUID String | No | Cursor returned by the previous page with the same filters; switches the response to keyset continuation |
 
 ### Response
 
@@ -158,7 +159,10 @@ Authorization: Bearer <jwt_token>
   "size": 20,
   "total": 45,
   "total_pages": 3,
-  "has_next": true
+  "has_next": true,
+  "after_id": null,
+  "next_after_id": "material-uuid-20",
+  "pagination_mode": "OFFSET"
 }
 ```
 
@@ -166,8 +170,16 @@ Authorization: Bearer <jwt_token>
 
 - Only materials still stored as `DISPONIVEL` are returned
 - Sorting prioritizes same neighborhood, then same city, then newer `data_publicacao`, then stable `id`
+- `cidade` and `bairro` influence ranking and cursor order, but they are not hard filters on their own
+- Requests without `after_id` use the existing offset page and may return `next_after_id` for continuation
+- Requests with a valid `after_id` from the previous page and the same filters return `pagination_mode = KEYSET`
 - If the image URL fails client-side, the Android app must render a neutral placeholder
 - `imagem_verso_url` may be null when the donor published only the front cover
+
+### Error Responses
+
+- `400 INVALID_FORMAT`: invalid enum, invalid page/size, invalid publication-year range, malformed `after_id` or cursor that does not belong to the current filtered result window
+- `403 INCOMPLETE_PROFILE`: onboarding incomplete
 
 ---
 
@@ -205,8 +217,9 @@ Authorization: Bearer <jwt_token>
 
 ### Error Responses
 
-- `400 INVALID_FORMAT`: invalid enum, invalid page/size or invalid publication-year range
-- `403 INCOMPLETE_PROFILE`: onboarding incomplete
+- `401 UNAUTHORIZED`: missing or invalid JWT
+- `403 ACCESS_DENIED`: requester is not allowed to view the requested image side
+- `404 NOT_FOUND`: image or promoted upload reference not found
 
 ---
 

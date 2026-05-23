@@ -67,9 +67,14 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun updateProfile(request: UpdateProfileRequestDTO): UsuarioDTO {
+        val previousEmail = sessionManager.sessionState.value.email
         val response = authApiService.updateProfile(request)
         val body = requireData(response)
-        sessionManager.onUserLoaded(body)
+        if (previousEmail.equals(body.email, ignoreCase = true)) {
+            sessionManager.onUserLoaded(body)
+        } else {
+            sessionManager.clearSession("Email atualizado com sucesso. Entre novamente com o novo email.")
+        }
         return body
     }
 

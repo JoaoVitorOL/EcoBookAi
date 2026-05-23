@@ -83,6 +83,51 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/materiais should support keyset pagination via after_id")
+    void shouldSupportKeysetPagination() throws Exception {
+        Usuario requester = createUser("cursor-searcher@example.com", "FLORIANOPOLIS", "CENTRO");
+        Usuario donor = createUser("cursor-donor@example.com", "FLORIANOPOLIS", "CENTRO");
+
+        Material olderMaterial = createMaterial(donor, "Colecao 2020", 2020);
+        Material middleMaterial = createMaterial(donor, "Colecao 2021", 2021);
+        Material newerMaterial = createMaterial(donor, "Colecao 2022", 2022);
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("page", "0")
+                        .param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.pagination_mode").value("OFFSET"))
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Colecao 2022"))
+                .andExpect(jsonPath("$.data.next_after_id").value(newerMaterial.getId().toString()));
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("after_id", newerMaterial.getId().toString())
+                        .param("page", "1")
+                        .param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.page").value(1))
+                .andExpect(jsonPath("$.data.pagination_mode").value("KEYSET"))
+                .andExpect(jsonPath("$.data.after_id").value(newerMaterial.getId().toString()))
+                .andExpect(jsonPath("$.data.next_after_id").value(middleMaterial.getId().toString()))
+                .andExpect(jsonPath("$.data.results.length()").value(1))
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Colecao 2021"));
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("after_id", middleMaterial.getId().toString())
+                        .param("page", "2")
+                        .param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.page").value(2))
+                .andExpect(jsonPath("$.data.pagination_mode").value("KEYSET"))
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Colecao 2020"))
+                .andExpect(jsonPath("$.data.next_after_id").doesNotExist())
+                .andExpect(jsonPath("$.data.has_next").value(false));
+    }
+
+    @Test
     @DisplayName("GET /api/v1/materiais should reject invalid enums and publication ranges")
     void shouldRejectInvalidFilters() throws Exception {
         Usuario requester = createUser("invalid-search@example.com", "SAO PAULO", "CENTRO");
@@ -93,6 +138,12 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
                 .andExpect(jsonPath("$.field_errors.disciplina").value("Valor invalido para disciplina"));
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("after_id", "invalido"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.field_errors.after_id").value("Informe um UUID valido para after_id"));
 
         mockMvc.perform(get("/v1/materiais")
                         .header("Authorization", "Bearer " + tokenFor(requester))
@@ -129,7 +180,7 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
         Usuario requester = createUser("query-search@example.com", "FLORIANOPOLIS", "CENTRO");
         Usuario donor = createUser("query-donor@example.com", "FLORIANOPOLIS", "TRINDADE");
 
-        createMaterial(donor, "Álgebra Linear", 2023);
+        createMaterial(donor, "Algebra Linear", 2023);
         createMaterial(donor, "Historia Antiga", 2020);
 
         mockMvc.perform(get("/v1/materiais")
@@ -137,7 +188,7 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                         .param("query", "algebra"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.total").value(1))
-                .andExpect(jsonPath("$.data.results[0].titulo").value("Álgebra Linear"));
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Algebra Linear"));
     }
 
     @Test

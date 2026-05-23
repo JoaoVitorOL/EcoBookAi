@@ -1,18 +1,17 @@
 package com.ecobook.model
 
 enum class Disciplina(val label: String) {
-    TODAS("Todas"),
-    MATEMATICA("Matemática"),
-    PORTUGUES("Português"),
-    HISTORIA("História"),
+    MATEMATICA("Matematica"),
+    PORTUGUES("Portugues"),
+    HISTORIA("Historia"),
     GEOGRAFIA("Geografia"),
-    CIENCIAS("Ciências"),
+    CIENCIAS("Ciencias"),
     LITERATURA("Literatura")
 }
 
 enum class NivelEnsino(val label: String) {
     FUNDAMENTAL("Fundamental"),
-    MEDIO("Médio"),
+    MEDIO("Medio"),
     SUPERIOR("Superior")
 }
 
@@ -37,18 +36,18 @@ enum class EstadoConservacao(val label: String) {
 }
 
 enum class NecessidadeAcademica(val label: String) {
-    TEXTBOOKS("Livros didáticos"),
+    TEXTBOOKS("Livros didaticos"),
     WORKBOOKS("Cadernos de atividades"),
-    REFERENCE_MATERIALS("Materiais de referência"),
+    REFERENCE_MATERIALS("Materiais de referencia"),
     FICTION("Literatura"),
-    TECHNICAL_BOOKS("Livros técnicos"),
-    TEST_PREP("Preparação para provas")
+    TECHNICAL_BOOKS("Livros tecnicos"),
+    TEST_PREP("Preparacao para provas")
 }
 
 enum class AiAssistStatus(val label: String) {
-    SUCCESS("Alta confiança"),
-    LOW_CONFIDENCE("Revisão manual"),
-    FAILURE("Sem sugestão")
+    SUCCESS("Alta confianca"),
+    LOW_CONFIDENCE("Revisao manual"),
+    FAILURE("Sem sugestao")
 }
 
 enum class BackendConnectionState {
@@ -75,7 +74,7 @@ data class BackendStatus(
         fun checking() = BackendStatus(
             state = BackendConnectionState.CHECKING,
             headline = "Verificando o backend",
-            detail = "Consultando /api/v1/health para confirmar a conexão."
+            detail = "Consultando /api/v1/health para confirmar a conexao."
         )
     }
 }
@@ -105,7 +104,7 @@ data class UserProfileDraft(
     val bairro: String = "",
     val instituicao: String = "",
     val consentimentoIa: Boolean = false,
-    val roleLabel: String = "Usuário",
+    val roleLabel: String = "Usuario",
     val hasSavedSession: Boolean = false
 ) {
     private val requiredFields = listOf(nome, email, whatsapp, cidade, bairro)
@@ -153,7 +152,7 @@ data class AIPreviewField(
 data class DonationPreview(
     val aiStatus: AiAssistStatus = AiAssistStatus.SUCCESS,
     val confidence: Double = 0.82,
-    val description: String = "Exemplo de retorno para o fluxo de classificação assistida por IA.",
+    val description: String = "Exemplo de retorno para o fluxo de classificacao assistida por IA.",
     val fields: List<AIPreviewField> = emptyList(),
     val steps: List<DonationStep> = emptyList()
 )

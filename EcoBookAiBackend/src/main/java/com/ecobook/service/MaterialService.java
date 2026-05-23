@@ -110,7 +110,7 @@ public class MaterialService {
                 .orElseThrow(() -> new ResourceNotFoundException("Temporary upload not found or expired"));
 
         if (upload.getMaterial() != null) {
-            throw new ConflictException("Este upload_id já foi utilizado");
+            throw new ConflictException("Este upload_id ja foi utilizado");
         }
 
         if (upload.getUsuario() == null || !upload.getUsuario().getId().equals(usuario.getId())) {
@@ -125,10 +125,12 @@ public class MaterialService {
             throw new ResourceNotFoundException("Temporary upload not found or expired");
         }
 
-        ImageStorageService.PromotedImage promotedImage = imageStorageService.promoteTemporaryImage(upload);
-        ImageStorageService.PromotedImage promotedBackImage = imageStorageService.promoteSecondaryTemporaryImage(upload);
-
+        ImageStorageService.PromotedImage promotedImage = null;
+        ImageStorageService.PromotedImage promotedBackImage = null;
         try {
+            promotedImage = imageStorageService.promoteTemporaryImage(upload);
+            promotedBackImage = imageStorageService.promoteSecondaryTemporaryImage(upload);
+
             Material material = materialRepository.save(Material.builder()
                     .doador(usuario)
                     .titulo(validated.data().titulo())
@@ -161,6 +163,8 @@ public class MaterialService {
 
             return materialMapper.toDto(material);
         } catch (RuntimeException ex) {
+            cleanupPromotedImage(promotedImage);
+            cleanupPromotedImage(promotedBackImage);
             log.error("Falha ao persistir material para upload {}", validated.uploadId(), ex);
             throw ex;
         }
@@ -249,7 +253,7 @@ public class MaterialService {
         try {
             return UUID.fromString(materialId);
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de material inválido", Map.of(
+            throw new BadRequestException("Identificador de material invalido", Map.of(
                     "id", "Informe um identificador de material válido"
             ));
         }
@@ -257,6 +261,13 @@ public class MaterialService {
 
     private String secureImageUrl(UUID uploadTrackingId, boolean backImage) {
         return "/api/v1/images/" + uploadTrackingId + (backImage ? "?side=back" : "");
+    }
+
+    private void cleanupPromotedImage(ImageStorageService.PromotedImage promotedImage) {
+        if (promotedImage == null) {
+            return;
+        }
+        imageStorageService.deleteIfExists(promotedImage.absolutePath().toString());
     }
 
     private void updatePreviewTracking(TemporaryUpload upload, GeminiResponseDTO response) {
@@ -303,7 +314,7 @@ public class MaterialService {
         );
 
         if (!errors.isEmpty()) {
-            throw new BadRequestException("Os dados do material são inválidos", errors);
+            throw new BadRequestException("Os dados do material sao invalidos", errors);
         }
 
         return new ValidatedMaterialRequest(uploadId, data);
@@ -326,7 +337,7 @@ public class MaterialService {
         );
 
         if (!errors.isEmpty()) {
-            throw new BadRequestException("Os dados do material são inválidos", errors);
+            throw new BadRequestException("Os dados do material sao invalidos", errors);
         }
 
         return data;
@@ -427,7 +438,7 @@ public class MaterialService {
         try {
             return Enum.valueOf(enumType, normalizeEnum(value));
         } catch (IllegalArgumentException ex) {
-            errors.put(field, "Valor inválido para " + field);
+            errors.put(field, "Valor invalido para " + field);
             return null;
         }
     }

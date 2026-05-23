@@ -91,6 +91,7 @@ class MaterialRepository @Inject constructor(
         bairro: String? = null,
         minAnoPublicacao: Int? = null,
         maxAnoPublicacao: Int? = null,
+        afterId: String? = null,
         page: Int = 0,
         size: Int = 20
     ): PagedResponseDTO<MaterialDTO> {
@@ -105,6 +106,7 @@ class MaterialRepository @Inject constructor(
                 bairro = bairro,
                 minAnoPublicacao = minAnoPublicacao,
                 maxAnoPublicacao = maxAnoPublicacao,
+                afterId = afterId,
                 page = page,
                 size = size
             )

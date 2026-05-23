@@ -5,11 +5,11 @@ package com.ecobook.model.enums;
  */
 public enum Disciplina {
     TODAS("Todas"),
-    MATEMATICA("Matemática"),
-    PORTUGUES("Português"),
-    HISTORIA("História"),
+    MATEMATICA("Matematica"),
+    PORTUGUES("Portugues"),
+    HISTORIA("Historia"),
     GEOGRAFIA("Geografia"),
-    CIENCIAS("Ciências"),
+    CIENCIAS("Ciencias"),
     LITERATURA("Literatura");
 
     private final String label;

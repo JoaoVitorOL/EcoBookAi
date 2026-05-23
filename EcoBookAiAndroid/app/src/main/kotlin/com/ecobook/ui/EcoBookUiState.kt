@@ -11,6 +11,8 @@ data class EcoBookUiState(
     val session: SessionUiState = SessionUiState(),
     val backendStatus: BackendStatus = BackendStatus.checking(),
     val profile: UserProfileDraft = UserProfileDraft(),
+    val isSavingProfile: Boolean = false,
+    val profileFieldErrors: Map<String, String> = emptyMap(),
     val isUpdatingAiConsent: Boolean = false,
     val isLoadingConsentStatus: Boolean = false,
     val consentStatus: UserConsentStatusDTO? = null,

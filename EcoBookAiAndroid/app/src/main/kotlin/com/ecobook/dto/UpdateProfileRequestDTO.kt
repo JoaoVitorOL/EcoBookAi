@@ -1,11 +1,12 @@
 package com.ecobook.dto
 
 data class UpdateProfileRequestDTO(
+    val email: String? = null,
     val nome: String,
     val whatsapp: String,
     val cidade: String,
     val bairro: String,
     val instituicao: String? = null,
-    val consentimentoIa: Boolean,
-    val necessidadesAcademicas: Set<String>
+    val consentimentoIa: Boolean? = null,
+    val necessidadesAcademicas: Set<String>? = null
 )

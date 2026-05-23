@@ -1,7 +1,5 @@
 package com.ecobook.security;
 
-import com.ecobook.model.Usuario;
-import com.ecobook.repository.UsuarioRepository;
 import com.ecobook.service.TokenRevocationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,14 +21,14 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UsuarioRepository usuarioRepository;
+    private final AuthenticatedUserLookupService authenticatedUserLookupService;
     private final TokenRevocationService tokenRevocationService;
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,
-                                   UsuarioRepository usuarioRepository,
+                                   AuthenticatedUserLookupService authenticatedUserLookupService,
                                    TokenRevocationService tokenRevocationService) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.usuarioRepository = usuarioRepository;
+        this.authenticatedUserLookupService = authenticatedUserLookupService;
         this.tokenRevocationService = tokenRevocationService;
     }
 
@@ -42,20 +40,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (token != null && jwtTokenProvider.validateToken(token) && !tokenRevocationService.isRevoked(token)) {
                 String email = jwtTokenProvider.getEmailFromToken(token);
-                Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
+                AuthenticatedUserSnapshot usuario = authenticatedUserLookupService.loadRequiredByEmail(email);
 
-                if (usuario != null) {
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    email,
-                                    null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRole().name()))
-                            );
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                email,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_" + usuario.role().name()))
+                        );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.debug("Set authentication for user: {}", email);
-                }
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("Set authentication for user: {}", email);
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);

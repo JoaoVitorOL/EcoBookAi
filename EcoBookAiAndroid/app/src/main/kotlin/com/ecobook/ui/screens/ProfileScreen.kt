@@ -5,17 +5,28 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ecobook.ui.EcoBookUiState
+import com.ecobook.ui.ProfileInputRules
 import com.ecobook.ui.components.GlassCard
+import com.ecobook.ui.components.LegalDocumentsDialog
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
 
@@ -24,12 +35,21 @@ fun ProfileScreen(
     uiState: EcoBookUiState,
     unreadNotifications: Int = 0,
     onOpenNotifications: () -> Unit = {},
+    onNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onWhatsappChange: (String) -> Unit,
+    onCityChange: (String) -> Unit,
+    onNeighborhoodChange: (String) -> Unit,
+    onInstitutionChange: (String) -> Unit,
+    onSaveProfile: () -> Unit,
     onToggleAiConsent: (Boolean) -> Unit,
     onOpenDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
     val consentimentoIa = uiState.pendingAiConsent ?: uiState.profile.consentimentoIa
     val consentStatus = uiState.consentStatus
+    val cityPreview = ProfileInputRules.cityStoragePreview(uiState.profile.cidade)
+    var showLegalDialog by rememberSaveable { mutableStateOf(false) }
 
     LazyColumn(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
@@ -38,7 +58,7 @@ fun ProfileScreen(
         item {
             SectionHeading(
                 title = "Conta e perfil",
-                subtitle = "Resumo do usuário autenticado, consentimentos e controles de privacidade.",
+                subtitle = "Atualize seus dados, revise os consentimentos e gerencie a seguranca da conta.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,
@@ -64,7 +84,7 @@ fun ProfileScreen(
                     }
                 )
                 Text(
-                    text = "JWT ativo: ${if (uiState.session.isAuthenticated) "sim" else "não"}",
+                    text = "JWT ativo: ${if (uiState.session.isAuthenticated) "sim" else "nao"}",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
@@ -72,7 +92,7 @@ fun ProfileScreen(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = "Conclusão do perfil: ${uiState.profile.completionPercent}%",
+                    text = "Conclusao do perfil: ${uiState.profile.completionPercent}%",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -81,12 +101,75 @@ fun ProfileScreen(
 
         item {
             GlassCard {
-                ReadOnlyProfileField(label = "Nome", value = uiState.profile.nome)
-                ReadOnlyProfileField(label = "Email", value = uiState.profile.email)
-                ReadOnlyProfileField(label = "WhatsApp", value = uiState.profile.whatsapp)
-                ReadOnlyProfileField(label = "Cidade", value = uiState.profile.cidade)
-                ReadOnlyProfileField(label = "Bairro", value = uiState.profile.bairro)
-                ReadOnlyProfileField(label = "Instituição", value = uiState.profile.instituicao)
+                SectionHeading(
+                    title = "Dados editaveis",
+                    subtitle = "Voce pode alterar nome, email, telefone, cidade, bairro e instituicao."
+                )
+                ProfileField(
+                    label = "Nome",
+                    value = uiState.profile.nome,
+                    onValueChange = onNameChange,
+                    error = uiState.profileFieldErrors["nome"]
+                )
+                ProfileField(
+                    label = "Email",
+                    value = uiState.profile.email,
+                    onValueChange = onEmailChange,
+                    error = uiState.profileFieldErrors["email"],
+                    supportingText = "Ao alterar o email, voce precisara entrar novamente com o novo endereco.",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                )
+                ProfileField(
+                    label = "WhatsApp",
+                    value = uiState.profile.whatsapp,
+                    onValueChange = onWhatsappChange,
+                    error = uiState.profileFieldErrors["whatsapp"],
+                    supportingText = "Digite DDD + numero. O codigo +55 e aplicado ao salvar.",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                )
+                ProfileField(
+                    label = "Cidade",
+                    value = uiState.profile.cidade,
+                    onValueChange = onCityChange,
+                    error = uiState.profileFieldErrors["cidade"],
+                    supportingText = if (cityPreview.isBlank()) {
+                        "A cidade sera padronizada antes de salvar."
+                    } else {
+                        "Sera salva como: $cityPreview"
+                    },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                )
+                ProfileField(
+                    label = "Bairro",
+                    value = uiState.profile.bairro,
+                    onValueChange = onNeighborhoodChange,
+                    error = uiState.profileFieldErrors["bairro"],
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                )
+                ProfileField(
+                    label = "Instituicao",
+                    value = uiState.profile.instituicao,
+                    onValueChange = onInstitutionChange,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                )
+                if (!uiState.profileMessage.isNullOrBlank()) {
+                    Text(
+                        text = uiState.profileMessage.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (uiState.profileMessageIsError) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            Color(0xFF205447)
+                        }
+                    )
+                }
+                Button(
+                    onClick = onSaveProfile,
+                    enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (uiState.isSavingProfile) "Salvando..." else "Salvar alteracoes")
+                }
             }
         }
 
@@ -100,15 +183,21 @@ fun ProfileScreen(
                     text = if (consentStatus?.platformConsentGiven == true) {
                         "Plataforma: concedido${consentStatus.platformConsentGivenAt?.let { " em ${formatDate(it)}" } ?: ""}."
                     } else {
-                        "Plataforma: aguardando sincronização do aceite."
+                        "Plataforma: aguardando sincronizacao do aceite."
                     },
                     style = MaterialTheme.typography.bodyLarge
                 )
+                OutlinedButton(
+                    onClick = { showLegalDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ler termos e privacidade")
+                }
                 Text(
                     text = if (consentimentoIa) {
-                        "IA para classificação: ativa${consentStatus?.aiConsentGivenAt?.let { " desde ${formatDate(it)}" } ?: ""}."
+                        "IA para classificacao: ativa${consentStatus?.aiConsentGivenAt?.let { " desde ${formatDate(it)}" } ?: ""}."
                     } else {
-                        "IA para classificação: desativada${consentStatus?.aiConsentRevokedAt?.let { " desde ${formatDate(it)}" } ?: ""}."
+                        "IA para classificacao: desativada${consentStatus?.aiConsentRevokedAt?.let { " desde ${formatDate(it)}" } ?: ""}."
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -136,20 +225,9 @@ fun ProfileScreen(
                 }
                 if (uiState.isUpdatingAiConsent) {
                     Text(
-                        text = "Salvando preferência...",
+                        text = "Salvando preferencia...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                if (!uiState.profileMessage.isNullOrBlank()) {
-                    Text(
-                        text = uiState.profileMessage.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (uiState.profileMessageIsError) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            Color(0xFF205447)
-                        }
                     )
                 }
             }
@@ -158,44 +236,64 @@ fun ProfileScreen(
         item {
             GlassCard {
                 SectionHeading(
-                    title = "Sessão e segurança",
-                    subtitle = "Exporte seus dados, revise a conta atual ou encerre a sessão neste dispositivo."
+                    title = "Sessao e seguranca",
+                    subtitle = "Exporte seus dados, revise a conta atual ou encerre a sessao neste dispositivo."
                 )
                 Text(
-                    text = "A exclusão da conta cancela materiais publicados, remove imagens armazenadas e encerra sua sessão.",
+                    text = "A exclusao da conta cancela materiais publicados, remove imagens armazenadas e encerra sua sessao.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 OutlinedButton(
-                    onClick = onOpenDeleteAccount,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Excluir conta")
-                }
-                OutlinedButton(
                     onClick = onLogout,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !uiState.isUpdatingAiConsent
+                    enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent
                 ) {
                     Text("Sair da conta")
+                }
+                Button(
+                    onClick = onOpenDeleteAccount,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF7D6D9),
+                        contentColor = Color(0xFF8A2432)
+                    )
+                ) {
+                    Text("Excluir conta")
                 }
             }
         }
     }
+
+    if (showLegalDialog) {
+        LegalDocumentsDialog(
+            onDismiss = { showLegalDialog = false }
+        )
+    }
 }
 
 @Composable
-private fun ReadOnlyProfileField(
+private fun ProfileField(
     label: String,
-    value: String
+    value: String,
+    onValueChange: (String) -> Unit,
+    error: String? = null,
+    supportingText: String? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     OutlinedTextField(
-        value = value.ifBlank { "Não informado" },
-        onValueChange = {},
+        value = value,
+        onValueChange = onValueChange,
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        readOnly = true
+        isError = error != null,
+        keyboardOptions = keyboardOptions,
+        supportingText = when {
+            error != null -> ({ Text(error) })
+            supportingText != null -> ({ Text(supportingText) })
+            else -> null
+        }
     )
 }
 

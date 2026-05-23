@@ -4,10 +4,11 @@ Plataforma Android + backend Spring Boot para doacao e solicitacao de materiais 
 
 ## Status Atual
 
-- Fases 1 a 6 estao implementadas em runtime.
-- O backend cobre autenticacao por `email + senha + JWT`, onboarding, preview IA, publicacao de materiais, discovery, solicitacoes, conclusao de doacao e inbox de notificacoes.
-- O app Android cobre login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador e central de avisos.
-- O principal fechamento funcional pendente antes dos modulos transversais restantes e a validacao ponta a ponta do push real com Firebase em dispositivo/emulador com Google Play services.
+- Fases 1 a 8 estao implementadas em runtime e a fase 9 esta em andamento.
+- O backend cobre autenticacao por `email + senha + JWT`, onboarding, preview IA, publicacao de materiais, discovery, solicitacoes, conclusao de doacao, inbox de notificacoes, moderacao/admin, consentimento LGPD, exclusao de conta, exportacao de dados e acesso autenticado a imagens.
+- O app Android cobre login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador, central de avisos, controles de consentimento, leitura visivel de termos/privacidade antes do aceite, edicao de perfil (`nome`, `email`, `telefone`, `cidade`, `bairro`, `instituicao`) e fluxo de exclusao de conta com confirmacao destrutiva.
+- A fase 9 ja cobre compressao de resposta, metricas Prometheus/Micrometer, smoke tests de backend, cache para leituras autenticadas, catalogo publico/cacheado de dados de referencia, paginacao cursor/keyset na discovery e cleanup transacional no fluxo de material.
+- O principal fechamento externo pendente segue sendo a validacao ponta a ponta do push real com Firebase em dispositivo/emulador com Google Play services, junto dos itens finais de hardening de fase 9/10.
 
 ## Stack
 
@@ -29,7 +30,7 @@ Plataforma Android + backend Spring Boot para doacao e solicitacao de materiais 
 
 ## Requisitos
 
-- Java 21 para o backend
+- Java 21 ou superior para o backend
 - Maven 3.9+
 - Android Studio + Android SDK Platform 34
 - Android Emulator ou dispositivo fisico para rodar o app
@@ -71,6 +72,8 @@ Resposta esperada:
   "message": "Backend online"
 }
 ```
+
+Para a suite automatizada do backend, o caminho atual tambem foi endurecido para funcionar sem Docker: `mvn test` tenta `Testcontainers`, depois PostgreSQL externo, e cai para H2 em memoria quando necessario. O unico prerequisito obrigatorio continua sendo Java 21 ou superior.
 
 ### 2. Android
 
@@ -149,6 +152,7 @@ Validado em `2026-05-21`:
 
 - Backend: `mvn -q -DskipTests compile`
 - Backend: `mvn spring-boot:run -Dspring-boot.run.profiles=local`
+- Backend: `mvn test` com fallback automatico para H2 em memoria quando Docker/PostgreSQL nao estao disponiveis
 - Backend: fluxo `health -> register -> get me -> onboarding -> search -> login`
 - Infra: `docker compose up -d postgres` deixa o container `ecobook-db` saudavel
 - Android: `.\gradlew.bat app:compileDebugKotlin`
@@ -157,13 +161,20 @@ Validado em `2026-05-21`:
 
 Observacao importante:
 
-- Nesta maquina, o backend foi validado com Java 21 via WSL.
+- Nesta maquina, o backend foi revalidado com Java 21+ tambem no Windows, ajustando `JAVA_HOME` antes de rodar Maven.
 - O Android foi validado em compilacao e teste JVM local; execucao visual ainda depende de emulador/dispositivo configurado no Android Studio.
+
+Validado em `2026-05-23`:
+
+- Backend: `mvn test` verde com `140` testes
+- Android: `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+- Backend: metricas e smoke gate revalidados em runtime por `/actuator/prometheus`, `/actuator/health` e `SmokeTests`
 
 ## Limites Conhecidos
 
 - Push real com Firebase ainda precisa de validacao final em dispositivo/emulador com Google Play services.
-- Modulos de admin/moderacao, LGPD forte, auditoria e hardening de fase final ainda permanecem no backlog.
+- O texto de termos/privacidade do MVP agora existe e esta visivel no app, mas ainda precisa de revisao juridica antes de qualquer publicacao real.
+- As frentes restantes de fase 9/10 agora se concentram em carga/performance, edge cases finais, Swagger/OpenAPI e os quality gates finais.
 
 ## Documentacao
 
@@ -171,5 +182,6 @@ Observacao importante:
 - Android: [EcoBookAiAndroid/README.md](EcoBookAiAndroid/README.md)
 - Quickstart tecnico: [specs/001-ecobook-core/quickstart.md](specs/001-ecobook-core/quickstart.md)
 - Contratos de runtime: [specs/001-ecobook-core/contracts/README.md](specs/001-ecobook-core/contracts/README.md)
+- Termos e privacidade do MVP: [docs/legal/termos-e-privacidade.md](docs/legal/termos-e-privacidade.md)
 - Estado do plano: [specs/001-ecobook-core/PLAN-SUMMARY.md](specs/001-ecobook-core/PLAN-SUMMARY.md)
 - Backlog por fase: [specs/001-ecobook-core/TASKS.md](specs/001-ecobook-core/TASKS.md)

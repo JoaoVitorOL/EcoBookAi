@@ -5,6 +5,13 @@
 
 ---
 
+Historical note:
+- This file remains the original implementation-planning artifact from April 2026.
+- It is still useful for scope and sequencing rationale, but it is not the source of truth for current runtime readiness.
+- For the actual repository stop point and implemented endpoints, use `PLAN-SUMMARY.md`, `TASKS.md`, and `contracts/`.
+
+---
+
 ## Summary
 
 **EcoBook IA** is an AI-powered educational material donation and matching platform exclusively for Android (API 26+, Kotlin/Jetpack Compose). The core system implements deterministic student-to-material matching powered by Google Gemini 2.5 Flash for image-based material classification, with a Spring Boot backend and PostgreSQL database. The MVP supports up to 100 active users with ~500 total materials and implements the complete donation workflow: user registration and login with email/password, mandatory profile completion (geographic + academic needs), material upload with AI classification, intelligent matching algorithm (discipline + level + year ± 1 + system + geographic ranking), request lifecycle (PENDENTE → APROVADA → DOADO), and push notifications via Firebase Cloud Messaging.

@@ -24,6 +24,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
@@ -34,7 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.model.NecessidadeAcademica
+import com.ecobook.ui.ProfileInputRules
 import com.ecobook.ui.components.GlassCard
+import com.ecobook.ui.components.LegalDocumentsDialog
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
 
@@ -44,6 +49,7 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showLegalDialog by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -67,7 +73,7 @@ fun OnboardingScreen(
         ) {
             SectionHeading(
                 title = "Completar onboarding",
-                subtitle = "Esses dados desbloqueiam upload, matching e solicitações protegidas pelo backend."
+                subtitle = "Esses dados desbloqueiam upload, matching e solicitacoes protegidas pelo backend."
             )
 
             GlassCard {
@@ -88,9 +94,9 @@ fun OnboardingScreen(
                 }
                 Text(
                     text = when (uiState.currentStep) {
-                        0 -> "Primeiro confirmamos quem você é e como entrar em contato."
-                        1 -> "Depois registramos a região para normalização geográfica e matching."
-                        else -> "Por fim, configuramos preferências acadêmicas e consentimento para IA."
+                        0 -> "Primeiro confirmamos quem voce e e como entrar em contato."
+                        1 -> "Depois registramos a regiao para normalizacao geografica e matching."
+                        else -> "Por fim, configuramos preferencias academicas e consentimento para IA."
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -122,6 +128,10 @@ fun OnboardingScreen(
                 else -> NeedsStep(
                     uiState = uiState,
                     onToggleNeed = viewModel::toggleNecessidade,
+                    onOpenLegalDocuments = {
+                        viewModel.markPlatformTermsViewed()
+                        showLegalDialog = true
+                    },
                     onTogglePlatformConsent = viewModel::togglePlatformConsentAccepted,
                     onToggleConsent = viewModel::toggleConsentimentoIa
                 )
@@ -130,7 +140,7 @@ fun OnboardingScreen(
             if (!uiState.message.isNullOrBlank()) {
                 GlassCard {
                     Text(
-                        text = uiState.message ?: "",
+                        text = uiState.message.orEmpty(),
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (uiState.fieldErrors.isEmpty()) {
                             Color(0xFF205447)
@@ -167,10 +177,16 @@ fun OnboardingScreen(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
-                        Text(if (uiState.isLastStep) "Concluir perfil" else "Próxima etapa")
+                        Text(if (uiState.isLastStep) "Concluir perfil" else "Proxima etapa")
                     }
                 }
             }
+        }
+
+        if (showLegalDialog) {
+            LegalDocumentsDialog(
+                onDismiss = { showLegalDialog = false }
+            )
         }
     }
 }
@@ -200,7 +216,10 @@ private fun ContactStep(
             placeholder = { Text("(48) 99999-9999") },
             prefix = { Text("+55 ") },
             supportingText = {
-                Text(uiState.fieldErrors["whatsapp"] ?: "Digite só DDD + número. O código do Brasil já é adicionado automaticamente.")
+                Text(
+                    uiState.fieldErrors["whatsapp"]
+                        ?: "Digite so DDD + numero. O codigo do Brasil ja e adicionado automaticamente."
+                )
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -222,6 +241,8 @@ private fun LocationStep(
     onNeighborhoodChange: (String) -> Unit,
     onInstitutionChange: (String) -> Unit
 ) {
+    val cityPreview = ProfileInputRules.cityStoragePreview(uiState.cidade)
+
     GlassCard {
         OutlinedTextField(
             value = uiState.cidade,
@@ -229,7 +250,13 @@ private fun LocationStep(
             label = { Text("Cidade") },
             isError = uiState.fieldErrors.containsKey("cidade"),
             supportingText = {
-                Text(uiState.fieldErrors["cidade"] ?: "Digite manualmente. A cidade é padronizada sem acento antes de salvar o perfil.")
+                Text(
+                    uiState.fieldErrors["cidade"] ?: if (cityPreview.isBlank()) {
+                        "Digite manualmente. A cidade sera padronizada antes de salvar o perfil."
+                    } else {
+                        "Sera salva como: $cityPreview"
+                    }
+                )
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -248,7 +275,7 @@ private fun LocationStep(
         OutlinedTextField(
             value = uiState.instituicao,
             onValueChange = onInstitutionChange,
-            label = { Text("Instituição (opcional)") },
+            label = { Text("Instituicao (opcional)") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -260,21 +287,22 @@ private fun LocationStep(
 private fun NeedsStep(
     uiState: OnboardingUiState,
     onToggleNeed: (NecessidadeAcademica) -> Unit,
+    onOpenLegalDocuments: () -> Unit,
     onTogglePlatformConsent: () -> Unit,
     onToggleConsent: () -> Unit
 ) {
     GlassCard {
         Text(
-            text = "Necessidades acadêmicas",
+            text = "Necessidades academicas",
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Essas preferências ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
+            text = "Essas preferencias ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            NecessidadeAcademica.entries.forEach { necessidade ->
+            uiState.necessidadesDisponiveis.forEach { necessidade ->
                 FilterChip(
                     selected = uiState.necessidadesAcademicas.contains(necessidade),
                     onClick = { onToggleNeed(necessidade) },
@@ -290,22 +318,36 @@ private fun NeedsStep(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Para concluir o perfil, confirme que você concorda com os termos de uso e a política de privacidade do EcoBook.",
+            text = "Antes do aceite, leia o resumo dos termos de uso e da politica de privacidade do EcoBook.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        OutlinedButton(
+            onClick = onOpenLegalDocuments,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Ler termos e privacidade")
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Aceito os termos e a política de privacidade",
+                text = "Aceito os termos e a politica de privacidade",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
             Checkbox(
                 checked = uiState.platformConsentAccepted,
+                enabled = uiState.hasViewedPlatformTerms,
                 onCheckedChange = { onTogglePlatformConsent() }
+            )
+        }
+        if (!uiState.hasViewedPlatformTerms) {
+            Text(
+                text = "Abra o resumo acima para liberar o aceite.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         uiState.fieldErrors["platform_consent"]?.let { message ->
@@ -323,7 +365,7 @@ private fun NeedsStep(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Quando ativado, o backend poderá usar Gemini nas futuras etapas de classificação assistida de materiais.",
+            text = "Quando ativado, o backend podera usar Gemini nas futuras etapas de classificacao assistida de materiais.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, Phase 7 admin/moderation runtime, and the Phase 8 LGPD/security runtime are implemented; Phase 9 has started through the already-live response compression baseline while Firebase real-device validation remains the main external closeout item  
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, Phase 7 admin/moderation runtime, and the Phase 8 LGPD/security runtime are implemented; Phase 9 is in progress through response compression, Micrometer/Prometheus observability, smoke coverage, authenticated-read caching, immutable reference-data caching/catalog sync, discovery cursor pagination, rollback cleanup, visible terms/privacy consent UX and profile self-service updates while Firebase real-device validation remains the main external closeout item  
 **Generated**: 2026-04-15
 
 ---
@@ -1183,15 +1183,17 @@ Runtime note on 2026-05-14:
   - Add `compression: true` to Spring Boot actuator
   - Enable gzip compression for JSON responses > 1KB
   - Reduces network latency
-- [ ] **T210** [P] Add caching for immutable data:
+- [x] **T210** [P] Add caching for immutable data:
   - Cache enum lists (disciplinas, niveis, sistemas) in memory
   - Cache user profiles (30-min TTL)
   - Use Spring Cache abstraction with @Cacheable
-- [ ] **T211** [P] Implement pagination optimization:
+  - Runtime note (2026-05-23): authenticated profile, consent-status and security-context reads use a 30-minute cache baseline, and the immutable material-options catalog now ships through `GET /api/v1/reference-data/material-options` with backend cache plus Android fallback-driven consumption
+- [x] **T211** [P] Implement pagination optimization:
   - Use keyset pagination (instead of offset) for large result sets
   - Example: GET /materiais?after_id={last_id}&size=20
   - Avoids expensive OFFSET skip
-- [ ] **T212** [P] Add monitoring & alerting:
+  - Runtime note (2026-05-23): `GET /api/v1/materiais` now returns `next_after_id` on pageable discovery responses, accepts `after_id` for same-filter continuation and lets Android discovery append through cursor/keyset windows while preserving the existing page metadata for UI state
+- [x] **T212** [P] Add monitoring & alerting:
   - Configure Micrometer metrics export (optional: Prometheus)
   - Monitor: request count, latency, error rate, database connection pool
   - Setup Sentry for error tracking
@@ -1207,7 +1209,7 @@ Runtime note on 2026-05-14:
   - Material uploaded with very long title (truncate or reject)
   - WhatsApp number with special characters (sanitize)
   - City name with Unicode characters (normalize correctly)
-- [ ] **T214** Create rollback & recovery tests:
+- [x] **T214** Create rollback & recovery tests:
   - Payment failed mid-transaction (not applicable here, but transaction rollback testing)
   - File upload successful but database insert failed (cleanup orphaned file)
   - Notification failed to send but request created (retry queue)
@@ -1248,7 +1250,7 @@ Runtime note on 2026-05-14:
   - 30 users simultaneously searching
   - Monitor: p95 latency, error rate, database load
   - Target: <2s p95 search latency, <1% error rate
-- [ ] **T218** [P] Create smoke test suite:
+- [x] **T218** [P] Create smoke test suite:
   - Verify core endpoints return 200 (health checks, search, upload stub)
   - Run before every deployment
   - Alert if smoke test fails
@@ -1372,7 +1374,9 @@ What is already true in the repository:
 - ✅ Phase 5 request workflow is already present in runtime on backend and Android
 - ✅ FCM token registration plus basic notification dispatch/permission flow already exist as the start of Phase 6
 - ✅ Phase 7 reporting plus admin moderation/runtime authorization are now implemented on backend, with the Android student reporting flow already live
-- ✅ Phase 8 consent-management kickoff is now live through PATCH/DELETE AI consent endpoints plus preview enforcement
+- ✅ Phase 8 LGPD/security runtime is implemented through consent history, account deletion/anonymization, authenticated image access, audit logging and data export
+- ✅ Phase 9 is the current active stop point, now with response compression, Micrometer/Prometheus metrics, smoke coverage, immutable reference-data catalog caching, discovery cursor pagination and rollback cleanup already live
+- ✅ Backend regression is stable again (`mvn test` green with 138 tests on the current runtime) and Android local JVM validation is still green through `scripts/Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
 Phase 3 closeout notes:
 
@@ -1388,13 +1392,13 @@ Phase 3 closeout notes:
 2. **Create Tickets**: Convert tasks to GitHub Issues with labels (backend, android, testing, RFC references)
 3. **Setup CI/CD**: GitHub Actions workflow ready (T030)
 4. **Revalidate Phase 6 End to End**: run the implemented notification stack against a real Firebase project/device flow and capture execution notes
-5. **Advance Phase 8**: persist consent history, add account deletion/anonymization and secure image access
-6. **Prepare the next fronts**: LGPD completion, observability and hardening
+5. **Advance Phase 9**: finish load validation, boundary/edge-case coverage and the remaining Firebase hardening evidence
+6. **Start the practical Phase 10 closeout**: runtime/API docs, troubleshooting, deployment notes and final quality gates
 
 ---
 
 **Generated**: 2026-04-15  
-**Status**: Phase 5, Phase 6 and Phase 7 runtime delivery recorded; use this file as a living backlog for Firebase validation plus the remaining Phase 8/LGPD execution  
+**Status**: Phase 8 runtime delivery recorded and Phase 9 is actively underway; use this file as a living backlog for Firebase validation plus the remaining load/edge-case hardening and Phase 10 closeout  
 **Document Owner**: Product/Tech Lead  
-**Last Updated**: 2026-05-21
+**Last Updated**: 2026-05-23
 

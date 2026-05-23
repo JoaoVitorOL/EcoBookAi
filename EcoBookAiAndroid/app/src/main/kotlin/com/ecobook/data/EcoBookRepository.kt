@@ -10,6 +10,7 @@ import com.ecobook.model.DonationStep
 import com.ecobook.model.ProjectInsight
 import com.ecobook.model.SessionUiState
 import com.ecobook.model.UserProfileDraft
+import com.ecobook.ui.WhatsAppFormatter
 import com.ecobook.ui.EcoBookUiState
 import com.ecobook.utils.SecureStorage
 import javax.inject.Inject
@@ -43,7 +44,7 @@ class EcoBookRepository @Inject constructor(
         return UserProfileDraft(
             nome = secureStorage.getUserName().orEmpty(),
             email = secureStorage.getUserEmail().orEmpty(),
-            whatsapp = secureStorage.getUserWhatsapp().orEmpty(),
+            whatsapp = WhatsAppFormatter.formatForInput(secureStorage.getUserWhatsapp().orEmpty()),
             cidade = secureStorage.getUserCidade().orEmpty(),
             bairro = secureStorage.getUserBairro().orEmpty(),
             instituicao = secureStorage.getUserInstituicao().orEmpty(),

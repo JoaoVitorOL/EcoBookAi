@@ -139,7 +139,7 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("Tentativa repetida")
         ))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("Já existe um reporte aberto para este material");
+                .hasMessage("Ja existe um reporte aberto para este material");
     }
 
     @Test
@@ -165,7 +165,7 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("   ")
         ))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("O motivo informado é inválido");
+                .hasMessage("O motivo informado e invalido");
     }
 
     @Test
@@ -188,7 +188,7 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("Nao chegou")
         ))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("Apenas o estudante com solicitação concluída pode reportar não recebimento");
+                .hasMessage("Apenas o estudante com solicitacao concluida pode reportar nao recebimento");
     }
 
     private Usuario createStudent(String email) {

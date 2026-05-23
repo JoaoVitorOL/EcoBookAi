@@ -4,12 +4,12 @@ package com.ecobook.model.enums;
  * Student academic needs
  */
 public enum NecessidadeAcademica {
-    TEXTBOOKS("Livros didáticos"),
-    WORKBOOKS("Cadernos de exercícios"),
-    REFERENCE_MATERIALS("Materiais de referência"),
-    FICTION("Obras de ficção"),
-    TECHNICAL_BOOKS("Livros técnicos"),
-    TEST_PREP("Preparação para testes");
+    TEXTBOOKS("Livros didaticos"),
+    WORKBOOKS("Cadernos de exercicios"),
+    REFERENCE_MATERIALS("Materiais de referencia"),
+    FICTION("Obras de ficcao"),
+    TECHNICAL_BOOKS("Livros tecnicos"),
+    TEST_PREP("Preparacao para testes");
 
     private final String description;
 

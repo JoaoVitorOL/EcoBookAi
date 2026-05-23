@@ -4,6 +4,7 @@ import com.ecobook.dto.MaterialDTO
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
 import com.ecobook.model.NivelEnsino
+import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
 
 data class DonateMaterialDraft(
@@ -21,6 +22,10 @@ data class DonateMaterialDraft(
 
 data class DonateUiState(
     val materials: List<MaterialDTO> = emptyList(),
+    val disciplinas: List<Disciplina> = ReferenceDataCatalog.defaults().disciplinas,
+    val niveisEnsino: List<NivelEnsino> = ReferenceDataCatalog.defaults().niveisEnsino,
+    val sistemasEnsino: List<SistemaEnsino> = ReferenceDataCatalog.defaults().sistemasEnsino,
+    val estadosConservacao: List<EstadoConservacao> = ReferenceDataCatalog.defaults().estadosConservacao,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isDeleting: Boolean = false,

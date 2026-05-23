@@ -9,15 +9,15 @@ import com.ecobook.model.enums.StatusSolicitacao;
 import com.ecobook.service.SolicitacaoService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class SolicitacaoController {
         return ApiEnvelopeResponses.status(
                 HttpStatus.CREATED,
                 servletRequest,
-                "Solicitação criada com sucesso",
+                "Solicitacao criada com sucesso",
                 solicitacaoService.createRequest(authentication.getName(), materialId)
         );
     }
@@ -52,7 +52,7 @@ public class SolicitacaoController {
             HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitações do estudante carregadas com sucesso",
+                "Solicitacoes do estudante carregadas com sucesso",
                 solicitacaoService.listCurrentUserRequests(
                         authentication.getName(),
                         parseStatus(status)
@@ -67,7 +67,7 @@ public class SolicitacaoController {
             HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitações pendentes do doador carregadas com sucesso",
+                "Solicitacoes pendentes do doador carregadas com sucesso",
                 solicitacaoService.listPendingRequestsForDonor(authentication.getName())
         );
     }
@@ -79,7 +79,7 @@ public class SolicitacaoController {
             HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitações aprovadas do doador carregadas com sucesso",
+                "Solicitacoes aprovadas do doador carregadas com sucesso",
                 solicitacaoService.listApprovedRequestsForDonor(authentication.getName())
         );
     }
@@ -91,7 +91,7 @@ public class SolicitacaoController {
                                                                   HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitação carregada com sucesso",
+                "Solicitacao carregada com sucesso",
                 solicitacaoService.getRequest(authentication.getName(), id)
         );
     }
@@ -103,7 +103,7 @@ public class SolicitacaoController {
                                                                       HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitação aprovada com sucesso",
+                "Solicitacao aprovada com sucesso",
                 solicitacaoService.approveRequest(authentication.getName(), id)
         );
     }
@@ -115,7 +115,7 @@ public class SolicitacaoController {
                                                                       HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitação recusada com sucesso",
+                "Solicitacao recusada com sucesso",
                 solicitacaoService.declineRequest(authentication.getName(), id)
         );
     }
@@ -127,7 +127,7 @@ public class SolicitacaoController {
                                                                      HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitação cancelada com sucesso",
+                "Solicitacao cancelada com sucesso",
                 solicitacaoService.cancelRequest(authentication.getName(), id)
         );
     }
@@ -139,7 +139,7 @@ public class SolicitacaoController {
                                                                         HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Doação concluída com sucesso",
+                "Doacao concluida com sucesso",
                 solicitacaoService.completeDonation(authentication.getName(), id)
         );
     }
@@ -153,8 +153,8 @@ public class SolicitacaoController {
             return StatusSolicitacao.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException(
-                    "O filtro de status informado é inválido",
-                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUÍDA")
+                    "O filtro de status informado e invalido",
+                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA")
             );
         }
     }

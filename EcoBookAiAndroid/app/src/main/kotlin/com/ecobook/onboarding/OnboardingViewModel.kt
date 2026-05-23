@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.ecobook.auth.SessionManager
 import com.ecobook.data.ApiException
 import com.ecobook.data.AuthRepository
+import com.ecobook.data.ReferenceDataRepository
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.model.NecessidadeAcademica
+import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.ui.WhatsAppFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -24,9 +26,11 @@ data class OnboardingUiState(
     val cidade: String = "",
     val bairro: String = "",
     val instituicao: String = "",
+    val hasViewedPlatformTerms: Boolean = false,
     val platformConsentAccepted: Boolean = false,
     val consentimentoIa: Boolean = false,
     val necessidadesAcademicas: Set<NecessidadeAcademica> = emptySet(),
+    val necessidadesDisponiveis: List<NecessidadeAcademica> = ReferenceDataCatalog.defaults().necessidadesAcademicas,
     val isSubmitting: Boolean = false,
     val fieldErrors: Map<String, String> = emptyMap(),
     val message: String? = null
@@ -38,6 +42,7 @@ data class OnboardingUiState(
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val referenceDataRepository: ReferenceDataRepository,
     sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -48,6 +53,10 @@ class OnboardingViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
+
+    init {
+        loadReferenceData()
+    }
 
     fun updateNome(value: String) {
         _uiState.update { it.copy(nome = value, fieldErrors = it.fieldErrors - "nome", message = null) }
@@ -84,6 +93,16 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun togglePlatformConsentAccepted() {
+        if (!_uiState.value.hasViewedPlatformTerms) {
+            _uiState.update {
+                it.copy(
+                    fieldErrors = it.fieldErrors + ("platform_consent" to "Leia os termos e a privacidade antes de aceitar."),
+                    message = null
+                )
+            }
+            return
+        }
+
         _uiState.update {
             it.copy(
                 platformConsentAccepted = !it.platformConsentAccepted,
@@ -95,6 +114,16 @@ class OnboardingViewModel @Inject constructor(
 
     fun toggleConsentimentoIa() {
         _uiState.update { it.copy(consentimentoIa = !it.consentimentoIa, message = null) }
+    }
+
+    fun markPlatformTermsViewed() {
+        _uiState.update {
+            it.copy(
+                hasViewedPlatformTerms = true,
+                fieldErrors = it.fieldErrors - "platform_consent",
+                message = null
+            )
+        }
     }
 
     fun toggleNecessidade(necessidade: NecessidadeAcademica) {
@@ -134,6 +163,7 @@ class OnboardingViewModel @Inject constructor(
 
             val state = _uiState.value
             val request = UpdateProfileRequestDTO(
+                email = null,
                 nome = state.nome.trim(),
                 whatsapp = WhatsAppFormatter.toBackendValue(state.whatsapp),
                 cidade = state.cidade.trim(),
@@ -162,6 +192,22 @@ class OnboardingViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    private fun loadReferenceData() {
+        viewModelScope.launch {
+            val catalog = runCatching { referenceDataRepository.getCatalog() }
+                .getOrElse { referenceDataRepository.defaultCatalog() }
+
+            _uiState.update { state ->
+                state.copy(
+                    necessidadesDisponiveis = catalog.necessidadesAcademicas,
+                    necessidadesAcademicas = state.necessidadesAcademicas.filterTo(linkedSetOf()) {
+                        it in catalog.necessidadesAcademicas
+                    }
+                )
+            }
         }
     }
 

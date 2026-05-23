@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecobook.data.ApiException
 import com.ecobook.data.MaterialRepository
+import com.ecobook.data.ReferenceDataRepository
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.dto.UpdateMaterialRequestDTO
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
 import com.ecobook.model.NivelEnsino
+import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
@@ -24,13 +26,15 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class DonateViewModel @Inject constructor(
-    private val materialRepository: MaterialRepository
+    private val materialRepository: MaterialRepository,
+    private val referenceDataRepository: ReferenceDataRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DonateUiState(isLoading = true))
     val uiState: StateFlow<DonateUiState> = _uiState.asStateFlow()
 
     init {
+        loadReferenceData()
         refreshMaterials()
     }
 
@@ -69,7 +73,7 @@ class DonateViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 materialBeingEdited = material,
-                editDraft = material.toDonateDraft(),
+                editDraft = sanitizeDraft(material.toDonateDraft(), currentCatalog(it)),
                 validationErrors = emptyMap(),
                 editorMessage = null
             )
@@ -205,6 +209,23 @@ class DonateViewModel @Inject constructor(
 
     fun consumeToast() {
         _uiState.update { it.copy(toastMessage = null) }
+    }
+
+    private fun loadReferenceData() {
+        viewModelScope.launch {
+            val catalog = runCatching { referenceDataRepository.getCatalog() }
+                .getOrElse { referenceDataRepository.defaultCatalog() }
+
+            _uiState.update { state ->
+                state.copy(
+                    disciplinas = catalog.disciplinas,
+                    niveisEnsino = catalog.niveisEnsino,
+                    sistemasEnsino = catalog.sistemasEnsino,
+                    estadosConservacao = catalog.estadosConservacao,
+                    editDraft = sanitizeDraft(state.editDraft, catalog)
+                )
+            }
+        }
     }
 
     private fun updateDraft(transform: DonateMaterialDraft.() -> DonateMaterialDraft) {
@@ -344,6 +365,27 @@ class DonateViewModel @Inject constructor(
 
     private inline fun <reified T : Enum<T>> enumOrNull(value: String): T? {
         return runCatching { enumValueOf<T>(value) }.getOrNull()
+    }
+
+    private fun sanitizeDraft(draft: DonateMaterialDraft, catalog: ReferenceDataCatalog): DonateMaterialDraft {
+        val nivelEnsino = draft.nivelEnsino?.takeIf(catalog.niveisEnsino::contains)
+        return draft.copy(
+            disciplina = draft.disciplina?.takeIf(catalog.disciplinas::contains),
+            nivelEnsino = nivelEnsino,
+            ano = sanitizeAnoEscolar(draft.ano, nivelEnsino),
+            sistemaEnsino = draft.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains),
+            estadoConservacao = draft.estadoConservacao?.takeIf(catalog.estadosConservacao::contains)
+        )
+    }
+
+    private fun currentCatalog(state: DonateUiState): ReferenceDataCatalog {
+        return ReferenceDataCatalog(
+            disciplinas = state.disciplinas,
+            niveisEnsino = state.niveisEnsino,
+            sistemasEnsino = state.sistemasEnsino,
+            estadosConservacao = state.estadosConservacao,
+            necessidadesAcademicas = referenceDataRepository.defaultCatalog().necessidadesAcademicas
+        )
     }
 
     private fun sanitizeAnoEscolar(value: String, nivelEnsino: NivelEnsino?): String {

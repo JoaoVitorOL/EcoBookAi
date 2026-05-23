@@ -1,7 +1,7 @@
 # API Contracts
 
-**Phase**: 1-8 runtime  
-**Date**: 2026-05-21  
+**Phase**: 1-9 runtime  
+**Date**: 2026-05-23  
 **Purpose**: Current contract index for the endpoints and payloads already implemented in the repository
 
 ---
@@ -27,10 +27,15 @@ Authentication and profile endpoints:
 
 - `POST /api/v1/auth/register`
 - `POST /api/v1/auth/login`
+- `GET /api/v1/reference-data/material-options`
 - `GET /api/v1/usuarios/me`
 - `PUT /api/v1/usuarios/me`
+- `GET /api/v1/usuarios/me/consent`
 - `PATCH /api/v1/usuarios/me/consentimento-ia`
+- `PATCH /api/v1/usuarios/me/consent` (`alias` de compatibilidade)
 - `DELETE /api/v1/usuarios/me/consent/ai-classification`
+- `POST /api/v1/usuarios/delete`
+- `POST /api/v1/usuarios/me/export`
 
 ### [material-api.md](material-api.md)
 
@@ -38,7 +43,8 @@ Material and discovery endpoints:
 
 - `POST /api/v1/materiais/preview`
 - `POST /api/v1/materiais`
-- `GET /api/v1/materiais`
+- `GET /api/v1/materiais` (`page`/`size` + optional `after_id` cursor continuation)
+- `GET /api/v1/images/{upload_tracking_id}`
 - `GET /api/v1/materiais/me`
 - `PUT /api/v1/materiais/{id}`
 - `DELETE /api/v1/materiais/{id}`
@@ -81,6 +87,7 @@ Broader admin catalog and moderation endpoints already exposed by the backend:
 - `GET /api/v1/admin/materials`
 - `DELETE /api/v1/admin/materials/{id}`
 - `GET /api/v1/admin/users`
+- `GET /api/v1/admin/audit-log`
 
 ### [notification-schema.md](notification-schema.md)
 
@@ -102,3 +109,4 @@ Shared error envelope and HTTP mapping guidance.
 - [data-model.md](../data-model.md)
 - [PLAN-SUMMARY.md](../PLAN-SUMMARY.md)
 - [TASKS.md](../TASKS.md)
+- [../../../docs/legal/termos-e-privacidade.md](../../../docs/legal/termos-e-privacidade.md)

@@ -15,7 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -73,6 +72,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/v1/auth/**",
                                 "/api/v1/auth/**",
+                                "/v1/reference-data/**",
+                                "/api/v1/reference-data/**",
                                 "/v1/health",
                                 "/api/v1/health",
                                 "/actuator/health",
@@ -93,12 +94,7 @@ public class SecurityConfig {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("status", 401);
         payload.put("error", "UNAUTHORIZED");
-        payload.put(
-                "message",
-                StringUtils.hasText(authException.getMessage())
-                        ? authException.getMessage()
-                        : "Um token JWT valido e obrigatorio"
-        );
+        payload.put("message", "Um token JWT valido e obrigatorio");
         payload.put("path", requestUri);
 
         response.setStatus(401);

@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecobook.data.ApiException
 import com.ecobook.data.MaterialRepository
+import com.ecobook.data.ReferenceDataRepository
 import com.ecobook.dto.CreateMaterialRequestDTO
 import com.ecobook.dto.GeminiResponseDTO
 import com.ecobook.model.AiAssistStatus
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
 import com.ecobook.model.NivelEnsino
+import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
@@ -26,11 +28,16 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MaterialUploadViewModel @Inject constructor(
-    private val materialRepository: MaterialRepository
+    private val materialRepository: MaterialRepository,
+    private val referenceDataRepository: ReferenceDataRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MaterialUploadUiState())
     val uiState: StateFlow<MaterialUploadUiState> = _uiState.asStateFlow()
+
+    init {
+        loadReferenceData()
+    }
 
     fun onImageSelected(uri: Uri, source: ImageSource, slot: ImageSlot) {
         runCatching { materialRepository.describeImage(uri, source) }
@@ -63,9 +70,9 @@ class MaterialUploadViewModel @Inject constructor(
     fun clearSelectedImage(slot: ImageSlot? = null) {
         _uiState.update { state ->
             when (slot) {
-                ImageSlot.FRONT -> MaterialUploadUiState(selectedBackImage = state.selectedBackImage)
+                ImageSlot.FRONT -> resetState(state, selectedBackImage = state.selectedBackImage)
                 ImageSlot.BACK -> state.copy(selectedBackImage = null, backendMessage = null)
-                null -> MaterialUploadUiState()
+                null -> resetState(state)
             }
         }
     }
@@ -189,7 +196,24 @@ class MaterialUploadViewModel @Inject constructor(
     }
 
     fun restartFlow() {
-        _uiState.value = MaterialUploadUiState()
+        _uiState.value = resetState(_uiState.value)
+    }
+
+    private fun loadReferenceData() {
+        viewModelScope.launch {
+            val catalog = runCatching { referenceDataRepository.getCatalog() }
+                .getOrElse { referenceDataRepository.defaultCatalog() }
+
+            _uiState.update { state ->
+                state.copy(
+                    disciplinas = catalog.disciplinas,
+                    niveisEnsino = catalog.niveisEnsino,
+                    sistemasEnsino = catalog.sistemasEnsino,
+                    estadosConservacao = catalog.estadosConservacao,
+                    draft = sanitizeDraft(state.draft, catalog)
+                )
+            }
+        }
     }
 
     private fun updateDraft(transform: (MaterialDraft) -> MaterialDraft) {
@@ -400,6 +424,32 @@ class MaterialUploadViewModel @Inject constructor(
         val rawValue = this?.value?.toString()?.trim().orEmpty()
         if (rawValue.isBlank()) return null
         return runCatching { parser(rawValue) }.getOrNull()
+    }
+
+    private fun sanitizeDraft(draft: MaterialDraft, catalog: ReferenceDataCatalog): MaterialDraft {
+        val nivelEnsino = draft.nivelEnsino?.takeIf(catalog.niveisEnsino::contains)
+        return draft.copy(
+            disciplina = draft.disciplina?.takeIf(catalog.disciplinas::contains),
+            nivelEnsino = nivelEnsino,
+            ano = sanitizeAnoEscolar(draft.ano, nivelEnsino),
+            sistemaEnsino = draft.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains),
+            estadoConservacao = draft.estadoConservacao?.takeIf(catalog.estadosConservacao::contains)
+        )
+    }
+
+    private fun resetState(
+        currentState: MaterialUploadUiState,
+        selectedFrontImage: SelectedImageUiModel? = null,
+        selectedBackImage: SelectedImageUiModel? = null
+    ): MaterialUploadUiState {
+        return MaterialUploadUiState(
+            selectedFrontImage = selectedFrontImage,
+            selectedBackImage = selectedBackImage,
+            disciplinas = currentState.disciplinas,
+            niveisEnsino = currentState.niveisEnsino,
+            sistemasEnsino = currentState.sistemasEnsino,
+            estadosConservacao = currentState.estadosConservacao
+        )
     }
 
     private fun sanitizeAnoEscolar(value: String, nivelEnsino: NivelEnsino?): String {

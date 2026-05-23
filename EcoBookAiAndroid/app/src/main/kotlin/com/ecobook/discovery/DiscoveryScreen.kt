@@ -319,7 +319,7 @@ private fun DiscoveryFiltersCard(
                 DropdownField(
                     label = "Disciplina",
                     selectedOption = uiState.filters.disciplina,
-                    options = Disciplina.entries,
+                    options = uiState.disciplinas,
                     allLabel = "Qualquer disciplina",
                     optionLabel = { it.label },
                     onSelected = onDisciplinaChange
@@ -327,7 +327,7 @@ private fun DiscoveryFiltersCard(
                 DropdownField(
                     label = "Nivel de ensino",
                     selectedOption = uiState.filters.nivelEnsino,
-                    options = NivelEnsino.entries,
+                    options = uiState.niveisEnsino,
                     allLabel = "Todos",
                     optionLabel = { it.label },
                     onSelected = onNivelEnsinoChange
@@ -335,7 +335,7 @@ private fun DiscoveryFiltersCard(
                 DropdownField(
                     label = "Sistema de ensino",
                     selectedOption = uiState.filters.sistemaEnsino,
-                    options = SistemaEnsino.entries,
+                    options = uiState.sistemasEnsino,
                     allLabel = "Todos",
                     optionLabel = { it.label },
                     onSelected = onSistemaEnsinoChange

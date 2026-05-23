@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecobook.data.ApiException
 import com.ecobook.data.MaterialRepository
+import com.ecobook.data.ReferenceDataRepository
 import com.ecobook.data.RequestRepository
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.model.NivelEnsino
+import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.utils.SecureStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
@@ -24,6 +26,7 @@ import kotlinx.coroutines.launch
 class DiscoveryViewModel @Inject constructor(
     private val materialRepository: MaterialRepository,
     private val requestRepository: RequestRepository,
+    private val referenceDataRepository: ReferenceDataRepository,
     private val secureStorage: SecureStorage
 ) : ViewModel() {
 
@@ -36,6 +39,7 @@ class DiscoveryViewModel @Inject constructor(
     val uiState: StateFlow<DiscoveryUiState> = _uiState.asStateFlow()
 
     init {
+        loadReferenceData()
         search()
     }
 
@@ -98,10 +102,11 @@ class DiscoveryViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(
                 filters = clearedFilters,
-                selectedMaterial = null
+                selectedMaterial = null,
+                nextAfterId = null
             )
         }
-        executeSearch(filters = clearedFilters, page = 0, append = false)
+        executeSearch(filters = clearedFilters, page = 0, append = false, afterId = null)
     }
 
     fun loadNextPage() {
@@ -113,7 +118,8 @@ class DiscoveryViewModel @Inject constructor(
         executeSearch(
             filters = state.activeFilters,
             page = state.page + 1,
-            append = true
+            append = true,
+            afterId = state.nextAfterId
         )
     }
 
@@ -165,7 +171,8 @@ class DiscoveryViewModel @Inject constructor(
         executeSearch(
             filters = state.activeFilters,
             page = 0,
-            append = false
+            append = false,
+            afterId = null
         )
     }
 
@@ -177,10 +184,28 @@ class DiscoveryViewModel @Inject constructor(
         _uiState.update { state -> state.copy(pendingNavigation = null) }
     }
 
+    private fun loadReferenceData() {
+        viewModelScope.launch {
+            val catalog = runCatching { referenceDataRepository.getCatalog() }
+                .getOrElse { referenceDataRepository.defaultCatalog() }
+
+            _uiState.update { state ->
+                state.copy(
+                    disciplinas = catalog.disciplinas,
+                    niveisEnsino = catalog.niveisEnsino,
+                    sistemasEnsino = catalog.sistemasEnsino,
+                    filters = sanitizeFilters(state.filters, catalog),
+                    activeFilters = sanitizeFilters(state.activeFilters, catalog)
+                )
+            }
+        }
+    }
+
     private fun executeSearch(
         filters: DiscoveryFilters,
         page: Int,
-        append: Boolean
+        append: Boolean,
+        afterId: String? = null
     ) {
         if (_uiState.value.isLoading) {
             return
@@ -192,7 +217,8 @@ class DiscoveryViewModel @Inject constructor(
                 errorMessage = null,
                 isLoadingInitial = !append,
                 isLoadingMore = append,
-                hasSearched = true
+                hasSearched = true,
+                nextAfterId = if (append) state.nextAfterId else null
             )
         }
 
@@ -208,6 +234,7 @@ class DiscoveryViewModel @Inject constructor(
                     bairro = filters.bairro.trim().takeIf { it.isNotBlank() },
                     minAnoPublicacao = filters.minAnoPublicacao.toIntOrNull(),
                     maxAnoPublicacao = filters.maxAnoPublicacao.toIntOrNull(),
+                    afterId = afterId,
                     page = page,
                     size = uiState.value.pageSize
                 )
@@ -218,6 +245,7 @@ class DiscoveryViewModel @Inject constructor(
                         page = response.page,
                         total = response.total,
                         hasNext = response.hasNext,
+                        nextAfterId = response.nextAfterId,
                         isLoadingInitial = false,
                         isLoadingMore = false
                     )
@@ -306,6 +334,16 @@ class DiscoveryViewModel @Inject constructor(
         return DiscoveryFilters(
             cidade = secureStorage.getUserCidade().orEmpty(),
             bairro = secureStorage.getUserBairro().orEmpty()
+        )
+    }
+
+    private fun sanitizeFilters(filters: DiscoveryFilters, catalog: ReferenceDataCatalog): DiscoveryFilters {
+        val nivelEnsino = filters.nivelEnsino?.takeIf(catalog.niveisEnsino::contains)
+        return filters.copy(
+            disciplina = filters.disciplina?.takeIf(catalog.disciplinas::contains),
+            nivelEnsino = nivelEnsino,
+            ano = sanitizeAnoEscolar(filters.ano, nivelEnsino),
+            sistemaEnsino = filters.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains)
         )
     }
 

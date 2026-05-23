@@ -6,6 +6,7 @@ import com.ecobook.model.AiAssistStatus
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
 import com.ecobook.model.NivelEnsino
+import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
 
 enum class MaterialFlowStage {
@@ -50,6 +51,10 @@ data class MaterialUploadUiState(
     val stage: MaterialFlowStage = MaterialFlowStage.SELECT,
     val selectedFrontImage: SelectedImageUiModel? = null,
     val selectedBackImage: SelectedImageUiModel? = null,
+    val disciplinas: List<Disciplina> = ReferenceDataCatalog.defaults().disciplinas,
+    val niveisEnsino: List<NivelEnsino> = ReferenceDataCatalog.defaults().niveisEnsino,
+    val sistemasEnsino: List<SistemaEnsino> = ReferenceDataCatalog.defaults().sistemasEnsino,
+    val estadosConservacao: List<EstadoConservacao> = ReferenceDataCatalog.defaults().estadosConservacao,
     val isBusy: Boolean = false,
     val overallStatus: AiAssistStatus? = null,
     val uploadId: String? = null,

@@ -1,10 +1,11 @@
 package com.ecobook.service;
 
+import com.ecobook.config.CacheNames;
 import com.ecobook.dto.UpdateProfileRequestDTO;
-import com.ecobook.dto.UsuarioDTO;
 import com.ecobook.dto.UserConsentStatusDTO;
-import com.ecobook.exception.BadRequestException;
+import com.ecobook.dto.UsuarioDTO;
 import com.ecobook.event.ProfileCompletedEvent;
+import com.ecobook.exception.BadRequestException;
 import com.ecobook.exception.ResourceNotFoundException;
 import com.ecobook.exception.UnprocessableEntityException;
 import com.ecobook.model.Usuario;
@@ -14,18 +15,22 @@ import com.ecobook.validation.ProfileCompletionValidation;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * User/Usuario service for profile management
+ * User/Usuario service for profile management.
  */
 @Service
 @RequiredArgsConstructor
@@ -38,35 +43,49 @@ public class UsuarioService {
     private final ConsentService consentService;
 
     /**
-     * Update user profile with validation
+     * Load the authenticated user profile by email.
      */
+    @Cacheable(value = CacheNames.USER_PROFILE, key = "#email", sync = true)
     @Transactional(readOnly = true)
     public UsuarioDTO getByEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
         return toDto(usuario);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
+            @CacheEvict(value = CacheNames.USER_CONSENT_STATUS, key = "#email"),
+            @CacheEvict(value = CacheNames.USER_AUTH_CONTEXT, key = "#email")
+    })
     @Transactional
     public UsuarioDTO updateProfile(String email, UpdateProfileRequestDTO request) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
 
         validateRequiredFields(request);
         validateWhatsApp(request.getWhatsapp());
+        validateEmailChange(usuario, request.getEmail());
 
         boolean profileWasComplete = usuario.isPerfilCompleto();
         boolean aiConsentWasEnabled = Boolean.TRUE.equals(usuario.getConsentimentoIa());
         GeoNormalizationService.NormalizedGeo normalizedGeo =
                 geoNormalizationService.normalize(request.getCidade(), request.getBairro());
 
+        if (StringUtils.hasText(request.getEmail())) {
+            usuario.setEmail(normalizeEmail(request.getEmail()));
+        }
         usuario.setNome(request.getNome().trim());
         usuario.setWhatsapp(request.getWhatsapp().trim());
         usuario.setCidade(normalizedGeo.city());
         usuario.setBairro(normalizedGeo.neighborhood());
         usuario.setInstituicao(StringUtils.hasText(request.getInstituicao()) ? request.getInstituicao().trim() : null);
-        usuario.setConsentimentoIa(Boolean.TRUE.equals(request.getConsentimentoIa()));
-        usuario.setNecessidadesAcademicas(resolveNeeds(request.getNecessidadesAcademicas()));
+        if (request.getConsentimentoIa() != null) {
+            usuario.setConsentimentoIa(Boolean.TRUE.equals(request.getConsentimentoIa()));
+        }
+        if (request.getNecessidadesAcademicas() != null) {
+            usuario.setNecessidadesAcademicas(resolveNeeds(request.getNecessidadesAcademicas()));
+        }
         validateEntityConstraints(usuario);
         usuario.refreshPerfilCompleto();
 
@@ -84,7 +103,7 @@ public class UsuarioService {
     @Transactional
     public void updateFcmToken(String email, String token) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
 
         String normalizedToken = token.trim();
         if (normalizedToken.equals(usuario.getFcmToken())) {
@@ -95,10 +114,14 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
+            @CacheEvict(value = CacheNames.USER_CONSENT_STATUS, key = "#email")
+    })
     @Transactional
     public UsuarioDTO updateAiConsent(String email, boolean consentimentoIa) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
 
         if (Boolean.valueOf(consentimentoIa).equals(usuario.getConsentimentoIa())) {
             return toDto(usuario);
@@ -110,10 +133,11 @@ public class UsuarioService {
         return toDto(savedUser);
     }
 
+    @Cacheable(value = CacheNames.USER_CONSENT_STATUS, key = "#email", sync = true)
     @Transactional(readOnly = true)
     public UserConsentStatusDTO getConsentStatus(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("UsuÃ¡rio nÃ£o encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
         return consentService.getConsentStatus(usuario);
     }
 
@@ -129,8 +153,10 @@ public class UsuarioService {
                 .perfilCompleto(usuario.getPerfilCompleto())
                 .consentimentoIa(usuario.getConsentimentoIa())
                 .role(usuario.getRole().name())
-                .necessidadesAcademicas(usuario.getNecessidadesAcademicas() == null ? Set.of() :
-                        usuario.getNecessidadesAcademicas().stream().map(Enum::name).collect(Collectors.toCollection(java.util.LinkedHashSet::new)))
+                .necessidadesAcademicas(usuario.getNecessidadesAcademicas() == null ? Set.of()
+                        : usuario.getNecessidadesAcademicas().stream()
+                        .map(Enum::name)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .criadoEm(usuario.getCriadoEm())
                 .atualizadoEm(usuario.getAtualizadoEm())
                 .build();
@@ -139,6 +165,9 @@ public class UsuarioService {
     private void validateRequiredFields(UpdateProfileRequestDTO request) {
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
 
+        if (request.getEmail() != null && !StringUtils.hasText(request.getEmail())) {
+            fieldErrors.put("email", "Informe seu email");
+        }
         if (!StringUtils.hasText(request.getNome())) {
             fieldErrors.put("nome", "Informe seu nome");
         }
@@ -153,7 +182,25 @@ public class UsuarioService {
         }
 
         if (!fieldErrors.isEmpty()) {
-            throw new UnprocessableEntityException("Preencha todos os campos obrigatórios do perfil", fieldErrors);
+            throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
+        }
+    }
+
+    private void validateEmailChange(Usuario usuario, String requestedEmail) {
+        if (!StringUtils.hasText(requestedEmail)) {
+            return;
+        }
+
+        String normalizedEmail = normalizeEmail(requestedEmail);
+        if (normalizedEmail.equalsIgnoreCase(usuario.getEmail())) {
+            return;
+        }
+
+        if (usuarioRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new BadRequestException(
+                    "O perfil contem campos invalidos",
+                    new LinkedHashMap<>(java.util.Map.of("email", "Este email ja esta cadastrado"))
+            );
         }
     }
 
@@ -174,7 +221,7 @@ public class UsuarioService {
 
         if (!violations.isEmpty()) {
             throw new BadRequestException(
-                    "O perfil contém campos inválidos",
+                    "O perfil contem campos invalidos",
                     violations.stream().collect(Collectors.toMap(
                             violation -> violation.getPropertyPath().toString(),
                             ConstraintViolation::getMessage,
@@ -200,14 +247,18 @@ public class UsuarioService {
             return;
         }
 
-        if (fieldErrors.keySet().stream().allMatch(field -> field.equals("whatsapp"))) {
-            throw new BadRequestException("O perfil contém campos inválidos", fieldErrors);
+        if (fieldErrors.keySet().stream().allMatch(field -> field.equals("whatsapp") || field.equals("email"))) {
+            throw new BadRequestException("O perfil contem campos invalidos", fieldErrors);
         }
 
-        throw new UnprocessableEntityException("Preencha todos os campos obrigatórios do perfil", fieldErrors);
+        throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
     }
 
     private Set<NecessidadeAcademica> resolveNeeds(Set<NecessidadeAcademica> necessidadesAcademicas) {
         return necessidadesAcademicas == null ? new LinkedHashSet<>() : new LinkedHashSet<>(necessidadesAcademicas);
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

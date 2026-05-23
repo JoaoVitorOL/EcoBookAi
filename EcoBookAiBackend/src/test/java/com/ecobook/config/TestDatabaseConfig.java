@@ -23,6 +23,9 @@ public final class TestDatabaseConfig {
     private static final String EXTERNAL_DB_NAME = envOrDefault("ECOBOOK_TEST_DB_NAME", "ecobook_test");
     private static final String EXTERNAL_USERNAME = envOrDefault("ECOBOOK_TEST_DB_USER", "ecobook");
     private static final String EXTERNAL_PASSWORD = envOrDefault("ECOBOOK_TEST_DB_PASSWORD", envOrDefault("DB_PASSWORD", "dev_password_123"));
+    private static final String H2_JDBC_URL =
+            "jdbc:h2:mem:ecobook-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DEFAULT_NULL_ORDERING=HIGH;"
+                    + "INIT=RUNSCRIPT FROM 'classpath:db/test/h2-domains.sql'";
 
     private static volatile DatabaseProperties databaseProperties;
 
@@ -35,8 +38,11 @@ public final class TestDatabaseConfig {
         registry.add("spring.datasource.username", properties::username);
         registry.add("spring.datasource.password", properties::password);
         registry.add("spring.datasource.driver-class-name", properties::driverClassName);
-        registry.add("spring.flyway.enabled", () -> true);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.flyway.enabled", properties::flywayEnabled);
+        registry.add("spring.jpa.hibernate.ddl-auto", properties::ddlAuto);
+        if (properties.databasePlatform() != null) {
+            registry.add("spring.jpa.database-platform", properties::databasePlatform);
+        }
     }
 
     private static synchronized DatabaseProperties getDatabaseProperties() {
@@ -47,6 +53,7 @@ public final class TestDatabaseConfig {
         databaseProperties = switch (TEST_DB_MODE) {
             case "external" -> initializeExternalPostgres(null);
             case "testcontainers" -> initializeWithTestcontainers();
+            case "h2" -> initializeWithH2(null);
             default -> initializeAutomatically();
         };
 
@@ -54,6 +61,7 @@ public final class TestDatabaseConfig {
     }
 
     private static DatabaseProperties initializeAutomatically() {
+        RuntimeException containerFailure = null;
         try {
             return initializeWithTestcontainers();
         } catch (RuntimeException testcontainersFailure) {
@@ -64,7 +72,20 @@ public final class TestDatabaseConfig {
                     testcontainersFailure.getMessage()
             );
             LOGGER.debug("Detalhes da falha do Testcontainers local", testcontainersFailure);
-            return initializeExternalPostgres(testcontainersFailure);
+            containerFailure = testcontainersFailure;
+        }
+
+        try {
+            return initializeExternalPostgres(containerFailure);
+        } catch (RuntimeException externalFailure) {
+            LOGGER.warn(
+                    "PostgreSQL externo de teste indisponivel em {}:{}; usando fallback H2 em memoria ({})",
+                    EXTERNAL_HOST,
+                    EXTERNAL_PORT,
+                    externalFailure.getMessage()
+            );
+            LOGGER.debug("Detalhes da falha do PostgreSQL externo de teste", externalFailure);
+            return initializeWithH2(externalFailure);
         }
     }
 
@@ -80,7 +101,10 @@ public final class TestDatabaseConfig {
                 container.getJdbcUrl(),
                 container.getUsername(),
                 container.getPassword(),
-                container.getDriverClassName()
+                container.getDriverClassName(),
+                true,
+                "validate",
+                null
         );
     }
 
@@ -93,7 +117,15 @@ public final class TestDatabaseConfig {
         try {
             recreateDatabase(adminUrl, databaseName, username, EXTERNAL_PASSWORD);
             LOGGER.info("Banco de teste externo {} preparado em {}:{}.", databaseName, EXTERNAL_HOST, EXTERNAL_PORT);
-            return new DatabaseProperties(jdbcUrl, username, EXTERNAL_PASSWORD, "org.postgresql.Driver");
+            return new DatabaseProperties(
+                    jdbcUrl,
+                    username,
+                    EXTERNAL_PASSWORD,
+                    "org.postgresql.Driver",
+                    true,
+                    "validate",
+                    null
+            );
         } catch (SQLException sqlException) {
             String message = "Nao foi possivel preparar o banco externo de testes em "
                     + EXTERNAL_HOST + ":" + EXTERNAL_PORT
@@ -105,6 +137,25 @@ public final class TestDatabaseConfig {
             }
             throw new IllegalStateException(message, sqlException);
         }
+    }
+
+    private static DatabaseProperties initializeWithH2(Throwable previousFailure) {
+        if (previousFailure == null) {
+            LOGGER.info("Usando banco H2 em memoria para a suite de testes.");
+        } else {
+            LOGGER.warn("Usando banco H2 em memoria para a suite de testes como fallback final.");
+            LOGGER.debug("Motivo do fallback final para H2", previousFailure);
+        }
+
+        return new DatabaseProperties(
+                H2_JDBC_URL,
+                "sa",
+                "",
+                "org.h2.Driver",
+                false,
+                "create-drop",
+                "com.ecobook.config.LocalH2Dialect"
+        );
     }
 
     private static void recreateDatabase(String adminUrl,
@@ -131,6 +182,12 @@ public final class TestDatabaseConfig {
         throw new IllegalStateException(key + " deve conter apenas letras, numeros e underscore.");
     }
 
-    private record DatabaseProperties(String jdbcUrl, String username, String password, String driverClassName) {
+    private record DatabaseProperties(String jdbcUrl,
+                                      String username,
+                                      String password,
+                                      String driverClassName,
+                                      boolean flywayEnabled,
+                                      String ddlAuto,
+                                      String databasePlatform) {
     }
 }

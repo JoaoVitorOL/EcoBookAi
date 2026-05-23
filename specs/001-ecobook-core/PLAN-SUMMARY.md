@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 Started  
-**Date**: 2026-05-22  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, and the Phase 8 LGPD/security runtime are implemented; Phase 9 has started with the response-compression baseline already live while Firebase device validation and the deeper performance/load fronts stay pending
+**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 In Progress  
+**Date**: 2026-05-23  
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, and the Phase 8 LGPD/security runtime are implemented; Phase 9 is underway with response compression, Micrometer/Prometheus observability, smoke coverage, authenticated-read caching, immutable reference-data catalog caching/consumption, discovery cursor pagination, rollback cleanup, visible terms/privacy consent UX and profile self-service updates already live while Firebase device validation and the deeper performance/load fronts stay pending
 
 ---
 
@@ -126,6 +126,8 @@ What is already implemented in the repository:
    - JWT persistence and session restore
    - Logout and `401` handling
    - Onboarding with WhatsApp, cidade, bairro and optional `consentimento_ia`
+   - The onboarding flow now requires opening an in-app terms/privacy summary before platform consent and previews the normalized city value before submit
+   - The profile tab now allows self-service edits for `nome`, `email`, `whatsapp`, `cidade`, `bairro` and `instituicao`, with forced reauthentication when the email changes
 
 3. Phase 3 material + IA flow
    - `/api/v1/materiais/preview` validates JPEG/PNG, stores temporary upload, applies consent gate and returns AI/manual fallback payloads
@@ -134,7 +136,7 @@ What is already implemented in the repository:
    - Android donation flow now supports gallery/camera, processing state, AI review and final publish
 
 4. Phase 4 discovery
-   - backend discovery exposes `GET /api/v1/materiais` with pagination, geo-aware ranking, publication-year range validation and deterministic filters
+   - backend discovery exposes `GET /api/v1/materiais` with offset-first pagination, optional `after_id` cursor continuation, geo-aware ranking, publication-year range validation and deterministic filters
    - Android discovery uses the live search endpoint with empty state, infinite scroll, detail dialog and request CTA
 
 5. Phase 5 request workflow
@@ -152,9 +154,11 @@ What is already implemented in the repository:
    - backend now also exposes `GET /api/v1/admin/reports`, `PATCH /api/v1/admin/reports/{id}/resolve`, `GET /api/v1/admin/materials`, `DELETE /api/v1/admin/materials/{id}` and `GET /api/v1/admin/users`
    - admin authorization is complete through `hasRole('ADMIN')` plus startup bootstrap/promotion via `ADMIN_BOOTSTRAP_*`
 
-8. Phase 8 consent-management kickoff
-   - backend already enforces `consentimento_ia=false` by short-circuiting `/api/v1/materiais/preview` before any Gemini call
-   - backend now exposes both `PATCH /api/v1/usuarios/me/consentimento-ia` and `DELETE /api/v1/usuarios/me/consent/ai-classification`
+8. Phase 8 LGPD and security runtime
+   - backend enforces `consentimento_ia=false` before any Gemini call and now persists consent history through `ConsentRecord`
+   - backend exposes `PATCH /api/v1/usuarios/me/consentimento-ia`, the compatibility alias `PATCH /api/v1/usuarios/me/consent`, `DELETE /api/v1/usuarios/me/consent/ai-classification` and `GET /api/v1/usuarios/me/consent`
+   - secure image access now flows through `GET /api/v1/images/{upload_tracking_id}` with role-aware authorization
+   - account deletion, anonymization, token revocation, data export and admin audit log querying are implemented in runtime
 
 What closed Phase 3 formally:
 
@@ -164,7 +168,7 @@ What closed Phase 3 formally:
 
 What closed Phase 4 formally:
 
-1. Backend discovery now exposes `GET /api/v1/materiais` with deterministic matching, geo-aware ranking, pagination and publication-range validation, and the backend regression suite now passes with `66` tests via `mvn test`
+1. Backend discovery now exposes `GET /api/v1/materiais` with deterministic matching, geo-aware ranking, pagination, optional `after_id` cursor continuation and publication-range validation, and the backend regression suite now passes with `66` tests via `mvn test`
 2. Android discovery now uses the live search endpoint with prefilled location filters, infinite scroll, empty state, detail dialog and JVM validation through `.\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest app:lintDebug app:compileDebugAndroidTestKotlin`
 3. The material detail dialog was the handoff point that immediately evolved into the delivered Phase 5 transaction flow recorded on 2026-05-13
 
@@ -186,16 +190,38 @@ What closed Phase 7 concretely:
 2. Admin moderation is now usable end to end at the API layer through report triage/resolution, material listing/removal and user listing with activity metrics
 3. Admin access no longer depends on manual SQL only; an existing account can be promoted, or a local/admin-only account can be created, through `ADMIN_BOOTSTRAP_*`
 
-What opened Phase 8 concretely:
+What closed Phase 8 concretely:
 
-1. The AI consent gate is already enforced in material preview and no longer depends on full-profile rewrites to change state
-2. The new revoke endpoint starts the LGPD consent-management surface while `ConsentRecord`, anonymization and deletion audit persistence remain backlog work
+1. Consent history is no longer backlog-only: the runtime now records platform and AI consent changes and exposes the summary/history endpoint consumed by the Android profile surface
+2. LGPD account deletion now anonymizes users, revokes tokens, clears stored uploads, propagates request/material side effects and leaves an audit trail
+3. Data export and authenticated image access are both live, which closes the originally open security/privacy execution fronts for the MVP runtime
+
+What advanced Phase 9 concretely:
+
+1. Response compression is live in the backend baseline
+2. Micrometer plus the Prometheus actuator endpoint now expose HTTP, JVM, HikariCP and selected business counters through runtime and smoke coverage
+3. A dedicated `SmokeTests` suite now exercises health, onboarding/search preview and `/actuator/prometheus` as a deploy-gate baseline
+4. Authenticated hot reads now have a 30-minute cache baseline for user profile, consent status and security lookup snapshots
+5. Material creation now cleans up promoted files when persistence or secondary-image promotion fails, and that rollback path is covered by automated tests
+6. A public `GET /api/v1/reference-data/material-options` catalog now caches immutable enums on the backend and feeds Android discovery, onboarding and donation/edit flows with resilient local fallback
+7. Discovery now returns `next_after_id` and supports same-filter `after_id` continuation, so the Android infinite-scroll flow can switch from the first offset page to keyset windows for larger result sets
+8. The remaining work is now concentrated in load/performance validation, residual edge cases, Firebase device validation and the final Phase 10 quality gates
 
 Validation update on 2026-05-21:
 
 1. The backend local profile is now a reliable quickstart path again through `mvn spring-boot:run -Dspring-boot.run.profiles=local`, backed by H2-compatible enum domains and a dedicated `LocalH2Dialect`
 2. That path was revalidated with `health -> register -> get me -> onboarding -> search -> login`
 3. Android local validation was reconfirmed with `app:compileDebugKotlin` and `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+
+Validation update on 2026-05-23:
+
+1. Backend test infrastructure now falls back automatically through `Testcontainers -> external PostgreSQL -> H2 em memoria`, which keeps `mvn test` runnable even in environments sem Docker
+2. Backend startup/test guidance is now explicit about the Java 21+ requirement to avoid the previous class-version mismatch failure mode
+3. Root/runtime documentation was rebased so the current stop point is clearly recorded as `Phase 8 complete / Phase 9 in progress`
+4. The Phase 9 observability baseline is now live through Micrometer/Prometheus, HikariCP metrics, runtime business counters and an actuator-backed smoke suite
+5. The backend regression suite is green again with `140` tests via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update and rollback fronts
+6. Android consent/account UX is now aligned with the current runtime: the user can read an in-app summary before accepting platform terms, edit the main profile fields later, and confirm account deletion through an explicit destructive dialog
+6. Android local JVM validation remains green through `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
 ---
 
@@ -219,7 +245,9 @@ What is now accurate about readiness:
 - Accurate to declare Phase 3 core delivered
 - Accurate to declare Phase 4 discovery delivered
 - Accurate to declare Phase 5 request workflow delivered in runtime
-- Safe to treat Phase 6 notification UX as implemented in runtime and then move to admin/LGPD/hardening fronts after final Firebase-device validation
+- Accurate to declare Phase 7 admin/moderation delivered in runtime
+- Accurate to declare Phase 8 LGPD/security runtime delivered
+- Safe to treat the repository as currently stopped in Phase 9, with Firebase-device validation and phase 9/10 hardening still open
 
 ---
 

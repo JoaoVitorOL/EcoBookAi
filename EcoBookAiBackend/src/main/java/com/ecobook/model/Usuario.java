@@ -4,9 +4,11 @@ import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.Role;
 import com.ecobook.validation.ProfileCompletionValidation;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLRestriction;
@@ -40,6 +42,9 @@ public class Usuario extends AuditedEntity {
     private UUID id;
 
     @Column(nullable = false, unique = true, length = 255)
+    @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe seu email")
+    @Email(groups = ProfileCompletionValidation.class, message = "Informe um email valido")
+    @Size(max = 255, groups = ProfileCompletionValidation.class, message = "O email deve ter no maximo 255 caracteres")
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)

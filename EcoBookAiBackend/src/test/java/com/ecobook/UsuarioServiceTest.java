@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -193,13 +194,83 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Free Text City User",
                                   "whatsapp": "+5511991234567",
-                                  "cidade": " Ribeirão Preto ",
-                                  "bairro": " Jardim Botânico "
+                                  "cidade": " Ribeirao Preto ",
+                                  "bairro": " Jardim Botanico "
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.cidade").value("RIBEIRAO PRETO"))
-                .andExpect(jsonPath("$.data.bairro").value("Jardim Botânico"));
+                .andExpect(jsonPath("$.data.bairro").value("Jardim Botanico"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/usuarios/me should allow changing the email and require reauthentication afterwards")
+    void shouldUpdateEmailAndInvalidateOldJwtIdentity() throws Exception {
+        Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("before-update@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Email Update User")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build());
+
+        String token = tokenFor(usuario);
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "NEW-EMAIL@example.com",
+                                  "nome": "Email Update User",
+                                  "whatsapp": "+5511991234567",
+                                  "cidade": "Florianopolis",
+                                  "bairro": "Centro"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("new-email@example.com"));
+
+        mockMvc.perform(get("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/usuarios/me should reject duplicate emails")
+    void shouldRejectDuplicateEmail() throws Exception {
+        usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("existing@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Existing User")
+                .perfilCompleto(true)
+                .role(Role.USER)
+                .build());
+
+        String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("editable@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Editable User")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build()));
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "existing@example.com",
+                                  "nome": "Editable User",
+                                  "whatsapp": "+5511991234567",
+                                  "cidade": "Curitiba",
+                                  "bairro": "Centro"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
+                .andExpect(jsonPath("$.field_errors.email").value("Este email ja esta cadastrado"));
     }
 
     private String tokenFor(Usuario usuario) {

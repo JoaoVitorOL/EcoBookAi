@@ -489,7 +489,7 @@ private fun EditMaterialDialog(
                 EnumDropdown(
                     label = "Disciplina",
                     selectedValue = uiState.editDraft.disciplina,
-                    options = Disciplina.entries.toList(),
+                    options = uiState.disciplinas,
                     optionLabel = { it.label },
                     onSelected = { onDisciplinaChange(it) },
                     modifier = Modifier.fillMaxWidth(),
@@ -498,7 +498,7 @@ private fun EditMaterialDialog(
                 EnumDropdown(
                     label = "Nível de ensino",
                     selectedValue = uiState.editDraft.nivelEnsino,
-                    options = NivelEnsino.entries.toList(),
+                    options = uiState.niveisEnsino,
                     optionLabel = { it.label },
                     onSelected = { onNivelEnsinoChange(it) },
                     modifier = Modifier.fillMaxWidth(),
@@ -520,7 +520,7 @@ private fun EditMaterialDialog(
                 EnumDropdown(
                     label = "Sistema de ensino",
                     selectedValue = uiState.editDraft.sistemaEnsino,
-                    options = SistemaEnsino.entries.toList(),
+                    options = uiState.sistemasEnsino,
                     optionLabel = { it.label },
                     onSelected = { onSistemaEnsinoChange(it) },
                     modifier = Modifier.fillMaxWidth(),
@@ -529,7 +529,7 @@ private fun EditMaterialDialog(
                 EnumDropdown(
                     label = "Estado de conservação",
                     selectedValue = uiState.editDraft.estadoConservacao,
-                    options = EstadoConservacao.entries.toList(),
+                    options = uiState.estadosConservacao,
                     optionLabel = { it.label },
                     onSelected = { onEstadoConservacaoChange(it) },
                     modifier = Modifier.fillMaxWidth(),

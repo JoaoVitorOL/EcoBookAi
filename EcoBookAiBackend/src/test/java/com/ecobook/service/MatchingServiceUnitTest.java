@@ -17,13 +17,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,10 +46,15 @@ class MatchingServiceUnitTest {
     @Test
     @DisplayName("findMatching should require exact sistema_ensino matching")
     void shouldRequireExactSystemMatch() {
-        when(materialRepository.findByStatus(StatusMaterial.DISPONIVEL)).thenReturn(List.of(
-                material("Anglo Exato", SistemaEnsino.ANGLO, 2021),
-                material("Outro Excluido", SistemaEnsino.OUTRO, 2022)
-        ));
+        Material exactMatch = material("Anglo Exato", SistemaEnsino.ANGLO, 2021);
+
+        when(materialRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(
+                new PageImpl<>(
+                        List.of(exactMatch),
+                        PageRequest.of(0, 10),
+                        1
+                )
+        );
 
         PagedResponseDTO<MaterialDTO> response = matchingService.findMatching(
                 SearchCriteriaDTO.builder()

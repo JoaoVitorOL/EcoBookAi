@@ -19,24 +19,25 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.text.Normalizer;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/materiais")
@@ -58,6 +59,7 @@ public class MaterialController {
             @RequestParam(required = false) String bairro,
             @RequestParam(required = false, name = "min_ano_publicacao") Integer minAnoPublicacao,
             @RequestParam(required = false, name = "max_ano_publicacao") Integer maxAnoPublicacao,
+            @RequestParam(required = false, name = "after_id") String afterId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
             HttpServletRequest servletRequest) {
@@ -68,10 +70,11 @@ public class MaterialController {
         SistemaEnsino parsedSistemaEnsino = parseEnum(sistemaEnsino, SistemaEnsino.class, "sistema_ensino", fieldErrors);
 
         validatePagination(page, size, fieldErrors);
+        validateAfterId(afterId, fieldErrors);
         validateYears(parsedNivelEnsino, ano, minAnoPublicacao, maxAnoPublicacao, fieldErrors);
 
         if (!fieldErrors.isEmpty()) {
-            throw new BadRequestException("Os filtros de busca são inválidos", fieldErrors);
+            throw new BadRequestException("Os filtros de busca sao invalidos", fieldErrors);
         }
 
         SearchCriteriaDTO criteria = SearchCriteriaDTO.builder()
@@ -89,7 +92,7 @@ public class MaterialController {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
                 "Materiais encontrados com sucesso",
-                matchingService.findMatching(criteria, PageRequest.of(page, size))
+                matchingService.findMatching(criteria, PageRequest.of(page, size), afterId)
         );
     }
 
@@ -99,7 +102,7 @@ public class MaterialController {
                                                                                    HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Materiais do usuário carregados com sucesso",
+                "Materiais do usuario carregados com sucesso",
                 materialService.listCurrentUserMaterials(authentication.getName())
         );
     }
@@ -154,10 +157,22 @@ public class MaterialController {
 
     private void validatePagination(Integer page, Integer size, Map<String, String> fieldErrors) {
         if (page == null || page < 0) {
-            fieldErrors.put("page", "Informe uma página maior ou igual a zero");
+            fieldErrors.put("page", "Informe uma pagina maior ou igual a zero");
         }
         if (size == null || size < 1 || size > 100) {
-            fieldErrors.put("size", "Informe um tamanho de página entre 1 e 100");
+            fieldErrors.put("size", "Informe um tamanho de pagina entre 1 e 100");
+        }
+    }
+
+    private void validateAfterId(String afterId, Map<String, String> fieldErrors) {
+        if (afterId == null || afterId.isBlank()) {
+            return;
+        }
+
+        try {
+            UUID.fromString(afterId);
+        } catch (IllegalArgumentException ex) {
+            fieldErrors.put("after_id", "Informe um UUID valido para after_id");
         }
     }
 
@@ -167,21 +182,21 @@ public class MaterialController {
                                Integer maxAnoPublicacao,
                                Map<String, String> fieldErrors) {
         if (nivelEnsino == NivelEnsino.SUPERIOR && ano != null) {
-            fieldErrors.put("ano", "Materiais de nível SUPERIOR não usam ano escolar");
+            fieldErrors.put("ano", "Materiais de nivel SUPERIOR nao usam ano escolar");
         } else if (ano != null) {
             int maxAno = nivelEnsino == NivelEnsino.MEDIO ? 3 : 9;
             if (ano < 1 || ano > maxAno) {
-                fieldErrors.put("ano", "Informe um ano escolar válido para o nível selecionado");
+                fieldErrors.put("ano", "Informe um ano escolar valido para o nivel selecionado");
             }
         }
         if (minAnoPublicacao != null && (minAnoPublicacao < 1900 || minAnoPublicacao > 2100)) {
-            fieldErrors.put("min_ano_publicacao", "Informe um ano mínimo entre 1900 e 2100");
+            fieldErrors.put("min_ano_publicacao", "Informe um ano minimo entre 1900 e 2100");
         }
         if (maxAnoPublicacao != null && (maxAnoPublicacao < 1900 || maxAnoPublicacao > 2100)) {
-            fieldErrors.put("max_ano_publicacao", "Informe um ano máximo entre 1900 e 2100");
+            fieldErrors.put("max_ano_publicacao", "Informe um ano maximo entre 1900 e 2100");
         }
         if (minAnoPublicacao != null && maxAnoPublicacao != null && minAnoPublicacao > maxAnoPublicacao) {
-            fieldErrors.put("ano_publicacao", "O ano mínimo de publicação não pode ser maior que o máximo");
+            fieldErrors.put("ano_publicacao", "O ano minimo de publicacao nao pode ser maior que o maximo");
         }
     }
 
@@ -203,7 +218,7 @@ public class MaterialController {
         try {
             return Enum.valueOf(enumType, normalized);
         } catch (IllegalArgumentException ex) {
-            fieldErrors.put(field, "Valor inválido para " + field);
+            fieldErrors.put(field, "Valor invalido para " + field);
             return null;
         }
     }

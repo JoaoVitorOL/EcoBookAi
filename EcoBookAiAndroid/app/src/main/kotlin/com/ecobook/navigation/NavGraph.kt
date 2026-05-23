@@ -261,6 +261,13 @@ fun NavGraph(
                             onOpenNotifications = {
                                 navController.navigateToNotifications()
                             },
+                            onNameChange = viewModel::updateNome,
+                            onEmailChange = viewModel::updateEmail,
+                            onWhatsappChange = viewModel::updateWhatsapp,
+                            onCityChange = viewModel::updateCidade,
+                            onNeighborhoodChange = viewModel::updateBairro,
+                            onInstitutionChange = viewModel::updateInstituicao,
+                            onSaveProfile = viewModel::saveProfile,
                             onToggleAiConsent = viewModel::updateAiConsent,
                             onOpenDeleteAccount = {
                                 navController.navigate(AppDestination.AccountDelete.route)

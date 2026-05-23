@@ -1,15 +1,16 @@
 # User API Contracts
 
 **Reference**: spec.md RF-001, RF-002, RF-003, RF-004  
-**Version**: 2.3  
-**Date**: 2026-05-22  
-**Status**: Aligned with the current backend implementation, including Phase 8 privacy/LGPD endpoints
+**Version**: 2.5  
+**Date**: 2026-05-23  
+**Status**: Aligned with the current backend implementation, including Phase 8 privacy/LGPD endpoints, the Phase 9 reference-data catalog, and profile self-service updates
 
 ---
 
 Current runtime note:
 - Successful responses are wrapped in the standard envelope `{ status, message, timestamp, path, data }`.
 - The JSON objects shown in the success examples below represent the `data` payload for readability.
+- Android onboarding/profile now surface a readable in-app summary of platform terms and privacy before the user accepts the platform consent step.
 
 ## POST /auth/register
 
@@ -184,6 +185,66 @@ Authorization: Bearer <jwt_token>
 }
 ```
 
+Runtime note:
+- If a previously issued JWT references an email that no longer exists in the database, the security filter also returns `401 UNAUTHORIZED` because no authenticated principal can be established for the request.
+
+---
+
+## GET /reference-data/material-options
+
+Return the immutable option catalog consumed by Android discovery filters, onboarding needs and donation/edit forms.
+
+### Request
+
+```http
+GET /api/v1/reference-data/material-options
+```
+
+### Runtime Rules
+
+- Public endpoint; JWT is optional
+- Backend caches the catalog in memory as Phase 9 reference data
+- Android keeps local enum fallbacks, so temporary endpoint failure does not block the UI
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "disciplinas": [
+    { "value": "MATEMATICA", "label": "Matematica" },
+    { "value": "PORTUGUES", "label": "Portugues" }
+  ],
+  "niveis_ensino": [
+    { "value": "FUNDAMENTAL", "label": "Fundamental" },
+    { "value": "MEDIO", "label": "Ensino Medio" }
+  ],
+  "sistemas_ensino": [
+    { "value": "ANGLO", "label": "Anglo" },
+    { "value": "OBJETIVO", "label": "Objetivo" }
+  ],
+  "estados_conservacao": [
+    { "value": "NOVO", "label": "Novo" },
+    { "value": "BOM", "label": "Bom" }
+  ],
+  "necessidades_academicas": [
+    { "value": "TEXTBOOKS", "label": "Livros didaticos" },
+    { "value": "TEST_PREP", "label": "Preparacao para testes" }
+  ]
+}
+```
+
+### Error Response
+
+**HTTP 500 Internal Server Error**
+```json
+{
+  "status": 500,
+  "error": "INTERNAL_SERVER_ERROR",
+  "message": "Nao foi possivel carregar o catalogo de referencia"
+}
+```
+
 ---
 
 ## PUT /usuarios/me
@@ -198,6 +259,7 @@ Content-Type: application/json
 Authorization: Bearer <jwt_token>
 
 {
+  "email": "joao.pedro@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
   "cidade": "sao jose",
@@ -212,13 +274,14 @@ Authorization: Bearer <jwt_token>
 ```
 
 **Validation Rules**:
+- `email`: optional, valid format, max 255 characters, unique when changed
 - `nome`: required for successful profile completion
 - `whatsapp`: required for successful profile completion; must match `+55XXXXXXXXXXX`
 - `cidade`: required for successful profile completion; normalized before save
 - `bairro`: required for successful profile completion; normalized before save
 - `instituicao`: optional
 - `consentimento_ia`: optional, does not block `perfil_completo`
-- `necessidades_academicas`: optional set of enum values
+- `necessidades_academicas`: optional set of enum values; if omitted during a generic profile edit, the backend preserves the current stored set
 
 ### Response
 
@@ -226,7 +289,7 @@ Authorization: Bearer <jwt_token>
 ```json
 {
   "id": "user-uuid-1234567890",
-  "email": "joao@example.com",
+  "email": "joao.pedro@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
   "cidade": "SAO JOSE",
@@ -258,6 +321,18 @@ Authorization: Bearer <jwt_token>
 }
 ```
 
+**HTTP 400 Bad Request (duplicate email)**
+```json
+{
+  "status": 400,
+  "error": "INVALID_FORMAT",
+  "message": "O perfil contem campos invalidos",
+  "field_errors": {
+    "email": "Este email ja esta cadastrado"
+  }
+}
+```
+
 **HTTP 422 Unprocessable Entity**
 ```json
 {
@@ -274,8 +349,11 @@ Authorization: Bearer <jwt_token>
 **Rules**:
 - `perfil_completo` becomes `true` only when `nome`, `whatsapp`, `cidade`, and `bairro` are present and valid
 - Geographic normalization happens on save
+- The Android onboarding/profile UI previews the normalized city storage value before submit
 - `consentimento_ia` controls whether Gemini can be called for AI classification
 - `consentimento_ia` defaults to `false`, does not block onboarding completion, and can be changed later through this endpoint, the dedicated PATCH endpoint, or the DELETE revoke endpoint below
+- If `email` changes, the backend normalizes it to lowercase and the old JWT subject becomes stale; the client must perform a fresh login with the new email
+- If `necessidades_academicas` is omitted in a profile edit payload, the backend keeps the currently stored values instead of wiping the set
 - The frontend should use free-text city and neighborhood inputs; the API normalizes the values before persisting and using them for matching
 
 ---
@@ -504,7 +582,7 @@ Authorization: Bearer <jwt_token>
 | Field | Source | Writable by client | Notes |
 |-------|--------|--------------------|-------|
 | `id` | System | No | UUID string |
-| `email` | User input | No after register | Login identity |
+| `email` | User input | Yes, with reauthentication | Login identity; changing it invalidates the previous JWT session |
 | `password` | User input | Yes, request-only | Never persisted raw |
 | `password_hash` | System | No | Internal backend storage only |
 | `nome` | User input | Yes | Required for completed profile |
@@ -514,7 +592,7 @@ Authorization: Bearer <jwt_token>
 | `instituicao` | User input | Yes | Optional |
 | `perfil_completo` | System | No | Computed from required profile fields |
 | `consentimento_ia` | User input | Yes | Optional for onboarding; may change later |
-| `necessidades_academicas` | User input | Yes | Optional enum set |
+| `necessidades_academicas` | User input | Yes | Optional enum set; omitted generic edits preserve the stored values |
 | `role` | System | No | `USER` or `ADMIN` |
 | `token` | System | No | JWT issued after register/login |
 | `expires_in` | System | No | JWT TTL in seconds |

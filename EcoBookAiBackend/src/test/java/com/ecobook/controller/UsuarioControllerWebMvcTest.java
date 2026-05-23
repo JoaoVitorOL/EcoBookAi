@@ -1,11 +1,12 @@
 package com.ecobook.controller;
 
-import com.ecobook.dto.UpdateAiConsentRequestDTO;
 import com.ecobook.dto.DeleteAccountResponseDTO;
+import com.ecobook.dto.UpdateAiConsentRequestDTO;
 import com.ecobook.dto.UserConsentStatusDTO;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Role;
 import com.ecobook.repository.UsuarioRepository;
+import com.ecobook.service.ConsentService;
 import com.ecobook.service.GeoNormalizationService;
 import com.ecobook.service.UserDataExportService;
 import com.ecobook.service.UserDeletionService;
@@ -30,6 +31,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -68,6 +70,9 @@ class UsuarioControllerWebMvcTest {
 
     @MockBean
     private UserDataExportService userDataExportService;
+
+    @MockBean
+    private ConsentService consentService;
 
     @Test
     @DisplayName("PATCH /v1/usuarios/me/consentimento-ia should update AI consent")
@@ -111,6 +116,12 @@ class UsuarioControllerWebMvcTest {
     void shouldReturnConsentStatus() throws Exception {
         when(usuarioRepository.findByEmailIgnoreCase("consent-status-webmvc@example.com"))
                 .thenReturn(Optional.of(sampleUser("consent-status-webmvc@example.com", true)));
+        when(consentService.getConsentStatus(org.mockito.ArgumentMatchers.any(Usuario.class)))
+                .thenReturn(UserConsentStatusDTO.builder()
+                        .platformConsentGiven(false)
+                        .aiConsentEnabled(true)
+                        .history(List.of())
+                        .build());
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/v1/usuarios/me/consent"))
                 .andExpect(status().isOk())

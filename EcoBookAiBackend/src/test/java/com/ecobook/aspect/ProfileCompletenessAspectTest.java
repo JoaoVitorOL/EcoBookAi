@@ -118,7 +118,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Protected material update skeleton should proceed when the profile is complete")
+    @DisplayName("Protected material update should reach the controller when the profile is complete")
     void shouldAllowCompleteProfilesToReachUpdateSkeleton() throws Exception {
         Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("update@example.com")
@@ -131,13 +131,15 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .role(Role.USER)
                 .build());
 
-        mockMvc.perform(put("/v1/materiais/material-123")
+        mockMvc.perform(put("/v1/materiais/00000000-0000-0000-0000-000000000123")
+                        .contentType(APPLICATION_JSON)
+                        .content(validUpdatePayload())
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("Protected material delete skeleton should proceed when the profile is complete")
+    @DisplayName("Protected material delete should reach the controller when the profile is complete")
     void shouldAllowCompleteProfilesToReachDeleteSkeleton() throws Exception {
         Usuario usuario = usuarioRepository.saveAndFlush(Usuario.builder()
                 .email("delete@example.com")
@@ -150,9 +152,9 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .role(Role.USER)
                 .build());
 
-        mockMvc.perform(delete("/v1/materiais/material-123")
+        mockMvc.perform(delete("/v1/materiais/00000000-0000-0000-0000-000000000123")
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isNotFound());
     }
 
     private String tokenFor(Usuario usuario) {
@@ -177,6 +179,20 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                   "estado_conservacao": "BOM"
                 }
                 """.formatted(uploadId);
+    }
+
+    private String validUpdatePayload() {
+        return """
+                {
+                  "titulo": "Livro atualizado",
+                  "descricao": "Descricao valida para testar o fluxo de atualizacao.",
+                  "disciplina": "MATEMATICA",
+                  "nivel_ensino": "FUNDAMENTAL",
+                  "ano": 7,
+                  "sistema_ensino": "ANGLO",
+                  "estado_conservacao": "BOM"
+                }
+                """;
     }
 
     private MockMultipartFile validPreviewFile() throws Exception {
