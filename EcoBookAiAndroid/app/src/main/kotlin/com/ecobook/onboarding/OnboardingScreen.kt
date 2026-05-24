@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -28,9 +30,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.ui.ProfileInputRules
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.LegalDocumentsDialog
 import com.ecobook.ui.components.SectionHeading
@@ -64,120 +69,122 @@ fun OnboardingScreen(
                 )
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            SectionHeading(
-                title = "Completar onboarding",
-                subtitle = "Esses dados desbloqueiam upload, matching e solicitacoes protegidas pelo backend."
-            )
-
-            GlassCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    StatusBadge(
-                        text = "Etapa ${uiState.currentStep + 1} de 3",
-                        containerColor = Color(0xFFE0EFE4),
-                        contentColor = Color(0xFF205447)
-                    )
-                    StatusBadge(
-                        text = uiState.email.ifBlank { "Conta atual" },
-                        containerColor = Color(0xFFFCE7D8),
-                        contentColor = Color(0xFF8A4C1F)
-                    )
-                }
-                Text(
-                    text = when (uiState.currentStep) {
-                        0 -> "Primeiro confirmamos quem voce e e como entrar em contato."
-                        1 -> "Depois registramos a regiao para normalizacao geografica e matching."
-                        else -> "Por fim, configuramos preferencias academicas e consentimento para IA."
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                OutlinedButton(
-                    onClick = onLogout,
-                    enabled = !uiState.isSubmitting,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Sair da conta")
-                }
-            }
-
-            when (uiState.currentStep) {
-                0 -> ContactStep(
-                    uiState = uiState,
-                    onNameChange = viewModel::updateNome,
-                    onWhatsappChange = viewModel::updateWhatsapp,
-                    onWhatsappFocusLost = viewModel::onWhatsappFocusLost
-                )
-
-                1 -> LocationStep(
-                    uiState = uiState,
-                    onCityChange = viewModel::updateCidade,
-                    onNeighborhoodChange = viewModel::updateBairro,
-                    onInstitutionChange = viewModel::updateInstituicao
-                )
-
-                else -> NeedsStep(
-                    uiState = uiState,
-                    onToggleNeed = viewModel::toggleNecessidade,
-                    onOpenLegalDocuments = {
-                        viewModel.markPlatformTermsViewed()
-                        showLegalDialog = true
-                    },
-                    onTogglePlatformConsent = viewModel::togglePlatformConsentAccepted,
-                    onToggleConsent = viewModel::toggleConsentimentoIa
-                )
-            }
-
-            if (!uiState.message.isNullOrBlank()) {
-                GlassCard {
-                    Text(
-                        text = uiState.message.orEmpty(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (uiState.fieldErrors.isEmpty()) {
-                            Color(0xFF205447)
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        }
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        AdaptiveScreenContent {
+            Column(
+                modifier = it
+                    .verticalScroll(rememberScrollState())
+                    .imePadding()
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                if (uiState.currentStep > 0) {
-                    Button(
-                        onClick = viewModel::previousStep,
-                        enabled = !uiState.isSubmitting,
-                        modifier = Modifier.weight(1f)
+                SectionHeading(
+                    title = "Completar onboarding",
+                    subtitle = "Esses dados desbloqueiam upload, matching e solicitacoes protegidas pelo backend."
+                )
+
+                GlassCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Voltar")
+                        StatusBadge(
+                            text = "Etapa ${uiState.currentStep + 1} de 3",
+                            containerColor = Color(0xFFE0EFE4),
+                            contentColor = Color(0xFF205447)
+                        )
+                        StatusBadge(
+                            text = uiState.email.ifBlank { "Conta atual" },
+                            containerColor = Color(0xFFFCE7D8),
+                            contentColor = Color(0xFF8A4C1F)
+                        )
+                    }
+                    Text(
+                        text = when (uiState.currentStep) {
+                            0 -> "Primeiro confirmamos quem voce e e como entrar em contato."
+                            1 -> "Depois registramos a regiao para normalizacao geografica e matching."
+                            else -> "Por fim, configuramos preferencias academicas e consentimento para IA."
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedButton(
+                        onClick = onLogout,
+                        enabled = !uiState.isSubmitting,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Sair da conta")
                     }
                 }
 
-                Button(
-                    onClick = if (uiState.isLastStep) viewModel::submit else viewModel::nextStep,
-                    enabled = !uiState.isSubmitting,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    if (uiState.isSubmitting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                when (uiState.currentStep) {
+                    0 -> ContactStep(
+                        uiState = uiState,
+                        onNameChange = viewModel::updateNome,
+                        onWhatsappChange = viewModel::updateWhatsapp,
+                        onWhatsappFocusLost = viewModel::onWhatsappFocusLost
+                    )
+
+                    1 -> LocationStep(
+                        uiState = uiState,
+                        onCityChange = viewModel::updateCidade,
+                        onNeighborhoodChange = viewModel::updateBairro,
+                        onInstitutionChange = viewModel::updateInstituicao
+                    )
+
+                    else -> NeedsStep(
+                        uiState = uiState,
+                        onToggleNeed = viewModel::toggleNecessidade,
+                        onOpenLegalDocuments = {
+                            viewModel.markPlatformTermsViewed()
+                            showLegalDialog = true
+                        },
+                        onTogglePlatformConsent = viewModel::togglePlatformConsentAccepted,
+                        onToggleConsent = viewModel::toggleConsentimentoIa
+                    )
+                }
+
+                if (!uiState.message.isNullOrBlank()) {
+                    GlassCard {
+                        Text(
+                            text = uiState.message.orEmpty(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (uiState.fieldErrors.isEmpty()) {
+                                Color(0xFF205447)
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            }
                         )
-                    } else {
-                        Text(if (uiState.isLastStep) "Concluir perfil" else "Proxima etapa")
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (uiState.currentStep > 0) {
+                        Button(
+                            onClick = viewModel::previousStep,
+                            enabled = !uiState.isSubmitting,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Voltar")
+                        }
+                    }
+
+                    Button(
+                        onClick = if (uiState.isLastStep) viewModel::submit else viewModel::nextStep,
+                        enabled = !uiState.isSubmitting,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (uiState.isSubmitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text(if (uiState.isLastStep) "Concluir perfil" else "Proxima etapa")
+                        }
                     }
                 }
             }
@@ -329,8 +336,16 @@ private fun NeedsStep(
             Text("Ler termos e privacidade")
         }
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = uiState.platformConsentAccepted,
+                    enabled = uiState.hasViewedPlatformTerms,
+                    role = Role.Checkbox,
+                    onValueChange = { onTogglePlatformConsent() }
+                ),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Aceito os termos e a politica de privacidade",
@@ -340,7 +355,7 @@ private fun NeedsStep(
             Checkbox(
                 checked = uiState.platformConsentAccepted,
                 enabled = uiState.hasViewedPlatformTerms,
-                onCheckedChange = { onTogglePlatformConsent() }
+                onCheckedChange = null
             )
         }
         if (!uiState.hasViewedPlatformTerms) {
@@ -369,9 +384,26 @@ private fun NeedsStep(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Switch(
-            checked = uiState.consentimentoIa,
-            onCheckedChange = { onToggleConsent() }
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = uiState.consentimentoIa,
+                    role = Role.Switch,
+                    onValueChange = { onToggleConsent() }
+                ),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (uiState.consentimentoIa) "Consentimento de IA ativo" else "Consentimento de IA desativado",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            Switch(
+                checked = uiState.consentimentoIa,
+                onCheckedChange = null
+            )
+        }
     }
 }

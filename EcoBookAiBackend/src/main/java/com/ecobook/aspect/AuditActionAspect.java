@@ -33,6 +33,14 @@ public class AuditActionAspect {
     private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
     private final ExpressionParser expressionParser = new SpelExpressionParser();
 
+    /**
+     * Intercepts annotated methods and records the configured audit action.
+     *
+     * @param joinPoint the joinPoint value
+     * @param auditAction the auditAction value
+     * @return the operation result
+     * @throws Throwable if the operation cannot be completed successfully
+     */
     @Around("@annotation(auditAction)")
     public Object around(ProceedingJoinPoint joinPoint, AuditAction auditAction) throws Throwable {
         Object result = joinPoint.proceed();
@@ -45,7 +53,7 @@ public class AuditActionAspect {
         Usuario actor = usuarioRepository.findByEmailIgnoreCase(authentication.getName()).orElse(null);
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
         MethodBasedEvaluationContext evaluationContext = new MethodBasedEvaluationContext(
-                null,
+                joinPoint.getTarget(),
                 method,
                 joinPoint.getArgs(),
                 parameterNameDiscoverer

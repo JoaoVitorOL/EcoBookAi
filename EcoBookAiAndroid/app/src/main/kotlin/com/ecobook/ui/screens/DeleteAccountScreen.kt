@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.ecobook.ui.EcoBookUiState
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 
 @Composable
@@ -39,70 +41,73 @@ fun DeleteAccountScreen(
     var reason by rememberSaveable { mutableStateOf("") }
     var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .padding(topPadding)
-            .padding(horizontal = 20.dp, vertical = 20.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
-        GlassCard {
-            Text(
-                text = "Antes de excluir a conta",
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Text(
-                text = "Os materiais publicados serao removidos, as solicitacoes serao encerradas, as imagens salvas serao apagadas e o acesso atual sera encerrado.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        GlassCard {
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Senha atual") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = PasswordVisualTransformation()
-            )
-            OutlinedTextField(
-                value = reason,
-                onValueChange = { reason = it },
-                label = { Text("Motivo (opcional)") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3
-            )
-            if (!uiState.accountDeletionMessage.isNullOrBlank()) {
+    AdaptiveScreenContent {
+        Column(
+            modifier = it
+                .padding(topPadding)
+                .imePadding()
+                .padding(horizontal = 20.dp, vertical = 20.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            GlassCard {
                 Text(
-                    text = uiState.accountDeletionMessage.orEmpty(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (uiState.accountDeletionMessageIsError) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
+                    text = "Antes de excluir a conta",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "Os materiais publicados serao removidos, as solicitacoes serao encerradas, as imagens salvas serao apagadas e o acesso atual sera encerrado.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            OutlinedButton(
-                onClick = onNavigateUp,
-                enabled = !uiState.isDeletingAccount,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cancelar")
-            }
-            Button(
-                onClick = { showConfirmationDialog = true },
-                enabled = !uiState.isDeletingAccount && password.isNotBlank(),
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF7D6D9),
-                    contentColor = Color(0xFF8A2432)
+
+            GlassCard {
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Senha atual") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = PasswordVisualTransformation()
                 )
-            ) {
-                Text(if (uiState.isDeletingAccount) "Excluindo..." else "Excluir conta")
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = { reason = it },
+                    label = { Text("Motivo (opcional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+                if (!uiState.accountDeletionMessage.isNullOrBlank()) {
+                    Text(
+                        text = uiState.accountDeletionMessage.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (uiState.accountDeletionMessageIsError) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        }
+                    )
+                }
+                OutlinedButton(
+                    onClick = onNavigateUp,
+                    enabled = !uiState.isDeletingAccount,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancelar")
+                }
+                Button(
+                    onClick = { showConfirmationDialog = true },
+                    enabled = !uiState.isDeletingAccount && password.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF7D6D9),
+                        contentColor = Color(0xFF8A2432)
+                    )
+                ) {
+                    Text(if (uiState.isDeletingAccount) "Excluindo..." else "Excluir conta")
+                }
             }
         }
     }

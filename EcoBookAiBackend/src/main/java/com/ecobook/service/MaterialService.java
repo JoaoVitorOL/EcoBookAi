@@ -59,6 +59,13 @@ public class MaterialService {
     private final NotificationPayloadFactory notificationPayloadFactory;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Runs the preview flow for an uploaded material image.
+     * @param email authenticated user email
+     * @param file primary uploaded image file
+     * @param secondaryFile optional secondary uploaded image file
+     * @return result of the operation
+     */
     @Transactional
     public GeminiResponseDTO previewMaterial(String email, MultipartFile file, MultipartFile secondaryFile) {
         Usuario usuario = loadUsuario(email);
@@ -101,6 +108,12 @@ public class MaterialService {
         return response;
     }
 
+    /**
+     * Creates a published material from a validated preview upload.
+     * @param email authenticated user email
+     * @param request request payload for the operation
+     * @return created result
+     */
     @Transactional
     public MaterialDTO createMaterial(String email, CreateMaterialRequestDTO request) {
         Usuario usuario = loadUsuario(email);
@@ -170,6 +183,11 @@ public class MaterialService {
         }
     }
 
+    /**
+     * Lists the materials owned by the authenticated donor.
+     * @param email authenticated user email
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public List<MaterialDTO> listCurrentUserMaterials(String email) {
         Usuario usuario = loadUsuario(email);
@@ -181,6 +199,13 @@ public class MaterialService {
                 .toList();
     }
 
+    /**
+     * Updates a donor-owned material that is still editable.
+     * @param email authenticated user email
+     * @param materialId material identifier
+     * @param request request payload for the operation
+     * @return updated result
+     */
     @Transactional
     public MaterialDTO updateMaterial(String email, String materialId, UpdateMaterialRequestDTO request) {
         Usuario usuario = loadUsuario(email);
@@ -202,6 +227,11 @@ public class MaterialService {
         return materialMapper.toDto(materialRepository.save(material));
     }
 
+    /**
+     * Deletes a donor-owned material and notifies affected requesters.
+     * @param email authenticated user email
+     * @param materialId material identifier
+     */
     @Transactional
     public void deleteMaterial(String email, String materialId) {
         Usuario usuario = loadUsuario(email);

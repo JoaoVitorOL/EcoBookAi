@@ -23,6 +23,10 @@ public class AdminBootstrapInitializer implements ApplicationRunner {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Bootstraps the configured admin account or promotion flow during application startup.
+     * @param args application startup arguments
+     */
     @Override
     @Transactional
     public void run(ApplicationArguments args) {

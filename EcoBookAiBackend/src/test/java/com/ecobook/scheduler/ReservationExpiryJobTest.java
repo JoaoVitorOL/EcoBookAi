@@ -87,6 +87,47 @@ class ReservationExpiryJobTest extends BaseIntegrationTest {
                 });
     }
 
+    @Test
+    @DisplayName("reservation expiry job should expire approvals that hit the exact expiry moment")
+    void shouldExpireApprovalAtExactBoundaryMoment() {
+        Usuario donor = createUser("expiry-boundary-donor@example.com", "Doador");
+        Usuario student = createUser("expiry-boundary-student@example.com", "Estudante");
+        Material material = materialRepository.saveAndFlush(Material.builder()
+                .doador(donor)
+                .titulo("Colecao no limite exato")
+                .descricao("Descricao da colecao no limite exato de expiracao")
+                .disciplina(Disciplina.MATEMATICA)
+                .nivelEnsino(NivelEnsino.FUNDAMENTAL)
+                .ano(7)
+                .sistemaEnsino(SistemaEnsino.ANGLO)
+                .estadoConservacao(EstadoConservacao.USADO)
+                .status(StatusMaterial.RESERVADO)
+                .cidade(donor.getCidade())
+                .bairro(donor.getBairro())
+                .dataPublicacao(2022)
+                .build());
+
+        LocalDateTime boundary = LocalDateTime.now();
+        Solicitacao request = Solicitacao.builder()
+                .material(material)
+                .estudante(student)
+                .status(StatusSolicitacao.APROVADA)
+                .aprovadoEm(boundary.minusDays(14))
+                .expiresAt(boundary)
+                .build();
+        request.populateContatoDoador(donor);
+        request = solicitacaoRepository.saveAndFlush(request);
+
+        reservationExpiryJob.expireReservations();
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(materialRepository.findById(material.getId()))
+                .hasValueSatisfying(saved -> assertThat(saved.getStatus()).isEqualTo(StatusMaterial.DISPONIVEL));
+        assertThat(solicitacaoRepository.findById(request.getId()))
+                .hasValueSatisfying(saved -> assertThat(saved.getStatus()).isEqualTo(StatusSolicitacao.CANCELADA));
+    }
+
     private Usuario createUser(String email, String nome) {
         return usuarioRepository.saveAndFlush(Usuario.builder()
                 .email(email)

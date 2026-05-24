@@ -28,6 +28,12 @@ public class AdminReportService {
 
     private final MaterialNonReceiptReportRepository materialNonReceiptReportRepository;
 
+    /**
+     * Lists paged non-receipt reports for administrative triage.
+     * @param status optional status filter
+     * @param pageRequest pagination settings for the query
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<AdminNonReceiptReportDTO> listReports(NonReceiptReportStatus status, PageRequest pageRequest) {
         Page<MaterialNonReceiptReport> page = status == null
@@ -42,6 +48,12 @@ public class AdminReportService {
         );
     }
 
+    /**
+     * Resolves a non-receipt report and stores the moderation notes.
+     * @param reportId r ep or ti d
+     * @param request request payload for the operation
+     * @return result of the operation
+     */
     @Transactional
     public AdminNonReceiptReportDTO resolveReport(String reportId, ResolveNonReceiptReportRequestDTO request) {
         MaterialNonReceiptReport report = materialNonReceiptReportRepository.findDetailedById(parseReportId(reportId))

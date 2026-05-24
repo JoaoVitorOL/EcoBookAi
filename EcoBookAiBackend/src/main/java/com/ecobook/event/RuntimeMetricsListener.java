@@ -1,4 +1,4 @@
-package com.ecobook.event;
+﻿package com.ecobook.event;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -15,6 +15,10 @@ public class RuntimeMetricsListener {
 
     private final MeterRegistry meterRegistry;
 
+    /**
+     * Updates runtime metrics after a notification request is published.
+     * @param event published domain event payload
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onNotificationRequested(NotificationRequestedEvent event) {
         String type = event.payload() == null || event.payload().getType() == null
@@ -28,6 +32,10 @@ public class RuntimeMetricsListener {
                 .increment();
     }
 
+    /**
+     * Updates runtime metrics after a profile is completed.
+     * @param event published domain event payload
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onProfileCompleted(ProfileCompletedEvent event) {
         Counter.builder("ecobook.profile.completed.total")
@@ -36,6 +44,10 @@ public class RuntimeMetricsListener {
                 .increment();
     }
 
+    /**
+     * Updates runtime metrics after a non-receipt report is created.
+     * @param event published domain event payload
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onNonReceiptReportCreated(NonReceiptReportCreatedEvent event) {
         Counter.builder("ecobook.report.non_receipt.created.total")

@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.dto.SolicitacaoDTO
 import com.ecobook.ui.WhatsAppFormatter
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.FilterChipCard
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
@@ -76,10 +78,12 @@ fun MyRequestsScreen(
         }
     }
 
-    LazyColumn(
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    AdaptiveScreenContent {
+        LazyColumn(
+            modifier = it.imePadding(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         item {
             SectionHeading(
                 title = "Minhas solicitações",
@@ -157,24 +161,25 @@ fun MyRequestsScreen(
                     )
                 }
             }
-        } else {
-            items(uiState.visibleRequests, key = { it.id }) { request ->
-                StudentRequestCard(
-                    request = request,
-                    isWorking = uiState.activeRequestId == request.id,
-                    onCancel = { pendingCancellation = request },
-                    onContactDonor = { openWhatsApp(context, request) },
-                    onReportNonReceipt = if (request.status == "CONCLUIDA") {
-                        {
-                            pendingReport = request
-                            reportReason = ""
-                            reportReasonTouched = false
-                        }
-                    } else {
-                        null
-                    },
-                    hasReportedNonReceipt = request.id in uiState.reportedRequestIds
-                )
+            } else {
+                items(uiState.visibleRequests, key = { it.id }) { request ->
+                    StudentRequestCard(
+                        request = request,
+                        isWorking = uiState.activeRequestId == request.id,
+                        onCancel = { pendingCancellation = request },
+                        onContactDonor = { openWhatsApp(context, request) },
+                        onReportNonReceipt = if (request.status == "CONCLUIDA") {
+                            {
+                                pendingReport = request
+                                reportReason = ""
+                                reportReasonTouched = false
+                            }
+                        } else {
+                            null
+                        },
+                        hasReportedNonReceipt = request.id in uiState.reportedRequestIds
+                    )
+                }
             }
         }
     }

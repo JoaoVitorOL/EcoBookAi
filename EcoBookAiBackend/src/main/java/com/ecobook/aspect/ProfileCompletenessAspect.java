@@ -1,4 +1,4 @@
-package com.ecobook.aspect;
+﻿package com.ecobook.aspect;
 
 import com.ecobook.annotation.RequireCompleteProfile;
 import com.ecobook.exception.ProfileIncompleteException;
@@ -18,6 +18,10 @@ public class ProfileCompletenessAspect {
 
     private final AuthenticatedUserLookupService authenticatedUserLookupService;
 
+    /**
+     * Enforces the complete-profile requirement before protected flows proceed.
+     * @param requireCompleteProfile annotation metadata describing the complete-profile requirement
+     */
     @Before("@annotation(requireCompleteProfile)")
     public void ensureProfileIsComplete(RequireCompleteProfile requireCompleteProfile) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

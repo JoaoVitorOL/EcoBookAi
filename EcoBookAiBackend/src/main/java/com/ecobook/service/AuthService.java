@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.dto.AuthResponseDTO;
 import com.ecobook.dto.LoginRequestDTO;
@@ -29,6 +29,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ConsentService consentService;
 
+    /**
+     * Registers a new user account and returns the initial authenticated session.
+     * @param request request payload for the operation
+     * @return result of the operation
+     */
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
         String normalizedEmail = normalizeEmail(request.getEmail());
@@ -46,6 +51,11 @@ public class AuthService {
         return buildAuthResponse(savedUser);
     }
 
+    /**
+     * Authenticates a user with local credentials and returns a session token.
+     * @param request request payload for the operation
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public AuthResponseDTO login(LoginRequestDTO request) {
         String normalizedEmail = normalizeEmail(request.getEmail());

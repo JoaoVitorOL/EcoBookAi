@@ -1,22 +1,47 @@
-package com.ecobook.model;
+﻿package com.ecobook.model;
 
 import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.Role;
 import com.ecobook.validation.ProfileCompletionValidation;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(
@@ -123,10 +148,18 @@ public class Usuario extends AuditedEntity {
         this.atualizadoEm = LocalDateTime.now();
     }
 
+    /**
+     * Returns whether the user profile is currently marked as complete.
+     * @return true when the condition holds; otherwise false
+     */
     public boolean isPerfilCompleto() {
         return hasRequiredProfileFields();
     }
 
+    /**
+     * Checks whether the user has all required fields filled for a complete profile.
+     * @return true when the condition holds; otherwise false
+     */
     public boolean hasRequiredProfileFields() {
         return StringUtils.hasText(this.email)
                 && StringUtils.hasText(this.nome)
@@ -135,6 +168,9 @@ public class Usuario extends AuditedEntity {
                 && StringUtils.hasText(this.bairro);
     }
 
+    /**
+     * Recomputes the profile completeness flag from the current field values.
+     */
     public void refreshPerfilCompleto() {
         this.perfilCompleto = hasRequiredProfileFields();
     }

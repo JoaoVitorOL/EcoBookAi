@@ -23,6 +23,10 @@ public class ConsentService {
     private final ConsentRecordRepository consentRecordRepository;
     private final AuditLogService auditLogService;
 
+    /**
+     * Records that the user accepted the platform terms and privacy consent.
+     * @param usuario user entity involved in the operation
+     */
     @Transactional
     public void recordPlatformConsent(Usuario usuario) {
         if (consentRecordRepository.findFirstByUserIdAndConsentTypeOrderByCreatedAtDesc(usuario.getId(), ConsentType.PLATFORM)
@@ -48,6 +52,11 @@ public class ConsentService {
         );
     }
 
+    /**
+     * Records a change in the user's AI-consent status.
+     * @param usuario user entity involved in the operation
+     * @param enabled new AI-consent status
+     */
     @Transactional
     public void recordAiConsentChange(Usuario usuario, boolean enabled) {
         UUID userId = usuario.getId();
@@ -99,6 +108,10 @@ public class ConsentService {
         );
     }
 
+    /**
+     * Records the revocation of the user's platform consent.
+     * @param usuario user entity involved in the operation
+     */
     @Transactional
     public void recordPlatformRevocation(Usuario usuario) {
         UUID userId = usuario.getId();
@@ -120,6 +133,11 @@ public class ConsentService {
                 .build());
     }
 
+    /**
+     * Executes the get consent status operation.
+     * @param usuario user entity involved in the operation
+     * @return requested value
+     */
     @Transactional(readOnly = true)
     public UserConsentStatusDTO getConsentStatus(Usuario usuario) {
         List<ConsentRecord> history = consentRecordRepository.findByUserIdOrderByCreatedAtAsc(usuario.getId());
@@ -137,6 +155,11 @@ public class ConsentService {
                 .build();
     }
 
+    /**
+     * Lists the recorded consent history for the provided user.
+     * @param userId user identifier
+     * @return requested value
+     */
     @Transactional(readOnly = true)
     public List<ConsentRecordDTO> getConsentHistory(UUID userId) {
         return consentRecordRepository.findByUserIdOrderByCreatedAtAsc(userId).stream()

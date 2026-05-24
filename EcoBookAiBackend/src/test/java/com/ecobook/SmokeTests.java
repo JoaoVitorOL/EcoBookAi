@@ -46,6 +46,28 @@ class SmokeTests extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("smoke should keep OpenAPI docs and Swagger UI publicly reachable")
+    void shouldKeepOpenApiDocumentationAvailable() throws Exception {
+        String apiDocsPayload = mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(apiDocsPayload).contains("EcoBook AI Backend API");
+        assertThat(apiDocsPayload).contains("bearer-jwt");
+        assertThat(apiDocsPayload).contains("/v1/auth/login");
+
+        String swaggerUiPayload = mockMvc.perform(get("/swagger-ui/index.html"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(swaggerUiPayload).contains("Swagger UI");
+    }
+
+    @Test
     @DisplayName("smoke should keep auth, profile and discovery endpoints functional")
     void shouldKeepAuthProfileAndDiscoveryFunctional() throws Exception {
         String token = registerCompleteUserAndExtractToken("smoke-flow@example.com", "Smoke Flow");

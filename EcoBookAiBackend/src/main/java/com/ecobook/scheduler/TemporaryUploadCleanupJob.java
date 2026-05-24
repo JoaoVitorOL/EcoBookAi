@@ -1,4 +1,4 @@
-package com.ecobook.scheduler;
+﻿package com.ecobook.scheduler;
 
 import com.ecobook.model.TemporaryUpload;
 import com.ecobook.repository.TemporaryUploadRepository;
@@ -19,6 +19,9 @@ public class TemporaryUploadCleanupJob {
     private final TemporaryUploadRepository temporaryUploadRepository;
     private final ImageStorageService imageStorageService;
 
+    /**
+     * Removes expired temporary uploads from storage and tracking.
+     */
     @Scheduled(fixedDelay = 21600000)
     public void cleanupExpiredUploads() {
         List<TemporaryUpload> expiredUploads = temporaryUploadRepository

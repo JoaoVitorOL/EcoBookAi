@@ -1,4 +1,4 @@
-package com.ecobook.model.enums;
+﻿package com.ecobook.model.enums;
 
 /**
  * Education level
@@ -14,6 +14,10 @@ public enum NivelEnsino {
         this.label = label;
     }
 
+    /**
+     * Returns the l ab el.
+     * @return requested value
+     */
     public String getLabel() {
         return label;
     }

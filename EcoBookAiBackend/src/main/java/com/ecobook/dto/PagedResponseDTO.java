@@ -1,4 +1,4 @@
-package com.ecobook.dto;
+﻿package com.ecobook.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -25,6 +25,14 @@ public class PagedResponseDTO<T> {
     private String nextAfterId;
     private String paginationMode;
 
+    /**
+     * Creates a paged response DTO from the provided page values.
+     * @param results page results to expose
+     * @param page zero-based page number
+     * @param size page size
+     * @param total total number of available items
+     * @return paged response instance
+     */
     public static <T> PagedResponseDTO<T> of(List<T> results, int page, int size, long total) {
         int totalPages = size <= 0 ? 0 : (int) Math.ceil((double) total / (double) size);
         boolean hasNext = page + 1 < totalPages;

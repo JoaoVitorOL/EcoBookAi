@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.dto.SolicitacaoDTO;
 import com.ecobook.event.NotificationRequestedEvent;
@@ -42,6 +42,12 @@ public class SolicitacaoService {
     private final NotificationPayloadFactory notificationPayloadFactory;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Creates a new request for a material on behalf of the authenticated student.
+     * @param email authenticated user email
+     * @param materialId material identifier
+     * @return created result
+     */
     @Transactional
     public SolicitacaoDTO createRequest(String email, String materialId) {
         Usuario estudante = loadUsuario(email);
@@ -86,6 +92,12 @@ public class SolicitacaoService {
         return solicitacaoMapper.toDto(solicitacao);
     }
 
+    /**
+     * Lists the current user's requests, optionally filtered by status.
+     * @param email authenticated user email
+     * @param status optional status filter
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public List<SolicitacaoDTO> listCurrentUserRequests(String email, StatusSolicitacao status) {
         Usuario usuario = loadUsuario(email);
@@ -95,6 +107,11 @@ public class SolicitacaoService {
                 .toList();
     }
 
+    /**
+     * Lists pending requests for materials owned by the authenticated donor.
+     * @param email authenticated user email
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public List<SolicitacaoDTO> listPendingRequestsForDonor(String email) {
         Usuario usuario = loadUsuario(email);
@@ -105,6 +122,11 @@ public class SolicitacaoService {
                 .toList();
     }
 
+    /**
+     * Lists approved requests for materials owned by the authenticated donor.
+     * @param email authenticated user email
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public List<SolicitacaoDTO> listApprovedRequestsForDonor(String email) {
         Usuario usuario = loadUsuario(email);
@@ -115,6 +137,12 @@ public class SolicitacaoService {
                 .toList();
     }
 
+    /**
+     * Loads a request visible to one of its participants.
+     * @param email authenticated user email
+     * @param requestId request identifier
+     * @return requested value
+     */
     @Transactional(readOnly = true)
     public SolicitacaoDTO getRequest(String email, String requestId) {
         Usuario usuario = loadUsuario(email);
@@ -123,6 +151,12 @@ public class SolicitacaoService {
         return solicitacaoMapper.toDto(solicitacao);
     }
 
+    /**
+     * Approves a pending request and reserves the related material.
+     * @param email authenticated user email
+     * @param requestId request identifier
+     * @return result of the operation
+     */
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public SolicitacaoDTO approveRequest(String email, String requestId) {
         Usuario doador = loadUsuario(email);
@@ -171,6 +205,12 @@ public class SolicitacaoService {
         return solicitacaoMapper.toDto(solicitacao);
     }
 
+    /**
+     * Declines a pending request for a donor-owned material.
+     * @param email authenticated user email
+     * @param requestId request identifier
+     * @return result of the operation
+     */
     @Transactional
     public SolicitacaoDTO declineRequest(String email, String requestId) {
         Usuario doador = loadUsuario(email);
@@ -186,6 +226,12 @@ public class SolicitacaoService {
         return solicitacaoMapper.toDto(saved);
     }
 
+    /**
+     * Cancels a pending or approved request and restores availability when needed.
+     * @param email authenticated user email
+     * @param requestId request identifier
+     * @return result of the operation
+     */
     @Transactional
     public SolicitacaoDTO cancelRequest(String email, String requestId) {
         Usuario actor = loadUsuario(email);
@@ -212,6 +258,12 @@ public class SolicitacaoService {
         return solicitacaoMapper.toDto(saved);
     }
 
+    /**
+     * Completes a donation for an approved request.
+     * @param email authenticated user email
+     * @param requestId request identifier
+     * @return result of the operation
+     */
     @Transactional
     public SolicitacaoDTO completeDonation(String email, String requestId) {
         Usuario doador = loadUsuario(email);
@@ -235,6 +287,10 @@ public class SolicitacaoService {
         return solicitacaoMapper.toDto(saved);
     }
 
+    /**
+     * Expires approved requests that passed their reservation deadline.
+     * @return result of the operation
+     */
     @Transactional
     public int expireApprovedRequests() {
         List<Solicitacao> expiredRequests = solicitacaoRepository.findByStatusAndExpiresAtBefore(

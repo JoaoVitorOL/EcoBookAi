@@ -23,6 +23,13 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    /**
+     * Builds the error response for the handle resource not found exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
@@ -37,6 +44,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(404).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle conflict exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponse> handleConflictException(
             ConflictException ex, WebRequest request) {
@@ -51,6 +65,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(409).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle invalid state transition exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(InvalidStateTransitionException.class)
     public ResponseEntity<ErrorResponse> handleInvalidStateTransitionException(
             InvalidStateTransitionException ex, WebRequest request) {
@@ -65,6 +86,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(422).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle profile incomplete exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(ProfileIncompleteException.class)
     public ResponseEntity<ErrorResponse> handleProfileIncompleteException(
             ProfileIncompleteException ex, WebRequest request) {
@@ -79,6 +107,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(403).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle access denied exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex, WebRequest request) {
@@ -95,6 +130,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(403).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle authentication exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex, WebRequest request) {
@@ -109,6 +151,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(401).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle illegal argument exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
@@ -123,6 +172,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(400).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle bad request exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(
             BadRequestException ex, WebRequest request) {
@@ -138,6 +194,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(400).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle payload too large exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(PayloadTooLargeException.class)
     public ResponseEntity<ErrorResponse> handlePayloadTooLargeException(
             PayloadTooLargeException ex, WebRequest request) {
@@ -169,6 +232,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(413).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle unprocessable entity exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(UnprocessableEntityException.class)
     public ResponseEntity<ErrorResponse> handleUnprocessableEntityException(
             UnprocessableEntityException ex, WebRequest request) {
@@ -211,6 +281,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(400).body(errorResponse);
     }
 
+    /**
+     * Builds the error response for the handle generic exception scenario.
+     *
+     * @param ex the exception being handled
+     * @param request the request payload
+     * @return the normalized error response
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, WebRequest request) {

@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.dto.SolicitacaoDTO;
 import com.ecobook.dto.SolicitacaoMaterialDTO;
@@ -11,6 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class SolicitacaoMapper {
 
+    /**
+     * Maps a request entity into the API DTO representation.
+     * @param solicitacao request entity to map or inspect
+     * @return mapped DTO representation
+     */
     public SolicitacaoDTO toDto(Solicitacao solicitacao) {
         Material material = solicitacao.getMaterial();
         Usuario estudante = solicitacao.getEstudante();

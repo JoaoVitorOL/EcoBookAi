@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.ecobook.dto.MaterialDTO
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 
@@ -97,11 +99,12 @@ fun MaterialUploadScreen(
         }
     }
 
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    AdaptiveScreenContent(modifier = modifier) {
+        LazyColumn(
+            modifier = it.imePadding(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         topContent?.let { content ->
             item { content() }
         }
@@ -120,8 +123,8 @@ fun MaterialUploadScreen(
             }
         }
 
-        item {
-            when (uiState.stage) {
+            item {
+                when (uiState.stage) {
                 MaterialFlowStage.SELECT -> UploadSelectionContent(
                     uiState = uiState,
                     onChooseFrontFromGallery = {
@@ -201,6 +204,7 @@ fun MaterialUploadScreen(
             }
         }
     }
+}
 }
 
 @Composable

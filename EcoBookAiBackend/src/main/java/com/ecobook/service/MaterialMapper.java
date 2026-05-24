@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.dto.MaterialDTO;
 import com.ecobook.dto.MaterialDonorDTO;
@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class MaterialMapper {
 
+    /**
+     * Maps a material entity into the API DTO representation.
+     * @param material material entity to map or inspect
+     * @return mapped DTO representation
+     */
     public MaterialDTO toDto(Material material) {
         return MaterialDTO.builder()
                 .id(material.getId().toString())

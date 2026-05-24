@@ -1,9 +1,12 @@
-package com.ecobook.controller;
+﻿package com.ecobook.controller;
 
 import com.ecobook.dto.ApiEnvelope;
 import com.ecobook.dto.ApiEnvelopeResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +18,19 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/health")
+@Tag(name = "Saude", description = "Verificacao publica de disponibilidade do backend")
 public class HealthController {
 
+    /**
+     * Returns the backend health payload for the current request.
+     * @param servletRequest current HTTP servlet request
+     * @return result of the operation
+     */
     @GetMapping
+    @Operation(summary = "Consultar saude da API", description = "Retorna o status publico minimo do backend EcoBook AI.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Backend online")
+    })
     public ResponseEntity<ApiEnvelope<Map<String, Object>>> health(HttpServletRequest servletRequest) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");

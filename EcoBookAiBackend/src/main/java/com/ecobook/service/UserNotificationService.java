@@ -28,6 +28,11 @@ public class UserNotificationService {
     private final UsuarioRepository usuarioRepository;
     private final UserNotificationRepository userNotificationRepository;
 
+    /**
+     * Persists a notification in the backend inbox for the target user.
+     * @param recipientUserId r ec ip ie nt us er id
+     * @param payload notification payload to persist or send
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordNotification(UUID recipientUserId, NotificationPayloadDTO payload) {
         if (recipientUserId == null || payload == null || !StringUtils.hasText(payload.getNotificationId())) {
@@ -58,6 +63,11 @@ public class UserNotificationService {
         );
     }
 
+    /**
+     * Lists inbox notifications for the authenticated user.
+     * @param email authenticated user email
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public List<UserNotificationDTO> listCurrentUserNotifications(String email) {
         Usuario usuario = loadUsuario(email);
@@ -66,6 +76,11 @@ public class UserNotificationService {
                 .toList();
     }
 
+    /**
+     * Marks one inbox notification as read for the authenticated user.
+     * @param email authenticated user email
+     * @param notificationId notification identifier
+     */
     @Transactional
     public void markAsRead(String email, String notificationId) {
         Usuario usuario = loadUsuario(email);
@@ -81,6 +96,10 @@ public class UserNotificationService {
         }
     }
 
+    /**
+     * Marks every inbox notification as read for the authenticated user.
+     * @param email authenticated user email
+     */
     @Transactional
     public void markAllAsRead(String email) {
         Usuario usuario = loadUsuario(email);

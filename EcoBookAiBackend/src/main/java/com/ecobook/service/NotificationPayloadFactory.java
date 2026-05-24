@@ -13,6 +13,15 @@ import java.util.UUID;
 @Component
 public class NotificationPayloadFactory {
 
+    /**
+     * Builds the payload for the request received notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO requestReceived(String requestId,
                                                   String materialId,
                                                   String materialTitle,
@@ -28,6 +37,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the request approved notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO requestApproved(String requestId,
                                                   String materialId,
                                                   String materialTitle,
@@ -45,6 +64,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the request declined notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO requestDeclined(String requestId,
                                                   String materialId,
                                                   String materialTitle,
@@ -61,6 +90,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the request canceled by donor notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO requestCanceledByDonor(String requestId,
                                                          String materialId,
                                                          String materialTitle,
@@ -79,6 +118,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the request canceled by student notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO requestCanceledByStudent(String requestId,
                                                            String materialId,
                                                            String materialTitle,
@@ -97,6 +146,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the request expired notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO requestExpired(String requestId,
                                                  String materialId,
                                                  String materialTitle,
@@ -114,6 +173,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the donation completed notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO donationCompleted(String requestId,
                                                     String materialId,
                                                     String materialTitle,
@@ -131,6 +200,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the material canceled notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO materialCanceled(String requestId,
                                                    String materialId,
                                                    String materialTitle,
@@ -147,6 +226,16 @@ public class NotificationPayloadFactory {
         );
     }
 
+    /**
+     * Builds the payload for the material removed by admin notification.
+     *
+     * @param requestId the requestId value
+     * @param materialId the material identifier
+     * @param materialTitle the materialTitle value
+     * @param doador the doador value
+     * @param solicitante the solicitante value
+     * @return the notification payload
+     */
     public NotificationPayloadDTO materialRemovedByAdmin(String requestId,
                                                          String materialId,
                                                          String materialTitle,

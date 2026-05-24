@@ -15,7 +15,12 @@ import com.ecobook.api.AuthInterceptor
 import com.ecobook.api.EcoBookApiClient
 import com.ecobook.api.FcmApiService
 import com.ecobook.api.MaterialApiService
+import com.ecobook.api.NotificationApiService
+import com.ecobook.api.ReferenceDataApiService
+import com.ecobook.api.RequestApiService
 import com.ecobook.di.NetworkModule
+import com.ecobook.fcm.NotificationInboxStore
+import com.ecobook.fcm.SecureNotificationInboxStore
 import com.ecobook.ui.ComposeTestUtils
 import dagger.Module
 import dagger.Provides
@@ -114,6 +119,32 @@ class AuthFlowE2ETest {
         @Singleton
         fun provideFcmApiService(retrofit: Retrofit): FcmApiService {
             return retrofit.create(FcmApiService::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideRequestApiService(retrofit: Retrofit): RequestApiService {
+            return retrofit.create(RequestApiService::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideNotificationApiService(retrofit: Retrofit): NotificationApiService {
+            return retrofit.create(NotificationApiService::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideReferenceDataApiService(retrofit: Retrofit): ReferenceDataApiService {
+            return retrofit.create(ReferenceDataApiService::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideNotificationInboxStore(
+            secureNotificationInboxStore: SecureNotificationInboxStore
+        ): NotificationInboxStore {
+            return secureNotificationInboxStore
         }
     }
 

@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.config.CacheNames;
 import com.ecobook.dto.UpdateProfileRequestDTO;
@@ -43,7 +43,9 @@ public class UsuarioService {
     private final ConsentService consentService;
 
     /**
-     * Load the authenticated user profile by email.
+     * Loads the profile DTO for the user identified by email.
+     * @param email authenticated user email
+     * @return mapped user profile DTO
      */
     @Cacheable(value = CacheNames.USER_PROFILE, key = "#email", sync = true)
     @Transactional(readOnly = true)
@@ -53,6 +55,12 @@ public class UsuarioService {
         return toDto(usuario);
     }
 
+    /**
+     * Updates the authenticated user profile and refreshes completion state.
+     * @param email authenticated user email
+     * @param request request payload for the operation
+     * @return updated result
+     */
     @Caching(evict = {
             @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
             @CacheEvict(value = CacheNames.USER_CONSENT_STATUS, key = "#email"),
@@ -100,6 +108,11 @@ public class UsuarioService {
         return toDto(savedUser);
     }
 
+    /**
+     * Updates the stored FCM token for the authenticated user.
+     * @param email authenticated user email
+     * @param token FCM token to store
+     */
     @Transactional
     public void updateFcmToken(String email, String token) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
@@ -114,6 +127,12 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    /**
+     * Updates the authenticated user's AI-consent flag.
+     * @param email authenticated user email
+     * @param consentimentoIa new AI-consent value
+     * @return updated result
+     */
     @Caching(evict = {
             @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
             @CacheEvict(value = CacheNames.USER_CONSENT_STATUS, key = "#email")
@@ -133,6 +152,11 @@ public class UsuarioService {
         return toDto(savedUser);
     }
 
+    /**
+     * Returns the cached consent summary for the user identified by email.
+     * @param email authenticated user email
+     * @return current consent summary
+     */
     @Cacheable(value = CacheNames.USER_CONSENT_STATUS, key = "#email", sync = true)
     @Transactional(readOnly = true)
     public UserConsentStatusDTO getConsentStatus(String email) {
@@ -141,6 +165,11 @@ public class UsuarioService {
         return consentService.getConsentStatus(usuario);
     }
 
+    /**
+     * Maps a user entity into the API DTO representation.
+     * @param usuario user entity involved in the operation
+     * @return mapped user DTO
+     */
     public UsuarioDTO toDto(Usuario usuario) {
         return UsuarioDTO.builder()
                 .id(usuario.getId().toString())

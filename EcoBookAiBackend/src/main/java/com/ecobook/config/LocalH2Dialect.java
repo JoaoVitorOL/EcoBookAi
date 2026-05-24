@@ -1,4 +1,4 @@
-package com.ecobook.config;
+﻿package com.ecobook.config;
 
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.H2Dialect;
@@ -14,6 +14,11 @@ import org.hibernate.type.descriptor.jdbc.spi.JdbcTypeRegistry;
  */
 public class LocalH2Dialect extends H2Dialect {
 
+    /**
+     * Registers the custom H2 compatibility types required by the local profile.
+     * @param typeContributions Hibernate type contributions to extend
+     * @param serviceRegistry Hibernate service registry in use
+     */
     @Override
     public void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
         super.contributeTypes(typeContributions, serviceRegistry);

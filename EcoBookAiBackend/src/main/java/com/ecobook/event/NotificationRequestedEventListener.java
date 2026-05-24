@@ -1,4 +1,4 @@
-package com.ecobook.event;
+﻿package com.ecobook.event;
 
 import com.ecobook.service.FcmService;
 import com.ecobook.service.UserNotificationService;
@@ -14,6 +14,10 @@ public class NotificationRequestedEventListener {
     private final FcmService fcmService;
     private final UserNotificationService userNotificationService;
 
+    /**
+     * Handles notification dispatch requests after they are published.
+     * @param event published domain event payload
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onNotificationRequested(NotificationRequestedEvent event) {
         userNotificationService.recordNotification(event.recipientUserId(), event.payload());

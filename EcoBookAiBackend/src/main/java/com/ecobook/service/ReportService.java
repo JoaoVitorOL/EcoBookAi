@@ -38,6 +38,14 @@ public class ReportService {
     private final MaterialNonReceiptReportRepository materialNonReceiptReportRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Executes the report non receipt operation.
+     *
+     * @param email the email value
+     * @param materialId the material identifier
+     * @param request the request payload
+     * @return the operation result
+     */
     @Transactional
     public MaterialNonReceiptReportDTO reportNonReceipt(String email,
                                                         String materialId,

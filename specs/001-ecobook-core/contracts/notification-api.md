@@ -12,6 +12,7 @@ Runtime notes:
 - successful responses are wrapped in `{ status, message, timestamp, path, data }`
 - the examples below show the inner `data` payload only
 - `GET /notificacoes` and the read endpoints require `perfil_completo = true`
+- the full `token sync -> persisted inbox row -> Firebase send -> Android in-app receipt` path was revalidated on `2026-05-23` through `FirebaseRealDeviceValidationTest` on a Google Play-enabled `Pixel_6` AVD
 
 ## POST /fcm/tokens
 

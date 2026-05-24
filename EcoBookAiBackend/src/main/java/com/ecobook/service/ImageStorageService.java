@@ -44,6 +44,12 @@ public class ImageStorageService {
     @Value("${server.servlet.context-path:}")
     private String servletContextPath;
 
+    /**
+     * Stores an uploaded image pair as a temporary preview artifact.
+     * @param usuario user entity involved in the operation
+     * @param file primary uploaded image file
+     * @return result of the operation
+     */
     public StoredTemporaryUpload storeTemporaryImage(Usuario usuario, MultipartFile file) {
         return storeTemporaryImage(usuario, file, null);
     }
@@ -96,6 +102,11 @@ public class ImageStorageService {
         }
     }
 
+    /**
+     * Validates uploaded image bytes and returns the normalized MIME type.
+     * @param imageBytes image bytes to validate or classify
+     * @return result of the operation
+     */
     public String validateImage(byte[] imageBytes) {
         if (imageBytes.length == 0) {
             throw invalidImage("image", "Envie uma imagem JPEG ou PNG válida");
@@ -122,10 +133,20 @@ public class ImageStorageService {
         return mimeType;
     }
 
+    /**
+     * Promotes the primary temporary image into durable storage.
+     * @param upload temporary upload record to promote or inspect
+     * @return result of the operation
+     */
     public PromotedImage promoteTemporaryImage(TemporaryUpload upload) {
         return promoteStoredImage(upload.getUsuario().getId(), upload.getFilePath());
     }
 
+    /**
+     * Promotes the secondary temporary image into durable storage when present.
+     * @param upload temporary upload record to promote or inspect
+     * @return result of the operation
+     */
     public PromotedImage promoteSecondaryTemporaryImage(TemporaryUpload upload) {
         if (!org.springframework.util.StringUtils.hasText(upload.getSecondaryFilePath())) {
             return null;
@@ -154,6 +175,10 @@ public class ImageStorageService {
         }
     }
 
+    /**
+     * Deletes a stored file when the target path exists.
+     * @param filePath file path to delete when present
+     */
     public void deleteIfExists(String filePath) {
         if (filePath == null || filePath.isBlank()) {
             return;
@@ -179,6 +204,10 @@ public class ImageStorageService {
     public record PromotedImage(Path absolutePath, String publicUrl) {
     }
 
+    /**
+     * Returns the absolute upload directory configured for stored files.
+     * @return requested value
+     */
     public String getUploadDir() {
         return uploadDir;
     }

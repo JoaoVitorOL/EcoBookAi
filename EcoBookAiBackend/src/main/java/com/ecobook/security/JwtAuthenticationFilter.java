@@ -24,6 +24,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticatedUserLookupService authenticatedUserLookupService;
     private final TokenRevocationService tokenRevocationService;
 
+    /**
+     * Processes the current request through the JWT authentication filter.
+     *
+     * @param jwtTokenProvider the jwtTokenProvider value
+     * @param authenticatedUserLookupService the authenticatedUserLookupService value
+     * @param tokenRevocationService the tokenRevocationService value
+     * @return the operation result
+     */
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,
                                    AuthenticatedUserLookupService authenticatedUserLookupService,
                                    TokenRevocationService tokenRevocationService) {

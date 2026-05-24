@@ -3,7 +3,6 @@ package com.ecobook.fcm
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.ecobook.navigation.AppRoutes
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -87,20 +86,17 @@ class EcoBookMessagingService : FirebaseMessagingService() {
         fallbackNotificationId: String?
     ) {
         val channelId = "eco_book_notifications"
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Notificações EcoBook",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notificações do EcoBook"
-                setShowBadge(true)
-            }
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            channelId,
+            "Notificacoes EcoBook",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Notificacoes do EcoBook"
+            setShowBadge(true)
         }
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
@@ -120,8 +116,6 @@ class EcoBookMessagingService : FirebaseMessagingService() {
             ?: fallbackNotificationId?.hashCode()
             ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(notificationId, builtNotification)
     }
 }

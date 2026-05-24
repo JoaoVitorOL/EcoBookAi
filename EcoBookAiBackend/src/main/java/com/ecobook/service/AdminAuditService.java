@@ -11,7 +11,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -20,6 +19,17 @@ public class AdminAuditService {
 
     private final AuditLogService auditLogService;
 
+    /**
+     * Executes the list audit logs operation.
+     *
+     * @param actorUserId the actorUserId value
+     * @param targetUserId the targetUserId value
+     * @param action the action value
+     * @param from the from value
+     * @param to the to value
+     * @param pageRequest the pageRequest value
+     * @return the operation result
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<AuditLogDTO> listAuditLogs(String actorUserId,
                                                        String targetUserId,

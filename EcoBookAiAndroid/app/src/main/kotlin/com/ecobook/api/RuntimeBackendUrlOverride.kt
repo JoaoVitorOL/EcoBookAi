@@ -22,13 +22,13 @@ object RuntimeBackendUrlOverride {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(BACKEND_URL_KEY, value.trim())
-            .commit()
+            .apply()
     }
 
     fun clear(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .remove(BACKEND_URL_KEY)
-            .commit()
+            .apply()
     }
 }

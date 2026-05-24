@@ -12,6 +12,11 @@ import com.ecobook.dto.UserConsentStatusDTO;
 import com.ecobook.service.UserDataExportService;
 import com.ecobook.service.UserDeletionService;
 import com.ecobook.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +38,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/usuarios")
 @RequiredArgsConstructor
+@Tag(name = "Usuarios", description = "Perfil, consentimentos, exportacao e exclusao de conta")
+@SecurityRequirement(name = "bearer-jwt")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
     private final UserDeletionService userDeletionService;
     private final UserDataExportService userDataExportService;
 
+    /**
+     * Handles the get me request.
+     *
+     * @param authentication the authenticated principal context
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Consultar perfil atual", description = "Retorna o snapshot do perfil do usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Perfil carregado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido")
+    })
     public ResponseEntity<ApiEnvelope<UsuarioDTO>> getMe(Authentication authentication,
                                                          HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
@@ -50,8 +69,29 @@ public class UsuarioController {
         );
     }
 
+    /**
+     * Handles the update me request.
+     *
+     * @param authentication the authenticated principal context
+     * @param request the request payload
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @PutMapping("/me")
     @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Atualizar perfil",
+            description = "Atualiza os dados principais do perfil, completa o onboarding quando os campos obrigatorios forem atendidos e pode exigir novo login se o email for alterado.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Payload completo ou parcial de edicao do perfil"
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Email duplicado ou formato invalido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "422", description = "Campos obrigatorios ausentes ou invalidos")
+    })
     public ResponseEntity<ApiEnvelope<UsuarioDTO>> updateMe(Authentication authentication,
                                                             @Valid @RequestBody UpdateProfileRequestDTO request,
                                                             HttpServletRequest servletRequest) {
@@ -62,8 +102,28 @@ public class UsuarioController {
         );
     }
 
+    /**
+     * Handles the update ai consent request.
+     *
+     * @param authentication the authenticated principal context
+     * @param request the request payload
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @PatchMapping("/me/consentimento-ia")
     @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Atualizar consentimento de IA",
+            description = "Ativa ou desativa o consentimento de IA sem reenviar o restante do perfil.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Novo estado do consentimento de IA"
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consentimento atualizado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "422", description = "Payload invalido")
+    })
     public ResponseEntity<ApiEnvelope<UsuarioDTO>> updateAiConsent(Authentication authentication,
                                                                    @Valid @RequestBody UpdateAiConsentRequestDTO request,
                                                                    HttpServletRequest servletRequest) {
@@ -74,16 +134,42 @@ public class UsuarioController {
         );
     }
 
+    /**
+     * Handles the update ai consent alias request.
+     *
+     * @param authentication the authenticated principal context
+     * @param request the request payload
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @PatchMapping("/me/consent")
     @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Atualizar consentimento de IA via alias", description = "Alias compatível do endpoint de consentimento de IA.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consentimento atualizado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "422", description = "Payload invalido")
+    })
     public ResponseEntity<ApiEnvelope<UsuarioDTO>> updateAiConsentAlias(Authentication authentication,
                                                                         @Valid @RequestBody UpdateAiConsentRequestDTO request,
                                                                         HttpServletRequest servletRequest) {
         return updateAiConsent(authentication, request, servletRequest);
     }
 
+    /**
+     * Handles the revoke ai consent request.
+     *
+     * @param authentication the authenticated principal context
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @DeleteMapping("/me/consent/ai-classification")
     @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Revogar consentimento de IA", description = "Revoga o consentimento de IA e retorna o perfil atualizado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consentimento revogado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido")
+    })
     public ResponseEntity<ApiEnvelope<UsuarioDTO>> revokeAiConsent(Authentication authentication,
                                                                    HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
@@ -93,8 +179,20 @@ public class UsuarioController {
         );
     }
 
+    /**
+     * Handles the get consent status request.
+     *
+     * @param authentication the authenticated principal context
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @GetMapping("/me/consent")
     @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Consultar status de consentimento", description = "Retorna o resumo do consentimento atual do usuario.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Status carregado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido")
+    })
     public ResponseEntity<ApiEnvelope<UserConsentStatusDTO>> getConsentStatus(Authentication authentication,
                                                                               HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
@@ -104,8 +202,28 @@ public class UsuarioController {
         );
     }
 
+    /**
+     * Handles the delete account request.
+     *
+     * @param authentication the authenticated principal context
+     * @param request the request payload
+     * @param servletRequest the current HTTP request
+     * @return the HTTP response for the request
+     */
     @PostMapping("/delete")
     @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Excluir conta",
+            description = "Executa a exclusao LGPD da conta, anonimiza dados e revoga o token atual.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Confirmacao da exclusao da conta"
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Conta removida com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Confirmacao ausente ou invalida"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido")
+    })
     public ResponseEntity<ApiEnvelope<DeleteAccountResponseDTO>> deleteAccount(Authentication authentication,
                                                                                @Valid @RequestBody DeleteAccountRequestDTO request,
                                                                                HttpServletRequest servletRequest) {
@@ -116,9 +234,19 @@ public class UsuarioController {
         );
     }
 
+    /**
+     * Exports the authenticated user's personal data package.
+     * @param authentication current authentication context
+     * @return result of the operation
+     */
     @PostMapping("/me/export")
     @PreAuthorize("hasRole('USER')")
     @AuditAction(action = "ACCOUNT_EXPORT_REQUESTED", resourceType = "USER_EXPORT")
+    @Operation(summary = "Exportar dados pessoais", description = "Gera um arquivo com os dados pessoais exportaveis do usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Arquivo gerado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido")
+    })
     public ResponseEntity<ByteArrayResource> exportPersonalData(Authentication authentication) {
         UserDataExportService.ExportedUserData export = userDataExportService.exportCurrentUser(authentication.getName());
         return ResponseEntity.ok()

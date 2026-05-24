@@ -88,6 +88,33 @@ class UsuarioServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("PUT /api/v1/usuarios/me should reject WhatsApp values with formatting characters")
+    void shouldRejectWhatsAppWithFormattingCharacters() throws Exception {
+        String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("formatted-whatsapp@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Formatted WhatsApp")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build()));
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Formatted WhatsApp",
+                                  "whatsapp": "+55 (11) 99123-4567",
+                                  "cidade": "Criciuma",
+                                  "bairro": "Centro"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
+                .andExpect(jsonPath("$.field_errors.whatsapp").value("Use o formato E.164 (+55XXXXXXXXXXX)"));
+    }
+
+    @Test
     @DisplayName("PUT /api/v1/usuarios/me should reject incomplete profile payloads")
     void shouldRejectIncompletePayload() throws Exception {
         String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
@@ -201,6 +228,33 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.cidade").value("RIBEIRAO PRETO"))
                 .andExpect(jsonPath("$.data.bairro").value("Jardim Botanico"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/usuarios/me should normalize Unicode city names without stripping neighborhood accents")
+    void shouldNormalizeUnicodeCityNames() throws Exception {
+        String token = tokenFor(usuarioRepository.saveAndFlush(Usuario.builder()
+                .email("unicode-city@example.com")
+                .passwordHash(SEEDED_PASSWORD_HASH)
+                .nome("Unicode City User")
+                .perfilCompleto(false)
+                .role(Role.USER)
+                .build()));
+
+        mockMvc.perform(put("/v1/usuarios/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Unicode City User",
+                                  "whatsapp": "+5511991234567",
+                                  "cidade": " São José ",
+                                  "bairro": " Trindade açoriana "
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.cidade").value("SAO JOSE"))
+                .andExpect(jsonPath("$.data.bairro").value("Trindade açoriana"));
     }
 
     @Test

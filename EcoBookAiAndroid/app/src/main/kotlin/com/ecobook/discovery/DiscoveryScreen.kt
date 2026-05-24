@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,6 +50,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.ecobook.model.Disciplina
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -114,12 +116,15 @@ fun DiscoveryScreen(
         )
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.padding(horizontal = 20.dp),
-        contentPadding = PaddingValues(top = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    AdaptiveScreenContent {
+        LazyColumn(
+            state = listState,
+            modifier = it
+                .imePadding()
+                .padding(horizontal = 20.dp),
+            contentPadding = PaddingValues(top = 20.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         item {
             SectionHeading(
                 title = "Descoberta de materiais",
@@ -197,13 +202,14 @@ fun DiscoveryScreen(
             }
         }
 
-        if (uiState.isLoadingMore) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
+            if (uiState.isLoadingMore) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }

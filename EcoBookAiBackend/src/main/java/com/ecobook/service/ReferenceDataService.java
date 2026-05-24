@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.config.CacheNames;
 import com.ecobook.dto.ReferenceDataCatalogDTO;
@@ -18,6 +18,10 @@ import java.util.function.Function;
 @Service
 public class ReferenceDataService {
 
+    /**
+     * Returns the cached catalog of material reference options.
+     * @return requested value
+     */
     @Cacheable(value = CacheNames.REFERENCE_DATA_MATERIAL_OPTIONS, sync = true)
     public ReferenceDataCatalogDTO getMaterialOptions() {
         return ReferenceDataCatalogDTO.builder()

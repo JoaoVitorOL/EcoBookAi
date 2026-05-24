@@ -1,4 +1,4 @@
-package com.ecobook.scheduler;
+﻿package com.ecobook.scheduler;
 
 import com.ecobook.service.FcmService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,9 @@ public class NotificationRetryJob {
 
     private final FcmService fcmService;
 
+    /**
+     * Retries queued notification deliveries that previously failed.
+     */
     @Scheduled(cron = "0 0 * * * *", zone = "UTC")
     public void retryFailedNotifications() {
         int processedCount = fcmService.retryFailedNotifications();

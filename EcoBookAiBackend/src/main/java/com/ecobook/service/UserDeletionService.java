@@ -52,6 +52,14 @@ public class UserDeletionService {
     private final TokenRevocationService tokenRevocationService;
     private final AuditLogService auditLogService;
 
+    /**
+     * Executes the delete current user operation.
+     *
+     * @param email the email value
+     * @param rawToken the rawToken value
+     * @param request the request payload
+     * @return the operation result
+     */
     @Caching(evict = {
             @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
             @CacheEvict(value = CacheNames.USER_CONSENT_STATUS, key = "#email"),
@@ -76,6 +84,7 @@ public class UserDeletionService {
         List<Material> ownMaterials = materialRepository.findByDoadorIdOrderByCriadoEmDesc(userId);
         List<UUID> ownMaterialIds = ownMaterials.stream().map(Material::getId).toList();
         LinkedHashMap<UUID, Solicitacao> requestsToDelete = new LinkedHashMap<>();
+        LinkedHashMap<UUID, Material> reopenedMaterials = new LinkedHashMap<>();
         solicitacaoRepository.findByEstudanteIdOrderByCriadoEmDesc(userId)
                 .forEach(requestItem -> requestsToDelete.put(requestItem.getId(), requestItem));
         solicitacaoRepository.findByMaterialDoadorIdOrderByCriadoEmDesc(userId)
@@ -97,12 +106,27 @@ public class UserDeletionService {
         }
 
         requestsToDelete.values().forEach(requestItem -> {
+            if (requestItem.getStatus() == StatusSolicitacao.APROVADA
+                    && requestItem.getEstudante() != null
+                    && userId.equals(requestItem.getEstudante().getId())
+                    && requestItem.getMaterial() != null
+                    && requestItem.getMaterial().getDoador() != null
+                    && !userId.equals(requestItem.getMaterial().getDoador().getId())
+                    && requestItem.getMaterial().getStatus() == StatusMaterial.RESERVADO) {
+                Material reopenedMaterial = requestItem.getMaterial();
+                reopenedMaterial.setStatus(StatusMaterial.DISPONIVEL);
+                reopenedMaterial.setDoadoEm(null);
+                reopenedMaterials.put(reopenedMaterial.getId(), reopenedMaterial);
+            }
             if (requestItem.getStatus() == StatusSolicitacao.PENDENTE || requestItem.getStatus() == StatusSolicitacao.APROVADA) {
                 requestItem.setStatus(StatusSolicitacao.CANCELADA);
             }
             requestItem.setContatoDoador(null);
             requestItem.markDeleted(userId, true);
         });
+        if (!reopenedMaterials.isEmpty()) {
+            materialRepository.saveAll(reopenedMaterials.values());
+        }
         if (!requestsToDelete.isEmpty()) {
             solicitacaoRepository.saveAll(requestsToDelete.values());
         }

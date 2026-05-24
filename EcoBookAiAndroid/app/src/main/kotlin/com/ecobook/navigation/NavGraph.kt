@@ -191,8 +191,8 @@ fun NavGraph(
                             }
                         )
                     }
-                    composable(AppDestination.DonatePublish.route) {
-                        val donateEntry = remember(navController) {
+                    composable(AppDestination.DonatePublish.route) { entry ->
+                        val donateEntry = remember(entry) {
                             navController.getBackStackEntry(AppDestination.Donate.route)
                         }
                         val donateViewModel: DonateViewModel = hiltViewModel(donateEntry)

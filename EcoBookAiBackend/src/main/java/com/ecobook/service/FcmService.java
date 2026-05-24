@@ -55,16 +55,37 @@ public class FcmService {
     private volatile FirebaseMessaging firebaseMessaging;
     private volatile boolean initializationAttempted;
 
+    /**
+     * Dispatches a push notification to the target user.
+     * @param userId user identifier
+     * @param title notification title
+     * @param body notification body
+     * @return true when the operation succeeds or the condition is met; otherwise false
+     */
     @Transactional
     public boolean sendNotification(String userId, String title, String body) {
         return sendNotification(userId, title, body, Map.of());
     }
 
+    /**
+     * Dispatches a push notification to the target user.
+     * @param userId user identifier
+     * @param title notification title
+     * @param body notification body
+     * @param data notification or response data map
+     * @return true when the operation succeeds or the condition is met; otherwise false
+     */
     @Transactional
     public boolean sendNotification(String userId, String title, String body, Map<String, String> data) {
         return sendNotificationInternal(userId, title, body, enrichPayload(title, body, data));
     }
 
+    /**
+     * Dispatches a push notification to the target user.
+     * @param userId user identifier
+     * @param payload notification payload to persist or send
+     * @return true when the operation succeeds or the condition is met; otherwise false
+     */
     @Transactional
     public boolean sendNotification(UUID userId, NotificationPayloadDTO payload) {
         return sendNotificationInternal(
@@ -75,6 +96,10 @@ public class FcmService {
         );
     }
 
+    /**
+     * Retries failed notification deliveries that are ready for another attempt.
+     * @return result of the operation
+     */
     @Transactional
     public int retryFailedNotifications() {
         LocalDateTime now = LocalDateTime.now();

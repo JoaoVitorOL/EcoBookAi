@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -238,6 +241,42 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.total").value(1))
                 .andExpect(jsonPath("$.data.results[0].titulo").value("Anglo Exato"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/materiais should keep paginating correctly with more than 1000 materials")
+    void shouldHandleLargeDiscoveryWindows() throws Exception {
+        Usuario requester = createUser("stress-search@example.com", "FLORIANOPOLIS", "CENTRO");
+        Usuario donor = createUser("stress-donor@example.com", "FLORIANOPOLIS", "CENTRO");
+
+        List<Material> materials = new ArrayList<>();
+        for (int index = 0; index < 1001; index++) {
+            materials.add(Material.builder()
+                    .doador(donor)
+                    .titulo("Colecao stress " + index)
+                    .descricao("Descricao de stress para colecao " + index)
+                    .disciplina(Disciplina.MATEMATICA)
+                    .nivelEnsino(NivelEnsino.FUNDAMENTAL)
+                    .ano(7)
+                    .sistemaEnsino(SistemaEnsino.ANGLO)
+                    .estadoConservacao(EstadoConservacao.BOM)
+                    .status(StatusMaterial.DISPONIVEL)
+                    .cidade(donor.getCidade())
+                    .bairro(donor.getBairro())
+                    .dataPublicacao(2000 + (index % 20))
+                    .build());
+        }
+        materialRepository.saveAllAndFlush(materials);
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("page", "0")
+                        .param("size", "25"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.total").value(1001))
+                .andExpect(jsonPath("$.data.results.length()").value(25))
+                .andExpect(jsonPath("$.data.has_next").value(true))
+                .andExpect(jsonPath("$.data.next_after_id").isNotEmpty());
     }
 
     private Usuario createUser(String email, String cidade, String bairro) {

@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
-**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 In Progress  
+**Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 Complete / 10 Complete  
 **Date**: 2026-05-23  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, and the Phase 8 LGPD/security runtime are implemented; Phase 9 is underway with response compression, Micrometer/Prometheus observability, smoke coverage, authenticated-read caching, immutable reference-data catalog caching/consumption, discovery cursor pagination, rollback cleanup, visible terms/privacy consent UX and profile self-service updates already live while Firebase device validation and the deeper performance/load fronts stay pending
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are now implemented and validated
 
 ---
 
@@ -178,11 +178,11 @@ What closed Phase 5 functionally:
 2. Android request UX now covers request creation from discovery, student follow-up, donor approval/rejection/completion flows and WhatsApp handoff after approval
 3. Git history records `inicio fase 5` and `fase 5 refinamento` on 2026-05-13, which matches the implemented runtime state
 
-What remains to close Phase 6 formally:
+What closed Phase 6 formally on 2026-05-23:
 
-1. Revalidate the implemented notification flow end to end with a real Firebase setup and updated execution notes
-2. Capture device-level evidence for foreground/background receipt on hardware or emulator with Google Play services
-3. Fold any Firebase-project-specific findings back into the local runbooks
+1. The implemented notification flow was revalidated end to end against a real Firebase project
+2. Device-level evidence was captured on a `Pixel_6` AVD with Google Play services through `FirebaseRealDeviceValidationTest`
+3. The findings from that run were folded back into the runbooks and contracts, including the notification DTO serialization fix and the local H2 bootstrap hardening discovered during the validation path
 
 What closed Phase 7 concretely:
 
@@ -205,7 +205,7 @@ What advanced Phase 9 concretely:
 5. Material creation now cleans up promoted files when persistence or secondary-image promotion fails, and that rollback path is covered by automated tests
 6. A public `GET /api/v1/reference-data/material-options` catalog now caches immutable enums on the backend and feeds Android discovery, onboarding and donation/edit flows with resilient local fallback
 7. Discovery now returns `next_after_id` and supports same-filter `after_id` continuation, so the Android infinite-scroll flow can switch from the first offset page to keyset windows for larger result sets
-8. The remaining work is now concentrated in load/performance validation, residual edge cases, Firebase device validation and the final Phase 10 quality gates
+8. The Phase 9 load/performance front is now covered by a repeatable `LoadValidationTest` harness that runs 20 concurrent upload flows plus 30 concurrent searches, writes evidence under `target/load-reports/`, and passed locally with `0%` errors and sub-`600 ms` p95 latencies on 2026-05-23
 
 Validation update on 2026-05-21:
 
@@ -217,11 +217,21 @@ Validation update on 2026-05-23:
 
 1. Backend test infrastructure now falls back automatically through `Testcontainers -> external PostgreSQL -> H2 em memoria`, which keeps `mvn test` runnable even in environments sem Docker
 2. Backend startup/test guidance is now explicit about the Java 21+ requirement to avoid the previous class-version mismatch failure mode
-3. Root/runtime documentation was rebased so the current stop point is clearly recorded as `Phase 8 complete / Phase 9 in progress`
+3. Root/runtime documentation was rebased so the current stop point is clearly recorded as `Phase 10 complete`
 4. The Phase 9 observability baseline is now live through Micrometer/Prometheus, HikariCP metrics, runtime business counters and an actuator-backed smoke suite
-5. The backend regression suite is green again with `140` tests via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update and rollback fronts
+5. The backend regression suite is green again with `218` tests / `3` controlled skips via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update, edge-case, boundary, rollback, OpenAPI smoke, export/inbox/audit unit coverage and load-harness fronts
 6. Android consent/account UX is now aligned with the current runtime: the user can read an in-app summary before accepting platform terms, edit the main profile fields later, and confirm account deletion through an explicit destructive dialog
-6. Android local JVM validation remains green through `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+7. Android local JVM validation remains green through `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+8. Phase 9 hardening now also includes explicit edge/boundary coverage for account-deletion cascade reopening, exact 5MB image acceptance, large request/material backlogs and exact reservation-expiry timing
+9. A dedicated `E2ETests` suite now consolidates 20 API-level end-to-end scenarios, the runtime-aligned docs set now includes architecture, troubleshooting, deployment and testing guides under `docs/`, and the Android side now has a repeatable `FirebaseRealDeviceValidationTest` for the real FCM path
+10. `LoadValidationTest` now closes the missing concurrency evidence with a validated `20 uploads + 30 searches` run, `522 ms` search p95, `512 ms` upload p95, `0%` errors and Prometheus/Hikari report artifacts under `EcoBookAiBackend/target/load-reports/`
+11. Swagger/OpenAPI is now live on the backend through `springdoc`, with public docs at `/api/swagger-ui.html`, raw JSON at `/api/v3/api-docs`, controller-level annotations across the REST surface and smoke coverage that keeps the documentation endpoints under regression
+12. The coverage gate is now closed at `85.23%` JaCoCo line coverage, backed by the full `218`-test regression suite plus the added notification-retry, token-revocation and migration-rollback validation coverage
+13. Phase 10 now also has explicit evidence for code review (`docs/code-review.md`), static analysis (`docs/static-analysis.md`), dependency scanning (`docs/security-scan.md`) and migration reversibility inventory (`docs/migration-rollbacks.md`)
+14. The OWASP baseline was reduced from `25` vulnerable dependencies / `131` findings to `13` / `41`, and the residual transitive/framework risk is now explicitly accepted and documented in `docs/security-scan.md`
+15. Flyway rollback coverage is now explicit: every migration has a paired artifact under `db/rollback`, PostgreSQL apply -> rollback -> re-apply is validated in `MigrationRollbackValidationTest`, and the destructive historical migrations now route through a checked-in snapshot/restore workflow
+16. The cross-module JavaDoc pass is now complete across the detected backend public methods under `src/main/java`; the closing scan reports `0` missing public methods, and the closeout validation bundle was rerun after that sweep to remove the last formal Phase 10 blocker
+17. A post-closeout Android UI review was also completed against official Compose guidance for state hoisting, accessibility defaults and adaptive layouts; the runtime now uses centered max-width content panes, full-row toggle semantics for consent controls, a fixed `NavGraph` back-stack pattern and a green `app:lintDebug` baseline with only dependency/targetSdk warnings remaining
 
 ---
 
@@ -247,7 +257,7 @@ What is now accurate about readiness:
 - Accurate to declare Phase 5 request workflow delivered in runtime
 - Accurate to declare Phase 7 admin/moderation delivered in runtime
 - Accurate to declare Phase 8 LGPD/security runtime delivered
-- Safe to treat the repository as currently stopped in Phase 9, with Firebase-device validation and phase 9/10 hardening still open
+- Safe to treat the repository as Phase 10 complete; remaining notes are operational, legal or dependency-monitoring follow-ups rather than implementation blockers
 
 ---
 

@@ -157,6 +157,33 @@ class MaterialControllerCreateTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Temporary upload not found or expired"));
     }
 
+    @Test
+    @DisplayName("POST /api/v1/materiais should reject titles longer than 255 characters")
+    void shouldRejectLongTitle() throws Exception {
+        Usuario usuario = createCompleteUser("long-title@example.com", true);
+        String uploadId = previewUploadIdFor(usuario);
+        String longTitle = "A".repeat(256);
+
+        mockMvc.perform(post("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(usuario))
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "upload_id": "%s",
+                                  "titulo": "%s",
+                                  "descricao": "Descricao valida com tamanho suficiente para validar o titulo longo.",
+                                  "disciplina": "PORTUGUES",
+                                  "nivel_ensino": "FUNDAMENTAL",
+                                  "ano": 6,
+                                  "sistema_ensino": "OUTRO",
+                                  "estado_conservacao": "BOM"
+                                }
+                                """.formatted(uploadId, longTitle)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
+                .andExpect(jsonPath("$.field_errors.titulo").value("O título deve ter no máximo 255 caracteres"));
+    }
+
     private Usuario createCompleteUser(String email, boolean consentimentoIa) {
         return usuarioRepository.saveAndFlush(Usuario.builder()
                 .email(email)

@@ -1,14 +1,21 @@
-package com.ecobook.security;
+﻿package com.ecobook.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -27,6 +34,14 @@ public class JwtTokenProvider {
         return generateToken(email, role, perfilCompleto, null);
     }
 
+    /**
+     * Generates a signed JWT for the authenticated user.
+     * @param email authenticated user email
+     * @param role role to encode in the token
+     * @param perfilCompleto profile-completion flag to encode in the token
+     * @param userId user identifier
+     * @return generated token value
+     */
     public String generateToken(String email, String role, boolean perfilCompleto, String userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -63,14 +78,28 @@ public class JwtTokenProvider {
         return getAllClaimsFromToken(token).get("role", String.class);
     }
 
+    /**
+     * Extracts the profile-completion flag stored in the JWT.
+     * @param token FCM token to store
+     * @return true when the operation succeeds or the condition is met; otherwise false
+     */
     public boolean getPerfilCompletoFromToken(String token) {
         return Boolean.TRUE.equals(getAllClaimsFromToken(token).get("perfilCompleto", Boolean.class));
     }
 
+    /**
+     * Returns the configured JWT lifetime in seconds.
+     * @return requested value
+     */
     public long getExpirationInSeconds() {
         return jwtExpiration / 1000L;
     }
 
+    /**
+     * Returns the expiration instant encoded in the JWT.
+     * @param token FCM token to store
+     * @return requested value
+     */
     public Date getExpiration(String token) {
         return getAllClaimsFromToken(token).getExpiration();
     }

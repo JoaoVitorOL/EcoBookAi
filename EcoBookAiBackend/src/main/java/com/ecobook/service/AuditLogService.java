@@ -24,6 +24,17 @@ public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
 
+    /**
+     * Executes the log operation.
+     *
+     * @param action the action value
+     * @param actorUserId the actorUserId value
+     * @param actorEmail the actorEmail value
+     * @param targetUserId the targetUserId value
+     * @param resourceType the resourceType value
+     * @param resourceId the resourceId value
+     * @param details the details value
+     */
     @Transactional
     public void log(String action,
                     UUID actorUserId,
@@ -43,6 +54,17 @@ public class AuditLogService {
                 .build());
     }
 
+    /**
+     * Executes the search operation.
+     *
+     * @param actorUserId the actorUserId value
+     * @param targetUserId the targetUserId value
+     * @param action the action value
+     * @param from the from value
+     * @param to the to value
+     * @param pageRequest the pageRequest value
+     * @return the operation result
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<AuditLogDTO> search(UUID actorUserId,
                                                 UUID targetUserId,
@@ -59,6 +81,11 @@ public class AuditLogService {
         );
     }
 
+    /**
+     * Lists audit log entries related to the provided user.
+     * @param userId user identifier
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public java.util.List<AuditLogDTO> listUserRelatedLogs(UUID userId) {
         return auditLogRepository.findByActorUserIdOrTargetUserIdOrderByCreatedAtDesc(userId, userId).stream()
@@ -66,6 +93,11 @@ public class AuditLogService {
                 .toList();
     }
 
+    /**
+     * Maps an audit-log entity into the API DTO representation.
+     * @param auditLog audit-log entity to map
+     * @return mapped DTO representation
+     */
     public AuditLogDTO toDto(AuditLog auditLog) {
         return AuditLogDTO.builder()
                 .id(auditLog.getId().toString())

@@ -59,6 +59,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 
 O wrapper ASCII continua sendo o caminho mais confiavel para `testDebugUnitTest` nesta workspace com espacos/acentos no caminho do Windows.
 
+Validacao Firebase em emulador/dispositivo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'
+```
+
 ## Rodando O App
 
 1. Abra a pasta `EcoBookAiAndroid` no Android Studio.
@@ -101,8 +107,14 @@ Validado em `2026-05-21`:
 - `.\gradlew.bat assembleDebug`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
+Validado em `2026-05-23`:
+
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'`
+- fluxo real de `token FCM -> sync backend -> solicitacao criada -> notificacao persistida -> recebimento no app` confirmado em `Pixel_6` AVD com Google Play services
+
 ## Troubleshooting
 
 - O app nao abre no Android Studio: confirme que a pasta aberta e `EcoBookAiAndroid`, nao a raiz do repositorio.
 - O emulador nao encontra o backend: revise `backend.url` e, se preciso, troque `10.0.2.2` pelo IP atual do WSL.
-- O push nao chega: verifique `google-services.json`, permissao de notificacao e backend com credencial Admin SDK valida.
+- O push nao chega: verifique `google-services.json`, permissao de notificacao, backend com credencial Admin SDK valida e rode a validacao `FirebaseRealDeviceValidationTest` para isolar se a falha esta no token, no backend ou no recebimento em app.

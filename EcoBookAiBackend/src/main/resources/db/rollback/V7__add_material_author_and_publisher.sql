@@ -1,0 +1,3 @@
+ALTER TABLE material
+    DROP COLUMN IF EXISTS autor,
+    DROP COLUMN IF EXISTS editora;

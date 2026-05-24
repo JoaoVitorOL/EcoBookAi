@@ -1,4 +1,4 @@
-package com.ecobook.dto.notification;
+﻿package com.ecobook.dto.notification;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +21,10 @@ public class NotificationPayloadDTO {
     @Builder.Default
     private final Map<String, String> metadata = Map.of();
 
+    /**
+     * Converts the notification payload into a Firebase-compatible data map.
+     * @return result of the operation
+     */
     public Map<String, String> toDataMap() {
         LinkedHashMap<String, String> data = new LinkedHashMap<>();
         putIfHasText(data, "notification_id", notificationId);

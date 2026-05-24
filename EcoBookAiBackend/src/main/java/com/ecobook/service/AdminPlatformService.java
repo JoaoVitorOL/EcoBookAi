@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +45,12 @@ public class AdminPlatformService {
     private final NotificationPayloadFactory notificationPayloadFactory;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Lists materials visible from the administrative moderation surface.
+     * @param status optional status filter
+     * @param pageRequest pagination settings for the query
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<MaterialDTO> listMaterials(StatusMaterial status, PageRequest pageRequest) {
         Page<Material> page = status == null
@@ -60,6 +65,10 @@ public class AdminPlatformService {
         );
     }
 
+    /**
+     * Deletes a material from the administrative moderation surface.
+     * @param materialId material identifier
+     */
     @Transactional
     public void deleteMaterial(String materialId) {
         Material material = materialRepository.findById(parseMaterialId(materialId))
@@ -78,6 +87,11 @@ public class AdminPlatformService {
         publishAdministrativeRemovalNotifications(material, requests);
     }
 
+    /**
+     * Lists paged user summaries for the administrative surface.
+     * @param pageRequest pagination settings for the query
+     * @return requested list
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<AdminUserSummaryDTO> listUsers(PageRequest pageRequest) {
         Page<Usuario> page = usuarioRepository.findAllByOrderByCriadoEmDesc(pageRequest);

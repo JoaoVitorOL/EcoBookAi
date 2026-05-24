@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,6 +46,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.fcm.NotificationInboxEntry
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.StatusBadge
 import java.time.Instant
@@ -77,16 +79,19 @@ fun NotificationsScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.padding(topPadding),
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 20.dp,
-            bottom = 120.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    AdaptiveScreenContent {
+        LazyColumn(
+            modifier = it
+                .padding(topPadding)
+                .imePadding(),
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = 20.dp,
+                bottom = 120.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         item {
             GlassCard {
                 Text(
@@ -201,14 +206,15 @@ fun NotificationsScreen(
                     )
                 }
             }
-        } else {
-            items(uiState.notifications, key = { it.id }) { notification ->
-                NotificationCard(
-                    notification = notification,
-                    isMarkingAsRead = uiState.activeReadNotificationId == notification.id,
-                    onOpen = { onOpenNotification(notification) },
-                    onMarkAsRead = { viewModel.markAsRead(notification.id) }
-                )
+            } else {
+                items(uiState.notifications, key = { it.id }) { notification ->
+                    NotificationCard(
+                        notification = notification,
+                        isMarkingAsRead = uiState.activeReadNotificationId == notification.id,
+                        onOpen = { onOpenNotification(notification) },
+                        onMarkAsRead = { viewModel.markAsRead(notification.id) }
+                    )
+                }
             }
         }
     }

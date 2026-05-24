@@ -1,4 +1,4 @@
-package com.ecobook.scheduler;
+﻿package com.ecobook.scheduler;
 
 import com.ecobook.service.SolicitacaoService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,9 @@ public class ReservationExpiryJob {
 
     private final SolicitacaoService solicitacaoService;
 
+    /**
+     * Expires approved requests whose reservation window has elapsed.
+     */
     @Scheduled(cron = "0 0 2 * * *", zone = "UTC")
     public void expireReservations() {
         int expiredCount = solicitacaoService.expireApprovedRequests();

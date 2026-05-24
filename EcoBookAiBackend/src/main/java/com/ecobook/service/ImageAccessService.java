@@ -3,7 +3,6 @@ package com.ecobook.service;
 import com.ecobook.exception.BadRequestException;
 import com.ecobook.exception.ResourceNotFoundException;
 import com.ecobook.model.Material;
-import com.ecobook.model.Solicitacao;
 import com.ecobook.model.TemporaryUpload;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Role;
@@ -40,6 +39,13 @@ public class ImageAccessService {
     private final UsuarioRepository usuarioRepository;
     private final SolicitacaoRepository solicitacaoRepository;
 
+    /**
+     * Loads an image payload after applying requester access checks.
+     * @param requesterEmail email of the user requesting image access
+     * @param imageId upload tracking identifier for the image
+     * @param side requested image side selector
+     * @return loaded value
+     */
     @Transactional(readOnly = true)
     public ImagePayload loadImage(String requesterEmail, String imageId, String side) {
         UUID parsedImageId = parseImageId(imageId);

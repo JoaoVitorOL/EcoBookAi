@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -222,6 +224,43 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.field_errors.status").value(
                         "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA"
                 ));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/solicitacoes/pendentes should handle a donor with more than 1000 pending requests")
+    void shouldHandleLargePendingRequestBacklog() throws Exception {
+        Usuario donor = createUser("donor-large-backlog@example.com", "Doador");
+        Material material = createMaterial(donor, "Colecao com fila extensa");
+
+        List<Usuario> students = new ArrayList<>();
+        for (int index = 0; index < 1001; index++) {
+            students.add(Usuario.builder()
+                    .email("bulk-student-" + index + "@example.com")
+                    .passwordHash(SEEDED_PASSWORD_HASH)
+                    .nome("Estudante " + index)
+                    .whatsapp("+5511991%05d".formatted(index % 100000))
+                    .cidade("FLORIANOPOLIS")
+                    .bairro("CENTRO")
+                    .perfilCompleto(true)
+                    .consentimentoIa(true)
+                    .role(Role.USER)
+                    .build());
+        }
+        students = usuarioRepository.saveAllAndFlush(students);
+
+        List<Solicitacao> requests = students.stream()
+                .map(student -> Solicitacao.builder()
+                        .material(material)
+                        .estudante(student)
+                        .status(StatusSolicitacao.PENDENTE)
+                        .build())
+                .toList();
+        solicitacaoRepository.saveAllAndFlush(requests);
+
+        mockMvc.perform(get("/v1/solicitacoes/pendentes")
+                        .header("Authorization", "Bearer " + tokenFor(donor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1001));
     }
 
     private Usuario createUser(String email, String nome) {

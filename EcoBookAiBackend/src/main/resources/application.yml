@@ -133,3 +133,9 @@ logging:
     name: logs/ecobook.log
     max-size: 10MB
     max-history: 7
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

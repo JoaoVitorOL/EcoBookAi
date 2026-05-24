@@ -85,6 +85,13 @@ public class GeminiService {
     private final Deque<Instant> recentFailures = new ArrayDeque<>();
     private Instant circuitOpenUntil;
 
+    /**
+     * Classifies an uploaded material image with the Gemini integration.
+     * @param originalFilename original file name received for the upload
+     * @param imageBytes image bytes to validate or classify
+     * @param mimeType MIME type associated with the upload
+     * @return classification response
+     */
     public GeminiResponseDTO classifyMaterial(String originalFilename, byte[] imageBytes, String mimeType) {
         return classifyMaterial(originalFilename, imageBytes, mimeType, null, null);
     }
@@ -555,6 +562,16 @@ public class GeminiService {
         return normalized.isBlank() ? "Material para revisão manual" : normalized;
     }
 
+    /**
+     * Executes the failure response operation.
+     *
+     * @param message the message value
+     * @param timeout the timeout value
+     * @param malformedResponse the malformedResponse value
+     * @param missingFields the missingFields value
+     * @param invalidEnums the invalidEnums value
+     * @return the operation result
+     */
     public GeminiResponseDTO failureResponse(String message,
                                              boolean timeout,
                                              boolean malformedResponse,

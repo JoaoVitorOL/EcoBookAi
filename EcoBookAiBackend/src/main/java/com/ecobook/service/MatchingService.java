@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.dto.MaterialDTO;
 import com.ecobook.dto.PagedResponseDTO;
@@ -48,11 +48,24 @@ public class MatchingService {
     private final GeoNormalizationService geoNormalizationService;
     private final MaterialMapper materialMapper;
 
+    /**
+     * Finds materials that match the provided discovery criteria.
+     * @param criteria search criteria to apply
+     * @param pageable pagination settings for the search
+     * @return matching result set
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<MaterialDTO> findMatching(SearchCriteriaDTO criteria, Pageable pageable) {
         return findMatching(criteria, pageable, null);
     }
 
+    /**
+     * Finds materials that match the provided discovery criteria.
+     * @param criteria search criteria to apply
+     * @param pageable pagination settings for the search
+     * @param afterId optional keyset cursor for the next page
+     * @return matching result set
+     */
     @Transactional(readOnly = true)
     public PagedResponseDTO<MaterialDTO> findMatching(SearchCriteriaDTO criteria, Pageable pageable, String afterId) {
         SearchCriteriaDTO normalizedCriteria = normalize(criteria);

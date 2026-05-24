@@ -1,4 +1,4 @@
-package com.ecobook.model.enums;
+﻿package com.ecobook.model.enums;
 
 /**
  * Curriculum system
@@ -21,6 +21,10 @@ public enum SistemaEnsino {
         this.label = label;
     }
 
+    /**
+     * Returns the l ab el.
+     * @return requested value
+     */
     public String getLabel() {
         return label;
     }

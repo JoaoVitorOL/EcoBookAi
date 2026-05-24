@@ -1,4 +1,4 @@
-package com.ecobook.model.enums;
+﻿package com.ecobook.model.enums;
 
 /**
  * Student academic needs
@@ -17,6 +17,10 @@ public enum NecessidadeAcademica {
         this.description = description;
     }
 
+    /**
+     * Returns the d es cr ip ti on.
+     * @return requested value
+     */
     public String getDescription() {
         return description;
     }

@@ -1,4 +1,4 @@
-package com.ecobook.service;
+﻿package com.ecobook.service;
 
 import com.ecobook.model.RevokedJwtToken;
 import com.ecobook.repository.RevokedJwtTokenRepository;
@@ -23,6 +23,11 @@ public class TokenRevocationService {
     private final RevokedJwtTokenRepository revokedJwtTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * Revokes a JWT by hashing and storing its identifier.
+     * @param rawToken raw JWT token value
+     * @param userId user identifier
+     */
     @Transactional
     public void revoke(String rawToken, UUID userId) {
         if (!StringUtils.hasText(rawToken)) {
@@ -46,6 +51,11 @@ public class TokenRevocationService {
                 .build());
     }
 
+    /**
+     * Checks whether the provided JWT has already been revoked.
+     * @param rawToken raw JWT token value
+     * @return true when the condition holds; otherwise false
+     */
     @Transactional(readOnly = true)
     public boolean isRevoked(String rawToken) {
         if (!StringUtils.hasText(rawToken)) {

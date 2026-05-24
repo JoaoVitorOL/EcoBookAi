@@ -95,7 +95,37 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn test
 ```
 
-Na validacao mais recente de `2026-05-23`, o backend ficou verde com `140` testes.
+Na validacao mais recente de `2026-05-23`, o backend ficou verde com `218` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenarios snapshot-only em `MigrationRollbackValidationTest`.
+
+## Swagger / OpenAPI
+
+Com o `server.servlet.context-path=/api`, a documentacao publicada do backend fica em:
+
+- `http://localhost:8080/api/swagger-ui.html`
+- `http://localhost:8080/api/v3/api-docs`
+
+Os controladores principais agora estao anotados com `@Operation`, `@Parameter`, `@ApiResponse` e `@SecurityRequirement`, e o smoke suite valida que a UI e o JSON OpenAPI seguem publicamente acessiveis sem quebrar os endpoints autenticados.
+
+Na mesma rodada, a cobertura JaCoCo do backend ficou em `85.23%`, mantendo a meta minima de `85%` superada.
+
+O fechamento da phase 10 tambem incluiu a passada uniforme de JavaDoc nos metodos publicos detectados do backend, eliminando o ultimo bloqueio formal de documentacao.
+
+Load/performance manual (`T217`):
+
+```powershell
+$env:JAVA_HOME = 'C:\caminho\para\jdk-21-ou-superior'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% -Decobook.runLoadTest=true -Dtest=LoadValidationTest test
+```
+
+Esse comando executa `20` uploads concorrentes e `30` buscas concorrentes contra o backend em `RANDOM_PORT`, coleta metricas do Prometheus/Hikari e grava os artefatos em `target/load-reports/`.
+
+Na rodada validada em `2026-05-23`, o resultado local foi:
+
+- `0%` de erro
+- `522 ms` de p95 para busca
+- `512 ms` de p95 para upload
+- `20` conexoes Hikari totais observadas, `4` ativas no pico e `0` pendentes
 
 ## Smoke Test Validado
 
@@ -114,6 +144,63 @@ O backend tambem passou a ter uma smoke suite automatizada (`SmokeTests`) que va
 3. `POST /api/v1/auth/register` + `PUT /api/v1/usuarios/me` + `GET /api/v1/materiais`
 4. `POST /api/v1/materiais/preview`
 5. `GET /actuator/prometheus`
+
+E agora tambem conta com uma suite consolidada de cenarios fim a fim em `src/test/java/com/ecobook/E2ETests.java`, cobrindo 20 fluxos de API para happy path, gates, edge cases, expiry, reautenticacao e exclusao de conta.
+
+## Analise Estatica E Seguranca
+
+Checkstyle baseline:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-26'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% org.apache.maven.plugins:maven-checkstyle-plugin:3.5.0:check -Dcheckstyle.config.location=config/checkstyle/checkstyle.xml -Dcheckstyle.consoleOutput=true
+```
+
+Resultado atual:
+
+- `0` violacoes
+
+SpotBugs baseline:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:spotbugs -DskipTests -Denforcer.skip=true
+```
+
+Resultado atual:
+
+- `0` findings de prioridade 1
+- `191` findings de prioridade 2, majoritariamente `EI_EXPOSE_REP`/`EI_EXPOSE_REP2` em DTOs mutaveis gerados com Lombok
+
+OWASP Dependency Check:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn --% org.owasp:dependency-check-maven:12.1.0:check -DskipTests -Denforcer.skip=true -Dformats=HTML,JSON -DautoUpdate=false -DknownExploitedEnabled=false -DassemblyAnalyzerEnabled=false -DossindexAnalyzerEnabled=false -DossIndexAnalyzerEnabled=false -DnodeAuditAnalyzerEnabled=false -DnodePackageAnalyzerEnabled=false
+```
+
+Resultado atual:
+
+- relatorios em `target/dependency-check-report.html` e `target/dependency-check-report.json`
+- baseline reduzido para `13` dependencias vulneraveis / `41` findings
+- o risco residual aceito desta rodada esta detalhado em `../docs/security-scan.md`
+
+Rollback validation:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-26'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn -Dtest=MigrationRollbackValidationTest test
+```
+
+Resultado atual:
+
+- cada migration em `src/main/resources/db/migration` agora possui um artefato pareado em `src/main/resources/db/rollback`
+- a suite valida `apply -> rollback -> re-apply` em PostgreSQL para o subconjunto SQL-backed
+- `V4` e `V12` agora falham explicitamente para o fluxo de snapshot/restore, documentado em `../docs/migration-rollbacks.md`
 
 Exemplo de cadastro:
 
@@ -171,6 +258,12 @@ chmod +x ./scripts/run-backend-with-firebase.sh
 
 Sem essa configuracao, o app continua usando inbox local e a fila persistida de tentativas, mas o envio real fica dormente.
 
+Validacao executada em `2026-05-23`:
+
+- backend `local` iniciado com `Run-BackendWithFirebase.ps1`
+- `Pixel_6` AVD com Google Play services e `google-services.json` real no app
+- `FirebaseRealDeviceValidationTest` confirmou `registro -> onboarding -> sync do token -> persistencia da notificacao -> envio FCM -> recebimento no app`
+
 ## Observabilidade E Cache
 
 - `GET /actuator/prometheus` expone metricas HTTP, JVM, HikariCP e contadores de dominio do runtime
@@ -182,10 +275,15 @@ Sem essa configuracao, o app continua usando inbox local e a fila persistida de 
 
 - Contratos HTTP: `specs/001-ecobook-core/contracts/`
 - Migrations: `src/main/resources/db/migration/`
+- Code review: `../docs/code-review.md`
+- Analise estatica: `../docs/static-analysis.md`
+- Seguranca de dependencias: `../docs/security-scan.md`
+- Inventario de rollback: `../docs/migration-rollbacks.md`
 - Perfil local H2: `src/main/resources/application-local.yml`
 
 ## Troubleshooting
 
 - `release version 21 not supported` ou falha do Maven antes dos testes: seu terminal esta usando Java 17 ou inferior; troque para Java 21+.
 - Emulador nao alcanca o backend no WSL: descubra o IP do Linux com `wsl.exe -e bash -lc "hostname -I"` e use esse IP no app Android.
-- Push nao chega ao aparelho: confirme `FIREBASE_SERVICE_ACCOUNT_PATH` e teste em dispositivo/emulador com Google Play services.
+- O perfil `local` falha logo no primeiro boot com H2: apague `EcoBookAiBackend/data/ecobook-local*` se estiver carregando um banco legado; o bootstrap local atual foi endurecido para banco vazio, mas arquivos antigos podem manter schema defasado.
+- Push nao chega ao aparelho: confirme `FIREBASE_SERVICE_ACCOUNT_PATH`, `google-services.json`, permissao de notificacao e repita `FirebaseRealDeviceValidationTest` em dispositivo/emulador com Google Play services.

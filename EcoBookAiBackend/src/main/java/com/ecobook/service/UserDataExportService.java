@@ -5,7 +5,6 @@ import com.ecobook.dto.SolicitacaoDTO;
 import com.ecobook.dto.UsuarioDTO;
 import com.ecobook.exception.ResourceNotFoundException;
 import com.ecobook.model.FailedNotification;
-import com.ecobook.model.Material;
 import com.ecobook.model.UserNotification;
 import com.ecobook.model.Usuario;
 import com.ecobook.repository.FailedNotificationRepository;
@@ -45,6 +44,11 @@ public class UserDataExportService {
     private final AuditLogService auditLogService;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Executes the export current user operation.
+     * @param email authenticated user email
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public ExportedUserData exportCurrentUser(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)

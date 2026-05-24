@@ -15,6 +15,10 @@ public enum StatusMaterial {
         this.description = description;
     }
 
+    /**
+     * Returns the d es cr ip ti on.
+     * @return requested value
+     */
     public String getDescription() {
         return description;
     }

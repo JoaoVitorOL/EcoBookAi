@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.5.14</version>
         <relativePath/>
     </parent>
 
@@ -26,32 +26,22 @@
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <spring-cloud.version>2023.0.0</spring-cloud.version>
         <gemini-sdk.version>0.2.0</gemini-sdk.version>
-        <firebase-admin.version>9.2.0</firebase-admin.version>
-        <jjwt.version>0.12.3</jjwt.version>
-        <testcontainers.version>1.19.3</testcontainers.version>
-        <rest-assured.version>5.3.2</rest-assured.version>
+        <firebase-admin.version>9.9.0</firebase-admin.version>
+        <grpc.version>1.76.3</grpc.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
+        <rest-assured.version>5.5.6</rest-assured.version>
         <jacoco.version>0.8.14</jacoco.version>
         <jacoco.minimum.line.coverage>0.85</jacoco.minimum.line.coverage>
-        <lombok.version>1.18.44</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <flyway.version>9.22.3</flyway.version>
+        <springdoc.version>2.8.17</springdoc.version>
         <flyway.url>jdbc:postgresql://localhost:5432/ecobook</flyway.url>
         <flyway.user>ecobook</flyway.user>
         <flyway.password>dev_password_123</flyway.password>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Core -->
@@ -68,11 +58,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
         <dependency>
@@ -105,11 +90,17 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
         <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.1</version>
+            <version>42.7.11</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -164,12 +155,33 @@
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
             <version>${firebase-admin.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.opentelemetry</groupId>
+                    <artifactId>opentelemetry-extension-incubator</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.opentelemetry.contrib</groupId>
+                    <artifactId>opentelemetry-gcp-resources</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.opentelemetry.semconv</groupId>
+                    <artifactId>opentelemetry-semconv</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-context</artifactId>
+            <version>${grpc.version}</version>
         </dependency>
 
         <!-- OkHttp for HTTP Client -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
         </dependency>
 
         <!-- Lombok -->
@@ -315,6 +327,7 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
+                    <parameters>true</parameters>
                     <useIncrementalCompilation>false</useIncrementalCompilation>
                     <annotationProcessorPaths>
                         <path>
@@ -395,7 +408,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M9</version>
+                <version>3.5.4</version>
                 <configuration>
                     <argLine>@{argLine} -Dnet.bytebuddy.experimental=true</argLine>
                     <includes>

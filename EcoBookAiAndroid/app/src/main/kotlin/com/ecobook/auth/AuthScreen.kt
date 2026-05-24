@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +36,7 @@ import com.ecobook.BuildConfig
 import com.ecobook.R
 import com.ecobook.model.BackendConnectionState
 import com.ecobook.model.BackendStatus
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
@@ -62,61 +64,63 @@ fun AuthScreen(
                 )
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            SectionHeading(
-                title = if (uiState.mode == AuthMode.LOGIN) {
-                    "Entrar no EcoBook"
-                } else {
-                    "Criar conta no EcoBook"
-                },
-                subtitle = if (uiState.mode == AuthMode.LOGIN) {
-                    "Entre com email e senha para continuar seu onboarding no aplicativo."
-                } else {
-                    "Crie sua conta com nome, email e senha. Os demais dados ficam para o onboarding."
-                }
-            )
-
-            if (!sessionMessage.isNullOrBlank()) {
-                GlassCard {
-                    Text(
-                        text = sessionMessage,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            AuthCard(
-                uiState = uiState,
-                onModeSelected = viewModel::setMode,
-                onNomeChange = viewModel::updateNome,
-                onEmailChange = viewModel::updateEmail,
-                onPasswordChange = viewModel::updatePassword,
-                onConfirmPasswordChange = viewModel::updateConfirmPassword,
-                onSubmit = viewModel::submit
-            )
-
-            if (backendStatus.state != BackendConnectionState.ONLINE) {
-                BackendStatusCard(
-                    backendStatus = backendStatus,
-                    configuredBackendUrl = configuredBackendUrl,
-                    onRefreshBackend = onRefreshBackend
+        AdaptiveScreenContent {
+            Column(
+                modifier = it
+                    .verticalScroll(rememberScrollState())
+                    .imePadding()
+                    .padding(horizontal = 20.dp, vertical = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                SectionHeading(
+                    title = if (uiState.mode == AuthMode.LOGIN) {
+                        "Entrar no EcoBook"
+                    } else {
+                        "Criar conta no EcoBook"
+                    },
+                    subtitle = if (uiState.mode == AuthMode.LOGIN) {
+                        "Entre com email e senha para continuar seu onboarding no aplicativo."
+                    } else {
+                        "Crie sua conta com nome, email e senha. Os demais dados ficam para o onboarding."
+                    }
                 )
-            }
 
-            if (!uiState.errorMessage.isNullOrBlank()) {
-                GlassCard {
-                    Text(
-                        text = uiState.errorMessage ?: "",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.error
+                if (!sessionMessage.isNullOrBlank()) {
+                    GlassCard {
+                        Text(
+                            text = sessionMessage,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                AuthCard(
+                    uiState = uiState,
+                    onModeSelected = viewModel::setMode,
+                    onNomeChange = viewModel::updateNome,
+                    onEmailChange = viewModel::updateEmail,
+                    onPasswordChange = viewModel::updatePassword,
+                    onConfirmPasswordChange = viewModel::updateConfirmPassword,
+                    onSubmit = viewModel::submit
+                )
+
+                if (backendStatus.state != BackendConnectionState.ONLINE) {
+                    BackendStatusCard(
+                        backendStatus = backendStatus,
+                        configuredBackendUrl = configuredBackendUrl,
+                        onRefreshBackend = onRefreshBackend
                     )
+                }
+
+                if (!uiState.errorMessage.isNullOrBlank()) {
+                    GlassCard {
+                        Text(
+                            text = uiState.errorMessage ?: "",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
         }

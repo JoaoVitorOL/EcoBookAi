@@ -3,6 +3,7 @@ package com.ecobook.request
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.dto.SolicitacaoDTO
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.FilterChipCard
 import com.ecobook.ui.components.GlassCard
 
@@ -63,16 +65,19 @@ fun DonorRequestsScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.padding(topPadding),
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 20.dp,
-            bottom = 120.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    AdaptiveScreenContent {
+        LazyColumn(
+            modifier = it
+                .padding(topPadding)
+                .imePadding(),
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = 20.dp,
+                bottom = 120.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         item {
             Text(
                 text = "Aprove ou recuse novas solicitações e finalize as reservas que já viraram entrega.",
@@ -144,22 +149,23 @@ fun DonorRequestsScreen(
                     )
                 }
             }
-        } else {
-            items(uiState.visibleRequests, key = { it.id }) { request ->
-                when (uiState.selectedTab) {
-                    DonorRequestsTab.PENDING -> DonorRequestCard(
-                        request = request,
-                        isWorking = uiState.activeRequestId == request.id,
-                        onApprove = { viewModel.approveRequest(request.id) },
-                        onDecline = { pendingAction = PendingDonorAction(DonorActionType.DECLINE, request) }
-                    )
+            } else {
+                items(uiState.visibleRequests, key = { it.id }) { request ->
+                    when (uiState.selectedTab) {
+                        DonorRequestsTab.PENDING -> DonorRequestCard(
+                            request = request,
+                            isWorking = uiState.activeRequestId == request.id,
+                            onApprove = { viewModel.approveRequest(request.id) },
+                            onDecline = { pendingAction = PendingDonorAction(DonorActionType.DECLINE, request) }
+                        )
 
-                    DonorRequestsTab.APPROVED -> DonorRequestCard(
-                        request = request,
-                        isWorking = uiState.activeRequestId == request.id,
-                        onComplete = { viewModel.completeDonation(request.id) },
-                        onRevokeApproval = { pendingAction = PendingDonorAction(DonorActionType.REVOKE_APPROVAL, request) }
-                    )
+                        DonorRequestsTab.APPROVED -> DonorRequestCard(
+                            request = request,
+                            isWorking = uiState.activeRequestId == request.id,
+                            onComplete = { viewModel.completeDonation(request.id) },
+                            onRevokeApproval = { pendingAction = PendingDonorAction(DonorActionType.REVOKE_APPROVAL, request) }
+                        )
+                    }
                 }
             }
         }

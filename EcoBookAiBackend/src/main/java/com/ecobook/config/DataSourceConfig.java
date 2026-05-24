@@ -13,15 +13,8 @@ import org.springframework.context.annotation.Configuration;
 public class DataSourceConfig {
 
     /**
-     * Configure HikariCP connection pool with optimized settings
-     * - Maximum pool size: 20 connections
-     * - Minimum idle: 5 connections
-     * - Connection timeout: 20 seconds
-     * - Idle timeout: 5 minutes
-     * - Max lifetime: 20 minutes
-     * - Validation query: SELECT 1
-     *
-     * @return Configured HikariDataSource
+     * Binds the primary datasource properties from application configuration.
+     * @return configured datasource properties
      */
     @Bean
     @ConfigurationProperties("spring.datasource")
@@ -29,6 +22,11 @@ public class DataSourceConfig {
         return new DataSourceProperties();
     }
 
+    /**
+     * Executes the data source operation.
+     * @param dataSourceProperties datasource properties bound from configuration
+     * @return configured Hikari datasource
+     */
     @Bean
     @ConfigurationProperties("spring.datasource.hikari")
     public HikariDataSource dataSource(DataSourceProperties dataSourceProperties) {

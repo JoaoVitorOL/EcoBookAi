@@ -1,4 +1,4 @@
-package com.ecobook.event;
+﻿package com.ecobook.event;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,6 +9,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class NonReceiptReportCreatedEventListener {
 
+    /**
+     * Handles non-receipt report events after they are published.
+     * @param event published domain event payload
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onReportCreated(NonReceiptReportCreatedEvent event) {
         log.warn(

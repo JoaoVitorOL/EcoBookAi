@@ -1,4 +1,4 @@
-package com.ecobook.model.enums;
+﻿package com.ecobook.model.enums;
 
 /**
  * Educational discipline/subject
@@ -18,6 +18,10 @@ public enum Disciplina {
         this.label = label;
     }
 
+    /**
+     * Returns the l ab el.
+     * @return requested value
+     */
     public String getLabel() {
         return label;
     }

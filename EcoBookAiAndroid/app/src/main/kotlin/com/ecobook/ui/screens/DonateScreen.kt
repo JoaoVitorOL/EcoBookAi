@@ -2,6 +2,7 @@ package com.ecobook.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +46,7 @@ import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
 import com.ecobook.ui.EditableField
 import com.ecobook.ui.EnumDropdown
+import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.FilterChipCard
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
@@ -154,10 +156,12 @@ private fun DonateHistoryContent(
 ) {
     val visibleMaterials = uiState.visibleMaterials
 
-    LazyColumn(
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    AdaptiveScreenContent {
+        LazyColumn(
+            modifier = it.imePadding(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         item {
             SectionHeading(
                 title = "Área do doador",
@@ -207,7 +211,7 @@ private fun DonateHistoryContent(
             }
         }
 
-        if (uiState.isLoading && visibleMaterials.isEmpty()) {
+            if (uiState.isLoading && visibleMaterials.isEmpty()) {
             item {
                 GlassCard {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -245,8 +249,9 @@ private fun DonateHistoryContent(
                     onDelete = { onDelete(material) }
                 )
             }
-        }
+            }
     }
+}
 }
 
 @Composable
