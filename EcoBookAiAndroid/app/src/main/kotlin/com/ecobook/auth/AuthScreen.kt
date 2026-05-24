@@ -23,23 +23,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ecobook.api.RuntimeBackendUrlOverride
 import com.ecobook.BuildConfig
 import com.ecobook.R
+import com.ecobook.api.RuntimeBackendUrlOverride
 import com.ecobook.model.BackendConnectionState
 import com.ecobook.model.BackendStatus
 import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.backendConnectionBadgeColors
+import com.ecobook.ui.theme.ecoBookAppBackgroundBrush
 
 @Composable
 fun AuthScreen(
@@ -54,15 +54,7 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFF5E8D0),
-                        Color(0xFFF8F4ED),
-                        Color(0xFFDDEBDD)
-                    )
-                )
-            )
+            .background(ecoBookAppBackgroundBrush())
     ) {
         AdaptiveScreenContent {
             Column(
@@ -116,7 +108,7 @@ fun AuthScreen(
                 if (!uiState.errorMessage.isNullOrBlank()) {
                     GlassCard {
                         Text(
-                            text = uiState.errorMessage ?: "",
+                            text = uiState.errorMessage.orEmpty(),
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.error
                         )
@@ -274,17 +266,17 @@ private fun BackendStatusCard(
     onRefreshBackend: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    GlassCard {
-        val (badgeLabel, badgeContainer, badgeContent) = when (backendStatus.state) {
-            BackendConnectionState.CHECKING -> Triple("Verificando servidor", Color(0xFFFCE7D8), Color(0xFF8A4C1F))
-            BackendConnectionState.OFFLINE -> Triple("Servidor indisponível", Color(0xFFF7DDDB), Color(0xFF8D3D30))
-            BackendConnectionState.ONLINE -> Triple("Servidor online", Color(0xFFE0EFE4), Color(0xFF205447))
-        }
+    val badgeColors = backendConnectionBadgeColors(backendStatus.state)
 
+    GlassCard {
         StatusBadge(
-            text = badgeLabel,
-            containerColor = badgeContainer,
-            contentColor = badgeContent
+            text = when (backendStatus.state) {
+                BackendConnectionState.CHECKING -> "Verificando servidor"
+                BackendConnectionState.OFFLINE -> "Servidor indisponível"
+                BackendConnectionState.ONLINE -> "Servidor online"
+            },
+            containerColor = badgeColors.containerColor,
+            contentColor = badgeColors.contentColor
         )
         Text(
             text = when (backendStatus.state) {

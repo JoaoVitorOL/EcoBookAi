@@ -111,6 +111,28 @@ class SecureStorage @Inject constructor(
         return runStorageOperation { encryptedSharedPreferences.getBoolean("user_consentimento_ia", false) } ?: false
     }
 
+    fun saveDarkThemeOverride(enabled: Boolean?) {
+        runStorageOperation {
+            encryptedSharedPreferences.edit().apply {
+                if (enabled == null) {
+                    remove(KEY_DARK_THEME_OVERRIDE)
+                } else {
+                    putBoolean(KEY_DARK_THEME_OVERRIDE, enabled)
+                }
+            }.apply()
+        }
+    }
+
+    fun getDarkThemeOverride(): Boolean? {
+        return runStorageOperation {
+            if (!encryptedSharedPreferences.contains(KEY_DARK_THEME_OVERRIDE)) {
+                null
+            } else {
+                encryptedSharedPreferences.getBoolean(KEY_DARK_THEME_OVERRIDE, false)
+            }
+        }
+    }
+
     fun saveDiscoveredFcmToken(token: String) {
         runStorageOperation { encryptedSharedPreferences.edit().putString("discovered_fcm_token", token).apply() }
     }
@@ -154,7 +176,15 @@ class SecureStorage @Inject constructor(
     }
 
     fun clear() {
-        runStorageOperation { encryptedSharedPreferences.edit().clear().apply() }
+        val darkThemeOverride = getDarkThemeOverride()
+        runStorageOperation {
+            encryptedSharedPreferences.edit().apply {
+                clear()
+                if (darkThemeOverride != null) {
+                    putBoolean(KEY_DARK_THEME_OVERRIDE, darkThemeOverride)
+                }
+            }.apply()
+        }
     }
 
     private fun createEncryptedSharedPreferences() =
@@ -179,5 +209,6 @@ class SecureStorage @Inject constructor(
 
     private companion object {
         const val SECURE_PREFS_NAME = "eco_book_secure_prefs"
+        const val KEY_DARK_THEME_OVERRIDE = "dark_theme_override"
     }
 }

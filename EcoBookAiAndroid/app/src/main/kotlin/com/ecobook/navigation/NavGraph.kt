@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -56,12 +55,16 @@ import com.ecobook.ui.screens.DeleteAccountScreen
 import com.ecobook.ui.screens.DonateScreen
 import com.ecobook.ui.screens.DonateViewModel
 import com.ecobook.ui.screens.ProfileScreen
+import com.ecobook.ui.theme.ecoBookAppBackgroundBrush
+import com.ecobook.ui.theme.ecoBookNavigationBarContainerColor
+import com.ecobook.ui.theme.ecoBookNavigationBarShadowElevation
+import com.ecobook.ui.theme.ecoBookNavigationBarTonalElevation
 
 @Composable
 fun NavGraph(
-    notificationNavigationManager: NotificationNavigationManager
+    notificationNavigationManager: NotificationNavigationManager,
+    viewModel: EcoBookViewModel
 ) {
-    val viewModel: EcoBookViewModel = hiltViewModel()
     val notificationsViewModel: NotificationsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val notificationsUiState by notificationsViewModel.uiState.collectAsStateWithLifecycle()
@@ -98,24 +101,16 @@ fun NavGraph(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFFF6E7CF),
-                            Color(0xFFF7F2E7),
-                            Color(0xFFE2EFE6)
-                        )
-                    )
-                )
+                .background(brush = ecoBookAppBackgroundBrush())
         ) {
             Scaffold(
                 containerColor = Color.Transparent,
                 bottomBar = {
                     if (showBottomBar) {
                         Surface(
-                            tonalElevation = 8.dp,
-                            shadowElevation = 8.dp,
-                            color = Color.White.copy(alpha = 0.94f)
+                            tonalElevation = ecoBookNavigationBarTonalElevation(),
+                            shadowElevation = ecoBookNavigationBarShadowElevation(),
+                            color = ecoBookNavigationBarContainerColor()
                         ) {
                             NavigationBar(containerColor = Color.Transparent) {
                                 mainDestinations.forEach { destination ->
@@ -135,11 +130,11 @@ fun NavGraph(
                                         },
                                         label = { Text(destination.label) },
                                         colors = NavigationBarItemDefaults.colors(
-                                            indicatorColor = Color(0xFFDAEBDD),
-                                            selectedIconColor = Color(0xFF205447),
-                                            selectedTextColor = Color(0xFF205447),
-                                            unselectedIconColor = Color(0xFF5F746B),
-                                            unselectedTextColor = Color(0xFF5F746B)
+                                            indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
+                                            selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,
+                                            selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer,
+                                            unselectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                                            unselectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
                                 }
@@ -206,7 +201,7 @@ fun NavGraph(
                                 topContent = {
                                     Text(
                                         text = "Escolha as imagens do material, revise os dados sugeridos e finalize a publicação quando tudo estiver certo.",
-                                        color = Color(0xFF4B635A)
+                                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
                                 showSectionHeading = false,
@@ -268,6 +263,8 @@ fun NavGraph(
                             onNeighborhoodChange = viewModel::updateBairro,
                             onInstitutionChange = viewModel::updateInstituicao,
                             onSaveProfile = viewModel::saveProfile,
+                            onToggleDarkTheme = viewModel::updateDarkThemeOverride,
+                            onFollowSystemTheme = viewModel::followSystemTheme,
                             onToggleAiConsent = viewModel::updateAiConsent,
                             onOpenDeleteAccount = {
                                 navController.navigate(AppDestination.AccountDelete.route)

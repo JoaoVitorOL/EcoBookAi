@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -22,9 +21,9 @@ fun ConfidenceIndicator(
 ) {
     val bucket = confidenceBucket(confidence)
     val color = when (bucket) {
-        ConfidenceBucket.HIGH -> Color(0xFF205447)
-        ConfidenceBucket.MEDIUM -> Color(0xFF8A4C1F)
-        ConfidenceBucket.LOW -> Color(0xFF6B7280)
+        ConfidenceBucket.HIGH -> MaterialTheme.colorScheme.primary
+        ConfidenceBucket.MEDIUM -> MaterialTheme.colorScheme.secondary
+        ConfidenceBucket.LOW -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     val icon = when (bucket) {
         ConfidenceBucket.HIGH -> Icons.Rounded.CheckCircle

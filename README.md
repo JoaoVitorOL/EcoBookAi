@@ -20,7 +20,7 @@ Se voce quer subir o projeto inteiro sem cair em armadilhas de ambiente, siga ex
 5. Rode `assembleDebug`, `lintDebug` e `testDebugUnitTest` no Android, em sequencia.
 6. Abra `EcoBookAiAndroid` no Android Studio e execute o app.
 
-Essa ordem foi revalidada nesta maquina em `2026-05-23`.
+Essa ordem foi revalidada nesta maquina em `2026-05-24`.
 
 ## Requisitos
 
@@ -59,7 +59,22 @@ O perfil `local`:
 - usa H2 em arquivo
 - nao depende de Docker
 - sobe o backend em `http://127.0.0.1:8080/api`
-- deixa o Gemini em modo mock
+- usa preview mock do Gemini apenas quando `GEMINI_API_KEY` nao estiver presente no processo
+
+Se `GEMINI_API_KEY` estiver configurada, o backend local passa a usar o Gemini real automaticamente.
+Se voce quiser forcar o preview mock mesmo com chave presente, defina:
+
+```powershell
+$env:GEMINI_MOCK_FORCE = "true"
+```
+
+Antes de subir outra instancia local, vale checar se ja existe uma API respondendo em `8080`:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8080/api/v1/health
+```
+
+Se esse comando ja responder `200`, o backend ja esta rodando e voce nao precisa abrir uma segunda instancia. Isso evita conflito de porta, disputa pelo H2 local e ruído no `logs/ecobook.log`.
 
 Se a porta `8080` estiver ocupada:
 
@@ -82,6 +97,8 @@ Resposta esperada:
 ```
 
 Se voce usou outra porta no passo anterior, ajuste aqui e tambem no `backend.url` do Android.
+
+Se o `health` ja estava respondendo antes do passo 1, apenas reaproveite essa instancia e siga para a configuracao do Android.
 
 ### 3. Configurar o Android
 
@@ -109,6 +126,31 @@ backend.url=http://172.22.160.34:8080/api
 ```
 
 `google-services.json` nao e obrigatorio para compilar ou testar os fluxos principais. Ele so e necessario quando voce quer validar push real do Firebase.
+
+## Onde Fica A Chave Do Gemini
+
+A chave do Gemini deve ficar **somente no backend**, nunca no Android.
+
+Hoje o codigo do backend le a chave por variavel de ambiente em:
+
+- `EcoBookAiBackend/src/main/resources/application.yml` -> `gemini.api-key: ${GEMINI_API_KEY:}`
+- `EcoBookAiBackend/src/main/java/com/ecobook/service/GeminiService.java`
+
+Para ambiente local ou producao, esconda a chave no processo do backend:
+
+```powershell
+$env:GEMINI_API_KEY = "sua-chave-aqui"
+```
+
+Depois suba o backend normalmente.
+
+O que nao fazer:
+
+- nao colocar a chave em `EcoBookAiAndroid/local.properties`
+- nao colocar a chave no app Android, `BuildConfig`, Compose UI ou frontend
+- nao commitar a chave em `application.yml`, `application-local.yml`, `README.md` ou qualquer arquivo versionado
+
+No perfil `local` documentado acima, o backend sobe com preview mock apenas quando `GEMINI_API_KEY` nao estiver configurada. Se a chave estiver presente, o preview usa o Gemini real automaticamente.
 
 ### 4. Build, lint e testes do Android
 
@@ -226,6 +268,7 @@ Lacunas/falhas corrigidas nesta passada:
 - `SharedPreferences.commit()` foi trocado por `apply()` no override de backend usado em runtime/testes.
 - O servico FCM Android deixou de carregar uma checagem obsoleta de `SDK_INT`.
 - `Run-BackendLocal.ps1` agora expande corretamente `-Port`, em vez de repassar `server.port=$Port` literal para o Spring Boot.
+- A expiracao automatica de reservas agora tambem cobre o instante-limite exato (`expires_at == now`), em linha com os testes e com a regra de negocio documentada.
 - O wrapper `Invoke-GradleAsciiPath.ps1` passou a sincronizar a criacao do drive ASCII temporario, evitando falhas silenciosas em execucoes concorrentes.
 - Dois recursos Android nao usados foram removidos.
 

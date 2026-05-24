@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ecobook.ui.LoadingSpinner
 import com.ecobook.ui.components.GlassCard
@@ -34,13 +33,13 @@ fun ProcessingScreen(
                 Text(
                     text = "Se a IA falhar ou o consentimento estiver desligado, você ainda poderá preencher tudo manualmente.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF5F746B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (selectedBackImage != null) {
                     Text(
                         text = "A capa de trás também será salva junto com o cadastro.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF5F746B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

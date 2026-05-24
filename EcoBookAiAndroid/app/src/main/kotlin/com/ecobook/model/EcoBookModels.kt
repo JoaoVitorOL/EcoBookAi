@@ -1,6 +1,7 @@
 package com.ecobook.model
 
 enum class Disciplina(val label: String) {
+    TODAS("Todas"),
     MATEMATICA("Matematica"),
     PORTUGUES("Portugues"),
     HISTORIA("Historia"),

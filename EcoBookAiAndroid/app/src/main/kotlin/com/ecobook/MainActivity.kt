@@ -5,10 +5,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -18,9 +22,11 @@ import com.ecobook.fcm.NotificationIntentRouter
 import com.ecobook.fcm.NotificationNavigationManager
 import com.ecobook.model.SessionDestination
 import com.ecobook.navigation.NavGraph
+import com.ecobook.ui.EcoBookViewModel
 import com.ecobook.ui.theme.EcoBookTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -51,11 +57,22 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
         observeNotificationPermissionReadiness()
         routeNotificationIntent(intent)
         setContent {
-            EcoBookTheme {
-                NavGraph(notificationNavigationManager = notificationNavigationManager)
+            val viewModel: EcoBookViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val darkTheme = uiState.darkThemeOverride ?: isSystemInDarkTheme()
+
+            EcoBookTheme(darkTheme = darkTheme) {
+                NavGraph(
+                    notificationNavigationManager = notificationNavigationManager,
+                    viewModel = viewModel
+                )
             }
         }
     }

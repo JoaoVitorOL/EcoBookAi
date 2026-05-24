@@ -5,6 +5,9 @@ import com.ecobook.dto.PredictionFieldDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -24,6 +27,8 @@ class GeminiServiceTest {
     @DisplayName("classifyMaterial should return deterministic local suggestions when mock mode is enabled")
     void shouldReturnMockPreviewWhenEnabled() {
         ReflectionTestUtils.setField(geminiService, "mockEnabled", true);
+        ReflectionTestUtils.setField(geminiService, "mockForce", false);
+        ReflectionTestUtils.setField(geminiService, "apiKey", "");
 
         GeminiResponseDTO response = geminiService.classifyMaterial(
                 "matematica-7-ano.png",
@@ -41,6 +46,7 @@ class GeminiServiceTest {
     @DisplayName("classifyMaterial should fail gracefully when the API key is absent outside mock mode")
     void shouldFallbackWhenApiKeyIsMissing() {
         ReflectionTestUtils.setField(geminiService, "mockEnabled", false);
+        ReflectionTestUtils.setField(geminiService, "mockForce", false);
         ReflectionTestUtils.setField(geminiService, "apiKey", "");
 
         GeminiResponseDTO response = geminiService.classifyMaterial(
@@ -154,6 +160,7 @@ class GeminiServiceTest {
         };
 
         ReflectionTestUtils.setField(timeoutService, "mockEnabled", false);
+        ReflectionTestUtils.setField(timeoutService, "mockForce", false);
         ReflectionTestUtils.setField(timeoutService, "apiKey", "test-key");
         ReflectionTestUtils.setField(timeoutService, "model", "gemini-2.5-flash");
 
@@ -167,6 +174,53 @@ class GeminiServiceTest {
         assertThat(response.getErrorDetails().isTimeout()).isTrue();
         assertThat(response.getErrorDetails().isMalformedResponse()).isFalse();
         assertThat(response.getErrorDetails().getMessage()).contains("Timeout do Gemini");
+    }
+
+    @Test
+    @DisplayName("classifyMaterial should ignore local mock suggestions when a live API key is present")
+    void shouldBypassMockWhenApiKeyExists() {
+        GeminiService livePreferredService = new GeminiService(new ObjectMapper()) {
+            @Override
+            OkHttpClient createHttpClient() {
+                Interceptor successInterceptor = chain -> new Response.Builder()
+                        .request(chain.request())
+                        .protocol(Protocol.HTTP_1_1)
+                        .code(200)
+                        .message("OK")
+                        .body(ResponseBody.create("""
+                                {
+                                  "candidates": [
+                                    {
+                                      "content": {
+                                        "parts": [
+                                          {
+                                            "text": "{\\"best_prediction\\":{\\"titulo\\":{\\"value\\":\\"Livro Real\\",\\"confidence\\":0.92},\\"disciplina\\":{\\"value\\":\\"MATEMATICA\\",\\"confidence\\":0.88},\\"nivel_ensino\\":{\\"value\\":\\"FUNDAMENTAL\\",\\"confidence\\":0.81},\\"ano\\":{\\"value\\":7,\\"confidence\\":0.79}}}"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                                """, okhttp3.MediaType.get("application/json")))
+                        .build();
+                return new OkHttpClient.Builder().addInterceptor(successInterceptor).build();
+            }
+        };
+
+        ReflectionTestUtils.setField(livePreferredService, "mockEnabled", true);
+        ReflectionTestUtils.setField(livePreferredService, "mockForce", false);
+        ReflectionTestUtils.setField(livePreferredService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(livePreferredService, "model", "gemini-2.5-flash");
+
+        GeminiResponseDTO response = livePreferredService.classifyMaterial(
+                "1000000046.png",
+                new byte[]{1, 2, 3},
+                "image/png"
+        );
+
+        assertThat(response.getBestPrediction().get("titulo").getValue()).isEqualTo("Livro Real");
+        assertThat(response.getBestPrediction().get("titulo").getValue()).isNotEqualTo("1000000046");
+        assertThat(response.getErrorDetails().getMessage()).isNull();
     }
 
     @Test

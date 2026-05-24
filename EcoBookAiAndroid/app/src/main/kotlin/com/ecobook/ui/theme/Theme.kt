@@ -1,33 +1,81 @@
 package com.ecobook.ui.theme
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF24584A),
     onPrimary = Color(0xFFFFFFFF),
     secondary = Color(0xFFC87A43),
     onSecondary = Color(0xFF2A1709),
-    tertiary = Color(0xFF769A5D),
+    tertiary = Color(0xFF37607F),
+    onTertiary = Color(0xFFFFFFFF),
     background = Color(0xFFF7F2E7),
     onBackground = Color(0xFF18312B),
     surface = Color(0xFFFFFBF6),
     onSurface = Color(0xFF18312B),
-    surfaceVariant = Color(0xFFE7DDD0),
-    onSurfaceVariant = Color(0xFF52635D),
-    outline = Color(0xFF91A39A),
-    error = Color(0xFFB4523E)
+    primaryContainer = Color(0xFFC9E1D7),
+    onPrimaryContainer = Color(0xFF0A2B22),
+    secondaryContainer = Color(0xFFFCE7D8),
+    onSecondaryContainer = Color(0xFF5B3317),
+    tertiaryContainer = Color(0xFFDDE8F4),
+    onTertiaryContainer = Color(0xFF10293F),
+    surfaceVariant = Color(0xFFE4DDD3),
+    onSurfaceVariant = Color(0xFF4B635A),
+    outline = Color(0xFF73857C),
+    error = Color(0xFFB4523E),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFF9DBD7),
+    onErrorContainer = Color(0xFF410002)
 )
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFFAECFC0),
+    onPrimary = Color(0xFF10382D),
+    secondary = Color(0xFFF0B48A),
+    onSecondary = Color(0xFF4C2811),
+    tertiary = Color(0xFFA8C9EC),
+    onTertiary = Color(0xFF0D2942),
+    background = Color(0xFF0F1413),
+    onBackground = Color(0xFFDEE4E0),
+    surface = Color(0xFF171C1A),
+    onSurface = Color(0xFFDEE4E0),
+    primaryContainer = Color(0xFF24584A),
+    onPrimaryContainer = Color(0xFFD7F0E5),
+    secondaryContainer = Color(0xFF6B3F22),
+    onSecondaryContainer = Color(0xFFFFDBC6),
+    tertiaryContainer = Color(0xFF244A69),
+    onTertiaryContainer = Color(0xFFD7E8FA),
+    surfaceVariant = Color(0xFF404944),
+    onSurfaceVariant = Color(0xFFBEC9C2),
+    outline = Color(0xFF87938C),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6)
+)
+
+private val LocalEcoBookDarkTheme = staticCompositionLocalOf { false }
 
 private val EcoBookTypography = Typography(
     displayLarge = TextStyle(
@@ -82,11 +130,37 @@ private val EcoBookShapes = Shapes(
 )
 
 @Composable
-fun EcoBookTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = LightColorScheme,
-        typography = EcoBookTypography,
-        shapes = EcoBookShapes,
-        content = content
-    )
+fun EcoBookTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val view = LocalView.current
+
+    if (!view.isInEditMode) {
+        SideEffect {
+            val activity = view.context.findActivity() ?: return@SideEffect
+            WindowCompat.getInsetsController(activity.window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
+        }
+    }
+
+    CompositionLocalProvider(LocalEcoBookDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+            typography = EcoBookTypography,
+            shapes = EcoBookShapes,
+            content = content
+        )
+    }
+}
+
+@Composable
+fun isEcoBookDarkTheme(): Boolean = LocalEcoBookDarkTheme.current
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

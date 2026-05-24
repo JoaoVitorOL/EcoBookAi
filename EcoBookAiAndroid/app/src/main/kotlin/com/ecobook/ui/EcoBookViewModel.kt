@@ -75,6 +75,20 @@ class EcoBookViewModel @Inject constructor(
         profile.copy(instituicao = value)
     }
 
+    fun updateDarkThemeOverride(enabled: Boolean) {
+        repository.saveDarkThemeOverride(enabled)
+        _uiState.update { state ->
+            state.copy(darkThemeOverride = repository.getDarkThemeOverride() ?: enabled)
+        }
+    }
+
+    fun followSystemTheme() {
+        repository.saveDarkThemeOverride(null)
+        _uiState.update { state ->
+            state.copy(darkThemeOverride = repository.getDarkThemeOverride())
+        }
+    }
+
     fun saveProfile() {
         if (_uiState.value.isSavingProfile) {
             return

@@ -293,7 +293,7 @@ public class SolicitacaoService {
      */
     @Transactional
     public int expireApprovedRequests() {
-        List<Solicitacao> expiredRequests = solicitacaoRepository.findByStatusAndExpiresAtBefore(
+        List<Solicitacao> expiredRequests = solicitacaoRepository.findByStatusAndExpiresAtLessThanEqual(
                 StatusSolicitacao.APROVADA,
                 LocalDateTime.now()
         );

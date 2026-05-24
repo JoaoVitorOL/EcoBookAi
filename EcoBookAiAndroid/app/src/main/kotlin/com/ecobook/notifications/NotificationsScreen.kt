@@ -13,11 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Drafts
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PersonRemove
@@ -49,6 +47,8 @@ import com.ecobook.fcm.NotificationInboxEntry
 import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.EcoBookTone
+import com.ecobook.ui.theme.ecoBookBadgeColors
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -61,6 +61,9 @@ fun NotificationsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val refreshingColors = ecoBookBadgeColors(EcoBookTone.Warning)
+    val unreadColors = ecoBookBadgeColors(EcoBookTone.Success)
+    val neutralColors = ecoBookBadgeColors(EcoBookTone.Neutral)
 
     LaunchedEffect(Unit) {
         viewModel.onScreenOpened()
@@ -92,120 +95,120 @@ fun NotificationsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-        item {
-            GlassCard {
-                Text(
-                    text = if (uiState.unreadCount > 0) {
-                        "Você tem ${uiState.unreadCount} notificações pendentes."
-                    } else {
-                        "Central de notificações"
-                    },
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = if (uiState.unreadCount > 0) {
-                        "Aqui ficam apenas avisos ainda não lidos. Assim que você marcar uma notificação como lida, ela sai da lista."
-                    } else {
-                        "A central sincroniza automaticamente ao abrir esta tela e ao voltar para ela. Só aparecem avisos ainda pendentes de leitura."
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                when {
-                    uiState.isRefreshing -> StatusBadge(
-                        text = "Sincronizando automaticamente",
-                        containerColor = Color(0xFFFCE7D8),
-                        contentColor = Color(0xFF8A4C1F)
+            item {
+                GlassCard {
+                    Text(
+                        text = if (uiState.unreadCount > 0) {
+                            "Você tem ${uiState.unreadCount} notificações pendentes."
+                        } else {
+                            "Central de notificações"
+                        },
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = if (uiState.unreadCount > 0) {
+                            "Aqui ficam apenas avisos ainda não lidos. Assim que você marcar uma notificação como lida, ela sai da lista."
+                        } else {
+                            "A central sincroniza automaticamente ao abrir esta tela e ao voltar para ela. Só aparecem avisos ainda pendentes de leitura."
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    uiState.unreadCount > 0 -> StatusBadge(
-                        text = "Pendentes de leitura",
-                        containerColor = Color(0xFFE0EFE4),
-                        contentColor = Color(0xFF205447)
-                    )
+                    when {
+                        uiState.isRefreshing -> StatusBadge(
+                            text = "Sincronizando automaticamente",
+                            containerColor = refreshingColors.containerColor,
+                            contentColor = refreshingColors.contentColor
+                        )
 
-                    else -> StatusBadge(
-                        text = "Tudo em dia",
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        uiState.unreadCount > 0 -> StatusBadge(
+                            text = "Pendentes de leitura",
+                            containerColor = unreadColors.containerColor,
+                            contentColor = unreadColors.contentColor
+                        )
+
+                        else -> StatusBadge(
+                            text = "Tudo em dia",
+                            containerColor = neutralColors.containerColor,
+                            contentColor = neutralColors.contentColor
+                        )
+                    }
+
+                    if (uiState.unreadCount > 0) {
+                        Button(
+                            onClick = viewModel::markAllAsRead,
+                            enabled = !uiState.isMarkingAllAsRead && uiState.activeReadNotificationId == null,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (uiState.isMarkingAllAsRead) {
+                                    "Limpando a central..."
+                                } else {
+                                    "Marcar todas como lidas"
+                                }
+                            )
+                        }
+                    }
                 }
+            }
 
-                if (uiState.unreadCount > 0) {
-                    Button(
-                        onClick = viewModel::markAllAsRead,
-                        enabled = !uiState.isMarkingAllAsRead && uiState.activeReadNotificationId == null,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+            val errorMessage = uiState.errorMessage
+
+            if (errorMessage != null && uiState.notifications.isNotEmpty()) {
+                item {
+                    GlassCard {
                         Text(
-                            if (uiState.isMarkingAllAsRead) {
-                                "Limpando a central..."
-                            } else {
-                                "Marcar todas como lidas"
-                            }
+                            text = "A central registrou uma falha na última sincronização.",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Quando esta tela voltar ao foco, a sincronização será tentada novamente automaticamente.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
-        }
 
-        val errorMessage = uiState.errorMessage
-
-        if (errorMessage != null && uiState.notifications.isNotEmpty()) {
-            item {
-                GlassCard {
-                    Text(
-                        text = "A central registrou uma falha na última sincronização.",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "Quando esta tela voltar ao foco, a sincronização será tentada novamente automaticamente.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            if (uiState.notifications.isEmpty() && errorMessage == null) {
+                item {
+                    GlassCard {
+                        Text(
+                            text = "Nenhuma notificação pendente no momento.",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = "Quando houver movimentação nas solicitações e doações, os avisos novos aparecem aqui até você marcá-los como lidos.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-            }
-        }
-
-        if (uiState.notifications.isEmpty() && errorMessage == null) {
-            item {
-                GlassCard {
-                    Text(
-                        text = "Nenhuma notificação pendente no momento.",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        text = "Quando houver movimentação nas solicitações e doações, os avisos novos aparecem aqui até você marcá-los como lidos.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            } else if (uiState.notifications.isEmpty() && errorMessage != null) {
+                item {
+                    GlassCard {
+                        Text(
+                            text = "A central ainda não conseguiu buscar novas notificações.",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Quando esta tela for reaberta ou voltar ao foco, uma nova sincronização será tentada automaticamente.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-            }
-        } else if (uiState.notifications.isEmpty() && errorMessage != null) {
-            item {
-                GlassCard {
-                    Text(
-                        text = "A central ainda não conseguiu buscar novas notificações.",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "Quando esta tela for reaberta ou voltar ao foco, uma nova sincronização será tentada automaticamente.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
             } else {
                 items(uiState.notifications, key = { it.id }) { notification ->
                     NotificationCard(
@@ -344,71 +347,51 @@ private fun formatLocation(bairro: String?, cidade: String?): String? {
     }
 }
 
+@Composable
 private fun notificationVisualStyle(notification: NotificationInboxEntry): NotificationVisualStyle {
     val notificationType = notification.notificationType
     val canceladoPor = notification.metadata["cancelado_por"]?.trim()?.uppercase()
     val semanticHint = notificationSemanticHint(notification)
 
+    @Composable
+    fun toneStyle(icon: ImageVector, tone: EcoBookTone): NotificationVisualStyle {
+        val colors = ecoBookBadgeColors(tone)
+        return NotificationVisualStyle(
+            icon = icon,
+            containerColor = colors.containerColor,
+            contentColor = colors.contentColor
+        )
+    }
+
     return when {
-        notificationType == "SOLICITACAO_RECEBIDA" || semanticHint == NotificationSemantic.RECEIVED -> NotificationVisualStyle(
-            icon = Icons.Rounded.Drafts,
-            containerColor = Color(0xFFFCE7D8),
-            contentColor = Color(0xFF8A4C1F)
-        )
+        notificationType == "SOLICITACAO_RECEBIDA" || semanticHint == NotificationSemantic.RECEIVED ->
+            toneStyle(Icons.Rounded.Drafts, EcoBookTone.Warning)
 
-        notificationType == "SOLICITACAO_APROVADA" || semanticHint == NotificationSemantic.APPROVED -> NotificationVisualStyle(
-            icon = Icons.Rounded.CheckCircle,
-            containerColor = Color(0xFFE0EFE4),
-            contentColor = Color(0xFF205447)
-        )
+        notificationType == "SOLICITACAO_APROVADA" || semanticHint == NotificationSemantic.APPROVED ->
+            toneStyle(Icons.Rounded.CheckCircle, EcoBookTone.Success)
 
-        notificationType == "MATERIAL_DOADO" || semanticHint == NotificationSemantic.DONATED -> NotificationVisualStyle(
-            icon = Icons.Rounded.VolunteerActivism,
-            containerColor = Color(0xFFE3EEF8),
-            contentColor = Color(0xFF234C73)
-        )
+        notificationType == "MATERIAL_DOADO" || semanticHint == NotificationSemantic.DONATED ->
+            toneStyle(Icons.Rounded.VolunteerActivism, EcoBookTone.Accent)
 
-        notificationType == "SOLICITACAO_RECUSADA" || semanticHint == NotificationSemantic.DECLINED -> NotificationVisualStyle(
-            icon = Icons.Rounded.ThumbDown,
-            containerColor = Color(0xFFFBE4DF),
-            contentColor = Color(0xFF8B4032)
-        )
+        notificationType == "SOLICITACAO_RECUSADA" || semanticHint == NotificationSemantic.DECLINED ->
+            toneStyle(Icons.Rounded.ThumbDown, EcoBookTone.Danger)
 
-        notificationType == "SOLICITACAO_CANCELADA" && canceladoPor == "DOADOR" -> NotificationVisualStyle(
-            icon = Icons.Rounded.PersonRemove,
-            containerColor = Color(0xFFF7DDDB),
-            contentColor = Color(0xFF8D3D30)
-        )
+        notificationType == "SOLICITACAO_CANCELADA" && canceladoPor == "DOADOR" ->
+            toneStyle(Icons.Rounded.PersonRemove, EcoBookTone.Danger)
 
-        notificationType == "SOLICITACAO_CANCELADA" && canceladoPor == "SOLICITANTE" -> NotificationVisualStyle(
-            icon = Icons.Rounded.Cancel,
-            containerColor = Color(0xFFF8E6E1),
-            contentColor = Color(0xFF7E3E39)
-        )
+        notificationType == "SOLICITACAO_CANCELADA" && canceladoPor == "SOLICITANTE" ->
+            toneStyle(Icons.Rounded.Cancel, EcoBookTone.Danger)
 
-        notificationType == "SOLICITACAO_CANCELADA" && canceladoPor == "PRAZO" -> NotificationVisualStyle(
-            icon = Icons.Rounded.Schedule,
-            containerColor = Color(0xFFFDECCF),
-            contentColor = Color(0xFF815B14)
-        )
+        notificationType == "SOLICITACAO_CANCELADA" && canceladoPor == "PRAZO" ->
+            toneStyle(Icons.Rounded.Schedule, EcoBookTone.Warning)
 
-        notificationType == "MATERIAL_CANCELADO" || semanticHint == NotificationSemantic.REMOVED -> NotificationVisualStyle(
-            icon = Icons.Rounded.Close,
-            containerColor = Color(0xFFF7DDDB),
-            contentColor = Color(0xFF8D3D30)
-        )
+        notificationType == "MATERIAL_CANCELADO" || semanticHint == NotificationSemantic.REMOVED ->
+            toneStyle(Icons.Rounded.Close, EcoBookTone.Danger)
 
-        notificationType == "SOLICITACAO_CANCELADA" || semanticHint == NotificationSemantic.CANCELED -> NotificationVisualStyle(
-            icon = Icons.Rounded.Cancel,
-            containerColor = Color(0xFFF7DDDB),
-            contentColor = Color(0xFF8D3D30)
-        )
+        notificationType == "SOLICITACAO_CANCELADA" || semanticHint == NotificationSemantic.CANCELED ->
+            toneStyle(Icons.Rounded.Cancel, EcoBookTone.Danger)
 
-        else -> NotificationVisualStyle(
-            icon = Icons.Rounded.Notifications,
-            containerColor = Color(0xFFF0F1F3),
-            contentColor = Color(0xFF4B5563)
-        )
+        else -> toneStyle(Icons.Rounded.Notifications, EcoBookTone.Neutral)
     }
 }
 

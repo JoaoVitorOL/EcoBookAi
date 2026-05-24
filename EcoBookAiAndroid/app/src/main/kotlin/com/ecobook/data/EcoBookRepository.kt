@@ -35,9 +35,16 @@ class EcoBookRepository @Inject constructor(
         return EcoBookUiState(
             session = session,
             profile = buildProfileDraft(),
+            darkThemeOverride = secureStorage.getDarkThemeOverride(),
             insights = sampleInsights(),
             donationPreview = sampleDonationPreview()
         )
+    }
+
+    fun getDarkThemeOverride(): Boolean? = secureStorage.getDarkThemeOverride()
+
+    fun saveDarkThemeOverride(enabled: Boolean?) {
+        secureStorage.saveDarkThemeOverride(enabled)
     }
 
     fun buildProfileDraft(): UserProfileDraft {

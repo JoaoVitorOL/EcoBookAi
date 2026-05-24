@@ -78,6 +78,9 @@ public class GeminiService {
     @Value("${gemini.mock-enabled:false}")
     private boolean mockEnabled;
 
+    @Value("${gemini.mock-force:false}")
+    private boolean mockForce;
+
     @Value("${gemini.google-search-enabled:true}")
     private boolean googleSearchEnabled;
 
@@ -101,7 +104,7 @@ public class GeminiService {
                                               String mimeType,
                                               byte[] secondaryImageBytes,
                                               String secondaryMimeType) {
-        if (mockEnabled) {
+        if (shouldUseMockMode()) {
             return mockResponse(originalFilename);
         }
 
@@ -125,6 +128,24 @@ public class GeminiService {
         }
 
         return callGeminiWithRetry(images);
+    }
+
+    private boolean shouldUseMockMode() {
+        if (!mockEnabled) {
+            return false;
+        }
+
+        if (mockForce) {
+            log.info("Gemini mock mode is being forced even though a live API key may be present.");
+            return true;
+        }
+
+        if (!StringUtils.hasText(apiKey)) {
+            return true;
+        }
+
+        log.info("Gemini mock mode was configured, but a GEMINI_API_KEY is present; using the live Gemini integration instead.");
+        return false;
     }
 
     GeminiResponseDTO parseGeminiResponse(String rawGeminiText) {

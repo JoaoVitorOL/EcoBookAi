@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.ecobook.model.AiAssistStatus
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
 import com.ecobook.model.NivelEnsino
@@ -29,6 +30,8 @@ import com.ecobook.ui.EditableField
 import com.ecobook.ui.EnumDropdown
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.EcoBookTone
+import com.ecobook.ui.theme.ecoBookBadgeColors
 
 @Composable
 fun ReviewScreen(
@@ -49,6 +52,14 @@ fun ReviewScreen(
 ) {
     var showConfirmation by remember { mutableStateOf(false) }
     var showRestartConfirmation by remember { mutableStateOf(false) }
+    val overallColors = ecoBookBadgeColors(
+        when (uiState.overallStatus) {
+            AiAssistStatus.SUCCESS -> EcoBookTone.Success
+            AiAssistStatus.LOW_CONFIDENCE -> EcoBookTone.Warning
+            AiAssistStatus.FAILURE, null -> EcoBookTone.Neutral
+        }
+    )
+    val uploadIdColors = ecoBookBadgeColors(EcoBookTone.Accent)
 
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         GlassCard {
@@ -96,33 +107,25 @@ fun ReviewScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatusBadge(
                     text = when (uiState.overallStatus) {
-                        com.ecobook.model.AiAssistStatus.SUCCESS -> "IA confiante"
-                        com.ecobook.model.AiAssistStatus.LOW_CONFIDENCE -> "Revisão recomendada"
-                        com.ecobook.model.AiAssistStatus.FAILURE, null -> "Preenchimento manual"
+                        AiAssistStatus.SUCCESS -> "IA confiante"
+                        AiAssistStatus.LOW_CONFIDENCE -> "Revisão recomendada"
+                        AiAssistStatus.FAILURE, null -> "Preenchimento manual"
                     },
-                    containerColor = when (uiState.overallStatus) {
-                        com.ecobook.model.AiAssistStatus.SUCCESS -> androidx.compose.ui.graphics.Color(0xFFE0EFE4)
-                        com.ecobook.model.AiAssistStatus.LOW_CONFIDENCE -> androidx.compose.ui.graphics.Color(0xFFFCE7D8)
-                        com.ecobook.model.AiAssistStatus.FAILURE, null -> androidx.compose.ui.graphics.Color(0xFFF0F1F3)
-                    },
-                    contentColor = when (uiState.overallStatus) {
-                        com.ecobook.model.AiAssistStatus.SUCCESS -> androidx.compose.ui.graphics.Color(0xFF205447)
-                        com.ecobook.model.AiAssistStatus.LOW_CONFIDENCE -> androidx.compose.ui.graphics.Color(0xFF8A4C1F)
-                        com.ecobook.model.AiAssistStatus.FAILURE, null -> androidx.compose.ui.graphics.Color(0xFF4B5563)
-                    }
+                    containerColor = overallColors.containerColor,
+                    contentColor = overallColors.contentColor
                 )
                 uiState.uploadId?.let { uploadId ->
                     StatusBadge(
                         text = uploadId.takeLast(8),
-                        containerColor = androidx.compose.ui.graphics.Color(0xFFEDE8FA),
-                        contentColor = androidx.compose.ui.graphics.Color(0xFF4D3B8A)
+                        containerColor = uploadIdColors.containerColor,
+                        contentColor = uploadIdColors.contentColor
                     )
                 }
                 if (uiState.selectedBackImage != null) {
                     StatusBadge(
                         text = "verso incluído",
-                        containerColor = androidx.compose.ui.graphics.Color(0xFFE3EEF9),
-                        contentColor = androidx.compose.ui.graphics.Color(0xFF214A73)
+                        containerColor = uploadIdColors.containerColor,
+                        contentColor = uploadIdColors.contentColor
                     )
                 }
             }

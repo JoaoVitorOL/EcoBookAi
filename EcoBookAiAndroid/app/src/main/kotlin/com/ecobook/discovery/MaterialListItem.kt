@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -36,6 +35,9 @@ import com.ecobook.di.SecureStorageEntryPoint
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.EcoBookTone
+import com.ecobook.ui.theme.ecoBookBadgeColors
+import com.ecobook.ui.theme.ecoBookImagePlaceholderColors
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
@@ -43,6 +45,11 @@ fun MaterialListItem(
     material: MaterialDTO,
     onClick: () -> Unit
 ) {
+    val disciplineColors = ecoBookBadgeColors(EcoBookTone.Success)
+    val levelColors = ecoBookBadgeColors(EcoBookTone.Warning)
+    val yearColors = ecoBookBadgeColors(EcoBookTone.Accent)
+    val conditionColors = ecoBookBadgeColors(EcoBookTone.Neutral)
+
     GlassCard(
         modifier = Modifier.clickable(
             role = Role.Button,
@@ -83,25 +90,25 @@ fun MaterialListItem(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatusBadge(
                         text = formatDisciplina(material.disciplina),
-                        containerColor = Color(0xFFE5F0EA),
-                        contentColor = Color(0xFF205447)
+                        containerColor = disciplineColors.containerColor,
+                        contentColor = disciplineColors.contentColor
                     )
                     StatusBadge(
                         text = formatNivelEnsino(material.nivelEnsino),
-                        containerColor = Color(0xFFFCE7D8),
-                        contentColor = Color(0xFF8A4C1F)
+                        containerColor = levelColors.containerColor,
+                        contentColor = levelColors.contentColor
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatusBadge(
                         text = formatAnoEscolar(material.ano),
-                        containerColor = Color(0xFFF1EAF8),
-                        contentColor = Color(0xFF5E427E)
+                        containerColor = yearColors.containerColor,
+                        contentColor = yearColors.contentColor
                     )
                     StatusBadge(
                         text = formatEstadoConservacao(material.estadoConservacao),
-                        containerColor = Color(0xFFE6EEF8),
-                        contentColor = Color(0xFF214A73)
+                        containerColor = conditionColors.containerColor,
+                        contentColor = conditionColors.contentColor
                     )
                 }
                 Text(
@@ -172,16 +179,18 @@ internal fun MaterialImage(
 internal fun MaterialImagePlaceholder(
     modifier: Modifier = Modifier
 ) {
+    val placeholderColors = ecoBookImagePlaceholderColors()
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFE3E7E3)),
+            .background(placeholderColors.containerColor),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Rounded.Image,
             contentDescription = null,
-            tint = Color(0xFF738579)
+            tint = placeholderColors.contentColor
         )
     }
 }

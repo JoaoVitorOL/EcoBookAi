@@ -76,6 +76,7 @@ gemini:
   max-retries: ${GEMINI_MAX_RETRIES:3}
   timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:10}
   mock-enabled: ${GEMINI_MOCK_ENABLED:false}
+  mock-force: ${GEMINI_MOCK_FORCE:false}
   google-search-enabled: ${GEMINI_GOOGLE_SEARCH_ENABLED:true}
   rate-limit-window-minutes: ${GEMINI_RATE_LIMIT_WINDOW_MINUTES:5}
   rate-limit-threshold: ${GEMINI_RATE_LIMIT_THRESHOLD:10}

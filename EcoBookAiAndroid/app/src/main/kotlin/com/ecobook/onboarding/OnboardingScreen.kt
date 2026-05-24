@@ -27,13 +27,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +45,9 @@ import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.LegalDocumentsDialog
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.EcoBookTone
+import com.ecobook.ui.theme.ecoBookAppBackgroundBrush
+import com.ecobook.ui.theme.ecoBookBadgeColors
 
 @Composable
 fun OnboardingScreen(
@@ -55,19 +56,13 @@ fun OnboardingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showLegalDialog by rememberSaveable { mutableStateOf(false) }
+    val stepColors = ecoBookBadgeColors(EcoBookTone.Success)
+    val accountColors = ecoBookBadgeColors(EcoBookTone.Warning)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFF7E6CF),
-                        Color(0xFFF9F5EE),
-                        Color(0xFFE3F0E3)
-                    )
-                )
-            )
+            .background(ecoBookAppBackgroundBrush())
     ) {
         AdaptiveScreenContent {
             Column(
@@ -79,7 +74,7 @@ fun OnboardingScreen(
             ) {
                 SectionHeading(
                     title = "Completar onboarding",
-                    subtitle = "Esses dados desbloqueiam upload, matching e solicitacoes protegidas pelo backend."
+                    subtitle = "Esses dados desbloqueiam upload, matching e solicitações protegidas pelo backend."
                 )
 
                 GlassCard {
@@ -89,20 +84,20 @@ fun OnboardingScreen(
                     ) {
                         StatusBadge(
                             text = "Etapa ${uiState.currentStep + 1} de 3",
-                            containerColor = Color(0xFFE0EFE4),
-                            contentColor = Color(0xFF205447)
+                            containerColor = stepColors.containerColor,
+                            contentColor = stepColors.contentColor
                         )
                         StatusBadge(
                             text = uiState.email.ifBlank { "Conta atual" },
-                            containerColor = Color(0xFFFCE7D8),
-                            contentColor = Color(0xFF8A4C1F)
+                            containerColor = accountColors.containerColor,
+                            contentColor = accountColors.contentColor
                         )
                     }
                     Text(
                         text = when (uiState.currentStep) {
-                            0 -> "Primeiro confirmamos quem voce e e como entrar em contato."
-                            1 -> "Depois registramos a regiao para normalizacao geografica e matching."
-                            else -> "Por fim, configuramos preferencias academicas e consentimento para IA."
+                            0 -> "Primeiro confirmamos quem você é e como entrar em contato."
+                            1 -> "Depois registramos a região para normalização geográfica e matching."
+                            else -> "Por fim, configuramos preferências acadêmicas e consentimento para IA."
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -149,7 +144,7 @@ fun OnboardingScreen(
                             text = uiState.message.orEmpty(),
                             style = MaterialTheme.typography.bodyLarge,
                             color = if (uiState.fieldErrors.isEmpty()) {
-                                Color(0xFF205447)
+                                MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.error
                             }
@@ -162,7 +157,7 @@ fun OnboardingScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (uiState.currentStep > 0) {
-                        Button(
+                        OutlinedButton(
                             onClick = viewModel::previousStep,
                             enabled = !uiState.isSubmitting,
                             modifier = Modifier.weight(1f)
@@ -183,7 +178,7 @@ fun OnboardingScreen(
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
-                            Text(if (uiState.isLastStep) "Concluir perfil" else "Proxima etapa")
+                            Text(if (uiState.isLastStep) "Concluir perfil" else "Próxima etapa")
                         }
                     }
                 }
@@ -225,7 +220,7 @@ private fun ContactStep(
             supportingText = {
                 Text(
                     uiState.fieldErrors["whatsapp"]
-                        ?: "Digite so DDD + numero. O codigo do Brasil ja e adicionado automaticamente."
+                        ?: "Digite só DDD + número. O código do Brasil já é adicionado automaticamente."
                 )
             },
             singleLine = true,
@@ -259,9 +254,9 @@ private fun LocationStep(
             supportingText = {
                 Text(
                     uiState.fieldErrors["cidade"] ?: if (cityPreview.isBlank()) {
-                        "Digite manualmente. A cidade sera padronizada antes de salvar o perfil."
+                        "Digite manualmente. A cidade será padronizada antes de salvar o perfil."
                     } else {
-                        "Sera salva como: $cityPreview"
+                        "Será salva como: $cityPreview"
                     }
                 )
             },
@@ -282,7 +277,7 @@ private fun LocationStep(
         OutlinedTextField(
             value = uiState.instituicao,
             onValueChange = onInstitutionChange,
-            label = { Text("Instituicao (opcional)") },
+            label = { Text("Instituição (opcional)") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -300,11 +295,11 @@ private fun NeedsStep(
 ) {
     GlassCard {
         Text(
-            text = "Necessidades academicas",
+            text = "Necessidades acadêmicas",
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Essas preferencias ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
+            text = "Essas preferências ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -325,7 +320,7 @@ private fun NeedsStep(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Antes do aceite, leia o resumo dos termos de uso e da politica de privacidade do EcoBook.",
+            text = "Antes do aceite, leia o resumo dos termos de uso e da política de privacidade do EcoBook.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -348,7 +343,7 @@ private fun NeedsStep(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Aceito os termos e a politica de privacidade",
+                text = "Aceito os termos e a política de privacidade",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
@@ -380,7 +375,7 @@ private fun NeedsStep(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Quando ativado, o backend podera usar Gemini nas futuras etapas de classificacao assistida de materiais.",
+            text = "Quando ativado, o backend poderá usar Gemini nas futuras etapas de classificação assistida de materiais.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

@@ -22,7 +22,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -102,8 +101,8 @@ fun DeleteAccountScreen(
                     enabled = !uiState.isDeletingAccount && password.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF7D6D9),
-                        contentColor = Color(0xFF8A2432)
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 ) {
                     Text(if (uiState.isDeletingAccount) "Excluindo..." else "Excluir conta")
@@ -135,8 +134,8 @@ fun DeleteAccountScreen(
                         onDeleteAccount(password, reason)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF7D6D9),
-                        contentColor = Color(0xFF8A2432)
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 ) {
                     Text("Sim, excluir")

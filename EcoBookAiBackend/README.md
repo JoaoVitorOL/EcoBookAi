@@ -24,7 +24,9 @@ Backend Spring Boot do EcoBook AI.
 
 ### Perfil `local` (recomendado para primeiro boot)
 
-Usa H2 em arquivo, nao depende de Docker e sobe com `Gemini` em modo mock.
+Usa H2 em arquivo, nao depende de Docker e sobe com preview mock do `Gemini` apenas quando `GEMINI_API_KEY` nao estiver presente.
+Se a chave existir no processo, o perfil `local` usa o Gemini real automaticamente.
+Para forcar o mock mesmo com a chave configurada, defina `GEMINI_MOCK_FORCE=true`.
 
 Da raiz do repositorio, o caminho mais simples e:
 
@@ -103,7 +105,7 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn test
 ```
 
-Na validacao mais recente de `2026-05-23`, o backend ficou verde com `218` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenarios snapshot-only em `MigrationRollbackValidationTest`.
+Na validacao mais recente de `2026-05-24`, o backend ficou verde com `218` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenarios snapshot-only em `MigrationRollbackValidationTest`.
 
 ## Swagger / OpenAPI
 
@@ -121,7 +123,7 @@ O fechamento da phase 10 tambem incluiu a passada uniforme de JavaDoc nos metodo
 Runbook operacional:
 
 - o `README.md` raiz agora documenta a ordem revalidada `backend local -> health -> local.properties -> assemble/lint/tests Android -> Android Studio`
-- esse fluxo foi revisto novamente em `2026-05-23` para evitar instrucoes que dependessem de ajustes manuais escondidos
+- esse fluxo foi revisto novamente em `2026-05-24` para evitar instrucoes que dependessem de ajustes manuais escondidos
 
 Load/performance manual (`T217`):
 

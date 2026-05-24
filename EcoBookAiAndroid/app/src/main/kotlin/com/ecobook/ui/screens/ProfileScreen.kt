@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,6 +34,8 @@ import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.LegalDocumentsDialog
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.EcoBookTone
+import com.ecobook.ui.theme.ecoBookBadgeColors
 
 @Composable
 fun ProfileScreen(
@@ -47,6 +49,8 @@ fun ProfileScreen(
     onNeighborhoodChange: (String) -> Unit,
     onInstitutionChange: (String) -> Unit,
     onSaveProfile: () -> Unit,
+    onToggleDarkTheme: (Boolean) -> Unit,
+    onFollowSystemTheme: () -> Unit,
     onToggleAiConsent: (Boolean) -> Unit,
     onOpenDeleteAccount: () -> Unit,
     onLogout: () -> Unit
@@ -54,7 +58,15 @@ fun ProfileScreen(
     val consentimentoIa = uiState.pendingAiConsent ?: uiState.profile.consentimentoIa
     val consentStatus = uiState.consentStatus
     val cityPreview = ProfileInputRules.cityStoragePreview(uiState.profile.cidade)
+    val darkModeEnabled = uiState.darkThemeOverride ?: isSystemInDarkTheme()
     var showLegalDialog by rememberSaveable { mutableStateOf(false) }
+    val profileCompletionColors = ecoBookBadgeColors(
+        if (uiState.session.profileComplete) {
+            EcoBookTone.Success
+        } else {
+            EcoBookTone.Warning
+        }
+    )
 
     AdaptiveScreenContent {
         LazyColumn(
@@ -79,16 +91,8 @@ fun ProfileScreen(
                 GlassCard {
                     StatusBadge(
                         text = if (uiState.session.profileComplete) "Perfil completo" else "Onboarding pendente",
-                        containerColor = if (uiState.session.profileComplete) {
-                            Color(0xFFE0EFE4)
-                        } else {
-                            Color(0xFFFCE7D8)
-                        },
-                        contentColor = if (uiState.session.profileComplete) {
-                            Color(0xFF205447)
-                        } else {
-                            Color(0xFF8A4C1F)
-                        }
+                        containerColor = profileCompletionColors.containerColor,
+                        contentColor = profileCompletionColors.contentColor
                     )
                     Text(
                         text = "JWT ativo: ${if (uiState.session.isAuthenticated) "sim" else "nao"}",
@@ -166,7 +170,7 @@ fun ProfileScreen(
                             color = if (uiState.profileMessageIsError) {
                                 MaterialTheme.colorScheme.error
                             } else {
-                                Color(0xFF205447)
+                                MaterialTheme.colorScheme.primary
                             }
                         )
                     }
@@ -176,6 +180,53 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(if (uiState.isSavingProfile) "Salvando..." else "Salvar alteracoes")
+                    }
+                }
+            }
+
+            item {
+                GlassCard {
+                    SectionHeading(
+                        title = "Aparencia",
+                        subtitle = "Controle como o app deve aparecer neste dispositivo."
+                    )
+                    Text(
+                        text = when (uiState.darkThemeOverride) {
+                            null -> "No momento o app segue o tema do sistema."
+                            true -> "Modo escuro fixado para este dispositivo."
+                            false -> "Modo claro fixado para este dispositivo."
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = darkModeEnabled,
+                                role = Role.Switch,
+                                onValueChange = onToggleDarkTheme
+                            ),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (darkModeEnabled) "Modo escuro ativo" else "Modo escuro desativado",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = darkModeEnabled,
+                            onCheckedChange = null
+                        )
+                    }
+                    if (uiState.darkThemeOverride != null) {
+                        OutlinedButton(
+                            onClick = onFollowSystemTheme,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Seguir tema do sistema")
+                        }
                     }
                 }
             }
@@ -271,8 +322,8 @@ fun ProfileScreen(
                         onClick = onOpenDeleteAccount,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF7D6D9),
-                            contentColor = Color(0xFF8A2432)
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
                         )
                     ) {
                         Text("Excluir conta")

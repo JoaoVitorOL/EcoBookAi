@@ -13,6 +13,7 @@ jwt:
 
 gemini:
   mock-enabled: true
+  mock-force: true
 
 storage:
   upload-dir: ./target/test-uploads

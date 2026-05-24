@@ -19,8 +19,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ecobook.model.BackendConnectionState
 import com.ecobook.ui.EcoBookUiState
@@ -29,6 +27,9 @@ import com.ecobook.ui.components.InsightCard
 import com.ecobook.ui.components.MetricCard
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.backendConnectionBadgeColors
+import com.ecobook.ui.theme.ecoBookHeroBrush
+import com.ecobook.ui.theme.ecoBookHeroContentColor
 
 @Composable
 fun HomeScreen(
@@ -40,6 +41,9 @@ fun HomeScreen(
     onOpenDonorRequests: () -> Unit,
     onOpenProfile: () -> Unit
 ) {
+    val heroContentColor = ecoBookHeroContentColor()
+    val backendColors = backendConnectionBadgeColors(uiState.backendStatus.state)
+
     LazyColumn(
         modifier = Modifier.padding(horizontal = 20.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 20.dp, bottom = 120.dp),
@@ -50,9 +54,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        brush = Brush.verticalGradient(
-                            listOf(Color(0xFF235B4A), Color(0xFF4F8666))
-                        ),
+                        brush = ecoBookHeroBrush(),
                         shape = MaterialTheme.shapes.large
                     )
                     .padding(22.dp)
@@ -61,12 +63,12 @@ fun HomeScreen(
                     Text(
                         text = "EcoBook AI",
                         style = MaterialTheme.typography.displayLarge,
-                        color = Color.White
+                        color = heroContentColor
                     )
                     Text(
                         text = "Transformamos o que já existe no repositório em um app Android pronto para evoluir com o backend.",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White.copy(alpha = 0.92f)
+                        color = heroContentColor.copy(alpha = 0.92f)
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         FilledTonalButton(onClick = onOpenDiscovery) {
@@ -102,19 +104,14 @@ fun HomeScreen(
                             text = uiState.backendStatus.headline,
                             style = MaterialTheme.typography.titleLarge
                         )
-                        val badgeColors = when (uiState.backendStatus.state) {
-                            BackendConnectionState.ONLINE -> Color(0xFFE0EFE4) to Color(0xFF205447)
-                            BackendConnectionState.CHECKING -> Color(0xFFFCE7D8) to Color(0xFF8A4C1F)
-                            BackendConnectionState.OFFLINE -> Color(0xFFF7DDDB) to Color(0xFF8D3D30)
-                        }
                         StatusBadge(
                             text = when (uiState.backendStatus.state) {
                                 BackendConnectionState.ONLINE -> "ONLINE"
                                 BackendConnectionState.CHECKING -> "CHECKING"
                                 BackendConnectionState.OFFLINE -> "OFFLINE"
                             },
-                            containerColor = badgeColors.first,
-                            contentColor = badgeColors.second
+                            containerColor = backendColors.containerColor,
+                            contentColor = backendColors.contentColor
                         )
                     }
                     OutlinedButton(onClick = onRefreshBackend) {

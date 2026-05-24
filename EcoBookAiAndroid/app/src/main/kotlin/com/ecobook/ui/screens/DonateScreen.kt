@@ -51,6 +51,8 @@ import com.ecobook.ui.components.FilterChipCard
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.SectionHeading
 import com.ecobook.ui.components.StatusBadge
+import com.ecobook.ui.theme.EcoBookTone
+import com.ecobook.ui.theme.ecoBookBadgeColors
 
 private enum class DonateMode {
     HISTORY,
@@ -575,12 +577,16 @@ private fun humanizeStatus(value: String): String {
     }
 }
 
+@Composable
 private fun statusColors(status: String): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> {
-    return when (status) {
-        "DISPONIVEL" -> androidx.compose.ui.graphics.Color(0xFFE5F0EA) to androidx.compose.ui.graphics.Color(0xFF205447)
-        "RESERVADO" -> androidx.compose.ui.graphics.Color(0xFFFCE7D8) to androidx.compose.ui.graphics.Color(0xFF8A4C1F)
-        "DOADO" -> androidx.compose.ui.graphics.Color(0xFFE6EEF8) to androidx.compose.ui.graphics.Color(0xFF214A73)
-        "CANCELADO" -> androidx.compose.ui.graphics.Color(0xFFF0F1F3) to androidx.compose.ui.graphics.Color(0xFF4B5563)
-        else -> androidx.compose.ui.graphics.Color(0xFFF0F1F3) to androidx.compose.ui.graphics.Color(0xFF4B5563)
-    }
+    val colors = ecoBookBadgeColors(
+        when (status) {
+            "DISPONIVEL" -> EcoBookTone.Success
+            "RESERVADO" -> EcoBookTone.Warning
+            "DOADO" -> EcoBookTone.Accent
+            "CANCELADO" -> EcoBookTone.Neutral
+            else -> EcoBookTone.Neutral
+        }
+    )
+    return colors.containerColor to colors.contentColor
 }
