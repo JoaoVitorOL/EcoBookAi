@@ -130,6 +130,25 @@ Fix:
 
 ---
 
+## Android Gradle path or `X:\app\...` failures
+
+Symptoms:
+
+- Gradle says files under `X:\app\...` do not exist
+- `assembleDebug`, `lintDebug` or `testDebugUnitTest` fail inconsistently on Windows
+
+Checks:
+
+- confirm you are using `scripts/Invoke-GradleAsciiPath.ps1` instead of calling Gradle directly in this workspace
+- rerun the commands sequentially if multiple Gradle jobs were launched together from different terminals or IDE tasks
+
+Fix:
+
+- use the wrapper script documented in the root `README.md`
+- if the failure happened before the `2026-05-23` hardening pass, pull the latest repo state so the temporary-drive allocation lock is present
+
+---
+
 ## Reserved material stuck after account deletion
 
 Previous silent failure:

@@ -232,6 +232,7 @@ Validation update on 2026-05-23:
 15. Flyway rollback coverage is now explicit: every migration has a paired artifact under `db/rollback`, PostgreSQL apply -> rollback -> re-apply is validated in `MigrationRollbackValidationTest`, and the destructive historical migrations now route through a checked-in snapshot/restore workflow
 16. The cross-module JavaDoc pass is now complete across the detected backend public methods under `src/main/java`; the closing scan reports `0` missing public methods, and the closeout validation bundle was rerun after that sweep to remove the last formal Phase 10 blocker
 17. A post-closeout Android UI review was also completed against official Compose guidance for state hoisting, accessibility defaults and adaptive layouts; the runtime now uses centered max-width content panes, full-row toggle semantics for consent controls, a fixed `NavGraph` back-stack pattern and a green `app:lintDebug` baseline with only dependency/targetSdk warnings remaining
+18. The post-closeout operational runbook was then revalidated end to end: the root/module READMEs and `quickstart.md` now reflect the verified startup order, and the Android ASCII Gradle wrapper was hardened against concurrent temporary-drive alias races discovered during that verification pass
 
 ---
 

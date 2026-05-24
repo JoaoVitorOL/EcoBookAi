@@ -52,12 +52,13 @@ backend.url=http://172.22.160.34:8080/api
 Na pasta `EcoBookAiAndroid`:
 
 ```powershell
-.\gradlew.bat app:compileDebugKotlin
-.\gradlew.bat assembleDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:compileDebugKotlin
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
 ```
 
-O wrapper ASCII continua sendo o caminho mais confiavel para `testDebugUnitTest` nesta workspace com espacos/acentos no caminho do Windows.
+O wrapper ASCII agora e o caminho recomendado para os comandos principais do Gradle nesta workspace com espacos/acentos no caminho do Windows. Em `2026-05-23`, ele tambem foi endurecido contra corrida na criacao do drive temporario.
 
 Validacao Firebase em emulador/dispositivo:
 
@@ -103,15 +104,23 @@ Para push real, prefira dispositivo fisico ou emulador com Google Play services.
 
 Validado em `2026-05-21`:
 
-- `.\gradlew.bat app:compileDebugKotlin`
-- `.\gradlew.bat assembleDebug`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:compileDebugKotlin`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
 Validado em `2026-05-23`:
 
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'`
 - fluxo real de `token FCM -> sync backend -> solicitacao criada -> notificacao persistida -> recebimento no app` confirmado em `Pixel_6` AVD com Google Play services
+
+Lint/UI baseline atual:
+
+- `0` erros
+- `20` warnings nao bloqueantes
+- detalhes da revisao em `../docs/android-ui-review.md`
 
 ## Troubleshooting
 

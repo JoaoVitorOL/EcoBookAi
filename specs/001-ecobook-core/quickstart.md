@@ -1,8 +1,8 @@
 # Quickstart Guide: EcoBook IA
 
-**Phase**: 1-8 runtime  
-**Date**: 2026-05-21  
-**Purpose**: Boot the current backend, validate the implemented auth/onboarding/search flow, and compile the Android app with the current local runbook.
+**Phase**: 1-10 runtime  
+**Date**: 2026-05-23  
+**Purpose**: Boot the current backend, validate the implemented auth/onboarding/search flow, and compile/test the Android app with the current local runbook.
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### Backend
 
-- Java 21
+- Java 21+
 - Maven 3.9+
 - PostgreSQL 15+ only if you want the default profile
 
@@ -23,42 +23,36 @@
 
 ---
 
-## Recommended Backend Path
+## Recommended End-To-End Path
 
-The recommended first boot is the `local` profile.
+The recommended first boot is still the `local` backend profile.
 
 Why this path:
 
 - no Docker dependency
 - H2-backed local database
 - Gemini mock enabled
-- validated end to end on `2026-05-21`
+- matches the root README validation order
+- revalidated again on `2026-05-23`
 
-### 1. Compile
+### 1. Start the backend
 
-```bash
-cd EcoBookAiBackend
-mvn -q -DskipTests compile
-```
-
-### 2. Start the backend
-
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local
-```
-
-On Windows PowerShell, prefer:
+From the repository root:
 
 ```powershell
-$env:JAVA_HOME = 'C:\caminho\para\jdk-21-ou-superior'
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
-mvn --% spring-boot:run -Dspring-boot.run.profiles=local
+powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
 ```
 
-### 3. Validate health
+If port `8080` is already in use:
 
-```bash
-curl http://127.0.0.1:8080/api/v1/health
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26" -Port 8081
+```
+
+### 2. Validate health
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8080/api/v1/health
 ```
 
 Expected response excerpt:
@@ -70,29 +64,43 @@ Expected response excerpt:
 }
 ```
 
-### 4. Optional: bootstrap an admin account
+### 3. Configure Android local properties
 
-If you want to exercise the admin endpoints locally, start the backend with these environment variables:
+Use `EcoBookAiAndroid/local.properties.example` as the base:
 
-```powershell
-$env:ADMIN_BOOTSTRAP_ENABLED = 'true'
-$env:ADMIN_BOOTSTRAP_EMAIL = 'admin@example.com'
-$env:ADMIN_BOOTSTRAP_PASSWORD = 'SenhaAdmin123'
-$env:ADMIN_BOOTSTRAP_NAME = 'Admin Local'
-mvn --% spring-boot:run -Dspring-boot.run.profiles=local
+```properties
+sdk.dir=C\:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
+backend.url=http://10.0.2.2:8080/api
 ```
 
-Runtime behavior:
+If your backend runs inside WSL and the emulator cannot reach `10.0.2.2`, replace the host with the current WSL IP.
 
-- if the email already exists, the account is promoted to `ADMIN`
-- if the email does not exist, a lightweight admin account is created
-- leaving `ADMIN_BOOTSTRAP_ENABLED=false` keeps the feature inactive
+### 4. Compile and validate Android
+
+```powershell
+cd EcoBookAiAndroid
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
+```
+
+Runtime note:
+
+- the ASCII-path wrapper is the recommended path for this Windows workspace
+- on `2026-05-23`, the wrapper was hardened against concurrent temporary-drive alias races
+
+### 5. Run the app
+
+1. Open `EcoBookAiAndroid` in Android Studio.
+2. Wait for Gradle sync.
+3. Start an API 34 emulator or connect a physical device.
+4. Run the debug app.
 
 ---
 
 ## Verified API Smoke Flow
 
-The following flow was revalidated against the `local` profile.
+The following flow remains the simplest API-level proof that the local profile is healthy.
 
 ### 1. Register
 
@@ -111,7 +119,6 @@ Expected result:
 - HTTP `201`
 - JWT returned
 - `perfil_completo = false`
-- if you rerun the same flow against the same local database, use a different email or clear `EcoBookAiBackend/data/ecobook-local*`
 
 ### 2. Load current profile
 
@@ -173,41 +180,21 @@ Expected result:
 
 ---
 
-## Android Setup
+## Optional Paths
 
-### 1. Configure local properties
+### Optional admin bootstrap
 
-Use `EcoBookAiAndroid/local.properties.example` as the base:
-
-```properties
-sdk.dir=C\:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
-backend.url=http://10.0.2.2:8080/api
-```
-
-If your backend runs inside WSL and the emulator cannot reach `10.0.2.2`, replace the host with the current WSL IP.
-
-### 2. Compile and validate
+If you want to exercise admin endpoints locally, start the backend with:
 
 ```powershell
-cd EcoBookAiAndroid
-.\gradlew.bat app:compileDebugKotlin
-.\gradlew.bat assembleDebug
-powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
+$env:ADMIN_BOOTSTRAP_ENABLED = 'true'
+$env:ADMIN_BOOTSTRAP_EMAIL = 'admin@example.com'
+$env:ADMIN_BOOTSTRAP_PASSWORD = 'SenhaAdmin123'
+$env:ADMIN_BOOTSTRAP_NAME = 'Admin Local'
+mvn --% spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-### 3. Optional instrumentation
-
-With an emulator already started:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.auth.AuthFlowE2ETest
-```
-
----
-
-## Default PostgreSQL Profile
-
-Use this profile when you need Flyway + PostgreSQL parity.
+### Default PostgreSQL profile
 
 From the repository root:
 
@@ -228,15 +215,21 @@ This profile expects:
 - user `ecobook`
 - password `dev_password_123` unless overridden by `DB_PASSWORD`
 
-Environment note:
+### Real Firebase validation
 
-- the fully revalidated quickstart in this repository is still the `local` profile
-- use the default profile only when the backend process can really reach that same `localhost:5432`, or override `SPRING_DATASOURCE_URL` with a reachable host
+With the backend already running and Firebase credentials configured:
+
+```powershell
+cd EcoBookAiAndroid
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'
+```
 
 ---
 
 ## Current Closeout Notes
 
-- Phase 6 notification runtime is implemented, but real-device Firebase validation is still the main remaining closeout step.
-- Phase 7 admin/moderation runtime is already live on the backend.
-- Phase 8 has started through AI consent update/revocation plus preview enforcement; consent history, deletion/anonymization and image-access hardening remain backlog work.
+- The repository is now accurate to describe as `Phase 10 complete`.
+- The remaining follow-ups are operational or governance items, not implementation blockers:
+  - legal review of the MVP terms/privacy text
+  - periodic Android dependency/`targetSdk` refresh
+  - monitoring of the residual dependency-risk baseline documented in `docs/security-scan.md`

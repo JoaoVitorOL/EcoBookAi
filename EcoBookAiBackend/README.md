@@ -26,6 +26,14 @@ Backend Spring Boot do EcoBook AI.
 
 Usa H2 em arquivo, nao depende de Docker e sobe com `Gemini` em modo mock.
 
+Da raiz do repositorio, o caminho mais simples e:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
+```
+
+Equivalente manual dentro de `EcoBookAiBackend`:
+
 ```bash
 cd EcoBookAiBackend
 mvn -q -DskipTests compile
@@ -109,6 +117,11 @@ Os controladores principais agora estao anotados com `@Operation`, `@Parameter`,
 Na mesma rodada, a cobertura JaCoCo do backend ficou em `85.23%`, mantendo a meta minima de `85%` superada.
 
 O fechamento da phase 10 tambem incluiu a passada uniforme de JavaDoc nos metodos publicos detectados do backend, eliminando o ultimo bloqueio formal de documentacao.
+
+Runbook operacional:
+
+- o `README.md` raiz agora documenta a ordem revalidada `backend local -> health -> local.properties -> assemble/lint/tests Android -> Android Studio`
+- esse fluxo foi revisto novamente em `2026-05-23` para evitar instrucoes que dependessem de ajustes manuais escondidos
 
 Load/performance manual (`T217`):
 

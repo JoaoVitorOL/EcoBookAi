@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phases 1-10 are now implemented and validated in runtime; the final Phase 10 JavaDoc/documentation closeout landed on 2026-05-23, the Android UI/general review pass has also been executed, and no formal implementation tasks remain open  
+**Status**: Phases 1-10 are now implemented and validated in runtime; the final Phase 10 JavaDoc/documentation closeout landed on 2026-05-23, the Android UI/general review and operational runbook revalidation passes have also been executed, and no formal implementation tasks remain open  
 **Generated**: 2026-04-15
 
 ---
@@ -34,6 +34,7 @@ Historical note:
 - Phase 5 request workflow and part of Phase 6 notifications were implemented after the original checkbox pass.
 - Some unchecked Phase 5/6 items below were not backfilled one by one; use `PLAN-SUMMARY.md` and `contracts/` as the current runtime truth.
 - Local operational startup is now revalidated through the `local` backend profile plus the README/quickstart runbooks updated on `2026-05-21`.
+- The `2026-05-23` post-closeout review also hardened the Android ASCII Gradle wrapper against temporary-drive races and rebased the root/module runbooks to the now-validated startup order.
 - The dependency graph and several summary ranges below came from an earlier 370-task draft; the detailed sections `T181–T230` plus `PLAN-SUMMARY.md` are the current runtime truth for Phases 7–10.
 
 ---

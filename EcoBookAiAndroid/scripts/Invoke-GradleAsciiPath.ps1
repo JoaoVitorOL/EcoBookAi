@@ -12,12 +12,21 @@ if (-not $GradleArgs -or $GradleArgs.Count -eq 0) {
 }
 
 $projectDir = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$driveCandidates = @("X:", "W:", "V:", "U:", "T:")
+$driveCandidates = @("X:", "W:", "V:", "U:", "T:", "S:", "R:", "Q:")
 $mappedDrive = $null
 $enteredLocation = $false
 $exitCode = 1
+$mutex = $null
+$hasMutex = $false
 
 try {
+    $mutex = [System.Threading.Mutex]::new($false, "Global\EcoBookAiGradleAsciiPath")
+    $hasMutex = $mutex.WaitOne([TimeSpan]::FromSeconds(30))
+
+    if (-not $hasMutex) {
+        throw "Timeout aguardando o lock do alias ASCII temporario do Gradle."
+    }
+
     foreach ($candidate in $driveCandidates) {
         if (-not (Test-Path "$candidate\")) {
             $mappedDrive = $candidate
@@ -35,6 +44,9 @@ try {
         throw "Falha ao criar o alias temporario $mappedDrive para $projectDir."
     }
 
+    $mutex.ReleaseMutex()
+    $hasMutex = $false
+
     Push-Location "$mappedDrive\"
     $enteredLocation = $true
 
@@ -47,7 +59,18 @@ finally {
     }
 
     if ($mappedDrive) {
+        if ($mutex -and -not $hasMutex) {
+            $hasMutex = $mutex.WaitOne([TimeSpan]::FromSeconds(30))
+        }
         & subst $mappedDrive /d | Out-Null
+    }
+
+    if ($hasMutex -and $mutex) {
+        $mutex.ReleaseMutex()
+    }
+
+    if ($mutex) {
+        $mutex.Dispose()
     }
 }
 

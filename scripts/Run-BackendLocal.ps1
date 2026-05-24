@@ -22,4 +22,4 @@ Write-Host "JAVA_HOME=$env:JAVA_HOME"
 Write-Host "Iniciando backend local em http://127.0.0.1:$Port/api"
 
 Set-Location $backendDir
-mvn --% spring-boot:run -Dspring-boot.run.profiles=local -Dspring-boot.run.arguments=--server.port=$Port
+mvn "spring-boot:run" "-Dspring-boot.run.profiles=local" "-Dspring-boot.run.arguments=--server.port=$Port"

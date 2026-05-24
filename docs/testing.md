@@ -88,6 +88,13 @@ cd EcoBookAiAndroid
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug
 ```
 
+Android debug assemble:
+
+```powershell
+cd EcoBookAiAndroid
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug
+```
+
 Android real Firebase validation:
 
 ```powershell
@@ -105,3 +112,4 @@ Prerequisites for the Firebase validation:
 Latest Android UI/code-quality note:
 
 - the post-closeout UI review on `2026-05-23` left Android lint green with `0` errors and `20` non-blocking warnings; details live in `docs/android-ui-review.md`
+- the same round also hardened `Invoke-GradleAsciiPath.ps1` against temporary-drive allocation races, so the recommended Windows path is now more stable for repeated local runs

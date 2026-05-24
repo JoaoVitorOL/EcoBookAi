@@ -26,6 +26,7 @@ Date: `2026-05-23`
 6. Removed a silent main-thread preference write by replacing `SharedPreferences.commit()` with `apply()` in the runtime backend override helper.
 7. Removed the obsolete `SDK_INT >= O` check in the FCM service because the app already has `minSdk = 26`.
 8. Removed two unused Android resources from `api_config.xml`.
+9. Hardened `Invoke-GradleAsciiPath.ps1` so temporary ASCII drive aliases no longer race each other under concurrent Gradle entry points.
 
 ## Validation
 
@@ -45,3 +46,5 @@ Result:
 2. Expand the adaptive review to tablets/foldables with screenshot validation in landscape and split-screen.
 3. Move more visible UI strings to `res/values/strings.xml` if localization becomes a short-term goal.
 4. Consider an explicit edge-to-edge/insets pass in `MainActivity` and the form screens once the design is frozen.
+5. Consider adopting more explicit screen-level state holders for the busiest flows if the profile/discovery screens grow further, to stay aligned with the state-hoisting guidance used in this review.
+6. Plan a small security-storage refresh, because the current `EncryptedSharedPreferences`/`MasterKey` usage now emits deprecation warnings during the validated Android assemble path.
