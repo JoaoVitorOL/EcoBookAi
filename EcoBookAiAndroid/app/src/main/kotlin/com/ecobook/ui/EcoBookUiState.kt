@@ -3,7 +3,6 @@ package com.ecobook.ui
 import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.model.BackendStatus
 import com.ecobook.model.DonationPreview
-import com.ecobook.model.PersonalDataExportFile
 import com.ecobook.model.ProjectInsight
 import com.ecobook.model.SessionUiState
 import com.ecobook.model.UserProfileDraft
@@ -21,10 +20,6 @@ data class EcoBookUiState(
     val isDeletingAccount: Boolean = false,
     val accountDeletionMessage: String? = null,
     val accountDeletionMessageIsError: Boolean = false,
-    val isExportingData: Boolean = false,
-    val exportMessage: String? = null,
-    val exportMessageIsError: Boolean = false,
-    val pendingPersonalDataExport: PersonalDataExportFile? = null,
     val pendingAiConsent: Boolean? = null,
     val profileMessage: String? = null,
     val profileMessageIsError: Boolean = false,

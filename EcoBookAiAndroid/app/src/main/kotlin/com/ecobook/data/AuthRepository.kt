@@ -14,9 +14,7 @@ import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.dto.UsuarioDTO
 import com.ecobook.fcm.FcmTokenSyncManager
-import com.ecobook.model.PersonalDataExportFile
 import com.google.gson.Gson
-import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 import okhttp3.ResponseBody
@@ -106,27 +104,10 @@ class AuthRepository @Inject constructor(
         return body
     }
 
-    suspend fun exportPersonalData(): PersonalDataExportFile {
-        val response = authApiService.exportPersonalData()
-        val body = requireBinaryBody(response)
-        return PersonalDataExportFile(
-            fileName = extractExportFileName(response) ?: "ecobook-dados-${LocalDate.now()}.zip",
-            bytes = body.bytes()
-        )
-    }
-
     private fun <T> requireData(response: Response<ApiEnvelopeDTO<T>>): T {
         if (response.isSuccessful) {
             val envelope = response.body() ?: throw ApiException(response.code(), "Resposta vazia do servidor")
             return envelope.data ?: throw ApiException(response.code(), envelope.message)
-        }
-
-        throw buildApiException(response.code(), response.errorBody())
-    }
-
-    private fun requireBinaryBody(response: Response<ResponseBody>): ResponseBody {
-        if (response.isSuccessful) {
-            return response.body() ?: throw ApiException(response.code(), "Arquivo de exportação vazio")
         }
 
         throw buildApiException(response.code(), response.errorBody())
@@ -144,15 +125,4 @@ class AuthRepository @Inject constructor(
         )
     }
 
-    private fun extractExportFileName(response: Response<ResponseBody>): String? {
-        val contentDisposition = response.headers()["Content-Disposition"] ?: return null
-        return contentDisposition
-            .split(';')
-            .map { it.trim() }
-            .firstOrNull { it.startsWith("filename=", ignoreCase = true) }
-            ?.substringAfter('=')
-            ?.trim()
-            ?.removeSurrounding("\"")
-            ?.takeIf { it.isNotBlank() }
-    }
 }

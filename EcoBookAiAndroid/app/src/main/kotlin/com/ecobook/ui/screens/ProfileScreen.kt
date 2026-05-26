@@ -1,9 +1,5 @@
 package com.ecobook.ui.screens
 
-import android.content.Context
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,19 +17,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import java.io.IOException
 import com.ecobook.ui.EcoBookUiState
 import com.ecobook.ui.ProfileInputRules
 import com.ecobook.ui.components.AdaptiveScreenContent
@@ -59,10 +52,6 @@ fun ProfileScreen(
     onToggleDarkTheme: (Boolean) -> Unit,
     onFollowSystemTheme: () -> Unit,
     onToggleAiConsent: (Boolean) -> Unit,
-    onExportData: () -> Unit,
-    onExportSaved: (String) -> Unit,
-    onExportCanceled: () -> Unit,
-    onExportFailed: (String) -> Unit,
     onOpenDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -70,8 +59,6 @@ fun ProfileScreen(
     val consentStatus = uiState.consentStatus
     val cityPreview = ProfileInputRules.cityStoragePreview(uiState.profile.cidade)
     val darkModeEnabled = uiState.darkThemeOverride ?: isSystemInDarkTheme()
-    val context = LocalContext.current
-    val pendingExport = uiState.pendingPersonalDataExport
     var showLegalDialog by rememberSaveable { mutableStateOf(false) }
     val profileCompletionColors = ecoBookBadgeColors(
         if (uiState.session.profileComplete) {
@@ -80,25 +67,6 @@ fun ProfileScreen(
             EcoBookTone.Warning
         }
     )
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/zip")
-    ) { uri ->
-        when {
-            uri == null -> onExportCanceled()
-            pendingExport == null -> onExportFailed("Nenhum arquivo de exportação estava pronto para salvar.")
-            else -> savePersonalDataExport(context, pendingExport, uri)
-                .onSuccess { onExportSaved(pendingExport.fileName) }
-                .onFailure { error ->
-                    onExportFailed(
-                        error.message ?: "Não foi possível salvar o arquivo de exportação."
-                    )
-                }
-        }
-    }
-
-    LaunchedEffect(pendingExport?.requestId) {
-        pendingExport?.let { exportLauncher.launch(it.fileName) }
-    }
 
     AdaptiveScreenContent {
         LazyColumn(
@@ -128,9 +96,9 @@ fun ProfileScreen(
                     )
                     Text(
                         text = if (uiState.session.profileComplete) {
-                            "Seu cadastro ja esta pronto para usar os recursos principais do app."
+                            "Seu cadastro já está pronto para usar os recursos principais do app."
                         } else {
-                            "Complete seus dados editaveis para concluir o cadastro e liberar todos os fluxos."
+                            "Complete seus dados editáveis para concluir o cadastro e liberar todos os fluxos."
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -141,7 +109,7 @@ fun ProfileScreen(
             item {
                 GlassCard {
                     SectionHeading(
-                        title = "Dados editaveis",
+                        title = "Dados editáveis",
                         subtitle = "Você pode alterar nome, email, telefone, cidade, bairro e instituição."
                     )
                     ProfileField(
@@ -172,9 +140,9 @@ fun ProfileScreen(
                         onValueChange = onCityChange,
                         error = uiState.profileFieldErrors["cidade"],
                         supportingText = if (cityPreview.isBlank()) {
-                            "A cidade sera padronizada antes de salvar."
+                            "A cidade será padronizada antes de salvar."
                         } else {
-                            "Sera salva como: $cityPreview"
+                            "Será salva como: $cityPreview"
                         },
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
                     )
@@ -320,7 +288,7 @@ fun ProfileScreen(
                     }
                     if (uiState.isUpdatingAiConsent) {
                         Text(
-                            text = "Salvando preferencia...",
+                            text = "Salvando preferência...",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -332,42 +300,23 @@ fun ProfileScreen(
                 GlassCard {
                     SectionHeading(
                         title = "Sessão e segurança",
-                        subtitle = "Exporte seus dados, revise a conta atual ou encerre a sessão neste dispositivo."
+                        subtitle = "Encerre a sessão neste dispositivo ou exclua a conta quando necessário."
                     )
                     Text(
                         text = "A exclusão da conta cancela materiais publicados, remove imagens armazenadas e encerra sua sessão.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (!uiState.exportMessage.isNullOrBlank()) {
-                        Text(
-                            text = uiState.exportMessage.orEmpty(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (uiState.exportMessageIsError) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            }
-                        )
-                    }
-                    OutlinedButton(
-                        onClick = onExportData,
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isExportingData && pendingExport == null
-                    ) {
-                        Text(if (uiState.isExportingData) "Preparando arquivo..." else "Exportar meus dados")
-                    }
                     OutlinedButton(
                         onClick = onLogout,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent && !uiState.isExportingData
+                        enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent
                     ) {
                         Text("Sair da conta")
                     }
                     Button(
                         onClick = onOpenDeleteAccount,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isExportingData,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -418,16 +367,4 @@ private fun formatDate(rawValue: String): String {
         return normalized
     }
     return normalized.substring(0, 10)
-}
-
-private fun savePersonalDataExport(
-    context: Context,
-    exportFile: com.ecobook.model.PersonalDataExportFile,
-    destination: Uri
-): Result<Unit> {
-    return runCatching {
-        context.contentResolver.openOutputStream(destination, "w")?.use { outputStream ->
-            outputStream.write(exportFile.bytes)
-        } ?: throw IOException("Não foi possível abrir o destino selecionado.")
-    }
 }

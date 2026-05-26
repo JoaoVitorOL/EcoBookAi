@@ -63,16 +63,16 @@ fun LegalDocumentsDialog(
                         body = "A conta usa nome, email, telefone, cidade, bairro, instituição, consentimentos, histórico de materiais, solicitações, notificações e trilhas de auditoria para operar o serviço com segurança."
                     )
                     LegalSection(
-                        title = "Como os dados sao usados",
-                        body = "Esses dados servem para autenticação, matching geográfico, contato entre as partes, envio de notificações, prevenção de abuso, exportação de dados e exclusão/anonimização da conta."
+                        title = "Como os dados são usados",
+                        body = "Esses dados servem para autenticação, matching geográfico, contato entre as partes, envio de notificações, prevenção de abuso e exclusão/anonimização da conta."
                     )
                     LegalSection(
                         title = "IA opcional",
                         body = "O consentimento de IA é separado. Quando ativado, imagens de materiais podem ser analisadas para sugerir classificação. Quando desativado, o usuário continua podendo preencher os dados manualmente."
                     )
                     LegalSection(
-                        title = "Compartilhamento e retencao",
-                        body = "Dados de contato sensíveis só devem ser exibidos quando o fluxo da solicitação exige. O usuário pode revisar, corrigir, exportar e excluir a própria conta pelo app. Ao excluir, materiais e imagens são removidos do fluxo ativo e os registros necessários ficam anonimizados."
+                        title = "Compartilhamento e retenção",
+                        body = "Dados de contato sensíveis só devem ser exibidos quando o fluxo da solicitação exige. O usuário pode revisar, corrigir e excluir a própria conta pelo app. Ao excluir, materiais e imagens são removidos do fluxo ativo e os registros necessários ficam anonimizados."
                     )
                     LegalSection(
                         title = "Aviso importante",

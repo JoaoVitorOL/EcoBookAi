@@ -10,7 +10,6 @@ import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.dto.UpdateAiConsentRequestDTO
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UsuarioDTO
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -44,7 +43,4 @@ interface AuthApiService {
 
     @POST("v1/usuarios/delete")
     suspend fun deleteAccount(@Body request: DeleteAccountRequestDTO): Response<ApiEnvelopeDTO<DeleteAccountResponseDTO>>
-
-    @POST("v1/usuarios/me/export")
-    suspend fun exportPersonalData(): Response<ResponseBody>
 }
