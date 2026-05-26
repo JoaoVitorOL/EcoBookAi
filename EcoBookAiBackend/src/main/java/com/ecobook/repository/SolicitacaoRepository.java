@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +24,6 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, UUID> 
                                                                                            StatusSolicitacao status);
     List<Solicitacao> findByStatusAndExpiresAtIsNotNull(StatusSolicitacao status);
     List<Solicitacao> findByMaterialIdAndStatus(UUID materialId, StatusSolicitacao status);
-    List<Solicitacao> findByStatusAndExpiresAtLessThanEqual(StatusSolicitacao status, LocalDateTime expiresAt);
     List<Solicitacao> findByEstudanteIdOrderByCriadoEmDesc(UUID estudanteId);
     List<Solicitacao> findByMaterialDoadorIdOrderByCriadoEmDesc(UUID doadorId);
     List<Solicitacao> findByMaterialDoadorIdAndStatusOrderByCriadoEmDesc(UUID doadorId, StatusSolicitacao status);

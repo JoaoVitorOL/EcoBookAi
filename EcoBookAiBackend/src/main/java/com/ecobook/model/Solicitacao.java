@@ -112,10 +112,24 @@ public class Solicitacao extends AuditedEntity {
     }
 
     /**
-     * Check if request has expired
+     * Checks whether the approval window already elapsed.
+     *
+     * @return true when the request reached or passed its expiry instant
      */
     public boolean hasExpired() {
-        return this.expiresAt != null && LocalDateTime.now().isAfter(this.expiresAt);
+        return hasExpired(LocalDateTime.now());
+    }
+
+    /**
+     * Checks whether the approval window already elapsed for a reference instant.
+     *
+     * @param referenceTime instant used for the comparison
+     * @return true when the request reached or passed its expiry instant
+     */
+    public boolean hasExpired(LocalDateTime referenceTime) {
+        return this.expiresAt != null
+                && referenceTime != null
+                && !referenceTime.isBefore(this.expiresAt);
     }
 
     /**

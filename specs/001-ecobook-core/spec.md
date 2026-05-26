@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-ecobook-core`  
 **Created**: 2026-04-15  
-**Status**: Active MVP baseline (implementation in progress)  
+**Status**: Active MVP baseline (runtime-aligned; implementation complete through Phase 10)  
 **Architecture**: Android Native (Kotlin, Jetpack Compose) + Spring Boot Backend + PostgreSQL
 
 Runtime note (2026-05-14):

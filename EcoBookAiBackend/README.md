@@ -12,6 +12,7 @@ Backend Spring Boot do EcoBook AI.
 - Discovery com filtros, ranking geografico e paginacao offset/cursor
 - Fluxo de solicitacoes com aprovar, recusar, cancelar, concluir e expiracao automatica
 - Registro de token FCM, retry persistente e inbox de notificacoes
+- Consentimentos, exportacao de dados, exclusao/anonimizacao de conta e trilha de auditoria
 - Observabilidade com `Micrometer`, endpoint `/actuator/prometheus`, smoke suite, cache para leituras autenticadas, catalogo publico/cacheado em `/api/v1/reference-data/material-options` e cursor `after_id` na busca de materiais
 
 ## Requisitos
@@ -105,7 +106,7 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn test
 ```
 
-Na validacao mais recente de `2026-05-24`, o backend ficou verde com `218` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenarios snapshot-only em `MigrationRollbackValidationTest`.
+Na validacao mais recente de `2026-05-26`, o backend ficou verde com `225` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenarios snapshot-only em `MigrationRollbackValidationTest`.
 
 ## Swagger / OpenAPI
 
@@ -116,7 +117,7 @@ Com o `server.servlet.context-path=/api`, a documentacao publicada do backend fi
 
 Os controladores principais agora estao anotados com `@Operation`, `@Parameter`, `@ApiResponse` e `@SecurityRequirement`, e o smoke suite valida que a UI e o JSON OpenAPI seguem publicamente acessiveis sem quebrar os endpoints autenticados.
 
-Na mesma rodada, a cobertura JaCoCo do backend ficou em `85.23%`, mantendo a meta minima de `85%` superada.
+Na mesma rodada, a cobertura JaCoCo do backend ficou em `86.11%`, mantendo a meta minima de `85%` superada.
 
 O fechamento da phase 10 tambem incluiu a passada uniforme de JavaDoc nos metodos publicos detectados do backend, eliminando o ultimo bloqueio formal de documentacao.
 
@@ -135,12 +136,12 @@ mvn --% -Decobook.runLoadTest=true -Dtest=LoadValidationTest test
 
 Esse comando executa `20` uploads concorrentes e `30` buscas concorrentes contra o backend em `RANDOM_PORT`, coleta metricas do Prometheus/Hikari e grava os artefatos em `target/load-reports/`.
 
-Na rodada validada em `2026-05-23`, o resultado local foi:
+Na rodada validada em `2026-05-25`, o resultado local foi:
 
 - `0%` de erro
-- `522 ms` de p95 para busca
-- `512 ms` de p95 para upload
-- `20` conexoes Hikari totais observadas, `4` ativas no pico e `0` pendentes
+- `562 ms` de p95 para busca
+- `616 ms` de p95 para upload
+- `5` conexoes Hikari maximas observadas e `0` pendentes
 
 ## Smoke Test Validado
 

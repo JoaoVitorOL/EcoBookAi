@@ -5,6 +5,8 @@
 **Date**: 2026-04-15  
 **Status**: Ready for Implementation Planning
 
+> Historical note (2026-05-25): this document captures the Phase 0 planning baseline. For the current runtime truth, use `README.md`, `TASKS.md`, `PLAN-SUMMARY.md`, `quickstart.md`, and `contracts/`. Some assumptions and checklists below were completed or superseded during implementation and are kept here only for traceability.
+
 ---
 
 ## Executive Summary
@@ -751,6 +753,8 @@ CREATE INDEX idx_material_data_publicacao ON material(data_publicacao DESC);
 
 ## 11. FCM Notification Reliability & Retry Strategy
 
+> Implementation update (2026-05-25): the shipped runtime later exceeded this initial MVP assumption. Failed notification attempts are now persisted for retry on the backend, and the Android app exposes an in-app notifications inbox. The guidance below remains as the original Phase 0 baseline only.
+
 ### Research Question
 How reliable is Firebase Cloud Messaging? Should we implement retry logic for failed deliveries?
 
@@ -797,44 +801,48 @@ How reliable is Firebase Cloud Messaging? Should we implement retry logic for fa
 | **Geographic Normalization** | NFD + uppercase + ASCII | High | Edge cases (hyphenated names) handled correctly by algorithm |
 | **Gemini Prompting** | Structured JSON prompt + strict parsing | Medium | Prompt may need tuning based on Phase 3 results |
 | **Matching Algorithm** | 7-step deterministic filter (5 required + 1 optional publication range) + ranking | High | Correctness validated by SQL; optional publication range does not impact performance; indexes sufficient for 500+ materials |
-| **FCM Reliability** | Best-effort; no retry; in-app polling fallback | Medium | Non-guaranteed delivery acceptable for MVP (critical info in DB) |
+| **FCM Reliability** | Historical MVP assumption: best-effort; no retry; in-app polling fallback (later superseded by persisted retry + inbox runtime) | Medium | Non-guaranteed delivery was acceptable for MVP because critical info already lived in the database |
 
 ---
 
 ## Phase 3 Deliverables Checklist
 
-- [ ] 20+ diverse textbook images collected (5+ disciplines, 3+ levels, 4+ systems)
-- [ ] Gemini API integration tested with all 20 images
-- [ ] Confidence distribution histogram generated (SUCCESS/LOW_CONFIDENCE/FAILURE rates)
-- [ ] Accuracy analysis per discipline (manual ground truth comparison)
-- [ ] Timeout incidents logged and analyzed
-- [ ] UI fallback rules finalized based on real data
-- [ ] Risk assessment updated with Phase 3 findings
-- [ ] Developer documentation updated with Gemini best practices
-- [ ] Phase 4 team briefed on AI integration approach
+Historical planning checklist captured at the end of Phase 0. All items below were completed or superseded during implementation and validation by 2026-05-25.
+
+- [x] 20+ diverse textbook images collected (5+ disciplines, 3+ levels, 4+ systems)
+- [x] Gemini API integration tested with all 20 images
+- [x] Confidence distribution histogram generated (SUCCESS/LOW_CONFIDENCE/FAILURE rates)
+- [x] Accuracy analysis per discipline (manual ground truth comparison)
+- [x] Timeout incidents logged and analyzed
+- [x] UI fallback rules finalized based on real data
+- [x] Risk assessment updated with Phase 3 findings
+- [x] Developer documentation updated with Gemini best practices
+- [x] Phase 4 team briefed on AI integration approach
 
 ---
 
 ## Next Steps
 
+Historical roadmap snapshot from 2026-04-15. These milestones were later completed during implementation; the current handoff status now lives in `README.md`, `TASKS.md`, `PLAN-SUMMARY.md`, and `quickstart.md`.
+
 **Phase 1 (Weeks 3–4)**:
-- [ ] Finalize data model schema (entity/field definitions)
-- [ ] Define 15+ REST API contracts (JSON schemas, status codes)
-- [ ] Create quickstart guide for local development
+- [x] Finalize data model schema (entity/field definitions)
+- [x] Define 15+ REST API contracts (JSON schemas, status codes)
+- [x] Create quickstart guide for local development
 
 **Phase 2 (Weeks 5–7)**:
-- [ ] Implement backend skeleton (controllers, services, exceptions)
-- [ ] Implement Android skeleton (screens, navigation, email/password auth flow)
-- [ ] Integration test infrastructure (TestContainers, Retrofit mock)
+- [x] Implement backend skeleton (controllers, services, exceptions)
+- [x] Implement Android skeleton (screens, navigation, email/password auth flow)
+- [x] Integration test infrastructure (TestContainers, Retrofit mock)
 
 **Phase 3 (Weeks 8–10)**:
-- [ ] Collect 20+ textbook images
-- [ ] Test Gemini integration end-to-end
-- [ ] Measure confidence distributions
-- [ ] Validate fallback UI approach
+- [x] Collect 20+ textbook images
+- [x] Test Gemini integration end-to-end
+- [x] Measure confidence distributions
+- [x] Validate fallback UI approach
 
 **Phase 4 (Weeks 11–15)**:
-- [ ] Complete all 43 functional requirements
-- [ ] Implement state machines with atomic approval
-- [ ] Performance testing and optimization
+- [x] Complete all 43 functional requirements
+- [x] Implement state machines with atomic approval
+- [x] Performance testing and optimization
 

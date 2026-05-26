@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -159,7 +160,7 @@ class FcmServiceTest {
                 .thenReturn(java.util.List.of(queued));
         when(usuarioRepository.findById(userId)).thenReturn(Optional.of(usuario));
         when(failedNotificationRepository.save(any(FailedNotification.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        ReflectionTestUtils.setField(fcmService, "initializationAttempted", true);
+        ReflectionTestUtils.setField(fcmService, "serviceAccountPath", "");
 
         assertThat(fcmService.retryFailedNotifications()).isEqualTo(1);
         assertThat(queued.getRetryCount()).isEqualTo(1);
@@ -215,11 +216,36 @@ class FcmServiceTest {
                 .thenReturn(java.util.List.of(queued));
         when(usuarioRepository.findById(userId)).thenReturn(Optional.of(usuario));
         when(failedNotificationRepository.save(any(FailedNotification.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        ReflectionTestUtils.setField(fcmService, "initializationAttempted", true);
+        ReflectionTestUtils.setField(fcmService, "serviceAccountPath", "");
 
         assertThat(fcmService.retryFailedNotifications()).isEqualTo(1);
         assertThat(queued.getPermanentlyFailedAt()).isNotNull();
         assertThat(queued.getRetryCount()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("sendNotification should keep retry initialization available after a missing credential path")
+    void shouldAllowFutureInitializationAttemptsAfterMissingCredentialPath() {
+        UUID userId = UUID.randomUUID();
+        when(usuarioRepository.findById(userId)).thenReturn(Optional.of(Usuario.builder()
+                .id(userId)
+                .email("token@example.com")
+                .passwordHash("hash")
+                .nome("Token User")
+                .fcmToken("device-token")
+                .build()));
+        when(failedNotificationRepository.save(any(FailedNotification.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReflectionTestUtils.setField(fcmService, "serviceAccountPath", "C:/missing/firebase-adminsdk.json");
+
+        assertThat(fcmService.sendNotification(userId.toString(), "EcoBook", "Teste")).isFalse();
+        assertThat(ReflectionTestUtils.getField(fcmService, "firebaseMessaging")).isNull();
+
+        ReflectionTestUtils.setField(fcmService, "serviceAccountPath", "");
+        assertThat(fcmService.sendNotification(userId.toString(), "EcoBook", "Teste novamente")).isFalse();
+
+        verify(failedNotificationRepository, times(2)).save(any(FailedNotification.class));
     }
 
     @Test

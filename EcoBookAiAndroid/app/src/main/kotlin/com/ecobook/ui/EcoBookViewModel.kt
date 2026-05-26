@@ -286,6 +286,83 @@ class EcoBookViewModel @Inject constructor(
         }
     }
 
+    fun requestPersonalDataExport() {
+        val state = _uiState.value
+        if (state.isExportingData || state.pendingPersonalDataExport != null) {
+            return
+        }
+        if (!sessionManager.hasActiveSession()) {
+            _uiState.update {
+                it.copy(
+                    exportMessage = "Sua sessao expirou. Entre novamente para exportar seus dados.",
+                    exportMessageIsError = true
+                )
+            }
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isExportingData = true,
+                exportMessage = null,
+                exportMessageIsError = false,
+                pendingPersonalDataExport = null
+            )
+        }
+
+        viewModelScope.launch {
+            runCatching { authRepository.exportPersonalData() }
+                .onSuccess { exportFile ->
+                    _uiState.update {
+                        it.copy(
+                            isExportingData = false,
+                            pendingPersonalDataExport = exportFile
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isExportingData = false,
+                            pendingPersonalDataExport = null,
+                            exportMessage = resolvePersonalDataExportError(error),
+                            exportMessageIsError = true
+                        )
+                    }
+                }
+        }
+    }
+
+    fun onPersonalDataExportSaved(fileName: String) {
+        _uiState.update {
+            it.copy(
+                pendingPersonalDataExport = null,
+                exportMessage = "Arquivo salvo: $fileName",
+                exportMessageIsError = false
+            )
+        }
+    }
+
+    fun onPersonalDataExportCanceled() {
+        _uiState.update {
+            it.copy(
+                pendingPersonalDataExport = null,
+                exportMessage = "Exportacao cancelada.",
+                exportMessageIsError = false
+            )
+        }
+    }
+
+    fun onPersonalDataExportFailed(message: String) {
+        _uiState.update {
+            it.copy(
+                pendingPersonalDataExport = null,
+                exportMessage = message,
+                exportMessageIsError = true
+            )
+        }
+    }
+
     fun clearAccountDeletionMessage() {
         _uiState.update { state ->
             state.copy(
@@ -303,6 +380,14 @@ class EcoBookViewModel @Inject constructor(
                         session = session,
                         profile = repository.buildProfileDraft(),
                         consentStatus = if (session.isAuthenticated) state.consentStatus else null,
+                        isExportingData = if (session.isAuthenticated) state.isExportingData else false,
+                        exportMessage = if (session.isAuthenticated) state.exportMessage else null,
+                        exportMessageIsError = if (session.isAuthenticated) state.exportMessageIsError else false,
+                        pendingPersonalDataExport = if (session.isAuthenticated) {
+                            state.pendingPersonalDataExport
+                        } else {
+                            null
+                        },
                         isSavingProfile = false,
                         profileFieldErrors = emptyMap()
                     )
@@ -424,6 +509,22 @@ class EcoBookViewModel @Inject constructor(
             is UnknownHostException,
             is IOException -> "Nao foi possivel falar com o backend para excluir a conta."
             else -> error.message ?: "Falha inesperada ao excluir a conta."
+        }
+    }
+
+    private fun resolvePersonalDataExportError(error: Throwable): String {
+        return when (error) {
+            is ApiException -> when (error.statusCode) {
+                401 -> "Sua sessao expirou. Entre novamente para exportar seus dados."
+                403 -> "Conclua o onboarding antes de exportar seus dados."
+                else -> error.message
+            }
+
+            is SocketTimeoutException -> "A exportacao demorou demais. Tente novamente."
+            is ConnectException,
+            is UnknownHostException,
+            is IOException -> "Nao foi possivel falar com o backend para exportar seus dados."
+            else -> error.message ?: "Falha inesperada ao exportar seus dados."
         }
     }
 }

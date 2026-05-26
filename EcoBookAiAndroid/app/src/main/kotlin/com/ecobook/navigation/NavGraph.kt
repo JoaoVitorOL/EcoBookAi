@@ -266,6 +266,10 @@ fun NavGraph(
                             onToggleDarkTheme = viewModel::updateDarkThemeOverride,
                             onFollowSystemTheme = viewModel::followSystemTheme,
                             onToggleAiConsent = viewModel::updateAiConsent,
+                            onExportData = viewModel::requestPersonalDataExport,
+                            onExportSaved = viewModel::onPersonalDataExportSaved,
+                            onExportCanceled = viewModel::onPersonalDataExportCanceled,
+                            onExportFailed = viewModel::onPersonalDataExportFailed,
                             onOpenDeleteAccount = {
                                 navController.navigate(AppDestination.AccountDelete.route)
                             },

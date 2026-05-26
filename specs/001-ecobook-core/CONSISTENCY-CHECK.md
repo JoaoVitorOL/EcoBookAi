@@ -1,313 +1,185 @@
-# Relatório de Verificação de Consistência
+# Relatorio de Verificacao de Consistencia
 
 **Data**: 2026-04-17  
-**Tarefa**: Verificação geral de consistência de campos, garantindo `descricao` como manual-only e `titulo` como AI-preenchível  
-**Status**: ✅ CONSISTÊNCIA VERIFICADA COM RECOMENDAÇÕES
+**Escopo**: verificar consistencia entre `titulo`, `descricao`, `ano` e os campos AI-assisted do fluxo de criacao de material  
+**Status**: Consistencia verificada; recomendacoes implementadas
+
+> Historical note (2026-05-25): este documento registra uma auditoria concluida em 2026-04-17. As recomendacoes abaixo ja foram implementadas e o estado corrente do projeto deve ser conferido em `README.md`, `TASKS.md`, `PLAN-SUMMARY.md`, `spec.md` e `data-model.md`.
 
 ---
 
 ## Resumo Executivo
 
-A documentação apresenta **boa consistência geral** sobre os campos manuais vs. campos AI-assistidos. Foram identificados alguns **pontos de melhoria para maior clareza** que são recomendados abaixo.
+A documentacao apresentou boa consistencia geral entre campos manuais, campos AI-assisted e regras de UX. A revisao encontrou tres melhorias de clareza, todas implementadas no mesmo ciclo:
 
-### Campos Analisados
+1. `ano` passou a aparecer explicitamente na lista de campos AI-assisted.
+2. `data-model.md` recebeu uma tabela de referencia rapida para classificacao de campos.
+3. `TASKS.md` passou a explicitar que `descricao` e manual-only.
 
-| Campo | Tipo | Status | Consistência |
-|-------|------|--------|--------------|
-| `titulo` | AI-assistido | ✅ CORRETO | Consistente em todos os documentos |
-| `descricao` | Manual-only | ✅ CORRETO | Consistente em todos os documentos |
-| `disciplina` | AI-assistido | ✅ CORRETO | Consistente em todos os documentos |
-| `nivel_ensino` | AI-assistido | ✅ CORRETO | Consistente em todos os documentos |
-| `sistema_ensino` | AI-assistido | ✅ CORRETO | Consistente em todos os documentos |
-| `estado_conservacao` | AI-assistido | ✅ CORRETO | Consistente em todos os documentos |
-| `data_publicacao` | AI-assistido | ✅ CORRETO | Consistente em todos os documentos |
-| `ano` | Híbrido | ⚠️ REVISAR | Ver seção abaixo |
+Conclusao: `titulo` permanece AI-assisted, `descricao` permanece manual-only, e nao ha contradicoes documentais abertas neste tema.
 
 ---
 
-## 1. Campo `titulo` (Material Title)
+## Campos Analisados
 
-### Status: ✅ CONSISTENTE E BEM DOCUMENTADO
-
-**Definições Encontradas:**
-
-✅ [data-model.md](data-model.md#L89) - Material title; **can be auto-populated by Gemini via OCR** (confidence 0.85–0.95); **always editable**
-
-✅ [spec.md](spec.md#L46) - Acceptance Scenario: "all AI-assisted fields (titulo, ...)" auto-populated
-
-✅ [spec.md](spec.md#L286-L287) - **Material Attributes**: Material title; **can be auto-populated by Gemini via OCR** (confidence typically 0.85-0.95); **always editable by user**
-
-✅ [spec.md](spec.md#L823) - **Gemini Prompt**: "For titulo: Extract from cover/spine/title page visible text via OCR. Only extract text explicitly visible; never invent titles."
-
-✅ [TASKS.md](TASKS.md#L505) - UI Spec: "Show title input field (required, ≤255 chars)"
-
-✅ [TASKS.md](TASKS.md#L326) - Fields list: includes "titulo" in AI-assisted fields
-
-**Conclusão**: ✅ **PERFEITO** - O campo `titulo` está claramente marcado como **AI-preenchível** em todos os documentos.
+| Campo | Tipo | Estado final | Observacao |
+|------|------|--------------|------------|
+| `titulo` | AI-assisted | Consistente | OCR Gemini, sempre editavel |
+| `descricao` | Manual-only | Consistente | Nunca auto-preenchido para evitar alucinacoes |
+| `disciplina` | AI-assisted | Consistente | Aparece nas listas de predicao e fallback |
+| `nivel_ensino` | AI-assisted | Consistente | Aparece nas listas de predicao e fallback |
+| `ano` | Hibrido / AI-assisted quando aplicavel | Clarificado | Passou a ser citado explicitamente |
+| `sistema_ensino` | AI-assisted | Consistente | Alinhado entre spec, tasks e exemplos |
+| `estado_conservacao` | AI-assisted | Consistente | Alinhado entre spec, tasks e exemplos |
+| `data_publicacao` | AI-assisted | Consistente | Alinhado entre spec, tasks e exemplos |
 
 ---
 
-## 2. Campo `descricao` (Material Description)
+## 1. Campo `titulo`
 
-### Status: ✅ CONSISTENTE E BEM DOCUMENTADO
+**Status**: consistente e bem documentado.
 
-**Definições Encontradas:**
+Evidencias verificadas:
 
-✅ [data-model.md](data-model.md#L90) - Detailed description; **manual-only field** (never auto-populated to prevent hallucinations)
+- `data-model.md` descreve `titulo` como auto-populavel por Gemini via OCR e sempre editavel.
+- `spec.md` inclui `titulo` nos cenarios de preenchimento AI-assisted.
+- `spec.md` define regra de prompt para extracao textual visivel, sem inventar titulos.
+- `TASKS.md` inclui o campo nos fluxos de preview e edicao.
 
-✅ [spec.md](spec.md#L287) - `descricao` (String): Detailed description; **manual-only field** (never auto-populated to prevent hallucinations)
-
-✅ [spec.md](spec.md#L823) - **Gemini Prompt**: "NOT EXTRACTED (manual-only): descricao - never attempt to generate descriptions as this causes hallucinations."
-
-✅ [spec.md](spec.md#L172) - RF-008: Material creation requires: titulo, **descricao**, disciplina, ... (ambos listados como campos de criação)
-
-✅ [TASKS.md](TASKS.md#L424) - Request: upload_id, titulo, disciplina, ..., data_publicacao (optional), **descricao**
-
-✅ [TASKS.md](TASKS.md#L506) - UI Spec: "Show description textarea (optional, ≤1000 chars)"
-
-✅ [TASKS.md](TASKS.md#L792) - Request confirms: "...descricao" incluído
-
-**Conclusão**: ✅ **PERFEITO** - O campo `descricao` está claramente marcado como **manual-only** em todos os documentos.
+Conclusao: `titulo` esta corretamente documentado como AI-assisted em todos os documentos principais.
 
 ---
 
-## 3. Campos AI-Assistidos (AI-Assisted)
+## 2. Campo `descricao`
 
-### Status: ✅ CONSISTENTE
+**Status**: consistente e bem documentado.
 
-**Lista Oficial** (conforme spec.md linha 46):
+Evidencias verificadas:
 
-```
-titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao
+- `data-model.md` define `descricao` como manual-only.
+- `spec.md` reforca que `descricao` nunca deve ser auto-populado.
+- O prompt do Gemini em `spec.md` exclui `descricao` explicitamente.
+- `TASKS.md` e a UI tratam `descricao` como textarea manual.
+
+Conclusao: `descricao` esta corretamente documentado como manual-only em todos os documentos principais.
+
+---
+
+## 3. Campos AI-assisted
+
+**Status**: consistente apos o ajuste de `ano`.
+
+Lista final considerada correta:
+
+```text
+titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao
 ```
 
-**Menções Encontradas:**
+Verificacoes:
 
-✅ [spec.md](spec.md#L46) - Acceptance Scenario 1: "all AI-assisted fields (titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao) are auto-populated"
-
-✅ [spec.md](spec.md#L811) - AI Response Example: Inclui todos os 6 campos com confidence
-
-✅ [spec.md](spec.md#L836-L842) - AI Confidence Fallback Rules: Aplicáveis aos 6 campos AI-assisted
-
-✅ [TASKS.md](TASKS.md#L326) - "fields": lista os 6 campos
-
-**Verificação de Exclusões:**
-
-✅ `descricao` **NÃO está** na lista de campos AI-assistidos (correto - manual-only)
-
-✅ `ano` **SIM está** implícito (como parte dos dados de nível educacional)
-
-✅ `imagem_url` **NÃO está** na lista (campo derivado, gerado pelo sistema)
-
-✅ `doador_id` **NÃO está** na lista (campo identificador de usuário)
-
-**Conclusão**: ✅ **CONSISTENTE** - A lista de campos AI-assistidos é clara e consistente.
+- `descricao` nao aparece na lista de campos AI-assisted.
+- `imagem_url` e `doador_id` continuam fora da lista por serem campos derivados/sistemicos.
+- Os exemplos de resposta AI e as regras de confidence continuam coerentes com a lista acima.
 
 ---
 
-## 4. Campo `ano` (Grade/Year)
+## 4. Campo `ano`
 
-### Status: ⚠️ OBSERVAÇÃO - NÃO DISCREPÂNCIA
+**Status**: observacao resolvida.
 
-**Análise:**
+Achado original:
 
-O campo `ano` (grade/year) tem um tratamento especial:
+- `ano` aparecia nos exemplos de resposta Gemini e em `TASKS.md`, mas nao estava listado explicitamente em um dos pontos de referencia de `spec.md`.
 
-- **Em [data-model.md](data-model.md#L94)**: "Target grade/year (1–12 for FUNDAMENTAL/MEDIO, null for SUPERIOR)"
-  - Não menciona explicitamente se é AI-preenchível
+Correcao aplicada:
 
-- **Em [spec.md](spec.md#L46)**: Não está explicitamente listado em "all AI-assisted fields"
-  - MAS está no exemplo de resposta Gemini ([spec.md](spec.md#L811))
-  - Está indicado como `"ano": { "value": 7, "confidence": 0.75 }`
+- `spec.md` foi atualizado para citar `ano` explicitamente entre os campos AI-assisted.
 
-- **Em [TASKS.md](TASKS.md#L326)**: Está listado em "fields" que recebem predictions do Gemini
-  - `"ano": 7,` em campos AI-preenchidos
-
-- **Em [spec.md](spec.md#L172)**: Incluído em "Material creation requires"
-
-**Recomendação**: O campo `ano` deveria estar **explicitamente adicionado** à lista de campos AI-assistidos, ou pelo menos mencionado que "pode ser AI-preenchível dependendo da confiança da IA".
+Conclusao: o status final de `ano` ficou claro e coerente com o comportamento esperado do sistema.
 
 ---
 
-## 5. Validações de Consistência Realizadas
+## 5. Verificacoes de Consistencia
 
-### ✅ Verificações Aprovadas
-
-| Verificação | Resultado | Achado |
-|-------------|-----------|--------|
-| Descricao mencionado como manual-only | ✅ PASS | 3 menções explícitas |
-| Titulo mencionado como auto-preenchível | ✅ PASS | 5 menções explícitas |
-| Descricao NUNCA mencionado como auto-fill | ✅ PASS | 0 achados inconsistentes |
-| Titulo NUNCA mencionado como manual-only | ✅ PASS | 0 achados inconsistentes |
-| Lista de campos AI completa | ✅ PASS | 6 campos (titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao) |
-| RF-008 inclui ambos titulo e descricao | ✅ PASS | Ambos listados como "criação requerida" |
-| Gemini prompt exclui descricao | ✅ PASS | Explicitamente dito: "NOT EXTRACTED (manual-only)" |
-| UI para descricao é manual | ✅ PASS | "textarea" mencionado, não "auto-fill" |
-| UI para titulo permite AI + edição | ✅ PASS | "green checkmark, editable" |
-| Estado de confiança mapeado corretamente | ✅ PASS | RF-017 a RF-020 consistentes |
+| Verificacao | Resultado | Observacao |
+|------------|-----------|------------|
+| `descricao` mencionado como manual-only | Pass | Mencoes explicitas e sem contradicoes |
+| `titulo` mencionado como AI-assisted | Pass | Mencoes explicitas e sem contradicoes |
+| `descricao` nunca tratado como auto-fill | Pass | Nenhum achado inconsistente |
+| `titulo` nunca tratado como manual-only | Pass | Nenhum achado inconsistente |
+| Lista de campos AI-assisted coerente | Pass | Alinhada apos inclusao explicita de `ano` |
+| Prompt Gemini exclui `descricao` | Pass | Regra explicita de anti-alucinacao |
+| UX de `descricao` permanece manual | Pass | `textarea` sem preenchimento automatico |
+| UX de `titulo` permite AI + edicao | Pass | Campo editavel com assistencia |
 
 ---
 
-## 6. Recomendações de Melhoria
+## 6. Recomendacoes de Melhoria
 
-### 🔧 Recomendação 1: Clarificar status de `ano` ✅ IMPLEMENTADA
+Todas as recomendacoes desta auditoria foram implementadas em 2026-04-17.
 
-**Problema**: O campo `ano` não estava explicitamente mencionado como "AI-assistido" na lista de spec.md linha 46.
+### Recomendacao 1: clarificar status de `ano`
 
-**Solução Aplicada**: 
-- ✅ Adicionado `ano` à lista explícita em spec.md linha 46
-- Antes: `"(titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao)"`
-- Depois: `"(titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao)"`
+- Problema original: `ano` nao aparecia explicitamente em uma das listas de campos AI-assisted.
+- Solucao aplicada: `spec.md` passou a listar `ano` de forma explicita.
+- Status: concluido.
 
-**Status**: ✅ CONCLUÍDO
+### Recomendacao 2: adicionar tabela de referencia rapida
 
----
+- Problema original: faltava um ponto de consulta unico com a classificacao de campos.
+- Solucao aplicada: `data-model.md` recebeu a secao `Material Field Classification Reference`.
+- Status: concluido.
 
-### 🔧 Recomendação 2: Adicionar tabela de referência rápida ✅ IMPLEMENTADA
+### Recomendacao 3: atualizar `TASKS.md`
 
-**Problema**: Não havia uma tabela "single source of truth" listando TODOS os campos e seu tipo (manual vs AI vs system).
-
-**Solução Aplicada**:
-- ✅ Adicionada seção **"Material Field Classification Reference"** em data-model.md
-- Inclui tabela completa com 16 campos e suas classificações
-- Claramente marca `descricao` como **Manual-Only** (❌ Never)
-- Claramente marca campos AI-assistidos com ✅ Yes
-- Inclui legenda explicativa e regras-chave
-
-**Status**: ✅ CONCLUÍDO
+- Problema original: `TASKS.md` nao reforcava `descricao` como manual-only em todos os pontos relevantes.
+- Solucao aplicada: os itens de UI e integracao passaram a mencionar explicitamente que `descricao` nunca e auto-filled.
+- Status: concluido.
 
 ---
 
-### 🔧 Recomendação 3: Atualizar TASKS.md ✅ IMPLEMENTADA
+## 7. Sumario Final
 
-**Problema**: TASKS.md não mencionava explicitamente "manual-only" em descricao.
+**Verificacao geral**: aprovada.
 
-**Solução Aplicada**:
-- ✅ Atualizado T105 em TASKS.md linha ~506: 
-  - Antes: `"Show description textarea (optional, ≤1000 chars)"`
-  - Depois: `"Show description textarea (optional, ≤2000 chars; **manual-only, never auto-filled** to prevent hallucinations)"`
-- ✅ Atualizado T078 em TASKS.md linha ~302: 
-  - Adicionado comentário explicativo sobre AI-Assisted vs Manual-Only fields
-  - Claramente menciona que descricao é NEVER auto-populated
+Achados principais:
 
-**Status**: ✅ CONCLUÍDO
+1. `descricao` esta consistentemente documentado como manual-only.
+2. `titulo` esta consistentemente documentado como AI-assisted.
+3. `ano` foi explicitamente clarificado e agora nao deixa ambiguidade.
+4. O prompt Gemini exclui `descricao` corretamente.
+5. O comportamento de UI permanece alinhado com as regras de backend.
 
----
+**Itens de acao**: nenhum item pendente neste tema. O checklist historico desta auditoria foi encerrado em 2026-04-17.
 
-## 7. Sumário Final
-
-### ✅ VERIFICAÇÃO GERAL: **APROVADA**
-
-**Achados Principais:**
-
-1. ✅ Campo `descricao` é **consistentemente documentado como manual-only**
-2. ✅ Campo `titulo` é **consistentemente documentado como AI-preenchível**
-3. ✅ **NÃO há contradições** entre documentos
-4. ✅ Gemini prompt **corretamente exclui** descricao (evita alucinações)
-5. ✅ UI comportamento **está alinhado** com backend rules
-
-**Itens de Ação:**
-
-- [ ] **Adicionar `ano` explicitamente à lista de campos AI-assistidos** (Recomendação 1)
-- [ ] **Criar tabela de referência rápida** de classificação de campos (Recomendação 2)
-- [ ] **Atualizar TASKS.md** para mencionar "manual-only" em descricao (Recomendação 3)
-
-**Status Final**: ✅ **DOCUMENTAÇÃO CONSISTENTE** - Recomendações são melhorias secundárias, não correções críticas.
+**Status final**: documentacao consistente e melhorada.
 
 ---
 
 ## Arquivos Verificados
 
-- ✅ [spec.md](spec.md)
-- ✅ [data-model.md](data-model.md)
-- ✅ [TASKS.md](TASKS.md)
-- ✅ [plan.md](plan.md)
-- ✅ [quickstart.md](quickstart.md)
-- ✅ [PLAN-SUMMARY.md](PLAN-SUMMARY.md)
-- ✅ [SUMMARY.md](SUMMARY.md)
-- ✅ [contracts/README.md](contracts/README.md)
+- `spec.md`
+- `data-model.md`
+- `TASKS.md`
+- `plan.md`
+- `quickstart.md`
+- `PLAN-SUMMARY.md`
+- `SUMMARY.md`
+- `contracts/README.md`
 
-**Total de menções analisadas**: 70+ ocorrências de "titulo", "descricao", "AI-assisted", "manual-only"
-
----
-
-## 7. Implementações Realizadas (2026-04-17)
-
-### ✅ RECOMENDAÇÃO 1: Clarificar status de `ano` — IMPLEMENTADA
-
-**Mudança**: Adicionado `ano` à lista explícita de campos AI-assistidos em spec.md linha 46
-
-**Antes**:
-```
-"all AI-assisted fields (titulo, disciplina, nivel_ensino, sistema_ensino, estado_conservacao, data_publicacao)"
-```
-
-**Depois**:
-```
-"all AI-assisted fields (titulo, disciplina, nivel_ensino, ano, sistema_ensino, estado_conservacao, data_publicacao)"
-```
-
-✅ **Status**: CONCLUÍDO
+Total analisado: 70+ mencoes relacionadas a `titulo`, `descricao`, `ano`, `AI-assisted` e `manual-only`.
 
 ---
 
-### ✅ RECOMENDAÇÃO 2: Adicionar tabela de referência rápida — IMPLEMENTADA
+## Implementacoes Realizadas Em 2026-04-17
 
-**Mudança**: Criada seção **"Material Field Classification Reference"** em data-model.md após Enums
-
-**Inclui**:
-- Tabela de 16 campos com classificações
-- Marcação clara: ✅ AI-Assisted, ❌ Manual-Only, ⚠️ Hybrid
-- Legenda explicativa
-- Regras-chave destacadas
-
-✅ **Status**: CONCLUÍDO
+1. `spec.md`: `ano` adicionado explicitamente a lista de campos AI-assisted.
+2. `data-model.md`: criada a secao `Material Field Classification Reference`.
+3. `TASKS.md`: reforco textual de `descricao` como manual-only.
+4. `CONSISTENCY-CHECK.md`: consolidacao da verificacao e fechamento do checklist historico.
 
 ---
 
-### ✅ RECOMENDAÇÃO 3: Atualizar TASKS.md — IMPLEMENTADA
-
-**Mudança 1** (T105, linha ~506):
-- Antes: `"Show description textarea (optional, ≤1000 chars)"`
-- Depois: `"Show description textarea (optional, ≤2000 chars; **manual-only, never auto-filled** to prevent hallucinations)"`
-
-**Mudança 2** (T078, linha ~302):
-- Adicionado comentário explicativo sobre AI-Assisted vs Manual-Only fields
-- Claramente menciona que `descricao` é **NEVER auto-populated**
-
-✅ **Status**: CONCLUÍDO
-
----
-
-## 8. Sumário Final — VERIFICAÇÃO COMPLETA ✅
-
-### Status: **DOCUMENTAÇÃO CONSISTENTE E MELHORADA**
-
-**Achados Principais:**
-
-1. ✅ Campo `descricao` — **Consistentemente documentado como manual-only** em TODOS os documentos
-2. ✅ Campo `titulo` — **Consistentemente documentado como AI-preenchível** em TODOS os documentos
-3. ✅ Campo `ano` — **Agora explicitamente adicionado** à lista de campos AI-assistidos
-4. ✅ **Nenhuma contradição** entre documentos
-5. ✅ Gemini prompt **corretamente exclui descricao** (previne alucinações)
-6. ✅ UI comportamento **alinhado** com backend rules
-7. ✅ **Tabela de referência rápida** criada para fácil consulta
-
-**Verificações Realizadas**: 70+ menções analisadas ✅
-
-**Recomendações**: 3/3 implementadas ✅
-
----
-
-## Arquivos Modificados
-
-1. **spec.md** — Adicionado `ano` à lista de campos AI-assistidos (linha 46)
-2. **data-model.md** — Adicionada seção "Material Field Classification Reference" (pós-Enums)
-3. **TASKS.md** — Atualizado T105 (descricao) e T078 (Gemini fields)
-4. **CONSISTENCY-CHECK.md** — Relatório de verificação (este arquivo)
-
----
-
-**Preparado por**: Verificação Automática de Consistência  
-**Data**: 2026-04-17  
-**Status**: ✅ CONCLUÍDO
+**Preparado por**: verificacao automatica de consistencia  
+**Atualizado em**: 2026-05-25  
+**Status**: concluido

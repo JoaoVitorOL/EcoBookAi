@@ -20,9 +20,9 @@ Current runtime behavior:
 - delivered payloads are also persisted in `user_notification`
 - Android shows local notifications and keeps a dedicated inbox with unread state
 
-What still remains outside the code closeout:
+Operational follow-up that still remains outside the code closeout:
 
-- final end-to-end validation with a real Firebase project and a device/emulator with Google Play services
+- rerun the real Firebase/device validation whenever credentials, Firebase project wiring, or the target emulator/device setup changes
 
 ---
 
@@ -132,4 +132,4 @@ Delivered notifications are stored in `user_notification` with:
 
 ## Current Closeout Note
 
-The contract above matches the implemented runtime. The remaining gap is not schema or API design; it is environment validation with real Firebase credentials and a device path that supports actual push delivery.
+The contract above matches the implemented runtime. Real Firebase/device validation was already exercised on `2026-05-23`; what remains is only operational revalidation when the target environment changes.

@@ -16,6 +16,7 @@ import com.ecobook.repository.SolicitacaoRepository;
 import com.ecobook.repository.TemporaryUploadRepository;
 import com.ecobook.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,8 +36,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserDeletionService {
 
@@ -151,7 +154,7 @@ public class UserDeletionService {
         usuarioRepository.save(usuario);
 
         tokenRevocationService.revoke(rawToken, userId);
-        deleteUserDirectory(userId);
+        DirectoryCleanupResult cleanupResult = deleteUserDirectory(userId);
 
         auditLogService.log(
                 "ACCOUNT_DELETED",
@@ -160,7 +163,7 @@ public class UserDeletionService {
                 userId,
                 "USER",
                 userId.toString(),
-                buildDeletionDetails(request, ownMaterials.size(), requestsToDelete.size(), now)
+                buildDeletionDetails(request, ownMaterials.size(), requestsToDelete.size(), now, cleanupResult)
         );
 
         return DeleteAccountResponseDTO.builder()
@@ -233,34 +236,58 @@ public class UserDeletionService {
     private Map<String, String> buildDeletionDetails(DeleteAccountRequestDTO request,
                                                      int materialsCount,
                                                      int requestsCount,
-                                                     LocalDateTime deletedAt) {
+                                                     LocalDateTime deletedAt,
+                                                     DirectoryCleanupResult cleanupResult) {
         LinkedHashMap<String, String> details = new LinkedHashMap<>();
         details.put("deleted_at", deletedAt.toString());
         details.put("materials_removed", Integer.toString(materialsCount));
         details.put("requests_removed", Integer.toString(requestsCount));
+        details.put("user_directory_files_deleted", Integer.toString(cleanupResult.deletedFiles()));
+        if (cleanupResult.failedDeletes() > 0) {
+            details.put("user_directory_delete_failures", Integer.toString(cleanupResult.failedDeletes()));
+        }
         if (StringUtils.hasText(request.getReason())) {
             details.put("reason", request.getReason().trim());
         }
         return details;
     }
 
-    private void deleteUserDirectory(UUID userId) {
+    private DirectoryCleanupResult deleteUserDirectory(UUID userId) {
         Path userDirectory = Path.of(imageStorageService.getUploadDir(), userId.toString()).toAbsolutePath().normalize();
         if (!Files.exists(userDirectory)) {
-            return;
+            return new DirectoryCleanupResult(0, 0);
         }
 
+        AtomicInteger deletedFiles = new AtomicInteger();
+        AtomicInteger failedDeletes = new AtomicInteger();
         try (java.util.stream.Stream<Path> stream = Files.walk(userDirectory)) {
             stream.sorted(java.util.Comparator.reverseOrder())
                     .forEach(path -> {
                         try {
-                            Files.deleteIfExists(path);
+                            if (Files.deleteIfExists(path)) {
+                                deletedFiles.incrementAndGet();
+                            }
                         } catch (IOException ignored) {
-                            // Individual file cleanup failures are already tolerated elsewhere.
+                            failedDeletes.incrementAndGet();
+                            log.warn("Nao foi possivel remover o caminho {} durante a exclusao da conta {}", path, userId, ignored);
                         }
                     });
         } catch (IOException ignored) {
-            // Directory cleanup is best-effort to avoid blocking account deletion.
+            failedDeletes.incrementAndGet();
+            log.warn("Nao foi possivel percorrer o diretorio {} durante a exclusao da conta {}", userDirectory, userId, ignored);
         }
+
+        if (failedDeletes.get() > 0) {
+            log.warn(
+                    "A exclusao da conta {} terminou com {} falhas ao limpar o diretorio do usuario",
+                    userId,
+                    failedDeletes.get()
+            );
+        }
+
+        return new DirectoryCleanupResult(deletedFiles.get(), failedDeletes.get());
+    }
+
+    private record DirectoryCleanupResult(int deletedFiles, int failedDeletes) {
     }
 }

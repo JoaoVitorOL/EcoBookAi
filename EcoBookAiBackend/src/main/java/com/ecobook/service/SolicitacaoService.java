@@ -293,10 +293,11 @@ public class SolicitacaoService {
      */
     @Transactional
     public int expireApprovedRequests() {
-        List<Solicitacao> expiredRequests = solicitacaoRepository.findByStatusAndExpiresAtLessThanEqual(
-                StatusSolicitacao.APROVADA,
-                LocalDateTime.now()
-        );
+        LocalDateTime now = LocalDateTime.now();
+        List<Solicitacao> expiredRequests = solicitacaoRepository.findByStatusAndExpiresAtIsNotNull(StatusSolicitacao.APROVADA)
+                .stream()
+                .filter(request -> request.hasExpired(now))
+                .toList();
 
         expiredRequests.forEach(request -> {
             Material material = lockMaterial(request.getMaterial().getId());

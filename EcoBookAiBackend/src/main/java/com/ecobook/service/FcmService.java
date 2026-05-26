@@ -53,7 +53,6 @@ public class FcmService {
     private String databaseUrl;
 
     private volatile FirebaseMessaging firebaseMessaging;
-    private volatile boolean initializationAttempted;
 
     /**
      * Dispatches a push notification to the target user.
@@ -239,11 +238,6 @@ public class FcmService {
             if (firebaseMessaging != null) {
                 return firebaseMessaging;
             }
-            if (initializationAttempted) {
-                return null;
-            }
-
-            initializationAttempted = true;
             String resolvedServiceAccountPath = resolveServiceAccountPath();
             if (!StringUtils.hasText(resolvedServiceAccountPath)) {
                 log.info("FCM is disabled because neither FIREBASE_SERVICE_ACCOUNT_PATH nor GOOGLE_APPLICATION_CREDENTIALS is configured.");

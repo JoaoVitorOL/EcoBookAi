@@ -1,7 +1,7 @@
 # EcoBook AI - Testing Guide
 
 **Status**: current automated-testing map  
-**Date**: 2026-05-23
+**Date**: 2026-05-25
 
 ---
 
@@ -65,12 +65,12 @@ Focused load/performance validation (`T217`):
 mvn --% -Decobook.runLoadTest=true -Dtest=LoadValidationTest test
 ```
 
-Latest validated local outcome on `2026-05-23`:
+Latest validated local outcome on `2026-05-25`:
 
 - `20` concurrent upload flows
 - `30` concurrent search flows
-- `522 ms` search p95
-- `512 ms` upload p95
+- `562 ms` search p95
+- `616 ms` upload p95
 - `0%` error rate
 - evidence written to `EcoBookAiBackend/target/load-reports/`
 

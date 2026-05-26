@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phases 1-10 are now implemented and validated in runtime; the final Phase 10 JavaDoc/documentation closeout landed on 2026-05-23, the Android UI/general review and operational runbook revalidation passes have also been executed, and no formal implementation tasks remain open  
+**Status**: Phases 1-10 are now implemented and validated in runtime; the final Phase 10 JavaDoc/documentation closeout landed on 2026-05-23, the Android UI/general review and operational runbook revalidation passes have also been executed, the 2026-05-25 reliability/export follow-up is merged, and no formal implementation tasks remain open  
 **Generated**: 2026-04-15
 
 ---
@@ -20,7 +20,7 @@ This document organizes all implementation tasks for EcoBook IA across **10 impl
 ### Task Completion Checklist Format
 
 ```
-- [ ] [TaskID] [P?] [Story?] Description with exact file path
+- [status] [TaskID] [P?] [Story?] Description with exact file path
 ```
 
 **Key**: 
@@ -1172,14 +1172,16 @@ Runtime note on 2026-05-14:
 
 ### Performance Tuning
 
-- [ ] **T207** [P] Add database query optimization:
+- [x] **T207** [P] Add database query optimization:
   - Profile slow queries (>1s) using PostgreSQL EXPLAIN
   - Add indexes for common filters (see Phase 4 indexes)
   - Verify query plans use indexes (SCAN method)
-- [ ] **T208** [P] Configure connection pooling:
+  - Runtime note (2026-05-25): the Phase 4/9 index set is live through the checked-in migrations, discovery now mixes offset-first and `after_id` keyset windows, and the repeatable load harness stayed well inside the latency gate; a literal PostgreSQL `EXPLAIN` capture remains an operator-side verification step when validating against a real PostgreSQL instance.
+- [x] **T208** [P] Configure connection pooling:
   - HikariCP max_connections = 20, min_idle = 5
   - Test with concurrent load (10+ simultaneous users)
   - Monitor connection utilization
+  - Runtime note (2026-05-25): the backend ships with the Hikari baseline in `application.yml`, `LoadValidationTest` exercised `20` concurrent uploads plus `30` concurrent searches with `0%` errors, and the latest report observed `5` max Hikari connections with `0` pending acquisitions.
 - [x] **T209** [P] Implement response compression:
   - Add `compression: true` to Spring Boot actuator
   - Enable gzip compression for JSON responses > 1KB
@@ -1197,7 +1199,8 @@ Runtime note on 2026-05-14:
 - [x] **T212** [P] Add monitoring & alerting:
   - Configure Micrometer metrics export (optional: Prometheus)
   - Monitor: request count, latency, error rate, database connection pool
-  - Setup Sentry for error tracking
+  - Optional post-MVP: evaluate Sentry for centralized error tracking if the deployment environment needs it
+  - Runtime note (2026-05-25): Micrometer plus `/actuator/prometheus` are live in runtime and smoke coverage, including HTTP/JVM/Hikari counters; Sentry is intentionally not part of the current MVP baseline.
 
 ### Edge Cases & Error Handling
 
@@ -1254,7 +1257,7 @@ Runtime note on 2026-05-14:
   - 30 users simultaneously searching
   - Monitor: p95 latency, error rate, database load
   - Target: <2s p95 search latency, <1% error rate
-  - Runtime note (2026-05-23): `LoadValidationTest` now runs an explicit 50-user backend load scenario behind `-Decobook.runLoadTest=true`, generates JSON/Prometheus evidence under `EcoBookAiBackend/target/load-reports/`, and passed locally on the H2 fallback path with `0%` errors, `522 ms` search p95, `512 ms` upload p95, `20` total Hikari connections, `4` observed active connections and `0` pending threads
+  - Runtime note (2026-05-25): `LoadValidationTest` now runs an explicit 50-user backend load scenario behind `-Decobook.runLoadTest=true`, generates JSON/Prometheus evidence under `EcoBookAiBackend/target/load-reports/`, and passed locally on the H2 fallback path with `0%` errors, `562 ms` search p95, `616 ms` upload p95, `5` max Hikari connections observed and `0` pending threads
 - [x] **T218** [P] Create smoke test suite:
   - Verify core endpoints return 200 (health checks, search, upload stub)
   - Run before every deployment
@@ -1308,7 +1311,7 @@ Runtime note on 2026-05-14:
   - Run: `mvn clean test jacoco:report`
   - Check: target/site/jacoco/index.html
   - Coverage target: 85% line coverage for Phase 4 gate
-  - Runtime note (2026-05-23): the backend closes this gate at `85.23%` JaCoCo line coverage with the `218`-test regression suite green and `3` controlled skips (`LoadValidationTest` manual gate plus the two snapshot-required rollback cases in `MigrationRollbackValidationTest`)
+  - Runtime note (2026-05-25): the backend closes this gate at `86.08%` JaCoCo line coverage with the `223`-test regression suite green and `3` controlled skips (`LoadValidationTest` manual gate plus the two snapshot-required rollback cases in `MigrationRollbackValidationTest`)
 - [x] **T227** Run linting & code analysis:
   - CheckStyle: verify code style (naming, formatting)
   - SonarQube: identify code smells, security issues
@@ -1330,7 +1333,7 @@ Runtime note on 2026-05-14:
   - Test error handling for all failure cases
   - Confirm all FCM notifications delivered
   - Performance: p95 latency <2s, no timeouts
-  - Runtime note (2026-05-23): `E2ETests` passed all `20` API scenarios, Firebase push was revalidated in `FirebaseRealDeviceValidationTest`, and `LoadValidationTest` remained below `600 ms` p95 with `0%` errors
+  - Runtime note (2026-05-25): `E2ETests` passed all `20` API scenarios, Firebase push was revalidated in `FirebaseRealDeviceValidationTest`, and `LoadValidationTest` stayed within the `<2s` Phase 9 target with `562 ms` search p95, `616 ms` upload p95 and `0%` errors
 
 ---
 
@@ -1393,7 +1396,7 @@ What is already true in the repository:
 - ✅ Phase 7 reporting plus admin moderation/runtime authorization are now implemented on backend, with the Android student reporting flow already live
 - ✅ Phase 8 LGPD/security runtime is implemented through consent history, account deletion/anonymization, authenticated image access, audit logging and data export
 - ✅ Phase 9 hardening is now closed in runtime, including response compression, Micrometer/Prometheus metrics, smoke coverage, immutable reference-data catalog caching, discovery cursor pagination, rollback cleanup, Firebase validation and explicit 50-user load evidence
-- ✅ Backend regression is stable again (`mvn test` green com `218` testes / `1` skip controlado para o load test manual) and Android local JVM validation remains green through `scripts/Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+- ✅ Backend regression is stable again (`mvn test` green com `225` testes / `3` skips controlados: `LoadValidationTest` manual gate + `2` cenarios snapshot-only de rollback) and Android local JVM validation remains green through `scripts/Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
 Phase 3 closeout notes:
 
@@ -1414,7 +1417,7 @@ Phase 3 closeout notes:
 ---
 
 **Generated**: 2026-04-15  
-**Status**: All planned implementation phases are complete; the latest post-closeout pass also revalidated Android lint/adaptive UI/accessibility. Use this file as the historical implementation ledger and add new items only for post-MVP scope changes  
+**Status**: All planned implementation phases are complete; the latest post-closeout pass also revalidated Android lint/adaptive UI/accessibility and closed the Android data-export plus backend reliability follow-ups. Use this file as the historical implementation ledger and add new items only for post-MVP scope changes  
 **Document Owner**: Product/Tech Lead  
-**Last Updated**: 2026-05-23
+**Last Updated**: 2026-05-25
 

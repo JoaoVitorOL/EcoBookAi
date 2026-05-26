@@ -217,4 +217,4 @@ Implemented invariants:
 
 - the `local` profile now maps PostgreSQL named enums to H2-compatible domains for local bootstrapping
 - `database-schema.sql` should be treated as a convenience snapshot only; when any conflict exists, the JPA mappings plus Flyway migrations win
-- the non-receipt report table exists in runtime already, while admin resolution endpoints remain backlog work for the next module
+- the non-receipt report table and the admin resolution flow are both live in runtime, including `PATCH /api/v1/admin/reports/{id}/resolve`

@@ -1,6 +1,6 @@
 # Admin API Contracts
 
-**Reference**: spec.md Phase 7 / backlog T184-T185  
+**Reference**: spec.md Phase 7 runtime / delivered admin moderation surface  
 **Version**: 1.0  
 **Date**: 2026-05-21  
 **Status**: Current runtime contract for the broader admin moderation/catalog endpoints

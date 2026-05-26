@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -21,7 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,12 +66,14 @@ public class ImageStorageService {
         byte[] secondaryImageBytes = null;
         String secondaryMimeType = null;
         String uploadId = "temp-upload-" + UUID.randomUUID();
+        List<Path> createdPaths = new ArrayList<>();
 
         try {
             Path directory = Path.of(uploadDir, usuario.getId().toString(), "temp").toAbsolutePath().normalize();
             Files.createDirectories(directory);
 
             Path filePath = storeImageBytes(directory, uploadId, imageBytes, mimeType);
+            createdPaths.add(filePath);
 
             TemporaryUpload.TemporaryUploadBuilder uploadBuilder = TemporaryUpload.builder()
                     .uploadId(uploadId)
@@ -82,6 +88,7 @@ public class ImageStorageService {
                 secondaryImageBytes = readFileBytes(secondaryFile);
                 secondaryMimeType = validateImage(secondaryImageBytes);
                 Path secondaryFilePath = storeImageBytes(directory, uploadId + "-back", secondaryImageBytes, secondaryMimeType);
+                createdPaths.add(secondaryFilePath);
                 uploadBuilder
                         .secondaryFilePath(secondaryFilePath.toString())
                         .secondaryMimeType(secondaryMimeType)
@@ -89,6 +96,7 @@ public class ImageStorageService {
             }
 
             TemporaryUpload upload = temporaryUploadRepository.save(uploadBuilder.build());
+            registerRollbackCleanup(createdPaths);
             return new StoredTemporaryUpload(
                     upload,
                     imageBytes,
@@ -98,7 +106,11 @@ public class ImageStorageService {
                     secondaryMimeType
             );
         } catch (IOException ex) {
-            throw new ResourceNotFoundException("Não foi possível armazenar a imagem temporária", ex);
+            cleanupCreatedFiles(createdPaths);
+            throw new ResourceNotFoundException("Nao foi possivel armazenar a imagem temporaria", ex);
+        } catch (RuntimeException ex) {
+            cleanupCreatedFiles(createdPaths);
+            throw ex;
         }
     }
 
@@ -109,7 +121,7 @@ public class ImageStorageService {
      */
     public String validateImage(byte[] imageBytes) {
         if (imageBytes.length == 0) {
-            throw invalidImage("image", "Envie uma imagem JPEG ou PNG válida");
+            throw invalidImage("image", "Envie uma imagem JPEG ou PNG valida");
         }
 
         if (imageBytes.length > maxFileSizeBytes()) {
@@ -124,10 +136,10 @@ public class ImageStorageService {
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
-                throw invalidImage("image", "Não foi possível decodificar a imagem enviada");
+                throw invalidImage("image", "Nao foi possivel decodificar a imagem enviada");
             }
         } catch (IOException ex) {
-            throw invalidImage("image", "Não foi possível decodificar a imagem enviada");
+            throw invalidImage("image", "Nao foi possivel decodificar a imagem enviada");
         }
 
         return mimeType;
@@ -171,7 +183,7 @@ public class ImageStorageService {
             String publicUrl = buildPublicUrl(userId, destination.getFileName().toString());
             return new PromotedImage(destination, publicUrl);
         } catch (IOException ex) {
-            throw new ResourceNotFoundException("Não foi possível promover a imagem para armazenamento permanente", ex);
+            throw new ResourceNotFoundException("Nao foi possivel promover a imagem para armazenamento permanente", ex);
         }
     }
 
@@ -212,11 +224,41 @@ public class ImageStorageService {
         return uploadDir;
     }
 
+    private void registerRollbackCleanup(List<Path> createdPaths) {
+        if (createdPaths.isEmpty() || !TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+
+        List<Path> pathsToCleanup = List.copyOf(createdPaths);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != TransactionSynchronization.STATUS_COMMITTED) {
+                    cleanupCreatedFiles(pathsToCleanup);
+                }
+            }
+        });
+    }
+
+    private void cleanupCreatedFiles(List<Path> createdPaths) {
+        for (int index = createdPaths.size() - 1; index >= 0; index--) {
+            deleteCreatedFile(createdPaths.get(index));
+        }
+    }
+
+    private void deleteCreatedFile(Path filePath) {
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException ex) {
+            log.warn("Nao foi possivel remover arquivo temporario {}", filePath, ex);
+        }
+    }
+
     private byte[] readFileBytes(MultipartFile file) {
         try {
             return file.getBytes();
         } catch (IOException ex) {
-            throw invalidImage("image", "Não foi possível ler a imagem enviada");
+            throw invalidImage("image", "Nao foi possivel ler a imagem enviada");
         }
     }
 
@@ -259,7 +301,7 @@ public class ImageStorageService {
     private BadRequestException invalidImage(String field, String message) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         fieldErrors.put(field, message);
-        return new BadRequestException("Imagem inválida", fieldErrors);
+        return new BadRequestException("Imagem invalida", fieldErrors);
     }
 
     private Path resolvePath(String filePath) {
