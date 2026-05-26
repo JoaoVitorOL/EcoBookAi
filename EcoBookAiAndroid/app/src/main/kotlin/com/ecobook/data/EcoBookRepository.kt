@@ -93,16 +93,16 @@ class EcoBookRepository @Inject constructor(
     private fun sampleInsights(): List<ProjectInsight> {
         return listOf(
             ProjectInsight(
-                title = "EcoBookAiBackend",
-                description = "Backend Spring Boot com segurança JWT, entidades principais, DTOs, Flyway e endpoint de saúde em /api/v1/health."
+                title = "Backend do app",
+                description = "API Spring Boot com segurança JWT, entidades principais, DTOs, Flyway e endpoint de saúde."
             ),
             ProjectInsight(
-                title = "EcoBookAiAndroid",
-                description = "App Android nativo em Kotlin + Compose + Hilt + Retrofit, agora organizado para abrir direto no Android Studio."
+                title = "App Android",
+                description = "Aplicativo nativo em Kotlin + Compose + Hilt + Retrofit, pronto para evoluir no Android Studio."
             ),
             ProjectInsight(
                 title = "Integração atual",
-                description = "Auth, perfil, sessão local, upload com câmera/galeria, preview com IA, publicação final e busca paginada de materiais já funcionam ponta a ponta. Solicitações e notificações de negócio seguem como a próxima frente."
+                description = "Acesso, perfil, sessão local, envio de imagens com câmera ou galeria, análise com IA, publicação final e busca paginada de materiais já funcionam ponta a ponta. Solicitações e notificações de negócio seguem como a próxima frente."
             )
         )
     }
@@ -111,14 +111,14 @@ class EcoBookRepository @Inject constructor(
         val steps = listOf(
             DonationStep(
                 title = "1. Capturar o material",
-                description = "Foto do livro, escolha da imagem e preparação para o endpoint de preview."
+                description = "Foto do livro, escolha da imagem e preparação para a análise inicial."
             ),
             DonationStep(
                 title = "2. Revisar a classificação IA",
                 description = "Confiança alta preenche automático; baixa confiança pede revisão manual."
             ),
             DonationStep(
-                title = "3. Publicar e aguardar matching",
+                title = "3. Publicar e aguardar compatibilidade",
                 description = "Depois da confirmação, o material entra como DISPONÍVEL para descoberta."
             )
         )
@@ -126,7 +126,7 @@ class EcoBookRepository @Inject constructor(
         return DonationPreview(
             aiStatus = AiAssistStatus.SUCCESS,
             confidence = 0.82,
-            description = "Exemplo visual alinhado ao retorno atual de /materiais/preview para revisar os campos antes da publicação final.",
+            description = "Exemplo visual alinhado ao retorno atual da análise para revisar os campos antes da publicação final.",
             fields = listOf(
                 AIPreviewField("Título sugerido", "Coleção Anglo Matemática 7"),
                 AIPreviewField("Disciplina", "Matemática"),

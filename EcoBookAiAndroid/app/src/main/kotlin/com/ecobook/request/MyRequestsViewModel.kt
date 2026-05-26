@@ -135,7 +135,7 @@ class MyRequestsViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 401 -> "Sua sessão expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding para acompanhar suas solicitações."
+                403 -> "Conclua seu cadastro para acompanhar suas solicitações."
                 else -> error.message
             }
 

@@ -128,7 +128,7 @@ fun DiscoveryScreen(
         item {
             SectionHeading(
                 title = "Descoberta de materiais",
-                subtitle = "Busca real conectada ao backend com matching deterministico, filtros academicos e ordenacao por proximidade.",
+                subtitle = "Busca real conectada ao backend com matching determinístico, filtros acadêmicos e ordenação por proximidade.",
                 trailingContent = {
                     com.ecobook.ui.components.NotificationsEntryPointButton(
                         unreadCount = unreadNotifications,

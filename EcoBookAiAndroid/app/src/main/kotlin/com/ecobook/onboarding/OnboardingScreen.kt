@@ -73,7 +73,7 @@ fun OnboardingScreen(
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 SectionHeading(
-                    title = "Completar onboarding",
+                    title = "Completar cadastro",
                     subtitle = "Esses dados desbloqueiam upload, matching e solicitações protegidas pelo backend."
                 )
 

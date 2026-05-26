@@ -55,7 +55,7 @@ fun DeleteAccountScreen(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
-                    text = "Os materiais publicados serao removidos, as solicitacoes serao encerradas, as imagens salvas serao apagadas e o acesso atual sera encerrado.",
+                    text = "Os materiais publicados serão removidos, as solicitações serão encerradas, as imagens salvas serão apagadas e o acesso atual será encerrado.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -118,7 +118,7 @@ fun DeleteAccountScreen(
                 Text("Deseja realmente excluir sua conta?")
             },
             text = {
-                Text("Essa acao e permanente. Seus materiais ativos, imagens e a sessao atual serao encerrados.")
+                Text("Essa ação é permanente. Seus materiais ativos, imagens e a sessão atual serão encerrados.")
             },
             dismissButton = {
                 OutlinedButton(

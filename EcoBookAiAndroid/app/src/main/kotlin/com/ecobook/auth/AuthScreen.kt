@@ -71,9 +71,9 @@ fun AuthScreen(
                         "Criar conta no EcoBook"
                     },
                     subtitle = if (uiState.mode == AuthMode.LOGIN) {
-                        "Entre com email e senha para continuar seu onboarding no aplicativo."
+                        "Entre com email e senha para continuar seu cadastro no aplicativo."
                     } else {
-                        "Crie sua conta com nome, email e senha. Os demais dados ficam para o onboarding."
+                        "Crie sua conta com nome, email e senha. Os demais dados ficam para a próxima etapa do cadastro."
                     }
                 )
 
@@ -152,7 +152,7 @@ private fun AuthCard(
             text = if (uiState.mode == AuthMode.LOGIN) {
                 "Use o email e a senha cadastrados para retomar sua sessão."
             } else {
-                "Crie sua conta com nome, email e senha. Os demais dados ficam para o onboarding."
+                "Crie sua conta com nome, email e senha. Os demais dados ficam para a próxima etapa do cadastro."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant

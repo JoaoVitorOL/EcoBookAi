@@ -339,7 +339,7 @@ private sealed class AppDestination(
     val selectedRoutes: Set<String> = setOf(route)
 ) {
     data object Auth : AppDestination(AppRoutes.AUTH, "Entrar", Icons.Rounded.AccountCircle)
-    data object Onboarding : AppDestination(AppRoutes.ONBOARDING, "Onboarding", Icons.Rounded.AccountCircle)
+    data object Onboarding : AppDestination(AppRoutes.ONBOARDING, "Cadastro", Icons.Rounded.AccountCircle)
     data object Discovery : AppDestination(AppRoutes.DISCOVERY, "Buscar", Icons.Rounded.Explore)
     data object Donate : AppDestination(
         route = AppRoutes.DONATE,

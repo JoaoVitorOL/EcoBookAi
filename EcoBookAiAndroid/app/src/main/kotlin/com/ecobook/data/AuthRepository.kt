@@ -126,7 +126,7 @@ class AuthRepository @Inject constructor(
 
     private fun requireBinaryBody(response: Response<ResponseBody>): ResponseBody {
         if (response.isSuccessful) {
-            return response.body() ?: throw ApiException(response.code(), "Arquivo de exportacao vazio")
+            return response.body() ?: throw ApiException(response.code(), "Arquivo de exportação vazio")
         }
 
         throw buildApiException(response.code(), response.errorBody())
@@ -139,7 +139,7 @@ class AuthRepository @Inject constructor(
 
         return ApiException(
             statusCode = statusCode,
-            message = error?.message ?: "Falha ao processar a requisicao",
+            message = error?.message ?: "Falha ao processar a requisição",
             fieldErrors = error?.fieldErrors ?: emptyMap()
         )
     }

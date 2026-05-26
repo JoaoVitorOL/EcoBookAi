@@ -134,9 +134,9 @@ fun NotificationsEntryPointButton(
 ) {
     val unreadBadgeColors = ecoBookUnreadBadgeColors()
     val contentDescription = if (unreadCount > 0) {
-        "Abrir notificaÃ§Ãµes. $unreadCount novas notificaÃ§Ãµes."
+        "Abrir notificações. $unreadCount novas notificações."
     } else {
-        "Abrir notificaÃ§Ãµes. Nenhuma novidade."
+        "Abrir notificações. Nenhuma novidade."
     }
 
     if (unreadCount > 0) {
@@ -314,7 +314,7 @@ fun MaterialHighlightCard(material: MaterialHighlight) {
             )
         }
         Text(
-            text = "Ano: ${material.schoolYear} | PublicaÃ§Ã£o: ${material.publicationYear}",
+            text = "Ano: ${material.schoolYear} | Publicação: ${material.publicationYear}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -324,7 +324,7 @@ fun MaterialHighlightCard(material: MaterialHighlight) {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "ConservaÃ§Ã£o: ${material.conservationState.label}",
+            text = "Conservação: ${material.conservationState.label}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )

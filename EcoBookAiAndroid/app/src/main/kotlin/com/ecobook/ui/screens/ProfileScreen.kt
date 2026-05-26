@@ -85,12 +85,12 @@ fun ProfileScreen(
     ) { uri ->
         when {
             uri == null -> onExportCanceled()
-            pendingExport == null -> onExportFailed("Nenhum arquivo de exportacao estava pronto para salvar.")
+            pendingExport == null -> onExportFailed("Nenhum arquivo de exportação estava pronto para salvar.")
             else -> savePersonalDataExport(context, pendingExport, uri)
                 .onSuccess { onExportSaved(pendingExport.fileName) }
                 .onFailure { error ->
                     onExportFailed(
-                        error.message ?: "Nao foi possivel salvar o arquivo de exportacao."
+                        error.message ?: "Não foi possível salvar o arquivo de exportação."
                     )
                 }
         }
@@ -109,7 +109,7 @@ fun ProfileScreen(
             item {
                 SectionHeading(
                     title = "Conta e perfil",
-                    subtitle = "Atualize seus dados, revise os consentimentos e gerencie a seguranca da conta.",
+                    subtitle = "Atualize seus dados, revise os consentimentos e gerencie a segurança da conta.",
                     trailingContent = {
                         com.ecobook.ui.components.NotificationsEntryPointButton(
                             unreadCount = unreadNotifications,
@@ -122,20 +122,16 @@ fun ProfileScreen(
             item {
                 GlassCard {
                     StatusBadge(
-                        text = if (uiState.session.profileComplete) "Perfil completo" else "Onboarding pendente",
+                        text = if (uiState.session.profileComplete) "Perfil completo" else "Cadastro pendente",
                         containerColor = profileCompletionColors.containerColor,
                         contentColor = profileCompletionColors.contentColor
                     )
                     Text(
-                        text = "JWT ativo: ${if (uiState.session.isAuthenticated) "sim" else "nao"}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Papel atual: ${uiState.profile.roleLabel}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Conclusao do perfil: ${uiState.profile.completionPercent}%",
+                        text = if (uiState.session.profileComplete) {
+                            "Seu cadastro ja esta pronto para usar os recursos principais do app."
+                        } else {
+                            "Complete seus dados editaveis para concluir o cadastro e liberar todos os fluxos."
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -146,7 +142,7 @@ fun ProfileScreen(
                 GlassCard {
                     SectionHeading(
                         title = "Dados editaveis",
-                        subtitle = "Voce pode alterar nome, email, telefone, cidade, bairro e instituicao."
+                        subtitle = "Você pode alterar nome, email, telefone, cidade, bairro e instituição."
                     )
                     ProfileField(
                         label = "Nome",
@@ -159,7 +155,7 @@ fun ProfileScreen(
                         value = uiState.profile.email,
                         onValueChange = onEmailChange,
                         error = uiState.profileFieldErrors["email"],
-                        supportingText = "Ao alterar o email, voce precisara entrar novamente com o novo endereco.",
+                        supportingText = "Ao alterar o email, você precisará entrar novamente com o novo endereço.",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                     )
                     ProfileField(
@@ -167,7 +163,7 @@ fun ProfileScreen(
                         value = uiState.profile.whatsapp,
                         onValueChange = onWhatsappChange,
                         error = uiState.profileFieldErrors["whatsapp"],
-                        supportingText = "Digite DDD + numero. O codigo +55 e aplicado ao salvar.",
+                        supportingText = "Digite DDD + número. O código +55 é aplicado ao salvar.",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                     )
                     ProfileField(
@@ -190,7 +186,7 @@ fun ProfileScreen(
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
                     )
                     ProfileField(
-                        label = "Instituicao",
+                        label = "Instituição",
                         value = uiState.profile.instituicao,
                         onValueChange = onInstitutionChange,
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
@@ -211,7 +207,7 @@ fun ProfileScreen(
                         enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(if (uiState.isSavingProfile) "Salvando..." else "Salvar alteracoes")
+                        Text(if (uiState.isSavingProfile) "Salvando..." else "Salvar alterações")
                     }
                 }
             }
@@ -219,7 +215,7 @@ fun ProfileScreen(
             item {
                 GlassCard {
                     SectionHeading(
-                        title = "Aparencia",
+                        title = "Aparência",
                         subtitle = "Controle como o app deve aparecer neste dispositivo."
                     )
                     Text(
@@ -273,7 +269,7 @@ fun ProfileScreen(
                         text = if (consentStatus?.platformConsentGiven == true) {
                             "Plataforma: concedido${consentStatus.platformConsentGivenAt?.let { " em ${formatDate(it)}" } ?: ""}."
                         } else {
-                            "Plataforma: aguardando sincronizacao do aceite."
+                            "Plataforma: aguardando sincronização do aceite."
                         },
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -285,9 +281,9 @@ fun ProfileScreen(
                     }
                     Text(
                         text = if (consentimentoIa) {
-                            "IA para classificacao: ativa${consentStatus?.aiConsentGivenAt?.let { " desde ${formatDate(it)}" } ?: ""}."
+                            "IA para classificação: ativa${consentStatus?.aiConsentGivenAt?.let { " desde ${formatDate(it)}" } ?: ""}."
                         } else {
-                            "IA para classificacao: desativada${consentStatus?.aiConsentRevokedAt?.let { " desde ${formatDate(it)}" } ?: ""}."
+                            "IA para classificação: desativada${consentStatus?.aiConsentRevokedAt?.let { " desde ${formatDate(it)}" } ?: ""}."
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -335,11 +331,11 @@ fun ProfileScreen(
             item {
                 GlassCard {
                     SectionHeading(
-                        title = "Sessao e seguranca",
-                        subtitle = "Exporte seus dados, revise a conta atual ou encerre a sessao neste dispositivo."
+                        title = "Sessão e segurança",
+                        subtitle = "Exporte seus dados, revise a conta atual ou encerre a sessão neste dispositivo."
                     )
                     Text(
-                        text = "A exclusao da conta cancela materiais publicados, remove imagens armazenadas e encerra sua sessao.",
+                        text = "A exclusão da conta cancela materiais publicados, remove imagens armazenadas e encerra sua sessão.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -432,6 +428,6 @@ private fun savePersonalDataExport(
     return runCatching {
         context.contentResolver.openOutputStream(destination, "w")?.use { outputStream ->
             outputStream.write(exportFile.bytes)
-        } ?: throw IOException("Nao foi possivel abrir o destino selecionado.")
+        } ?: throw IOException("Não foi possível abrir o destino selecionado.")
     }
 }

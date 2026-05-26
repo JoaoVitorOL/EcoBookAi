@@ -257,10 +257,10 @@ class OnboardingViewModel @Inject constructor(
             is ApiException -> when (statusCode) {
                 400, 422 -> message
                 403 -> "Seu perfil já está completo. Vamos seguir para o app principal."
-                else -> "Não foi possível salvar o onboarding agora."
+                else -> "Não foi possível salvar seu cadastro agora."
             }
 
-            else -> message ?: "Falha inesperada ao concluir o onboarding."
+            else -> message ?: "Falha inesperada ao concluir seu cadastro."
         }
     }
 }

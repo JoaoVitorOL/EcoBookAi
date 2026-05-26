@@ -88,10 +88,10 @@ class EcoBookMessagingService : FirebaseMessagingService() {
         val channelId = "eco_book_notifications"
         val channel = NotificationChannel(
             channelId,
-            "Notificacoes EcoBook",
+            "Notificações EcoBook",
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Notificacoes do EcoBook"
+            description = "Notificações do EcoBook"
             setShowBadge(true)
         }
         val notificationManager =

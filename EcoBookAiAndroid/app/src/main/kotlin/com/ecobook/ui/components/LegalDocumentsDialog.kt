@@ -56,27 +56,27 @@ fun LegalDocumentsDialog(
                 ) {
                     LegalSection(
                         title = "Uso da plataforma",
-                        body = "O EcoBook conecta doadores e estudantes para doar materiais de estudo sem venda dentro do app. O usuario deve informar dados verdadeiros, usar somente materiais que possa compartilhar e respeitar outros usuarios durante o contato e a retirada."
+                        body = "O EcoBook conecta doadores e estudantes para doar materiais de estudo sem venda dentro do app. O usuário deve informar dados verdadeiros, usar somente materiais que possa compartilhar e respeitar outros usuários durante o contato e a retirada."
                     )
                     LegalSection(
                         title = "Dados coletados",
-                        body = "A conta usa nome, email, telefone, cidade, bairro, instituicao, consentimentos, historico de materiais, solicitacoes, notificacoes e trilhas de auditoria para operar o servico com seguranca."
+                        body = "A conta usa nome, email, telefone, cidade, bairro, instituição, consentimentos, histórico de materiais, solicitações, notificações e trilhas de auditoria para operar o serviço com segurança."
                     )
                     LegalSection(
                         title = "Como os dados sao usados",
-                        body = "Esses dados servem para autenticacao, matching geografico, contato entre as partes, envio de notificacoes, prevencao de abuso, exportacao de dados e exclusao/anonimizacao da conta."
+                        body = "Esses dados servem para autenticação, matching geográfico, contato entre as partes, envio de notificações, prevenção de abuso, exportação de dados e exclusão/anonimização da conta."
                     )
                     LegalSection(
                         title = "IA opcional",
-                        body = "O consentimento de IA e separado. Quando ativado, imagens de materiais podem ser analisadas para sugerir classificacao. Quando desativado, o usuario continua podendo preencher os dados manualmente."
+                        body = "O consentimento de IA é separado. Quando ativado, imagens de materiais podem ser analisadas para sugerir classificação. Quando desativado, o usuário continua podendo preencher os dados manualmente."
                     )
                     LegalSection(
                         title = "Compartilhamento e retencao",
-                        body = "Dados de contato sensiveis so devem ser exibidos quando o fluxo da solicitacao exige. O usuario pode revisar, corrigir, exportar e excluir a propria conta pelo app. Ao excluir, materiais e imagens sao removidos do fluxo ativo e os registros necessarios ficam anonimizados."
+                        body = "Dados de contato sensíveis só devem ser exibidos quando o fluxo da solicitação exige. O usuário pode revisar, corrigir, exportar e excluir a própria conta pelo app. Ao excluir, materiais e imagens são removidos do fluxo ativo e os registros necessários ficam anonimizados."
                     )
                     LegalSection(
                         title = "Aviso importante",
-                        body = "Este texto e um rascunho operacional do MVP baseado no comportamento atual do app. Antes de publicacao real, ele ainda deve passar por revisao juridica e de privacidade."
+                        body = "Este texto é um rascunho operacional do MVP baseado no comportamento atual do app. Antes de uma publicação real, ele ainda deve passar por revisão jurídica e de privacidade."
                     )
                 }
                 Row(

@@ -132,7 +132,7 @@ class DonorRequestsViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 401 -> "Sua sessão expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding para acompanhar os pedidos recebidos."
+                403 -> "Conclua seu cadastro para acompanhar os pedidos recebidos."
                 else -> error.message
             }
 

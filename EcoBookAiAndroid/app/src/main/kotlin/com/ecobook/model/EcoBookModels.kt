@@ -42,12 +42,12 @@ enum class NecessidadeAcademica(val label: String) {
     REFERENCE_MATERIALS("Materiais de referencia"),
     FICTION("Literatura"),
     TECHNICAL_BOOKS("Livros tecnicos"),
-    TEST_PREP("Preparacao para provas")
+    TEST_PREP("Preparação para provas")
 }
 
 enum class AiAssistStatus(val label: String) {
     SUCCESS("Alta confianca"),
-    LOW_CONFIDENCE("Revisao manual"),
+    LOW_CONFIDENCE("Revisão manual"),
     FAILURE("Sem sugestao")
 }
 
@@ -75,7 +75,7 @@ data class BackendStatus(
         fun checking() = BackendStatus(
             state = BackendConnectionState.CHECKING,
             headline = "Verificando o backend",
-            detail = "Consultando /api/v1/health para confirmar a conexao."
+            detail = "Consultando /api/v1/health para confirmar a conexão."
         )
     }
 }
@@ -105,7 +105,7 @@ data class UserProfileDraft(
     val bairro: String = "",
     val instituicao: String = "",
     val consentimentoIa: Boolean = false,
-    val roleLabel: String = "Usuario",
+    val roleLabel: String = "Usuário",
     val hasSavedSession: Boolean = false
 ) {
     private val requiredFields = listOf(nome, email, whatsapp, cidade, bairro)
@@ -153,7 +153,7 @@ data class AIPreviewField(
 data class DonationPreview(
     val aiStatus: AiAssistStatus = AiAssistStatus.SUCCESS,
     val confidence: Double = 0.82,
-    val description: String = "Exemplo de retorno para o fluxo de classificacao assistida por IA.",
+    val description: String = "Exemplo de retorno para o fluxo de classificação assistida por IA.",
     val fields: List<AIPreviewField> = emptyList(),
     val steps: List<DonationStep> = emptyList()
 )

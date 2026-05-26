@@ -10,6 +10,6 @@ class LogoutViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun logout() {
-        sessionManager.clearSession("Sessao encerrada neste dispositivo.")
+        sessionManager.clearSession("Sessão encerrada neste dispositivo.")
     }
 }

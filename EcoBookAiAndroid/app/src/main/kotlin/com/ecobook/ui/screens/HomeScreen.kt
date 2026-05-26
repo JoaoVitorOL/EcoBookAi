@@ -87,7 +87,7 @@ fun HomeScreen(
                         }
                     }
                     OutlinedButton(onClick = onOpenProfile) {
-                        Text("Perfil e onboarding")
+                        Text("Perfil e cadastro")
                     }
                 }
             }
@@ -106,9 +106,9 @@ fun HomeScreen(
                         )
                         StatusBadge(
                             text = when (uiState.backendStatus.state) {
-                                BackendConnectionState.ONLINE -> "ONLINE"
-                                BackendConnectionState.CHECKING -> "CHECKING"
-                                BackendConnectionState.OFFLINE -> "OFFLINE"
+                                BackendConnectionState.ONLINE -> "Online"
+                                BackendConnectionState.CHECKING -> "Verificando"
+                                BackendConnectionState.OFFLINE -> "Offline"
                             },
                             containerColor = backendColors.containerColor,
                             contentColor = backendColors.contentColor
@@ -136,16 +136,16 @@ fun HomeScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricCard(
-                    title = "Discovery",
-                    value = "Live API",
-                    description = "Busca paginada e filtros agora falam com /v1/materiais.",
+                    title = "Busca",
+                    value = "API ativa",
+                    description = "A busca paginada e os filtros já usam a API de materiais.",
                     icon = Icons.Rounded.MenuBook,
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
                     title = "Perfil",
                     value = "${uiState.profile.completionPercent}%",
-                    description = "Prontidão do onboarding local para integrar com /usuarios.",
+                    description = "Prontidão do cadastro local para integrar com o perfil do usuário.",
                     icon = Icons.Rounded.AccountCircle,
                     modifier = Modifier.weight(1f)
                 )
@@ -156,7 +156,7 @@ fun HomeScreen(
             MetricCard(
                 title = "API real conectada",
                 value = "/v1/health",
-                description = "Ponto de integração já validado entre Android e Spring Boot.",
+                description = "Integração já validada entre o app Android e a API Spring Boot.",
                 icon = Icons.Rounded.CloudDone
             )
         }

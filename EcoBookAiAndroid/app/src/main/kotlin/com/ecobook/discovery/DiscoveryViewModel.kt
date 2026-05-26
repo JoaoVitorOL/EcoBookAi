@@ -293,7 +293,7 @@ class DiscoveryViewModel @Inject constructor(
             is ApiException -> when (error.statusCode) {
                 400, 422 -> error.message
                 401 -> "Sua sessão expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding para buscar materiais disponíveis."
+                403 -> "Conclua seu cadastro para buscar materiais disponíveis."
                 else -> "Não foi possível carregar os materiais agora."
             }
 
@@ -310,7 +310,7 @@ class DiscoveryViewModel @Inject constructor(
             is ApiException -> when (error.statusCode) {
                 400 -> error.message
                 401 -> "Sua sessão expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding para solicitar materiais."
+                403 -> "Conclua seu cadastro para solicitar materiais."
                 404 -> "Esse material não foi encontrado."
                 409 -> error.message
                 422 -> "Esse material não está mais disponível para novas solicitações."

@@ -294,7 +294,7 @@ class EcoBookViewModel @Inject constructor(
         if (!sessionManager.hasActiveSession()) {
             _uiState.update {
                 it.copy(
-                    exportMessage = "Sua sessao expirou. Entre novamente para exportar seus dados.",
+                    exportMessage = "Sua sessão expirou. Entre novamente para exportar seus dados.",
                     exportMessageIsError = true
                 )
             }
@@ -347,7 +347,7 @@ class EcoBookViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 pendingPersonalDataExport = null,
-                exportMessage = "Exportacao cancelada.",
+                exportMessage = "Exportação cancelada.",
                 exportMessageIsError = false
             )
         }
@@ -443,7 +443,7 @@ class EcoBookViewModel @Inject constructor(
         if (profile.whatsapp.isBlank()) {
             errors["whatsapp"] = "Informe um WhatsApp."
         } else if (!WhatsAppFormatter.isValidInput(profile.whatsapp)) {
-            errors["whatsapp"] = "Digite DDD + numero, por exemplo 48 99999-9999."
+            errors["whatsapp"] = "Digite DDD + número, por exemplo 48 99999-9999."
         }
         if (profile.cidade.isBlank()) {
             errors["cidade"] = "Informe sua cidade."
@@ -466,15 +466,15 @@ class EcoBookViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400, 409, 422 -> error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding antes de atualizar o perfil."
-                else -> "Nao foi possivel salvar o perfil agora."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Conclua seu cadastro antes de atualizar o perfil."
+                else -> "Não foi possível salvar o perfil agora."
             }
 
-            is SocketTimeoutException -> "A atualizacao demorou demais. Tente novamente."
+            is SocketTimeoutException -> "A atualização demorou demais. Tente novamente."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel falar com o backend para salvar o perfil."
+            is IOException -> "Não foi possível falar com o backend para salvar o perfil."
             else -> error.message ?: "Falha inesperada ao salvar o perfil."
         }
     }
@@ -483,15 +483,15 @@ class EcoBookViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400, 422 -> error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
-                403 -> "Conclua o onboarding antes de alterar o consentimento."
-                else -> "Nao foi possivel atualizar o consentimento agora."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                403 -> "Conclua seu cadastro antes de alterar o consentimento."
+                else -> "Não foi possível atualizar o consentimento agora."
             }
 
-            is SocketTimeoutException -> "A atualizacao demorou demais. Tente novamente."
+            is SocketTimeoutException -> "A atualização demorou demais. Tente novamente."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel falar com o backend para atualizar o consentimento."
+            is IOException -> "Não foi possível falar com o backend para atualizar o consentimento."
             else -> error.message ?: "Falha inesperada ao atualizar o consentimento."
         }
     }
@@ -500,14 +500,14 @@ class EcoBookViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400 -> error.fieldErrors["password"] ?: error.message
-                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                401 -> "Sua sessão expirou. Entre novamente para continuar."
                 else -> error.message
             }
 
-            is SocketTimeoutException -> "A exclusao da conta demorou demais. Tente novamente."
+            is SocketTimeoutException -> "A exclusão da conta demorou demais. Tente novamente."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel falar com o backend para excluir a conta."
+            is IOException -> "Não foi possível falar com o backend para excluir a conta."
             else -> error.message ?: "Falha inesperada ao excluir a conta."
         }
     }
@@ -515,15 +515,15 @@ class EcoBookViewModel @Inject constructor(
     private fun resolvePersonalDataExportError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
-                401 -> "Sua sessao expirou. Entre novamente para exportar seus dados."
-                403 -> "Conclua o onboarding antes de exportar seus dados."
+                401 -> "Sua sessão expirou. Entre novamente para exportar seus dados."
+                403 -> "Conclua seu cadastro antes de exportar seus dados."
                 else -> error.message
             }
 
-            is SocketTimeoutException -> "A exportacao demorou demais. Tente novamente."
+            is SocketTimeoutException -> "A exportação demorou demais. Tente novamente."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Nao foi possivel falar com o backend para exportar seus dados."
+            is IOException -> "Não foi possível falar com o backend para exportar seus dados."
             else -> error.message ?: "Falha inesperada ao exportar seus dados."
         }
     }
