@@ -224,7 +224,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(413)
                 .error("PAYLOAD_TOO_LARGE")
-                .message("A imagem excede o limite de 5MB")
+                .message("A imagem excede 5MB. Escolha um arquivo menor ou recorte a imagem antes de enviar.")
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();

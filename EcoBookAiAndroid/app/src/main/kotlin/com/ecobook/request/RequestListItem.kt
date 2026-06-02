@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ecobook.discovery.MaterialImage
@@ -20,6 +21,7 @@ import com.ecobook.discovery.formatDisciplina
 import com.ecobook.discovery.formatNivelEnsino
 import com.ecobook.dto.SolicitacaoDTO
 import com.ecobook.ui.components.GlassCard
+import com.ecobook.ui.components.ProfileAvatar
 import com.ecobook.ui.components.StatusBadge
 
 @Composable
@@ -87,11 +89,21 @@ fun StudentRequestCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        text = "${currentMaterial.doadorNome} • ${currentMaterial.bairro}, ${currentMaterial.cidade}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ProfileAvatar(
+                            imageUrl = currentMaterial.doadorFotoPerfilUrl,
+                            name = currentMaterial.doadorNome,
+                            modifier = Modifier.width(28.dp).height(28.dp)
+                        )
+                        Text(
+                            text = "${currentMaterial.doadorNome} - ${currentMaterial.bairro}, ${currentMaterial.cidade}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 request.aprovadoEm?.let { approvedAt ->
                     Text(
@@ -111,9 +123,9 @@ fun StudentRequestCard(
                     val expiry = request.expiresAt?.let { formatAbsoluteDateTime(it) ?: it }
                     Text(
                         text = if (expiry != null) {
-                            "Contato liberado. Reserva ativa até $expiry."
+                            "Contato liberado. Reserva ativa ate $expiry. Entrega e ponto de encontro sao combinados apenas pelo WhatsApp."
                         } else {
-                            "Contato liberado. Combine a retirada com o doador."
+                            "Contato liberado. Combine a retirada com o doador apenas pelo WhatsApp."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
@@ -215,15 +227,27 @@ fun DonorRequestCard(
                     }
                 }
                 student?.let { currentStudent ->
-                    Text(
-                        text = currentStudent.nome,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "${currentStudent.bairro}, ${currentStudent.cidade}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ProfileAvatar(
+                            imageUrl = currentStudent.fotoPerfilUrl,
+                            name = currentStudent.nome,
+                            modifier = Modifier.width(32.dp).height(32.dp)
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = currentStudent.nome,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "${currentStudent.bairro}, ${currentStudent.cidade}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
                 material?.let { currentMaterial ->
                     Text(
@@ -242,7 +266,7 @@ fun DonorRequestCard(
                 if (request.status == "APROVADA") {
                     request.expiresAt?.let { expiry ->
                         Text(
-                            text = "Reserva ativa até ${formatAbsoluteDateTime(expiry) ?: expiry}",
+                            text = "Reserva ativa ate ${formatAbsoluteDateTime(expiry) ?: expiry}. Entrega e ponto de encontro sao acertados pelo WhatsApp.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -283,7 +307,7 @@ fun DonorRequestCard(
                                     enabled = !isWorking,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(if (isWorking) "Processando..." else "Revogar aprovação")
+                                    Text(if (isWorking) "Processando..." else "Revogar aprovacao")
                                 }
                             }
                         }

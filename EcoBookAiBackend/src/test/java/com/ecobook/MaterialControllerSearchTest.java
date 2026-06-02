@@ -4,6 +4,7 @@ import com.ecobook.model.Material;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Disciplina;
 import com.ecobook.model.enums.EstadoConservacao;
+import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.NivelEnsino;
 import com.ecobook.model.enums.Role;
 import com.ecobook.model.enums.SistemaEnsino;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -140,13 +142,13 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                         .param("disciplina", "INVALIDA"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
-                .andExpect(jsonPath("$.field_errors.disciplina").value("Valor invalido para disciplina"));
+                .andExpect(jsonPath("$.field_errors.disciplina").value("Valor inválido para disciplina"));
 
         mockMvc.perform(get("/v1/materiais")
                         .header("Authorization", "Bearer " + tokenFor(requester))
                         .param("after_id", "invalido"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field_errors.after_id").value("Informe um UUID valido para after_id"));
+                .andExpect(jsonPath("$.field_errors.after_id").value("Informe um UUID válido para after_id"));
 
         mockMvc.perform(get("/v1/materiais")
                         .header("Authorization", "Bearer " + tokenFor(requester))
@@ -154,7 +156,7 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                         .param("max_ano_publicacao", "2020"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.field_errors.ano_publicacao")
-                        .value("O ano minimo de publicacao nao pode ser maior que o maximo"));
+                        .value("O ano mínimo de publicação não pode ser maior que o máximo"));
     }
 
     @Test
@@ -167,14 +169,14 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                         .param("min_ano_publicacao", "1800"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.field_errors.min_ano_publicacao")
-                        .value("Informe um ano minimo entre 1900 e 2100"));
+                        .value("Informe um ano mínimo entre 1900 e 2100"));
 
         mockMvc.perform(get("/v1/materiais")
                         .header("Authorization", "Bearer " + tokenFor(requester))
                         .param("max_ano_publicacao", "2200"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.field_errors.max_ano_publicacao")
-                        .value("Informe um ano maximo entre 1900 e 2100"));
+                        .value("Informe um ano máximo entre 1900 e 2100"));
     }
 
     @Test
@@ -244,6 +246,22 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/materiais should filter by academic need")
+    void shouldFilterByAcademicNeed() throws Exception {
+        Usuario requester = createUser("needs-search@example.com", "CURITIBA", "CENTRO");
+        Usuario donor = createUser("needs-donor@example.com", "CURITIBA", "CENTRO");
+
+        createMaterial(donor, "Colecao Escolar 2024", 2024);
+        createMaterial(donor, "Guia Enem 2020", 2020);
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("necessidade_academica", "TEST_PREP"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Guia Enem 2020"));
+    }
+
+    @Test
     @DisplayName("GET /api/v1/materiais should keep paginating correctly with more than 1000 materials")
     void shouldHandleLargeDiscoveryWindows() throws Exception {
         Usuario requester = createUser("stress-search@example.com", "FLORIANOPOLIS", "CENTRO");
@@ -280,13 +298,22 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
     }
 
     private Usuario createUser(String email, String cidade, String bairro) {
+        return createUser(email, cidade, bairro, Set.of());
+    }
+
+    private Usuario createUser(String email,
+                               String cidade,
+                               String bairro,
+                               Set<NecessidadeAcademica> necessidadesAcademicas) {
         return usuarioRepository.saveAndFlush(Usuario.builder()
                 .email(email)
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Search User")
                 .whatsapp("+5511991234567")
+                .cpf("12345678909")
                 .cidade(cidade)
                 .bairro(bairro)
+                .necessidadesAcademicas(necessidadesAcademicas)
                 .perfilCompleto(true)
                 .consentimentoIa(true)
                 .role(Role.USER)
@@ -303,6 +330,9 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                 .ano(7)
                 .sistemaEnsino(SistemaEnsino.ANGLO)
                 .estadoConservacao(EstadoConservacao.BOM)
+                .necessidadeAcademica(titulo.contains("Enem")
+                        ? NecessidadeAcademica.TEST_PREP
+                        : NecessidadeAcademica.TEXTBOOKS)
                 .status(StatusMaterial.DISPONIVEL)
                 .cidade(donor.getCidade())
                 .bairro(donor.getBairro())

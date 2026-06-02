@@ -57,7 +57,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"passwordHash", "materiais", "solicitacoes"})
+@ToString(exclude = {"passwordHash", "cpf", "fotoPerfilPath", "materiais", "solicitacoes"})
 @SQLRestriction("deleted_at IS NULL")
 public class Usuario extends AuditedEntity {
 
@@ -89,6 +89,16 @@ public class Usuario extends AuditedEntity {
     )
     private String whatsapp;
 
+    @Column(length = 11)
+    @NotNull(groups = ProfileCompletionValidation.class, message = "Informe seu CPF")
+    @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe seu CPF")
+    @Pattern(
+            regexp = "^\\d{11}$",
+            groups = ProfileCompletionValidation.class,
+            message = "Informe um CPF com 11 digitos"
+    )
+    private String cpf;
+
     @Column(length = 100)
     @NotNull(groups = ProfileCompletionValidation.class, message = "Informe sua cidade")
     @NotBlank(groups = ProfileCompletionValidation.class, message = "Informe sua cidade")
@@ -104,6 +114,12 @@ public class Usuario extends AuditedEntity {
 
     @Column(name = "fcm_token", length = 512)
     private String fcmToken;
+
+    @Column(name = "foto_perfil_path", length = 512)
+    private String fotoPerfilPath;
+
+    @Column(name = "foto_perfil_mime_type", length = 100)
+    private String fotoPerfilMimeType;
 
     @Column(nullable = false)
     @Builder.Default
@@ -164,6 +180,7 @@ public class Usuario extends AuditedEntity {
         return StringUtils.hasText(this.email)
                 && StringUtils.hasText(this.nome)
                 && StringUtils.hasText(this.whatsapp)
+                && StringUtils.hasText(this.cpf)
                 && StringUtils.hasText(this.cidade)
                 && StringUtils.hasText(this.bairro);
     }

@@ -6,6 +6,7 @@ import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import java.util.LinkedHashSet
 import timber.log.Timber
 
 @Singleton
@@ -79,6 +80,14 @@ class SecureStorage @Inject constructor(
         return runStorageOperation { encryptedSharedPreferences.getString("user_whatsapp", null) }
     }
 
+    fun saveUserCpf(cpf: String?) {
+        runStorageOperation { encryptedSharedPreferences.edit().putString("user_cpf", cpf).apply() }
+    }
+
+    fun getUserCpf(): String? {
+        return runStorageOperation { encryptedSharedPreferences.getString("user_cpf", null) }
+    }
+
     fun saveUserCidade(cidade: String?) {
         runStorageOperation { encryptedSharedPreferences.edit().putString("user_cidade", cidade).apply() }
     }
@@ -103,12 +112,39 @@ class SecureStorage @Inject constructor(
         return runStorageOperation { encryptedSharedPreferences.getString("user_instituicao", null) }
     }
 
+    fun saveUserFotoPerfilUrl(fotoPerfilUrl: String?) {
+        runStorageOperation { encryptedSharedPreferences.edit().putString("user_foto_perfil_url", fotoPerfilUrl).apply() }
+    }
+
+    fun getUserFotoPerfilUrl(): String? {
+        return runStorageOperation { encryptedSharedPreferences.getString("user_foto_perfil_url", null) }
+    }
+
     fun saveConsentimentoIa(consentimentoIa: Boolean) {
         runStorageOperation { encryptedSharedPreferences.edit().putBoolean("user_consentimento_ia", consentimentoIa).apply() }
     }
 
     fun getConsentimentoIa(): Boolean {
         return runStorageOperation { encryptedSharedPreferences.getBoolean("user_consentimento_ia", false) } ?: false
+    }
+
+    fun saveUserNecessidadesAcademicas(necessidadesAcademicas: Set<String>?) {
+        runStorageOperation {
+            encryptedSharedPreferences.edit()
+                .putStringSet(
+                    "user_necessidades_academicas",
+                    necessidadesAcademicas?.toCollection(LinkedHashSet())
+                )
+                .apply()
+        }
+    }
+
+    fun getUserNecessidadesAcademicas(): Set<String> {
+        return runStorageOperation {
+            encryptedSharedPreferences.getStringSet("user_necessidades_academicas", emptySet())
+                ?.toCollection(LinkedHashSet())
+                ?: linkedSetOf()
+        } ?: emptySet()
     }
 
     fun saveDarkThemeOverride(enabled: Boolean?) {
@@ -165,10 +201,13 @@ class SecureStorage @Inject constructor(
         runStorageOperation {
             encryptedSharedPreferences.edit()
                 .remove("user_whatsapp")
+                .remove("user_cpf")
                 .remove("user_cidade")
                 .remove("user_bairro")
                 .remove("user_instituicao")
+                .remove("user_foto_perfil_url")
                 .remove("user_consentimento_ia")
+                .remove("user_necessidades_academicas")
                 .remove("last_synced_fcm_token")
                 .remove("notification_inbox_payload")
                 .apply()

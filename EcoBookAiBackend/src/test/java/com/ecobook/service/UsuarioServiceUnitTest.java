@@ -36,6 +36,9 @@ class UsuarioServiceUnitTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private ImageStorageService imageStorageService;
+
     private UsuarioService usuarioService;
 
     @BeforeEach
@@ -48,7 +51,8 @@ class UsuarioServiceUnitTest {
                 new GeoNormalizationService(),
                 validator,
                 eventPublisher,
-                consentService
+                consentService,
+                imageStorageService
         );
     }
 
@@ -70,6 +74,7 @@ class UsuarioServiceUnitTest {
         UpdateProfileRequestDTO request = UpdateProfileRequestDTO.builder()
                 .nome("Pessoa")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade(" Ribeirão Preto ")
                 .bairro(" Jardim Botânico ")
                 .build();

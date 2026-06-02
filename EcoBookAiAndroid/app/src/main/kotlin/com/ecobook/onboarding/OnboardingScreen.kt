@@ -18,13 +18,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,13 +33,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.ui.ProfileInputRules
+import com.ecobook.ui.digitsOnly
 import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.LegalDocumentsDialog
@@ -74,7 +76,7 @@ fun OnboardingScreen(
             ) {
                 SectionHeading(
                     title = "Completar cadastro",
-                    subtitle = "Esses dados desbloqueiam upload, matching e solicitações protegidas pelo backend."
+                    subtitle = "O EcoBook deve ser usado por pais e responsáveis. Esses dados liberam upload, matching e solicitações protegidas pelo backend."
                 )
 
                 GlassCard {
@@ -95,9 +97,9 @@ fun OnboardingScreen(
                     }
                     Text(
                         text = when (uiState.currentStep) {
-                            0 -> "Primeiro confirmamos quem você é e como entrar em contato."
+                            0 -> "Primeiro registramos o adulto responsável e o contato que será usado fora do app."
                             1 -> "Depois registramos a região para normalização geográfica e matching."
-                            else -> "Por fim, configuramos preferências acadêmicas e consentimento para IA."
+                            else -> "Por fim, revisamos os consentimentos da plataforma e o uso opcional de IA."
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -116,7 +118,9 @@ fun OnboardingScreen(
                         uiState = uiState,
                         onNameChange = viewModel::updateNome,
                         onWhatsappChange = viewModel::updateWhatsapp,
-                        onWhatsappFocusLost = viewModel::onWhatsappFocusLost
+                        onCpfChange = viewModel::updateCpf,
+                        onWhatsappFocusLost = viewModel::onWhatsappFocusLost,
+                        onCpfFocusLost = viewModel::onCpfFocusLost
                     )
 
                     1 -> LocationStep(
@@ -126,9 +130,8 @@ fun OnboardingScreen(
                         onInstitutionChange = viewModel::updateInstituicao
                     )
 
-                    else -> NeedsStep(
+                    else -> ConsentStep(
                         uiState = uiState,
-                        onToggleNeed = viewModel::toggleNecessidade,
                         onOpenLegalDocuments = {
                             viewModel.markPlatformTermsViewed()
                             showLegalDialog = true
@@ -198,9 +201,16 @@ private fun ContactStep(
     uiState: OnboardingUiState,
     onNameChange: (String) -> Unit,
     onWhatsappChange: (String) -> Unit,
-    onWhatsappFocusLost: () -> Unit
+    onCpfChange: (String) -> Unit,
+    onWhatsappFocusLost: () -> Unit,
+    onCpfFocusLost: () -> Unit
 ) {
     GlassCard {
+        Text(
+            text = "A conta precisa representar um adulto responsável pelo contato e retirada.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         OutlinedTextField(
             value = uiState.nome,
             onValueChange = onNameChange,
@@ -210,21 +220,21 @@ private fun ContactStep(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-        OutlinedTextField(
+        DigitOnlyTextField(
             value = uiState.whatsapp,
             onValueChange = onWhatsappChange,
             label = { Text("WhatsApp com DDD") },
             isError = uiState.fieldErrors.containsKey("whatsapp"),
-            placeholder = { Text("(48) 99999-9999") },
-            prefix = { Text("+55 ") },
+            placeholder = { Text("84999999999") },
             supportingText = {
                 Text(
                     uiState.fieldErrors["whatsapp"]
-                        ?: "Digite só DDD + número. O código do Brasil já é adicionado automaticamente."
+                        ?: "Digite apenas os 11 números do WhatsApp com DDD. O +55 será adicionado automaticamente."
                 )
             },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            maxDigits = 11,
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged { state ->
@@ -233,7 +243,71 @@ private fun ContactStep(
                     }
                 }
         )
+        DigitOnlyTextField(
+            value = uiState.cpf,
+            onValueChange = onCpfChange,
+            label = { Text("CPF do adulto responsável") },
+            isError = uiState.fieldErrors.containsKey("cpf"),
+            supportingText = {
+                Text(
+                    uiState.fieldErrors["cpf"]
+                        ?: "Digite apenas os 11 números do CPF do adulto responsável."
+                )
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            maxDigits = 11,
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { state ->
+                    if (!state.isFocused) {
+                        onCpfFocusLost()
+                    }
+                }
+        )
     }
+}
+
+@Composable
+private fun DigitOnlyTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    placeholder: @Composable (() -> Unit)? = null,
+    supportingText: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    singleLine: Boolean = true,
+    maxDigits: Int
+) {
+    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(text = value, selection = TextRange(value.length)))
+    }
+
+    LaunchedEffect(value) {
+        if (value != textFieldValue.text) {
+            textFieldValue = textFieldValue.copy(text = value, selection = TextRange(value.length))
+        }
+    }
+
+    OutlinedTextField(
+        value = textFieldValue,
+        onValueChange = { updatedValue ->
+            val nextValue = updatedValue.digitsOnly(maxDigits)
+            textFieldValue = nextValue
+            if (nextValue.text != value) {
+                onValueChange(nextValue.text)
+            }
+        },
+        label = label,
+        isError = isError,
+        placeholder = placeholder,
+        supportingText = supportingText,
+        singleLine = singleLine,
+        keyboardOptions = keyboardOptions,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -246,6 +320,11 @@ private fun LocationStep(
     val cityPreview = ProfileInputRules.cityStoragePreview(uiState.cidade)
 
     GlassCard {
+        Text(
+            text = "A entrega não é organizada pelo app. O ponto de encontro é combinado depois, diretamente pelo WhatsApp entre as partes adultas.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         OutlinedTextField(
             value = uiState.cidade,
             onValueChange = onCityChange,
@@ -286,32 +365,22 @@ private fun LocationStep(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun NeedsStep(
+private fun ConsentStep(
     uiState: OnboardingUiState,
-    onToggleNeed: (NecessidadeAcademica) -> Unit,
     onOpenLegalDocuments: () -> Unit,
     onTogglePlatformConsent: () -> Unit,
     onToggleConsent: () -> Unit
 ) {
     GlassCard {
         Text(
-            text = "Necessidades acadêmicas",
+            text = "Fluxo da conta",
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Essas preferências ajudam o matching a priorizar materiais relevantes quando as fases seguintes forem conectadas.",
+            text = "A necessidade acadêmica de cada item é escolhida depois, no cadastro do material. Nesta etapa, você apenas confirma os termos e decide se quer usar a classificação assistida por IA.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            uiState.necessidadesDisponiveis.forEach { necessidade ->
-                FilterChip(
-                    selected = uiState.necessidadesAcademicas.contains(necessidade),
-                    onClick = { onToggleNeed(necessidade) },
-                    label = { Text(necessidade.label) }
-                )
-            }
-        }
     }
 
     GlassCard {
@@ -320,7 +389,7 @@ private fun NeedsStep(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Antes do aceite, leia o resumo dos termos de uso e da política de privacidade do EcoBook.",
+            text = "Antes do aceite, leia o resumo dos termos. Ele deixa claro que o app é para adultos responsáveis e que a entrega é combinada fora da plataforma, via WhatsApp.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

@@ -143,10 +143,13 @@ public class UserDeletionService {
         usuario.setPasswordHash(passwordEncoder.encode("deleted-" + UUID.randomUUID()));
         usuario.setNome("Conta removida");
         usuario.setWhatsapp(null);
+        usuario.setCpf(null);
         usuario.setCidade(null);
         usuario.setBairro(null);
         usuario.setInstituicao(null);
         usuario.setFcmToken(null);
+        usuario.setFotoPerfilPath(null);
+        usuario.setFotoPerfilMimeType(null);
         usuario.setPerfilCompleto(false);
         usuario.setConsentimentoIa(false);
         usuario.setNecessidadesAcademicas(new LinkedHashSet<>());

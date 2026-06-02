@@ -61,7 +61,7 @@ class ImageStorageServiceTest {
 
         assertThatThrownBy(() -> service.validateImage(oversizedImage))
                 .isInstanceOf(PayloadTooLargeException.class)
-                .hasMessage("A imagem excede o limite de 5MB");
+                .hasMessage("A imagem excede 5MB. Escolha um arquivo menor ou recorte a imagem antes de enviar.");
     }
 
     @Test

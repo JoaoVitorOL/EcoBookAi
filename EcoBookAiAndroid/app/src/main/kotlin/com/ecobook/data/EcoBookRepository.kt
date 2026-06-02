@@ -7,9 +7,11 @@ import com.ecobook.model.BackendConnectionState
 import com.ecobook.model.BackendStatus
 import com.ecobook.model.DonationPreview
 import com.ecobook.model.DonationStep
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.ProjectInsight
 import com.ecobook.model.SessionUiState
 import com.ecobook.model.UserProfileDraft
+import com.ecobook.ui.CpfFormatter
 import com.ecobook.ui.WhatsAppFormatter
 import com.ecobook.ui.EcoBookUiState
 import com.ecobook.utils.SecureStorage
@@ -52,10 +54,13 @@ class EcoBookRepository @Inject constructor(
             nome = secureStorage.getUserName().orEmpty(),
             email = secureStorage.getUserEmail().orEmpty(),
             whatsapp = WhatsAppFormatter.formatForInput(secureStorage.getUserWhatsapp().orEmpty()),
+            cpf = CpfFormatter.formatForInput(secureStorage.getUserCpf().orEmpty()),
             cidade = secureStorage.getUserCidade().orEmpty(),
             bairro = secureStorage.getUserBairro().orEmpty(),
             instituicao = secureStorage.getUserInstituicao().orEmpty(),
+            fotoPerfilUrl = secureStorage.getUserFotoPerfilUrl().orEmpty(),
             consentimentoIa = secureStorage.getConsentimentoIa(),
+            necessidadesAcademicas = resolveAcademicNeeds(secureStorage.getUserNecessidadesAcademicas()),
             roleLabel = secureStorage.getUserRole()?.replace('_', ' ')?.ifBlank { "Usuário" } ?: "Usuário",
             hasSavedSession = secureStorage.hasToken()
         )
@@ -137,5 +142,13 @@ class EcoBookRepository @Inject constructor(
             ),
             steps = steps
         )
+    }
+
+    private fun resolveAcademicNeeds(rawNeeds: Set<String>): Set<NecessidadeAcademica> {
+        return rawNeeds.mapNotNullTo(linkedSetOf()) { rawNeed ->
+            NecessidadeAcademica.entries.firstOrNull { necessidadeAcademica ->
+                necessidadeAcademica.name == rawNeed
+            }
+        }
     }
 }

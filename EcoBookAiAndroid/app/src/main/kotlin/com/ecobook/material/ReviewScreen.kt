@@ -23,6 +23,7 @@ import coil.compose.AsyncImage
 import com.ecobook.model.AiAssistStatus
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
 import com.ecobook.ui.ConfidenceIndicator
@@ -46,6 +47,7 @@ fun ReviewScreen(
     onNivelEnsinoChange: (NivelEnsino?) -> Unit,
     onSistemaEnsinoChange: (SistemaEnsino?) -> Unit,
     onEstadoConservacaoChange: (EstadoConservacao?) -> Unit,
+    onNecessidadeAcademicaChange: (NecessidadeAcademica?) -> Unit,
     onPrepareConfirm: () -> Boolean,
     onRestart: () -> Unit,
     onConfirm: () -> Unit
@@ -238,6 +240,17 @@ fun ReviewScreen(
                 onSelected = { onEstadoConservacaoChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 errorMessage = uiState.validationErrors["estado_conservacao"]
+            )
+
+            ConfidenceIndicator(confidence = null)
+            EnumDropdown(
+                label = "Necessidade acadêmica",
+                selectedValue = uiState.draft.necessidadeAcademica,
+                options = uiState.necessidadesAcademicas,
+                optionLabel = { it.label },
+                onSelected = { onNecessidadeAcademicaChange(it) },
+                modifier = Modifier.fillMaxWidth(),
+                errorMessage = uiState.validationErrors["necessidade_academica"]
             )
 
             ConfidenceIndicator(confidence = uiState.confidenceByField["data_publicacao"])

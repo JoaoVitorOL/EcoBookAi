@@ -121,25 +121,25 @@ public class ImageStorageService {
      */
     public String validateImage(byte[] imageBytes) {
         if (imageBytes.length == 0) {
-            throw invalidImage("image", "Envie uma imagem JPEG ou PNG valida");
+            throw invalidImage("image", "Nenhuma imagem foi enviada. Escolha um arquivo em JPG ou PNG e tente novamente.");
         }
 
         if (imageBytes.length > maxFileSizeBytes()) {
-            throw new PayloadTooLargeException("A imagem excede o limite de 5MB");
+            throw new PayloadTooLargeException("A imagem excede 5MB. Escolha um arquivo menor ou recorte a imagem antes de enviar.");
         }
 
         String mimeType = detectMimeType(imageBytes);
         if (mimeType == null) {
-            throw invalidImage("image", "A imagem precisa estar em formato JPEG ou PNG");
+            throw invalidImage("image", "Formato nao suportado. Escolha uma imagem em JPG ou PNG.");
         }
 
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
-                throw invalidImage("image", "Nao foi possivel decodificar a imagem enviada");
+                throw invalidImage("image", "O arquivo enviado nao pode ser lido como imagem. Escolha outra foto em JPG ou PNG.");
             }
         } catch (IOException ex) {
-            throw invalidImage("image", "Nao foi possivel decodificar a imagem enviada");
+            throw invalidImage("image", "O arquivo enviado nao pode ser lido como imagem. Escolha outra foto em JPG ou PNG.");
         }
 
         return mimeType;
@@ -258,7 +258,7 @@ public class ImageStorageService {
         try {
             return file.getBytes();
         } catch (IOException ex) {
-            throw invalidImage("image", "Nao foi possivel ler a imagem enviada");
+            throw invalidImage("image", "Nao foi possivel ler o arquivo enviado. Escolha a imagem novamente e tente de novo.");
         }
     }
 

@@ -44,6 +44,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.fcm.NotificationInboxEntry
+import com.ecobook.navigation.AppRoutes
 import com.ecobook.ui.components.AdaptiveScreenContent
 import com.ecobook.ui.components.GlassCard
 import com.ecobook.ui.components.StatusBadge
@@ -232,6 +233,7 @@ private fun NotificationCard(
 ) {
     val style = notificationVisualStyle(notification)
     val contextLines = notificationContextLines(notification)
+    val primaryAction = notificationPrimaryAction(notification)
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -300,16 +302,22 @@ private fun NotificationCard(
                     .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                FilledTonalButton(
-                    onClick = onOpen,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Abrir")
+                if (primaryAction != null) {
+                    FilledTonalButton(
+                        onClick = onOpen,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(primaryAction.label)
+                    }
                 }
                 TextButton(
                     onClick = onMarkAsRead,
                     enabled = !isMarkingAsRead,
-                    modifier = Modifier.weight(1f)
+                    modifier = if (primaryAction != null) {
+                        Modifier.weight(1f)
+                    } else {
+                        Modifier.fillMaxWidth()
+                    }
                 ) {
                     Text(if (isMarkingAsRead) "Marcando..." else "Marcar como lida")
                 }
@@ -343,6 +351,17 @@ private fun formatLocation(bairro: String?, cidade: String?): String? {
         normalizedBairro.isNotBlank() && normalizedCidade.isNotBlank() -> "$normalizedBairro, $normalizedCidade"
         normalizedCidade.isNotBlank() -> normalizedCidade
         normalizedBairro.isNotBlank() -> normalizedBairro
+        else -> null
+    }
+}
+
+private fun notificationPrimaryAction(notification: NotificationInboxEntry): NotificationPrimaryAction? {
+    return when (notification.route) {
+        AppRoutes.DONOR_REQUESTS -> NotificationPrimaryAction("Abrir pedidos")
+        AppRoutes.MY_REQUESTS -> NotificationPrimaryAction("Abrir solicitacoes")
+        AppRoutes.DONATE -> NotificationPrimaryAction("Abrir doacoes")
+        AppRoutes.DISCOVERY -> NotificationPrimaryAction("Buscar materiais")
+        AppRoutes.PROFILE -> NotificationPrimaryAction("Abrir perfil")
         else -> null
     }
 }
@@ -426,6 +445,10 @@ private data class NotificationVisualStyle(
     val icon: ImageVector,
     val containerColor: Color,
     val contentColor: Color
+)
+
+private data class NotificationPrimaryAction(
+    val label: String
 )
 
 private enum class NotificationSemantic {

@@ -9,6 +9,7 @@ import com.ecobook.data.ReferenceDataRepository
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.ReferenceDataCatalog
+import com.ecobook.ui.CpfFormatter
 import com.ecobook.ui.WhatsAppFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -23,6 +24,7 @@ data class OnboardingUiState(
     val nome: String = "",
     val email: String = "",
     val whatsapp: String = "",
+    val cpf: String = "",
     val cidade: String = "",
     val bairro: String = "",
     val instituicao: String = "",
@@ -72,10 +74,40 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    fun updateCpf(value: String) {
+        _uiState.update {
+            it.copy(
+                cpf = CpfFormatter.formatForInput(value),
+                fieldErrors = it.fieldErrors - "cpf",
+                message = null
+            )
+        }
+    }
+
     fun onWhatsappFocusLost() {
         if (_uiState.value.whatsapp.isNotBlank() && !WhatsAppFormatter.isValidInput(_uiState.value.whatsapp)) {
             _uiState.update {
-                it.copy(fieldErrors = it.fieldErrors + ("whatsapp" to "Digite DDD + número, por exemplo 48 99999-9999."))
+                it.copy(fieldErrors = it.fieldErrors + ("whatsapp" to "Digite os 11 dígitos do WhatsApp com DDD."))
+            }
+        }
+    }
+
+    fun onCpfFocusLost() {
+        val cpf = _uiState.value.cpf
+        if (cpf.isBlank()) {
+            return
+        }
+
+        _uiState.update {
+            val error = when {
+                CpfFormatter.toBackendValue(cpf).length < 11 ->
+                    "Digite os 11 dígitos do CPF do adulto responsável."
+                else -> null
+            }
+            if (error == null) {
+                it.copy(fieldErrors = it.fieldErrors - "cpf")
+            } else {
+                it.copy(fieldErrors = it.fieldErrors + ("cpf" to error))
             }
         }
     }
@@ -140,11 +172,21 @@ class OnboardingViewModel @Inject constructor(
     fun nextStep() {
         val validationErrors = validateCurrentStep(_uiState.value.currentStep)
         if (validationErrors.isNotEmpty()) {
-            _uiState.update { it.copy(fieldErrors = it.fieldErrors + validationErrors) }
+            _uiState.update {
+                it.copy(
+                    fieldErrors = it.fieldErrors + validationErrors,
+                    message = null
+                )
+            }
             return
         }
 
-        _uiState.update { state -> state.copy(currentStep = (state.currentStep + 1).coerceAtMost(2)) }
+        _uiState.update { state ->
+            state.copy(
+                currentStep = (state.currentStep + 1).coerceAtMost(2),
+                message = null
+            )
+        }
     }
 
     fun previousStep() {
@@ -154,7 +196,13 @@ class OnboardingViewModel @Inject constructor(
     fun submit() {
         val validationErrors = validateAll()
         if (validationErrors.isNotEmpty()) {
-            _uiState.update { it.copy(fieldErrors = validationErrors, message = "Revise os campos destacados antes de enviar.") }
+            _uiState.update {
+                it.copy(
+                    currentStep = stepForErrors(validationErrors, it.currentStep),
+                    fieldErrors = validationErrors,
+                    message = null
+                )
+            }
             return
         }
 
@@ -166,6 +214,7 @@ class OnboardingViewModel @Inject constructor(
                 email = null,
                 nome = state.nome.trim(),
                 whatsapp = WhatsAppFormatter.toBackendValue(state.whatsapp),
+                cpf = CpfFormatter.toBackendValue(state.cpf),
                 cidade = state.cidade.trim(),
                 bairro = state.bairro.trim(),
                 instituicao = state.instituicao.trim().ifBlank { null },
@@ -184,11 +233,13 @@ class OnboardingViewModel @Inject constructor(
                     }
                 }
                 .onFailure { error ->
+                    val fieldErrors = error.toFieldErrors()
                     _uiState.update { current ->
                         current.copy(
                             isSubmitting = false,
-                            fieldErrors = error.toFieldErrors(),
-                            message = error.toUserMessage()
+                            currentStep = stepForErrors(fieldErrors, current.currentStep),
+                            fieldErrors = fieldErrors,
+                            message = if (fieldErrors.isEmpty()) error.toUserMessage() else null
                         )
                     }
                 }
@@ -220,7 +271,12 @@ class OnboardingViewModel @Inject constructor(
                 if (_uiState.value.whatsapp.isBlank()) {
                     put("whatsapp", "Informe um WhatsApp para contato.")
                 } else if (!WhatsAppFormatter.isValidInput(_uiState.value.whatsapp)) {
-                    put("whatsapp", "Digite DDD + número, por exemplo 48 99999-9999.")
+                    put("whatsapp", "Digite os 11 dígitos do WhatsApp com DDD.")
+                }
+                if (_uiState.value.cpf.isBlank()) {
+                    put("cpf", "Informe o CPF do adulto responsável.")
+                } else if (CpfFormatter.toBackendValue(_uiState.value.cpf).length < 11) {
+                    put("cpf", "Digite os 11 dígitos do CPF do adulto responsável.")
                 }
             }
 
@@ -229,7 +285,7 @@ class OnboardingViewModel @Inject constructor(
                     put("cidade", "Digite sua cidade.")
                 }
                 if (_uiState.value.bairro.isBlank()) {
-                    put("bairro", "Informe o bairro onde você pode receber ou doar materiais.")
+                    put("bairro", "Informe o bairro onde voce pode receber ou doar materiais.")
                 }
             }
 
@@ -261,6 +317,18 @@ class OnboardingViewModel @Inject constructor(
             }
 
             else -> message ?: "Falha inesperada ao concluir seu cadastro."
+        }
+    }
+
+    private fun stepForErrors(
+        fieldErrors: Map<String, String>,
+        fallbackStep: Int
+    ): Int {
+        return when {
+            fieldErrors.keys.any { it in setOf("nome", "whatsapp", "cpf") } -> 0
+            fieldErrors.keys.any { it in setOf("cidade", "bairro", "instituicao") } -> 1
+            fieldErrors.keys.any { it in setOf("platform_consent") } -> 2
+            else -> fallbackStep
         }
     }
 }

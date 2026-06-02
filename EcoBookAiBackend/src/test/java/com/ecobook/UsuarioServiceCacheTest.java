@@ -62,6 +62,7 @@ class UsuarioServiceCacheTest extends BaseIntegrationTest {
         usuarioService.updateProfile(usuario.getEmail(), UpdateProfileRequestDTO.builder()
                 .nome("Nome Atualizado")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("Ribeirão Preto")
                 .bairro("Jardim Botânico")
                 .instituicao("IFSP")

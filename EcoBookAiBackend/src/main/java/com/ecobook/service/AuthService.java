@@ -15,7 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Authentication service for local email/password registration and login.
@@ -40,7 +43,7 @@ public class AuthService {
         String normalizedNome = normalizeNome(request.getNome());
 
         if (usuarioRepository.findByEmailIgnoreCase(normalizedEmail).isPresent()) {
-            throw new ConflictException("Este email ja esta cadastrado");
+            throw new ConflictException("Este email já está cadastrado");
         }
 
         Usuario usuario = createUser(normalizedEmail, normalizedNome, request.getPassword());
@@ -95,11 +98,17 @@ public class AuthService {
                 .email(usuario.getEmail())
                 .nome(usuario.getNome())
                 .whatsapp(usuario.getWhatsapp())
+                .cpf(usuario.getCpf())
                 .cidade(usuario.getCidade())
                 .bairro(usuario.getBairro())
                 .instituicao(usuario.getInstituicao())
+                .fotoPerfilUrl(UserProfilePhotoPaths.resolveUrl(usuario))
                 .perfilCompleto(usuario.isPerfilCompleto())
                 .consentimentoIa(Boolean.TRUE.equals(usuario.getConsentimentoIa()))
+                .necessidadesAcademicas(usuario.getNecessidadesAcademicas() == null ? Set.of()
+                        : usuario.getNecessidadesAcademicas().stream()
+                        .map(Enum::name)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .role(usuario.getRole().name())
                 .token(token)
                 .expiresIn(jwtTokenProvider.getExpirationInSeconds())
@@ -115,6 +124,6 @@ public class AuthService {
     }
 
     private BadCredentialsException invalidCredentials() {
-        return new BadCredentialsException("Email ou senha invalidos");
+        return new BadCredentialsException("Email ou senha inválidos");
     }
 }

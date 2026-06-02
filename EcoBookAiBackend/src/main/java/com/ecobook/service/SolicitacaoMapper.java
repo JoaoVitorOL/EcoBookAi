@@ -48,12 +48,14 @@ public class SolicitacaoMapper {
                         .cidade(material == null ? null : material.getCidade())
                         .bairro(material == null ? null : material.getBairro())
                         .doadorNome(material == null || material.getDoador() == null ? "Conta removida" : material.getDoador().getNome())
+                        .doadorFotoPerfilUrl(material == null ? null : UserProfilePhotoPaths.resolveUrl(material.getDoador()))
                         .build())
                 .estudante(SolicitacaoStudentDTO.builder()
                         .id(estudante == null || estudante.getId() == null ? null : estudante.getId().toString())
                         .nome(estudante == null ? "Conta removida" : estudante.getNome())
                         .cidade(estudante == null ? null : estudante.getCidade())
                         .bairro(estudante == null ? null : estudante.getBairro())
+                        .fotoPerfilUrl(UserProfilePhotoPaths.resolveUrl(estudante))
                         .build())
                 .build();
     }

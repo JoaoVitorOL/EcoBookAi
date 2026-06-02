@@ -47,6 +47,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Profile User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Sao Jose",
                                   "bairro": " centro ",
                                   "consentimento_ia": true,
@@ -78,6 +79,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Invalid WhatsApp",
                                   "whatsapp": "11991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Criciuma",
                                   "bairro": "Centro"
                                 }
@@ -105,6 +107,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Formatted WhatsApp",
                                   "whatsapp": "+55 (11) 99123-4567",
+                                  "cpf": "52998224725",
                                   "cidade": "Criciuma",
                                   "bairro": "Centro"
                                 }
@@ -132,6 +135,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Incomplete User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "bairro": "Centro"
                                 }
                                 """))
@@ -157,6 +161,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Institution User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Curitiba",
                                   "bairro": "Centro",
                                   "instituicao": "  IFPR Curitiba  "
@@ -194,6 +199,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "   ",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Curitiba",
                                   "bairro": "Centro"
                                 }
@@ -221,6 +227,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Free Text City User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": " Ribeirao Preto ",
                                   "bairro": " Jardim Botanico "
                                 }
@@ -248,6 +255,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 {
                                   "nome": "Unicode City User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": " São José ",
                                   "bairro": " Trindade açoriana "
                                 }
@@ -278,6 +286,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                   "email": "NEW-EMAIL@example.com",
                                   "nome": "Email Update User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Florianopolis",
                                   "bairro": "Centro"
                                 }
@@ -318,6 +327,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                   "email": "existing@example.com",
                                   "nome": "Editable User",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Curitiba",
                                   "bairro": "Centro"
                                 }

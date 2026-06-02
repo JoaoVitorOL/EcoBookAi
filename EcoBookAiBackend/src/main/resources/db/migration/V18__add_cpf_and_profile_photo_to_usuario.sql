@@ -1,0 +1,4 @@
+ALTER TABLE usuario
+    ADD COLUMN IF NOT EXISTS cpf VARCHAR(11),
+    ADD COLUMN IF NOT EXISTS foto_perfil_path VARCHAR(512),
+    ADD COLUMN IF NOT EXISTS foto_perfil_mime_type VARCHAR(100);

@@ -33,6 +33,7 @@ Authorization: Bearer <jwt_token>
   "ano": 7,
   "sistema_ensino": "ANGLO",
   "estado_conservacao": "BOM",
+  "necessidade_academica": "TEXTBOOKS",
   "data_publicacao": 2010,
   "upload_id": "temp-upload-uuid-abc123def"
 }
@@ -47,6 +48,7 @@ Authorization: Bearer <jwt_token>
 - `ano`: `1..9` for `FUNDAMENTAL`, `1..3` for `MEDIO`, omitted for `SUPERIOR`
 - `sistema_ensino`: `ANGLO | OBJETIVO | COC | POSITIVO | POLIEDRO | ETAPA | BERNOULLI | SAS | FTD | OUTRO`
 - `estado_conservacao`: `NOVO | BOM | USADO | DANIFICADO`
+- `necessidade_academica`: `TEXTBOOKS | WORKBOOKS | REFERENCE_MATERIALS | FICTION | TECHNICAL_BOOKS | TEST_PREP`
 - `data_publicacao`: optional, `1900..2100`
 - `upload_id`: must belong to the authenticated donor and still exist in temporary storage
 - User must have `perfil_completo = true`
@@ -68,6 +70,7 @@ Authorization: Bearer <jwt_token>
   "ano": 7,
   "sistema_ensino": "ANGLO",
   "estado_conservacao": "BOM",
+  "necessidade_academica": "TEXTBOOKS",
   "status": "DISPONIVEL",
   "imagem_url": "/api/v1/images/upload-tracking-uuid",
   "imagem_verso_url": "/api/v1/images/upload-tracking-uuid?side=back",
@@ -102,7 +105,7 @@ Search available materials.
 ### Request
 
 ```http
-GET /api/v1/materiais?query=algebra&disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&cidade=florianopolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=0&size=20&after_id=material-uuid-20
+GET /api/v1/materiais?query=algebra&disciplina=MATEMATICA&nivel_ensino=FUNDAMENTAL&ano=7&sistema_ensino=ANGLO&necessidade_academica=TEXTBOOKS&cidade=florianopolis&bairro=centro&min_ano_publicacao=2005&max_ano_publicacao=2020&page=0&size=20&after_id=material-uuid-20
 Authorization: Bearer <jwt_token>
 ```
 
@@ -115,6 +118,7 @@ Authorization: Bearer <jwt_token>
 | `nivel_ensino` | String | No | Exact education-level filter |
 | `ano` | Integer | No | School year filter (`1..9` for `FUNDAMENTAL`, `1..3` for `MEDIO`) |
 | `sistema_ensino` | String | No | Teaching-system filter |
+| `necessidade_academica` | String | No | Exact academic-need filter for the material metadata |
 | `cidade` | String | No | City anchor for ranking and tie-breaking; does not exclude other cities by itself |
 | `bairro` | String | No | Neighborhood anchor for ranking and tie-breaking; does not exclude other neighborhoods by itself |
 | `min_ano_publicacao` | Integer | No | Lower bound for publication year |
@@ -141,6 +145,7 @@ Authorization: Bearer <jwt_token>
       "ano": 7,
       "sistema_ensino": "ANGLO",
       "estado_conservacao": "BOM",
+      "necessidade_academica": "TEXTBOOKS",
       "status": "DISPONIVEL",
       "imagem_url": "/api/v1/images/upload-tracking-uuid",
       "imagem_verso_url": "/api/v1/images/upload-tracking-uuid?side=back",
@@ -261,6 +266,7 @@ Authorization: Bearer <jwt_token>
   "ano": 7,
   "sistema_ensino": "ANGLO",
   "estado_conservacao": "BOM",
+  "necessidade_academica": "TEXTBOOKS",
   "data_publicacao": 2010
 }
 ```

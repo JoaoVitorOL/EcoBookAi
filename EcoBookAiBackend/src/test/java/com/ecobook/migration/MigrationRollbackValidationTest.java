@@ -51,7 +51,8 @@ class MigrationRollbackValidationTest {
             new MigrationScenario("V14__add_non_receipt_reports.sql", RollbackKind.SQL),
             new MigrationScenario("V15__add_extended_sistema_ensino_values.sql", RollbackKind.SQL),
             new MigrationScenario("V16__align_non_receipt_report_schema_with_runtime.sql", RollbackKind.SQL),
-            new MigrationScenario("V17__phase8_lgpd_security_foundation.sql", RollbackKind.SQL)
+            new MigrationScenario("V17__phase8_lgpd_security_foundation.sql", RollbackKind.SQL),
+            new MigrationScenario("V18__add_cpf_and_profile_photo_to_usuario.sql", RollbackKind.SQL)
     );
     private static final List<MigrationScenario> SNAPSHOT_ONLY_SCENARIOS = List.of(
             new MigrationScenario("V4__replace_google_auth_with_local_credentials.sql", RollbackKind.SNAPSHOT_REQUIRED),

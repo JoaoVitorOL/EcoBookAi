@@ -9,6 +9,7 @@ import com.ecobook.dto.MaterialDTO
 import com.ecobook.dto.UpdateMaterialRequestDTO
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
@@ -114,6 +115,7 @@ class DonateViewModel @Inject constructor(
     }
     fun updateSistemaEnsino(value: SistemaEnsino?) = updateDraft { copy(sistemaEnsino = value) }
     fun updateEstadoConservacao(value: EstadoConservacao?) = updateDraft { copy(estadoConservacao = value) }
+    fun updateNecessidadeAcademica(value: NecessidadeAcademica?) = updateDraft { copy(necessidadeAcademica = value) }
 
     fun saveEditedMaterial() {
         val material = uiState.value.materialBeingEdited ?: return
@@ -139,6 +141,7 @@ class DonateViewModel @Inject constructor(
             ano = if (draft.nivelEnsino == NivelEnsino.SUPERIOR) null else draft.ano.toIntOrNull(),
             sistemaEnsino = draft.sistemaEnsino?.name ?: return,
             estadoConservacao = draft.estadoConservacao?.name ?: return,
+            necessidadeAcademica = draft.necessidadeAcademica?.name ?: return,
             dataPublicacao = draft.dataPublicacao.toIntOrNull()
         )
 
@@ -222,6 +225,7 @@ class DonateViewModel @Inject constructor(
                     niveisEnsino = catalog.niveisEnsino,
                     sistemasEnsino = catalog.sistemasEnsino,
                     estadosConservacao = catalog.estadosConservacao,
+                    necessidadesAcademicas = catalog.necessidadesAcademicas,
                     editDraft = sanitizeDraft(state.editDraft, catalog)
                 )
             }
@@ -248,11 +252,11 @@ class DonateViewModel @Inject constructor(
         }
 
         if (draft.autor.length > 255) {
-            errors["autor"] = "O autor precisa ter no maximo 255 caracteres."
+            errors["autor"] = "O autor precisa ter no máximo 255 caracteres."
         }
 
         if (draft.editora.length > 255) {
-            errors["editora"] = "A editora precisa ter no maximo 255 caracteres."
+            errors["editora"] = "A editora precisa ter no máximo 255 caracteres."
         }
 
         if (draft.descricao.isBlank()) {
@@ -272,6 +276,9 @@ class DonateViewModel @Inject constructor(
         }
         if (draft.estadoConservacao == null) {
             errors["estado_conservacao"] = "Escolha o estado de conservação."
+        }
+        if (draft.necessidadeAcademica == null) {
+            errors["necessidade_academica"] = "Escolha a necessidade acadêmica do material."
         }
 
         if (draft.nivelEnsino == NivelEnsino.SUPERIOR) {
@@ -359,6 +366,7 @@ class DonateViewModel @Inject constructor(
             ano = ano?.toString().orEmpty(),
             sistemaEnsino = enumOrNull<SistemaEnsino>(sistemaEnsino),
             estadoConservacao = enumOrNull<EstadoConservacao>(estadoConservacao),
+            necessidadeAcademica = enumOrNull<NecessidadeAcademica>(necessidadeAcademica),
             dataPublicacao = dataPublicacao?.toString().orEmpty()
         )
     }
@@ -374,7 +382,8 @@ class DonateViewModel @Inject constructor(
             nivelEnsino = nivelEnsino,
             ano = sanitizeAnoEscolar(draft.ano, nivelEnsino),
             sistemaEnsino = draft.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains),
-            estadoConservacao = draft.estadoConservacao?.takeIf(catalog.estadosConservacao::contains)
+            estadoConservacao = draft.estadoConservacao?.takeIf(catalog.estadosConservacao::contains),
+            necessidadeAcademica = draft.necessidadeAcademica?.takeIf(catalog.necessidadesAcademicas::contains)
         )
     }
 
@@ -384,7 +393,7 @@ class DonateViewModel @Inject constructor(
             niveisEnsino = state.niveisEnsino,
             sistemasEnsino = state.sistemasEnsino,
             estadosConservacao = state.estadosConservacao,
-            necessidadesAcademicas = referenceDataRepository.defaultCatalog().necessidadesAcademicas
+            necessidadesAcademicas = state.necessidadesAcademicas
         )
     }
 

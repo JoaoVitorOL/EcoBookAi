@@ -158,7 +158,7 @@ public class AdminPlatformService {
                 .cidade(usuario.getCidade())
                 .bairro(usuario.getBairro())
                 .instituicao(usuario.getInstituicao())
-                .perfilCompleto(usuario.getPerfilCompleto())
+                .perfilCompleto(usuario.isPerfilCompleto())
                 .consentimentoIa(usuario.getConsentimentoIa())
                 .role(usuario.getRole().name())
                 .necessidadesAcademicas(usuario.getNecessidadesAcademicas() == null ? Set.of() :

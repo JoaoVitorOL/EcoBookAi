@@ -11,6 +11,7 @@ import com.ecobook.dto.GeminiResponseDTO
 import com.ecobook.model.AiAssistStatus
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
@@ -127,6 +128,9 @@ class MaterialUploadViewModel @Inject constructor(
     }
     fun updateSistemaEnsino(value: SistemaEnsino?) = updateDraft { draft -> draft.copy(sistemaEnsino = value) }
     fun updateEstadoConservacao(value: EstadoConservacao?) = updateDraft { draft -> draft.copy(estadoConservacao = value) }
+    fun updateNecessidadeAcademica(value: NecessidadeAcademica?) = updateDraft { draft ->
+        draft.copy(necessidadeAcademica = value)
+    }
 
     fun prepareSubmit(): Boolean {
         val currentState = _uiState.value
@@ -210,6 +214,7 @@ class MaterialUploadViewModel @Inject constructor(
                     niveisEnsino = catalog.niveisEnsino,
                     sistemasEnsino = catalog.sistemasEnsino,
                     estadosConservacao = catalog.estadosConservacao,
+                    necessidadesAcademicas = catalog.necessidadesAcademicas,
                     draft = sanitizeDraft(state.draft, catalog)
                 )
             }
@@ -231,6 +236,7 @@ class MaterialUploadViewModel @Inject constructor(
                     remove("ano")
                     remove("sistema_ensino")
                     remove("estado_conservacao")
+                    remove("necessidade_academica")
                     remove("data_publicacao")
                 }
             )
@@ -314,6 +320,9 @@ class MaterialUploadViewModel @Inject constructor(
         if (draft.estadoConservacao == null) {
             errors["estado_conservacao"] = "Escolha o estado de conservação."
         }
+        if (draft.necessidadeAcademica == null) {
+            errors["necessidade_academica"] = "Escolha a necessidade acadêmica do material."
+        }
 
         if (draft.nivelEnsino == NivelEnsino.SUPERIOR) {
             if (draft.ano.isNotBlank()) {
@@ -351,6 +360,7 @@ class MaterialUploadViewModel @Inject constructor(
             ano = if (draft.nivelEnsino == NivelEnsino.SUPERIOR) null else draft.ano.toIntOrNull(),
             sistemaEnsino = draft.sistemaEnsino?.name ?: return null,
             estadoConservacao = draft.estadoConservacao?.name ?: return null,
+            necessidadeAcademica = draft.necessidadeAcademica?.name ?: return null,
             dataPublicacao = draft.dataPublicacao.toIntOrNull()
         )
     }
@@ -433,7 +443,8 @@ class MaterialUploadViewModel @Inject constructor(
             nivelEnsino = nivelEnsino,
             ano = sanitizeAnoEscolar(draft.ano, nivelEnsino),
             sistemaEnsino = draft.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains),
-            estadoConservacao = draft.estadoConservacao?.takeIf(catalog.estadosConservacao::contains)
+            estadoConservacao = draft.estadoConservacao?.takeIf(catalog.estadosConservacao::contains),
+            necessidadeAcademica = draft.necessidadeAcademica?.takeIf(catalog.necessidadesAcademicas::contains)
         )
     }
 

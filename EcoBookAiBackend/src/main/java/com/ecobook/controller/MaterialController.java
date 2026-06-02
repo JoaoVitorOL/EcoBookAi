@@ -11,6 +11,7 @@ import com.ecobook.dto.SearchCriteriaDTO;
 import com.ecobook.dto.UpdateMaterialRequestDTO;
 import com.ecobook.exception.BadRequestException;
 import com.ecobook.model.enums.Disciplina;
+import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.NivelEnsino;
 import com.ecobook.model.enums.SistemaEnsino;
 import com.ecobook.service.MatchingService;
@@ -63,6 +64,7 @@ public class MaterialController {
      * @param nivelEnsino the nivelEnsino value
      * @param ano the ano value
      * @param sistemaEnsino the sistemaEnsino value
+     * @param necessidadeAcademica the necessidadeAcademica value
      * @param cidade the cidade value
      * @param bairro the bairro value
      * @param minAnoPublicacao the minAnoPublicacao value
@@ -75,49 +77,56 @@ public class MaterialController {
      */
     @GetMapping
     @RequireCompleteProfile
-    @Operation(summary = "Buscar materiais", description = "Executa a discovery com filtros academicos, geograficos e paginacao offset/cursor.")
+    @Operation(summary = "Buscar materiais", description = "Executa a discovery com filtros acadêmicos, geográficos e paginação offset/cursor.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Materiais encontrados com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Filtros invalidos"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto")
     })
     public ResponseEntity<ApiEnvelope<PagedResponseDTO<MaterialDTO>>> searchMaterials(
             @RequestParam(required = false) @Parameter(description = "Texto livre usado na busca por titulo, descricao, autor, editora e localidade") String query,
             @RequestParam(required = false) @Parameter(description = "Filtro por disciplina") String disciplina,
-            @RequestParam(required = false, name = "nivel_ensino") @Parameter(description = "Filtro por nivel de ensino") String nivelEnsino,
-            @RequestParam(required = false) @Parameter(description = "Ano escolar quando aplicavel ao nivel de ensino") Integer ano,
+            @RequestParam(required = false, name = "nivel_ensino") @Parameter(description = "Filtro por nível de ensino") String nivelEnsino,
+            @RequestParam(required = false) @Parameter(description = "Ano escolar quando aplicável ao nível de ensino") Integer ano,
             @RequestParam(required = false, name = "sistema_ensino") @Parameter(description = "Filtro por sistema de ensino") String sistemaEnsino,
+            @RequestParam(required = false, name = "necessidade_academica") @Parameter(description = "Filtro por necessidade acadêmica do material") String necessidadeAcademica,
             @RequestParam(required = false) @Parameter(description = "Cidade do material") String cidade,
             @RequestParam(required = false) @Parameter(description = "Bairro do material") String bairro,
-            @RequestParam(required = false, name = "min_ano_publicacao") @Parameter(description = "Ano minimo de publicacao") Integer minAnoPublicacao,
-            @RequestParam(required = false, name = "max_ano_publicacao") @Parameter(description = "Ano maximo de publicacao") Integer maxAnoPublicacao,
-            @RequestParam(required = false, name = "after_id") @Parameter(description = "Cursor UUID para continuar a pagina seguinte no modo keyset") String afterId,
-            @RequestParam(defaultValue = "0") @Parameter(description = "Pagina offset inicial") Integer page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "Quantidade de itens por pagina, entre 1 e 100") Integer size,
+            @RequestParam(required = false, name = "min_ano_publicacao") @Parameter(description = "Ano mínimo de publicação") Integer minAnoPublicacao,
+            @RequestParam(required = false, name = "max_ano_publicacao") @Parameter(description = "Ano máximo de publicação") Integer maxAnoPublicacao,
+            @RequestParam(required = false, name = "after_id") @Parameter(description = "Cursor UUID para continuar a página seguinte no modo keyset") String afterId,
+            @RequestParam(defaultValue = "0") @Parameter(description = "Página offset inicial") Integer page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "Quantidade de itens por página, entre 1 e 100") Integer size,
             HttpServletRequest servletRequest) {
 
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
         Disciplina parsedDisciplina = parseEnum(disciplina, Disciplina.class, "disciplina", fieldErrors);
         NivelEnsino parsedNivelEnsino = parseEnum(nivelEnsino, NivelEnsino.class, "nivel_ensino", fieldErrors);
         SistemaEnsino parsedSistemaEnsino = parseEnum(sistemaEnsino, SistemaEnsino.class, "sistema_ensino", fieldErrors);
+        NecessidadeAcademica parsedNecessidadeAcademica = parseEnum(
+                necessidadeAcademica,
+                NecessidadeAcademica.class,
+                "necessidade_academica",
+                fieldErrors
+        );
 
         validatePagination(page, size, fieldErrors);
         validateAfterId(afterId, fieldErrors);
         validateYears(parsedNivelEnsino, ano, minAnoPublicacao, maxAnoPublicacao, fieldErrors);
 
         if (!fieldErrors.isEmpty()) {
-            throw new BadRequestException("Os filtros de busca sao invalidos", fieldErrors);
+            throw new BadRequestException("Os filtros de busca são inválidos", fieldErrors);
         }
 
         Integer effectiveAno = parsedNivelEnsino == NivelEnsino.SUPERIOR ? null : ano;
-
         SearchCriteriaDTO criteria = SearchCriteriaDTO.builder()
                 .query(query)
                 .disciplina(parsedDisciplina)
                 .nivelEnsino(parsedNivelEnsino)
                 .ano(effectiveAno)
                 .sistemaEnsino(parsedSistemaEnsino)
+                .necessidadeAcademica(parsedNecessidadeAcademica)
                 .cidade(cidade)
                 .bairro(bairro)
                 .minAnoPublicacao(minAnoPublicacao)
@@ -140,17 +149,17 @@ public class MaterialController {
      */
     @GetMapping("/me")
     @RequireCompleteProfile
-    @Operation(summary = "Listar materiais do doador", description = "Retorna todos os materiais publicados pelo usuario autenticado.")
+    @Operation(summary = "Listar materiais do doador", description = "Retorna todos os materiais publicados pelo usuário autenticado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Materiais carregados com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto")
     })
     public ResponseEntity<ApiEnvelope<List<MaterialDTO>>> listCurrentUserMaterials(Authentication authentication,
                                                                                    HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Materiais do usuario carregados com sucesso",
+                "Materiais do usuário carregados com sucesso",
                 materialService.listCurrentUserMaterials(authentication.getName())
         );
     }
@@ -169,12 +178,12 @@ public class MaterialController {
     @RequireCompleteProfile
     @Operation(
             summary = "Gerar preview IA",
-            description = "Recebe a imagem frontal obrigatoria e a traseira opcional, cria o upload temporario e retorna o preview assistido por IA."
+            description = "Recebe a imagem frontal obrigatória e a traseira opcional, cria o upload temporário e retorna o preview assistido por IA."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Preview gerado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Arquivo invalido ou acima do limite"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Arquivo inválido ou acima do limite"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto")
     })
     public ResponseEntity<ApiEnvelope<GeminiResponseDTO>> previewMaterial(Authentication authentication,
@@ -202,18 +211,18 @@ public class MaterialController {
     @RequireCompleteProfile
     @Operation(
             summary = "Publicar material",
-            description = "Converte um upload temporario validado em material publicado e promovido no catalogo.",
+            description = "Converte um upload temporário validado em material publicado e promovido no catálogo.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Metadados finais do material mais o upload_id retornado pelo preview"
             )
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Material publicado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Payload invalido"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Payload inválido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Upload temporario nao encontrado ou expirado"),
-            @ApiResponse(responseCode = "409", description = "upload_id ja utilizado")
+            @ApiResponse(responseCode = "404", description = "Upload temporário não encontrado ou expirado"),
+            @ApiResponse(responseCode = "409", description = "upload_id já utilizado")
     })
     public ResponseEntity<ApiEnvelope<MaterialDTO>> createMaterial(Authentication authentication,
                                                                    @RequestBody CreateMaterialRequestDTO request,
@@ -238,17 +247,17 @@ public class MaterialController {
     @RequireCompleteProfile
     @Operation(
             summary = "Atualizar material",
-            description = "Atualiza os metadados de um material pertencente ao usuario autenticado.",
+            description = "Atualiza os metadados de um material pertencente ao usuário autenticado.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Campos editaveis do material"
+                    description = "Campos editáveis do material"
             )
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Material atualizado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Payload invalido"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Payload inválido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Material nao encontrado")
+            @ApiResponse(responseCode = "404", description = "Material não encontrado")
     })
     public ResponseEntity<ApiEnvelope<MaterialDTO>> updateMaterial(@PathVariable String id,
                                                                    Authentication authentication,
@@ -270,12 +279,12 @@ public class MaterialController {
      */
     @DeleteMapping("/{id}")
     @RequireCompleteProfile
-    @Operation(summary = "Excluir material", description = "Exclui um material do usuario autenticado e limpa os artefatos associados quando existirem.")
+    @Operation(summary = "Excluir material", description = "Exclui um material do usuário autenticado e limpa os artefatos associados quando existirem.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Material excluido com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "204", description = "Material excluído com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Material nao encontrado")
+            @ApiResponse(responseCode = "404", description = "Material não encontrado")
     })
     public ResponseEntity<Void> deleteMaterial(@PathVariable String id,
                                                Authentication authentication) {
@@ -285,10 +294,10 @@ public class MaterialController {
 
     private void validatePagination(Integer page, Integer size, Map<String, String> fieldErrors) {
         if (page == null || page < 0) {
-            fieldErrors.put("page", "Informe uma pagina maior ou igual a zero");
+            fieldErrors.put("page", "Informe uma página maior ou igual a zero");
         }
         if (size == null || size < 1 || size > 100) {
-            fieldErrors.put("size", "Informe um tamanho de pagina entre 1 e 100");
+            fieldErrors.put("size", "Informe um tamanho de página entre 1 e 100");
         }
     }
 
@@ -300,7 +309,7 @@ public class MaterialController {
         try {
             UUID.fromString(afterId);
         } catch (IllegalArgumentException ex) {
-            fieldErrors.put("after_id", "Informe um UUID valido para after_id");
+            fieldErrors.put("after_id", "Informe um UUID válido para after_id");
         }
     }
 
@@ -312,17 +321,17 @@ public class MaterialController {
         if (nivelEnsino != NivelEnsino.SUPERIOR && ano != null) {
             int maxAno = nivelEnsino == NivelEnsino.MEDIO ? 3 : 9;
             if (ano < 1 || ano > maxAno) {
-                fieldErrors.put("ano", "Informe um ano escolar valido para o nivel selecionado");
+                fieldErrors.put("ano", "Informe um ano escolar válido para o nível selecionado");
             }
         }
         if (minAnoPublicacao != null && (minAnoPublicacao < 1900 || minAnoPublicacao > 2100)) {
-            fieldErrors.put("min_ano_publicacao", "Informe um ano minimo entre 1900 e 2100");
+            fieldErrors.put("min_ano_publicacao", "Informe um ano mínimo entre 1900 e 2100");
         }
         if (maxAnoPublicacao != null && (maxAnoPublicacao < 1900 || maxAnoPublicacao > 2100)) {
-            fieldErrors.put("max_ano_publicacao", "Informe um ano maximo entre 1900 e 2100");
+            fieldErrors.put("max_ano_publicacao", "Informe um ano máximo entre 1900 e 2100");
         }
         if (minAnoPublicacao != null && maxAnoPublicacao != null && minAnoPublicacao > maxAnoPublicacao) {
-            fieldErrors.put("ano_publicacao", "O ano minimo de publicacao nao pode ser maior que o maximo");
+            fieldErrors.put("ano_publicacao", "O ano mínimo de publicação não pode ser maior que o máximo");
         }
     }
 
@@ -344,7 +353,7 @@ public class MaterialController {
         try {
             return Enum.valueOf(enumType, normalized);
         } catch (IllegalArgumentException ex) {
-            fieldErrors.put(field, "Valor invalido para " + field);
+            fieldErrors.put(field, "Valor inválido para " + field);
             return null;
         }
     }

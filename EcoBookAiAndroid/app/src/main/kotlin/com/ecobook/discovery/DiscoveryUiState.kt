@@ -2,6 +2,7 @@ package com.ecobook.discovery
 
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.model.Disciplina
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
@@ -16,6 +17,7 @@ data class DiscoveryFilters(
     val nivelEnsino: NivelEnsino? = null,
     val ano: String = "",
     val sistemaEnsino: SistemaEnsino? = null,
+    val necessidadeAcademica: NecessidadeAcademica? = null,
     val cidade: String = "",
     val bairro: String = "",
     val minAnoPublicacao: String = "",
@@ -28,6 +30,7 @@ data class DiscoveryUiState(
     val disciplinas: List<Disciplina> = ReferenceDataCatalog.defaults().disciplinas,
     val niveisEnsino: List<NivelEnsino> = ReferenceDataCatalog.defaults().niveisEnsino,
     val sistemasEnsino: List<SistemaEnsino> = ReferenceDataCatalog.defaults().sistemasEnsino,
+    val necessidadesAcademicas: List<NecessidadeAcademica> = ReferenceDataCatalog.defaults().necessidadesAcademicas,
     val results: List<MaterialDTO> = emptyList(),
     val page: Int = 0,
     val pageSize: Int = 20,

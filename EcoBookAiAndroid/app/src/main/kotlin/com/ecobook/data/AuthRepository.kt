@@ -17,6 +17,9 @@ import com.ecobook.fcm.FcmTokenSyncManager
 import com.google.gson.Gson
 import javax.inject.Inject
 import javax.inject.Singleton
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
 
@@ -76,6 +79,19 @@ class AuthRepository @Inject constructor(
         } else {
             sessionManager.clearSession("Email atualizado com sucesso. Entre novamente com o novo email.")
         }
+        return body
+    }
+
+    suspend fun uploadProfilePhoto(preparedImage: com.ecobook.material.PreparedImage): UsuarioDTO {
+        val requestBody = preparedImage.bytes.toRequestBody(preparedImage.mimeType.toMediaType())
+        val imagePart = MultipartBody.Part.createFormData(
+            "image",
+            preparedImage.fileName,
+            requestBody
+        )
+        val response = authApiService.uploadProfilePhoto(imagePart)
+        val body = requireData(response)
+        sessionManager.onUserLoaded(body)
         return body
     }
 

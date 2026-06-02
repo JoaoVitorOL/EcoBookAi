@@ -24,4 +24,5 @@ public class SolicitacaoMaterialDTO {
     private String cidade;
     private String bairro;
     private String doadorNome;
+    private String doadorFotoPerfilUrl;
 }

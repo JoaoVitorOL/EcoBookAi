@@ -2,6 +2,7 @@ package com.ecobook.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Badge
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,6 +26,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -37,11 +40,13 @@ import com.ecobook.discovery.MaterialImage
 import com.ecobook.discovery.formatAnoEscolar
 import com.ecobook.discovery.formatDisciplina
 import com.ecobook.discovery.formatEstadoConservacao
+import com.ecobook.discovery.formatNecessidadeAcademica
 import com.ecobook.discovery.formatNivelEnsino
 import com.ecobook.discovery.formatRelativeDate
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
 import com.ecobook.ui.EditableField
@@ -63,6 +68,7 @@ private enum class DonateMode {
 fun DonateScreen(
     onOpenDonorRequests: () -> Unit = {},
     onOpenPublishNew: () -> Unit = {},
+    donorRequestUnreadCount: Int = 0,
     unreadNotifications: Int = 0,
     onOpenNotifications: () -> Unit = {},
     viewModel: DonateViewModel = hiltViewModel()
@@ -96,6 +102,7 @@ fun DonateScreen(
         onDelete = viewModel::promptDelete,
         onSwitchToPublish = onOpenPublishNew,
         onOpenDonorRequests = onOpenDonorRequests,
+        donorRequestUnreadCount = donorRequestUnreadCount,
         unreadNotifications = unreadNotifications,
         onOpenNotifications = onOpenNotifications
     )
@@ -115,6 +122,7 @@ fun DonateScreen(
             onNivelEnsinoChange = viewModel::updateNivelEnsino,
             onSistemaEnsinoChange = viewModel::updateSistemaEnsino,
             onEstadoConservacaoChange = viewModel::updateEstadoConservacao,
+            onNecessidadeAcademicaChange = viewModel::updateNecessidadeAcademica,
             onSave = viewModel::saveEditedMaterial
         )
     }
@@ -153,6 +161,7 @@ private fun DonateHistoryContent(
     onDelete: (MaterialDTO) -> Unit,
     onSwitchToPublish: () -> Unit,
     onOpenDonorRequests: () -> Unit,
+    donorRequestUnreadCount: Int,
     unreadNotifications: Int,
     onOpenNotifications: () -> Unit
 ) {
@@ -182,7 +191,8 @@ private fun DonateHistoryContent(
                 selectedMode = DonateMode.HISTORY,
                 onShowHistory = {},
                 onShowPublish = onSwitchToPublish,
-                onOpenDonorRequests = onOpenDonorRequests
+                onOpenDonorRequests = onOpenDonorRequests,
+                donorRequestUnreadCount = donorRequestUnreadCount
             )
         }
 
@@ -256,12 +266,14 @@ private fun DonateHistoryContent(
 }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun DonateModeSwitchCard(
     selectedMode: DonateMode,
     onShowHistory: () -> Unit,
     onShowPublish: () -> Unit,
-    onOpenDonorRequests: () -> Unit
+    onOpenDonorRequests: () -> Unit,
+    donorRequestUnreadCount: Int
 ) {
     GlassCard {
         Row(
@@ -277,15 +289,29 @@ private fun DonateModeSwitchCard(
                 maxLines = 2,
                 textAlign = TextAlign.Center
             )
-            FilterChipCard(
-                label = "Pedidos recebidos",
-                selected = false,
-                onClick = onOpenDonorRequests,
-                modifier = Modifier.weight(1f),
-                minLines = 2,
-                maxLines = 2,
-                textAlign = TextAlign.Center
-            )
+            Box(
+                modifier = Modifier.weight(1f)
+            ) {
+                FilterChipCard(
+                    label = "Pedidos recebidos",
+                    selected = false,
+                    onClick = onOpenDonorRequests,
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 2,
+                    textAlign = TextAlign.Center
+                )
+                if (donorRequestUnreadCount > 0) {
+                    Badge(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                    ) {
+                        Text(
+                            text = if (donorRequestUnreadCount > 99) "99+" else donorRequestUnreadCount.toString()
+                        )
+                    }
+                }
+            }
             FilterChipCard(
                 label = "Publicar novo",
                 selected = selectedMode == DonateMode.PUBLISH,
@@ -352,6 +378,11 @@ private fun DonateMaterialCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
+                    text = "Necessidade acadêmica: ${formatNecessidadeAcademica(material.necessidadeAcademica)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
                     text = "Cadastrado ${formatRelativeDate(material.criadoEm) ?: "recentemente"}",
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -408,6 +439,7 @@ private fun EditMaterialDialog(
     onNivelEnsinoChange: (NivelEnsino?) -> Unit,
     onSistemaEnsinoChange: (SistemaEnsino?) -> Unit,
     onEstadoConservacaoChange: (EstadoConservacao?) -> Unit,
+    onNecessidadeAcademicaChange: (NecessidadeAcademica?) -> Unit,
     onSave: () -> Unit
 ) {
     AlertDialog(
@@ -541,6 +573,15 @@ private fun EditMaterialDialog(
                     onSelected = { onEstadoConservacaoChange(it) },
                     modifier = Modifier.fillMaxWidth(),
                     errorMessage = uiState.validationErrors["estado_conservacao"]
+                )
+                EnumDropdown(
+                    label = "Necessidade acadêmica",
+                    selectedValue = uiState.editDraft.necessidadeAcademica,
+                    options = uiState.necessidadesAcademicas,
+                    optionLabel = { it.label },
+                    onSelected = { onNecessidadeAcademicaChange(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    errorMessage = uiState.validationErrors["necessidade_academica"]
                 )
                 EditableField(
                     value = uiState.editDraft.dataPublicacao,

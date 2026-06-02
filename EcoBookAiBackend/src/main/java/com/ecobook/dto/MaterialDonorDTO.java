@@ -18,4 +18,5 @@ public class MaterialDonorDTO {
     private String whatsapp;
     private String cidade;
     private String bairro;
+    private String fotoPerfilUrl;
 }

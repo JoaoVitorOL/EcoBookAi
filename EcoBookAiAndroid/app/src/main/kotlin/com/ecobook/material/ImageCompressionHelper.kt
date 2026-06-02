@@ -21,11 +21,13 @@ object ImageCompressionHelper {
 
     fun prepareForUpload(context: Context, uri: Uri, originalFileName: String): PreparedImage {
         val rawBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-            ?: throw IllegalArgumentException("Não foi possível ler a imagem selecionada.")
+            ?: throw IllegalArgumentException(
+                "Não foi possível ler a foto selecionada. Escolha a imagem novamente e tente de novo."
+            )
 
         val mimeType = detectMimeType(rawBytes, context.contentResolver.getType(uri))
         require(isSupportedMimeType(mimeType)) {
-            "Selecione uma imagem JPEG ou PNG para continuar."
+            "Formato não suportado. Escolha uma foto em JPG ou PNG para continuar."
         }
 
         if (rawBytes.size.toLong() <= MAX_FILE_SIZE_BYTES) {
@@ -37,7 +39,9 @@ object ImageCompressionHelper {
         }
 
         val bitmap = decodeBitmap(context, uri)
-            ?: throw IllegalArgumentException("Não foi possível decodificar a imagem selecionada.")
+            ?: throw IllegalArgumentException(
+                "A foto selecionada parece corrompida ou ilegivel. Escolha outra imagem em JPG ou PNG."
+            )
         val scaled = scaleBitmap(bitmap, TARGET_MAX_DIMENSION)
 
         if (mimeType == "image/png") {
@@ -52,9 +56,8 @@ object ImageCompressionHelper {
         }
 
         var quality = 90
-        var compressedBytes = ByteArray(0)
         while (quality >= 65) {
-            compressedBytes = compressBitmap(scaled, Bitmap.CompressFormat.JPEG, quality)
+            val compressedBytes = compressBitmap(scaled, Bitmap.CompressFormat.JPEG, quality)
             if (compressedBytes.size.toLong() <= MAX_FILE_SIZE_BYTES) {
                 return PreparedImage(
                     fileName = ensureExtension(originalFileName.substringBeforeLast('.'), "image/jpeg"),
@@ -65,7 +68,9 @@ object ImageCompressionHelper {
             quality -= 5
         }
 
-        throw IllegalArgumentException("Não foi possível reduzir a imagem para até 5MB.")
+        throw IllegalArgumentException(
+            "A foto continua maior que 5MB mesmo após a compressão. Recorte a imagem ou escolha outra foto menor."
+        )
     }
 
     private fun decodeBitmap(context: Context, uri: Uri): Bitmap? {

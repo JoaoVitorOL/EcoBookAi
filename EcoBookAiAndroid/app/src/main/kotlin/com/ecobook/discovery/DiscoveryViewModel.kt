@@ -7,6 +7,7 @@ import com.ecobook.data.MaterialRepository
 import com.ecobook.data.ReferenceDataRepository
 import com.ecobook.data.RequestRepository
 import com.ecobook.dto.MaterialDTO
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.utils.SecureStorage
@@ -66,6 +67,10 @@ class DiscoveryViewModel @Inject constructor(
 
     fun updateSistemaEnsino(value: com.ecobook.model.SistemaEnsino?) {
         updateFilters { copy(sistemaEnsino = value) }
+    }
+
+    fun updateNecessidadeAcademica(value: NecessidadeAcademica?) {
+        updateFilters { copy(necessidadeAcademica = value) }
     }
 
     fun updateCidade(value: String) {
@@ -194,6 +199,7 @@ class DiscoveryViewModel @Inject constructor(
                     disciplinas = catalog.disciplinas,
                     niveisEnsino = catalog.niveisEnsino,
                     sistemasEnsino = catalog.sistemasEnsino,
+                    necessidadesAcademicas = catalog.necessidadesAcademicas,
                     filters = sanitizeFilters(state.filters, catalog),
                     activeFilters = sanitizeFilters(state.activeFilters, catalog)
                 )
@@ -230,6 +236,7 @@ class DiscoveryViewModel @Inject constructor(
                     nivelEnsino = filters.nivelEnsino?.name,
                     ano = filters.ano.toIntOrNull(),
                     sistemaEnsino = filters.sistemaEnsino?.name,
+                    necessidadeAcademica = filters.necessidadeAcademica?.name,
                     cidade = filters.cidade.trim().takeIf { it.isNotBlank() },
                     bairro = filters.bairro.trim().takeIf { it.isNotBlank() },
                     minAnoPublicacao = filters.minAnoPublicacao.toIntOrNull(),
@@ -343,7 +350,8 @@ class DiscoveryViewModel @Inject constructor(
             disciplina = filters.disciplina?.takeIf(catalog.disciplinas::contains),
             nivelEnsino = nivelEnsino,
             ano = sanitizeAnoEscolar(filters.ano, nivelEnsino),
-            sistemaEnsino = filters.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains)
+            sistemaEnsino = filters.sistemaEnsino?.takeIf(catalog.sistemasEnsino::contains),
+            necessidadeAcademica = filters.necessidadeAcademica?.takeIf(catalog.necessidadesAcademicas::contains)
         )
     }
 

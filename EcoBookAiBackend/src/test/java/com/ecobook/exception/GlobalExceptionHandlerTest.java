@@ -100,7 +100,7 @@ class GlobalExceptionHandlerTest {
 
         ErrorResponse body = (ErrorResponse) response.getBody();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
-        assertThat(body.getMessage()).contains("5MB");
+        assertThat(body.getMessage()).contains("5MB").contains("arquivo menor");
     }
 
     @Test

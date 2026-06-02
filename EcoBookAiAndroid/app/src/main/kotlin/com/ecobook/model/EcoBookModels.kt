@@ -2,17 +2,17 @@ package com.ecobook.model
 
 enum class Disciplina(val label: String) {
     TODAS("Todas"),
-    MATEMATICA("Matematica"),
-    PORTUGUES("Portugues"),
-    HISTORIA("Historia"),
+    MATEMATICA("Matemática"),
+    PORTUGUES("Português"),
+    HISTORIA("História"),
     GEOGRAFIA("Geografia"),
-    CIENCIAS("Ciencias"),
+    CIENCIAS("Ciências"),
     LITERATURA("Literatura")
 }
 
 enum class NivelEnsino(val label: String) {
     FUNDAMENTAL("Fundamental"),
-    MEDIO("Medio"),
+    MEDIO("Médio"),
     SUPERIOR("Superior")
 }
 
@@ -37,18 +37,18 @@ enum class EstadoConservacao(val label: String) {
 }
 
 enum class NecessidadeAcademica(val label: String) {
-    TEXTBOOKS("Livros didaticos"),
+    TEXTBOOKS("Livros didáticos"),
     WORKBOOKS("Cadernos de atividades"),
-    REFERENCE_MATERIALS("Materiais de referencia"),
+    REFERENCE_MATERIALS("Materiais de referência"),
     FICTION("Literatura"),
-    TECHNICAL_BOOKS("Livros tecnicos"),
+    TECHNICAL_BOOKS("Livros técnicos"),
     TEST_PREP("Preparação para provas")
 }
 
 enum class AiAssistStatus(val label: String) {
-    SUCCESS("Alta confianca"),
+    SUCCESS("Alta confiança"),
     LOW_CONFIDENCE("Revisão manual"),
-    FAILURE("Sem sugestao")
+    FAILURE("Sem sugestão")
 }
 
 enum class BackendConnectionState {
@@ -101,14 +101,17 @@ data class UserProfileDraft(
     val nome: String = "",
     val email: String = "",
     val whatsapp: String = "",
+    val cpf: String = "",
     val cidade: String = "",
     val bairro: String = "",
     val instituicao: String = "",
+    val fotoPerfilUrl: String = "",
     val consentimentoIa: Boolean = false,
+    val necessidadesAcademicas: Set<NecessidadeAcademica> = emptySet(),
     val roleLabel: String = "Usuário",
     val hasSavedSession: Boolean = false
 ) {
-    private val requiredFields = listOf(nome, email, whatsapp, cidade, bairro)
+    private val requiredFields = listOf(nome, email, whatsapp, cpf, cidade, bairro)
 
     val completionRatio: Float
         get() = requiredFields.count { it.isNotBlank() }.toFloat() / requiredFields.size.toFloat()

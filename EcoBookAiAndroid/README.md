@@ -5,13 +5,19 @@ Aplicativo Android nativo do EcoBook AI.
 ## O Que O App Entrega Hoje
 
 - Login, cadastro, restauracao de sessao e logout com `JWT`
-- Onboarding com WhatsApp, cidade, bairro, instituicao, necessidades e consentimento de IA
-- Doacao com imagem frontal obrigatoria, imagem traseira opcional, preview IA e publicacao final
+- Onboarding com WhatsApp, CPF obrigatorio do adulto responsavel, cidade, bairro, instituicao e consentimento de IA
+- Doacao com imagem frontal obrigatoria, imagem traseira opcional, preview IA, necessidade academica manual e publicacao final
 - Busca de materiais com filtros, paginacao e dialogo de detalhes
 - `Minhas solicitacoes` para o estudante
 - `Pedidos recebidos` para o doador, incluindo aprovar, recusar, revogar e concluir
-- Inbox local de notificacoes, sininho de nao lidas e deep links para as areas corretas
-- Edicao de perfil, gerenciamento de consentimentos, exportacao de dados pessoais e exclusao da conta
+- Inbox local de notificacoes, sininho de nao lidas e acoes de abertura apenas quando existe um destino util
+- Edicao de perfil com foto, gerenciamento de consentimentos, exportacao de dados pessoais e exclusao da conta
+
+## Aviso De Uso
+
+O app foi desenhado para ser operado por pais, maes e responsaveis legais dos alunos que precisam dos materiais.
+
+O EcoBook nao define ponto de encontro dentro da plataforma. Quando uma solicitacao e aprovada, doador e responsavel combinam conversa, entrega e retirada exclusivamente pelo WhatsApp.
 
 ## Requisitos
 

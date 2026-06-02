@@ -1,8 +1,8 @@
 # User API Contracts
 
 **Reference**: spec.md RF-001, RF-002, RF-003, RF-004  
-**Version**: 2.5  
-**Date**: 2026-05-23  
+**Version**: 2.6  
+**Date**: 2026-05-31  
 **Status**: Aligned with the current backend implementation, including Phase 8 privacy/LGPD endpoints, the Phase 9 reference-data catalog, and profile self-service updates
 
 ---
@@ -11,6 +11,7 @@ Current runtime note:
 - Successful responses are wrapped in the standard envelope `{ status, message, timestamp, path, data }`.
 - The JSON objects shown in the success examples below represent the `data` payload for readability.
 - Android onboarding/profile now surface a readable in-app summary of platform terms and privacy before the user accepts the platform consent step.
+- The onboarding and profile flows are meant to be completed by adult guardians, and any delivery/pickup arrangement happens outside the app via WhatsApp.
 
 ## POST /auth/register
 
@@ -49,9 +50,11 @@ Content-Type: application/json
   "email": "joao@example.com",
   "nome": "Joao Silva",
   "whatsapp": null,
+  "cpf": null,
   "cidade": null,
   "bairro": null,
   "instituicao": null,
+  "foto_perfil_url": null,
   "perfil_completo": false,
   "consentimento_ia": false,
   "role": "USER",
@@ -114,9 +117,11 @@ Content-Type: application/json
   "email": "joao@example.com",
   "nome": "Joao Silva",
   "whatsapp": "+5548999999999",
+  "cpf": "52998224725",
   "cidade": "FLORIANOPOLIS",
   "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
+  "foto_perfil_url": "/api/v1/usuarios/user-uuid-1234567890/foto-perfil",
   "perfil_completo": true,
   "consentimento_ia": true,
   "role": "USER",
@@ -158,9 +163,11 @@ Authorization: Bearer <jwt_token>
   "email": "joao@example.com",
   "nome": "Joao Silva",
   "whatsapp": "+5548999999999",
+  "cpf": "52998224725",
   "cidade": "FLORIANOPOLIS",
   "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
+  "foto_perfil_url": "/api/v1/usuarios/user-uuid-1234567890/foto-perfil",
   "perfil_completo": true,
   "consentimento_ia": true,
   "role": "USER",
@@ -262,6 +269,7 @@ Authorization: Bearer <jwt_token>
   "email": "joao.pedro@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
+  "cpf": "52998224725",
   "cidade": "sao jose",
   "bairro": "centro",
   "instituicao": "Escola Municipal ABC",
@@ -277,6 +285,7 @@ Authorization: Bearer <jwt_token>
 - `email`: optional, valid format, max 255 characters, unique when changed
 - `nome`: required for successful profile completion
 - `whatsapp`: required for successful profile completion; must match `+55XXXXXXXXXXX`
+- `cpf`: required for successful profile completion; must contain exactly `11` digits
 - `cidade`: required for successful profile completion; normalized before save
 - `bairro`: required for successful profile completion; normalized before save
 - `instituicao`: optional
@@ -292,9 +301,11 @@ Authorization: Bearer <jwt_token>
   "email": "joao.pedro@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
+  "cpf": "52998224725",
   "cidade": "SAO JOSE",
   "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
+  "foto_perfil_url": "/api/v1/usuarios/user-uuid-1234567890/foto-perfil",
   "perfil_completo": true,
   "consentimento_ia": true,
   "role": "USER",
@@ -316,7 +327,8 @@ Authorization: Bearer <jwt_token>
   "error": "INVALID_FORMAT",
   "message": "O perfil contem campos invalidos",
   "field_errors": {
-    "whatsapp": "Use o formato E.164 (+55XXXXXXXXXXX)"
+    "whatsapp": "Use o formato E.164 (+55XXXXXXXXXXX)",
+    "cpf": "Informe um CPF valido com 11 digitos"
   }
 }
 ```
@@ -347,7 +359,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 **Rules**:
-- `perfil_completo` becomes `true` only when `nome`, `whatsapp`, `cidade`, and `bairro` are present and valid
+- `perfil_completo` becomes `true` only when `nome`, `whatsapp`, `cpf`, `cidade`, and `bairro` are present and valid
 - Geographic normalization happens on save
 - The Android onboarding/profile UI previews the normalized city storage value before submit
 - `consentimento_ia` controls whether Gemini can be called for AI classification
@@ -355,6 +367,66 @@ Authorization: Bearer <jwt_token>
 - If `email` changes, the backend normalizes it to lowercase and the old JWT subject becomes stale; the client must perform a fresh login with the new email
 - If `necessidades_academicas` is omitted in a profile edit payload, the backend keeps the currently stored values instead of wiping the set
 - The frontend should use free-text city and neighborhood inputs; the API normalizes the values before persisting and using them for matching
+- Profile photo upload is handled separately by `POST /api/v1/usuarios/me/foto-perfil`
+
+---
+
+## POST /usuarios/me/foto-perfil
+
+Upload or replace the authenticated user's profile photo.
+
+### Request
+
+```http
+POST /api/v1/usuarios/me/foto-perfil
+Authorization: Bearer <jwt_token>
+Content-Type: multipart/form-data
+
+image=<binary image>
+```
+
+### Runtime Rules
+
+- Requires an authenticated user with role `USER`
+- Accepts image files validated by the backend storage service
+- Stores the image under the user profile area and exposes it through a protected download URL
+
+### Response
+
+**HTTP 200 OK**
+```json
+{
+  "id": "user-uuid-1234567890",
+  "email": "joao@example.com",
+  "nome": "Joao Silva",
+  "whatsapp": "+5548999999999",
+  "cpf": "52998224725",
+  "cidade": "FLORIANOPOLIS",
+  "bairro": "CENTRO",
+  "instituicao": "Escola Municipal ABC",
+  "foto_perfil_url": "/api/v1/usuarios/user-uuid-1234567890/foto-perfil",
+  "perfil_completo": true,
+  "consentimento_ia": true,
+  "role": "USER"
+}
+```
+
+---
+
+## GET /usuarios/{userId}/foto-perfil
+
+Return the protected profile photo for a known user id.
+
+### Runtime Rules
+
+- Requires an authenticated user with role `USER`
+- Returns the stored binary photo when it exists
+- Uses the persisted MIME type when available
+
+### Response
+
+**HTTP 200 OK**
+- `Content-Type: image/jpeg` or `image/png`
 
 ---
 
@@ -383,9 +455,11 @@ Authorization: Bearer <jwt_token>
   "email": "joao@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
+  "cpf": "52998224725",
   "cidade": "SAO JOSE",
   "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
+  "foto_perfil_url": "/api/v1/usuarios/user-uuid-1234567890/foto-perfil",
   "perfil_completo": true,
   "consentimento_ia": true,
   "role": "USER",
@@ -440,9 +514,11 @@ Authorization: Bearer <jwt_token>
   "email": "joao@example.com",
   "nome": "Joao Pedro Silva",
   "whatsapp": "+5548988888888",
+  "cpf": "52998224725",
   "cidade": "SAO JOSE",
   "bairro": "CENTRO",
   "instituicao": "Escola Municipal ABC",
+  "foto_perfil_url": "/api/v1/usuarios/user-uuid-1234567890/foto-perfil",
   "perfil_completo": true,
   "consentimento_ia": false,
   "role": "USER",
@@ -587,9 +663,11 @@ Authorization: Bearer <jwt_token>
 | `password_hash` | System | No | Internal backend storage only |
 | `nome` | User input | Yes | Required for completed profile |
 | `whatsapp` | User input | Yes | Required for completed profile |
+| `cpf` | User input | Yes | Required for completed profile; 11 digits |
 | `cidade` | User input | Yes | Required for completed profile |
 | `bairro` | User input | Yes | Required for completed profile |
 | `instituicao` | User input | Yes | Optional |
+| `foto_perfil_url` | System | No | Protected URL for the current profile photo |
 | `perfil_completo` | System | No | Computed from required profile fields |
 | `consentimento_ia` | User input | Yes | Optional for onboarding; may change later |
 | `necessidades_academicas` | User input | Yes | Optional enum set; omitted generic edits preserve the stored values |

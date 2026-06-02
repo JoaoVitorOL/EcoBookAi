@@ -192,6 +192,7 @@ fun MaterialUploadScreen(
                     onNivelEnsinoChange = viewModel::updateNivelEnsino,
                     onSistemaEnsinoChange = viewModel::updateSistemaEnsino,
                     onEstadoConservacaoChange = viewModel::updateEstadoConservacao,
+                    onNecessidadeAcademicaChange = viewModel::updateNecessidadeAcademica,
                     onPrepareConfirm = viewModel::prepareSubmit,
                     onRestart = viewModel::restartFlow,
                     onConfirm = viewModel::submitMaterial

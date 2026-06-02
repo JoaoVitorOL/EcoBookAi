@@ -246,6 +246,7 @@ public class NotificationPayloadFactory {
                 "Material removido pela equipe",
                 "A equipe EcoBook removeu o material \"" + materialTitle +
                         "\" da plataforma durante uma revisao administrativa.",
+                solicitante == null ? "donate" : "my-requests",
                 requestId,
                 materialId,
                 participantMetadata(materialTitle, doador, solicitante)
@@ -255,6 +256,7 @@ public class NotificationPayloadFactory {
     private NotificationPayloadDTO build(NotificationType type,
                                          String title,
                                          String body,
+                                         String route,
                                          String requestId,
                                          String materialId,
                                          Map<String, String> metadata) {
@@ -263,11 +265,20 @@ public class NotificationPayloadFactory {
                 .type(type)
                 .title(title)
                 .body(body)
-                .route(type.getRoute())
+                .route(route)
                 .requestId(requestId)
                 .materialId(materialId)
                 .metadata(metadata)
                 .build();
+    }
+
+    private NotificationPayloadDTO build(NotificationType type,
+                                         String title,
+                                         String body,
+                                         String requestId,
+                                         String materialId,
+                                         Map<String, String> metadata) {
+        return build(type, title, body, type.getRoute(), requestId, materialId, metadata);
     }
 
     private LinkedHashMap<String, String> participantMetadata(String materialTitle,

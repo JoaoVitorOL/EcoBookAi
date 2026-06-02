@@ -360,6 +360,7 @@ class E2ETests extends BaseIntegrationTest {
                 {
                   "nome": "Valid WhatsApp",
                   "whatsapp": "+5511999999999",
+                  "cpf": "52998224725",
                   "cidade": "Criciuma",
                   "bairro": "Centro"
                 }
@@ -370,6 +371,7 @@ class E2ETests extends BaseIntegrationTest {
                 {
                   "nome": "Invalid WhatsApp",
                   "whatsapp": "+55 (11) 99999-9999",
+                  "cpf": "52998224725",
                   "cidade": "Criciuma",
                   "bairro": "Centro"
                 }
@@ -493,6 +495,7 @@ class E2ETests extends BaseIntegrationTest {
                   "email": "novo-email-e2e@example.com",
                   "nome": "Email Change User",
                   "whatsapp": "+5511991234567",
+                  "cpf": "52998224725",
                   "cidade": "Florianopolis",
                   "bairro": "Centro"
                 }
@@ -540,6 +543,7 @@ class E2ETests extends BaseIntegrationTest {
                 {
                   "nome": "%s",
                   "whatsapp": "%s",
+                  "cpf": "52998224725",
                   "cidade": "%s",
                   "bairro": "%s",
                   "consentimento_ia": %s
@@ -633,6 +637,7 @@ class E2ETests extends BaseIntegrationTest {
                 .passwordHash(rawPassword == null ? SEEDED_PASSWORD_HASH : passwordEncoder.encode(rawPassword))
                 .nome(nome)
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade(cidade)
                 .bairro(bairro)
                 .perfilCompleto(true)

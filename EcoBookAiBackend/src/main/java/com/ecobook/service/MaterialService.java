@@ -15,6 +15,7 @@ import com.ecobook.model.TemporaryUpload;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Disciplina;
 import com.ecobook.model.enums.EstadoConservacao;
+import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.NivelEnsino;
 import com.ecobook.model.enums.SistemaEnsino;
 import com.ecobook.model.enums.StatusIA;
@@ -155,6 +156,7 @@ public class MaterialService {
                     .ano(validated.data().ano())
                     .sistemaEnsino(validated.data().sistemaEnsino())
                     .estadoConservacao(validated.data().estadoConservacao())
+                    .necessidadeAcademica(validated.data().necessidadeAcademica())
                     .status(StatusMaterial.DISPONIVEL)
                     .imagemUrl(secureImageUrl(upload.getId(), false))
                     .imagemVersoUrl(promotedBackImage != null ? secureImageUrl(upload.getId(), true) : null)
@@ -222,6 +224,7 @@ public class MaterialService {
         material.setAno(validated.ano());
         material.setSistemaEnsino(validated.sistemaEnsino());
         material.setEstadoConservacao(validated.estadoConservacao());
+        material.setNecessidadeAcademica(validated.necessidadeAcademica());
         material.setDataPublicacao(validated.dataPublicacao());
 
         return materialMapper.toDto(materialRepository.save(material));
@@ -339,6 +342,7 @@ public class MaterialService {
                 request.getAno(),
                 request.getSistemaEnsino(),
                 request.getEstadoConservacao(),
+                request.getNecessidadeAcademica(),
                 request.getDataPublicacao(),
                 errors
         );
@@ -362,6 +366,7 @@ public class MaterialService {
                 request.getAno(),
                 request.getSistemaEnsino(),
                 request.getEstadoConservacao(),
+                request.getNecessidadeAcademica(),
                 request.getDataPublicacao(),
                 errors
         );
@@ -382,6 +387,7 @@ public class MaterialService {
                                                        Integer rawAno,
                                                        String rawSistemaEnsino,
                                                        String rawEstadoConservacao,
+                                                       String rawNecessidadeAcademica,
                                                        Integer rawDataPublicacao,
                                                        Map<String, String> errors) {
         String titulo = trimToNull(rawTitulo);
@@ -412,6 +418,12 @@ public class MaterialService {
         NivelEnsino nivelEnsino = parseEnum(rawNivelEnsino, NivelEnsino.class, "nivel_ensino", errors);
         SistemaEnsino sistemaEnsino = parseEnum(rawSistemaEnsino, SistemaEnsino.class, "sistema_ensino", errors);
         EstadoConservacao estadoConservacao = parseEnum(rawEstadoConservacao, EstadoConservacao.class, "estado_conservacao", errors);
+        NecessidadeAcademica necessidadeAcademica = parseEnum(
+                rawNecessidadeAcademica,
+                NecessidadeAcademica.class,
+                "necessidade_academica",
+                errors
+        );
 
         Integer ano = rawAno;
         if (nivelEnsino != null) {
@@ -439,6 +451,7 @@ public class MaterialService {
                 ano,
                 sistemaEnsino,
                 estadoConservacao,
+                necessidadeAcademica,
                 dataPublicacao
         );
     }
@@ -513,6 +526,7 @@ public class MaterialService {
             Integer ano,
             SistemaEnsino sistemaEnsino,
             EstadoConservacao estadoConservacao,
+            NecessidadeAcademica necessidadeAcademica,
             Integer dataPublicacao
     ) {
     }

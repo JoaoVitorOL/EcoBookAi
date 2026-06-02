@@ -4,5 +4,6 @@ data class SolicitacaoStudentDTO(
     val id: String,
     val nome: String,
     val cidade: String,
-    val bairro: String
+    val bairro: String,
+    val fotoPerfilUrl: String? = null
 )

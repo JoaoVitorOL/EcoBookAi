@@ -27,6 +27,7 @@ interface MaterialApiService {
         @Query("nivel_ensino") nivelEnsino: String? = null,
         @Query("ano") ano: Int? = null,
         @Query("sistema_ensino") sistemaEnsino: String? = null,
+        @Query("necessidade_academica") necessidadeAcademica: String? = null,
         @Query("cidade") cidade: String? = null,
         @Query("bairro") bairro: String? = null,
         @Query("min_ano_publicacao") minAnoPublicacao: Int? = null,

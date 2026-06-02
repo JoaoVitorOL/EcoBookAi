@@ -1,7 +1,7 @@
 # Data Model: EcoBook IA
 
-**Phase**: 1-7 runtime  
-**Date**: 2026-05-21  
+**Phase**: 1-10 runtime  
+**Date**: 2026-05-31  
 **Purpose**: Document the entity model currently implemented across the backend and the persisted notification stack
 
 ---
@@ -11,7 +11,7 @@
 The runtime schema is defined by:
 
 - JPA mappings in `EcoBookAiBackend/src/main/java/com/ecobook/model/`
-- Flyway migrations `V1` through `V15`
+- Flyway migrations `V1` through `V18`
 
 This document is the current human-readable summary of that runtime model.
 
@@ -46,9 +46,12 @@ Platform user for auth, onboarding, donation, request, and notification token sy
 | `password_hash` | VARCHAR(255) | Backend-only password storage |
 | `nome` | VARCHAR(255) | Required at persistence level |
 | `whatsapp` | VARCHAR(20) | Nullable until onboarding finishes |
+| `cpf` | VARCHAR(11) | Required for completed profile |
 | `cidade` | VARCHAR(100) | Normalized before save |
 | `bairro` | VARCHAR(100) | Normalized before save |
 | `instituicao` | VARCHAR(255) | Optional |
+| `foto_perfil_path` | VARCHAR(1000) | Optional stored asset path |
+| `foto_perfil_mime_type` | VARCHAR(100) | Optional stored MIME type |
 | `fcm_token` | VARCHAR(512) | Optional current device token |
 | `perfil_completo` | BOOLEAN | Derived from profile fields |
 | `consentimento_ia` | BOOLEAN | Controls Gemini usage |
@@ -79,6 +82,7 @@ Educational material offered by a donor.
 | `ano` | INTEGER | Null for `SUPERIOR` |
 | `sistema_ensino` | `sistema_ensino_enum` | Current runtime list includes `ANGLO`, `OBJETIVO`, `COC`, `POSITIVO`, `POLIEDRO`, `ETAPA`, `BERNOULLI`, `SAS`, `FTD`, `OUTRO` |
 | `estado_conservacao` | `estado_conservacao_enum` | Manual state |
+| `necessidade_academica` | `necessidade_academica_enum` | Manual field chosen by the donor for each material |
 | `status` | `status_material_enum` | `DISPONIVEL`, `RESERVADO`, `DOADO`, `CANCELADO` |
 | `imagem_url` | VARCHAR(500) | Promoted front cover path |
 | `imagem_verso_url` | VARCHAR(500) | Optional promoted back cover path |
@@ -218,3 +222,4 @@ Implemented invariants:
 - the `local` profile now maps PostgreSQL named enums to H2-compatible domains for local bootstrapping
 - `database-schema.sql` should be treated as a convenience snapshot only; when any conflict exists, the JPA mappings plus Flyway migrations win
 - the non-receipt report table and the admin resolution flow are both live in runtime, including `PATCH /api/v1/admin/reports/{id}/resolve`
+- the onboarding/profile flows are meant for adult guardians, and the app does not model the delivery meeting point inside the platform

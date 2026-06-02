@@ -13,13 +13,14 @@ import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.dto.UsuarioDTO
 import com.ecobook.fcm.FcmTokenSyncManager
+import com.ecobook.material.PreparedImage
 import com.google.gson.GsonBuilder
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import okhttp3.Headers.Companion.headersOf
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody.Companion.toResponseBody
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import retrofit2.Response
@@ -27,48 +28,81 @@ import retrofit2.Response
 class AuthRepositoryTest {
 
     @Test
-    fun exportPersonalDataShouldReadFilenameAndBytesFromBinaryResponse() = runTest {
-        val zipBytes = byteArrayOf(0x50, 0x4B, 0x03, 0x04)
+    fun uploadProfilePhotoShouldReturnUpdatedUserAndRefreshSession() = runTest {
+        val updatedUser = UsuarioDTO(
+            id = "user-1",
+            email = "adulto@example.com",
+            nome = "Adulto Responsavel",
+            whatsapp = "+5511991234567",
+            cpf = "52998224725",
+            cidade = "FLORIANOPOLIS",
+            bairro = "CENTRO",
+            instituicao = "Escola EcoBook",
+            fotoPerfilUrl = "/api/v1/usuarios/user-1/foto-perfil",
+            perfilCompleto = true,
+            consentimentoIa = true
+        )
+        val sessionManager = relaxedSessionManager()
         val apiService = FakeAuthApiService(
-            exportResponse = Response.success(
-                zipBytes.toResponseBody("application/zip".toMediaType()),
-                headersOf("Content-Disposition", "attachment; filename=\"ecobook-export.zip\"")
+            uploadProfilePhotoResponse = Response.success(
+                ApiEnvelopeDTO(
+                    status = 200,
+                    message = "ok",
+                    timestamp = "2026-05-31T18:00:00",
+                    path = "/api/v1/usuarios/me/foto-perfil",
+                    data = updatedUser
+                )
             )
         )
         val repository = AuthRepository(
             authApiService = apiService,
-            sessionManager = relaxedSessionManager(),
+            sessionManager = sessionManager,
             fcmTokenSyncManager = relaxedFcmTokenSyncManager(),
             gson = GsonBuilder().create()
         )
 
-        val exportFile = repository.exportPersonalData()
+        val result = repository.uploadProfilePhoto(
+            PreparedImage(
+                fileName = "profile-photo.jpg",
+                mimeType = "image/jpeg",
+                bytes = byteArrayOf(1, 2, 3)
+            )
+        )
 
-        assertEquals("ecobook-export.zip", exportFile.fileName)
-        assertArrayEquals(zipBytes, exportFile.bytes)
+        assertEquals("/api/v1/usuarios/user-1/foto-perfil", result.fotoPerfilUrl)
+        verify(exactly = 1) { sessionManager.onUserLoaded(updatedUser) }
     }
 
     @Test
-    fun exportPersonalDataShouldSurfaceBackendApiErrors() = runTest {
+    fun uploadProfilePhotoShouldSurfaceBackendApiErrors() = runTest {
+        val sessionManager = relaxedSessionManager()
         val apiService = FakeAuthApiService(
-            exportResponse = Response.error(
-                403,
-                """{"error":"FORBIDDEN","message":"Sem permissao para exportar"}"""
+            uploadProfilePhotoResponse = Response.error(
+                422,
+                """{"error":"UNPROCESSABLE_ENTITY","message":"Imagem invalida","fieldErrors":{"image":"Selecione JPG ou PNG"}}"""
                     .toResponseBody("application/json".toMediaType())
             )
         )
         val repository = AuthRepository(
             authApiService = apiService,
-            sessionManager = relaxedSessionManager(),
+            sessionManager = sessionManager,
             fcmTokenSyncManager = relaxedFcmTokenSyncManager(),
             gson = GsonBuilder().create()
         )
 
         try {
-            repository.exportPersonalData()
+            repository.uploadProfilePhoto(
+                PreparedImage(
+                    fileName = "profile-photo.webp",
+                    mimeType = "image/webp",
+                    bytes = byteArrayOf(9, 8, 7)
+                )
+            )
         } catch (error: ApiException) {
-            assertEquals(403, error.statusCode)
-            assertEquals("Sem permissao para exportar", error.message)
+            assertEquals(422, error.statusCode)
+            assertEquals("Imagem invalida", error.message)
+            assertEquals("Selecione JPG ou PNG", error.fieldErrors["image"])
+            verify(exactly = 0) { sessionManager.onUserLoaded(any()) }
             return@runTest
         }
 
@@ -76,16 +110,16 @@ class AuthRepositoryTest {
     }
 
     private fun relaxedSessionManager(): SessionManager {
-        return io.mockk.mockk(relaxed = true)
+        return mockk(relaxed = true)
     }
 
     private fun relaxedFcmTokenSyncManager(): FcmTokenSyncManager {
-        return io.mockk.mockk(relaxed = true)
+        return mockk(relaxed = true)
     }
 }
 
 private class FakeAuthApiService(
-    private val exportResponse: Response<ResponseBody>
+    private val uploadProfilePhotoResponse: Response<ApiEnvelopeDTO<UsuarioDTO>>
 ) : AuthApiService {
 
     override suspend fun register(request: RegisterRequestDTO): Response<ApiEnvelopeDTO<AuthResponseDTO>> {
@@ -108,6 +142,10 @@ private class FakeAuthApiService(
         error("Not used in this test")
     }
 
+    override suspend fun uploadProfilePhoto(image: MultipartBody.Part): Response<ApiEnvelopeDTO<UsuarioDTO>> {
+        return uploadProfilePhotoResponse
+    }
+
     override suspend fun updateAiConsent(request: UpdateAiConsentRequestDTO): Response<ApiEnvelopeDTO<UsuarioDTO>> {
         error("Not used in this test")
     }
@@ -119,6 +157,4 @@ private class FakeAuthApiService(
     override suspend fun deleteAccount(request: DeleteAccountRequestDTO): Response<ApiEnvelopeDTO<DeleteAccountResponseDTO>> {
         error("Not used in this test")
     }
-
-    override suspend fun exportPersonalData(): Response<ResponseBody> = exportResponse
 }

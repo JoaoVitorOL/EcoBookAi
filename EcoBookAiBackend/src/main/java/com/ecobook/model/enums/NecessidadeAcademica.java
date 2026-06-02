@@ -1,15 +1,15 @@
 ﻿package com.ecobook.model.enums;
 
 /**
- * Student academic needs
+ * Classificações acadêmicas usadas no cadastro e na busca de materiais.
  */
 public enum NecessidadeAcademica {
-    TEXTBOOKS("Livros didaticos"),
-    WORKBOOKS("Cadernos de exercicios"),
-    REFERENCE_MATERIALS("Materiais de referencia"),
-    FICTION("Obras de ficcao"),
-    TECHNICAL_BOOKS("Livros tecnicos"),
-    TEST_PREP("Preparacao para testes");
+    TEXTBOOKS("Livros didáticos"),
+    WORKBOOKS("Cadernos de exercícios"),
+    REFERENCE_MATERIALS("Materiais de referência"),
+    FICTION("Obras de ficção"),
+    TECHNICAL_BOOKS("Livros técnicos"),
+    TEST_PREP("Preparação para provas");
 
     private final String description;
 
@@ -18,8 +18,8 @@ public enum NecessidadeAcademica {
     }
 
     /**
-     * Returns the d es cr ip ti on.
-     * @return requested value
+     * Retorna a descrição exibida para a necessidade.
+     * @return descrição amigável da necessidade
      */
     public String getDescription() {
         return description;

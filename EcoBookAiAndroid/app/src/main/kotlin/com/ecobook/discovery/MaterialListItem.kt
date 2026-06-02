@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ import com.ecobook.api.BackendUrlResolver
 import com.ecobook.di.SecureStorageEntryPoint
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.ui.components.GlassCard
+import com.ecobook.ui.components.ProfileAvatar
 import com.ecobook.ui.components.StatusBadge
 import com.ecobook.ui.theme.EcoBookTone
 import com.ecobook.ui.theme.ecoBookBadgeColors
@@ -112,15 +114,30 @@ fun MaterialListItem(
                     )
                 }
                 Text(
+                    text = "Necessidade acadêmica: ${formatNecessidadeAcademica(material.necessidadeAcademica)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
                     text = "${material.bairro}, ${material.cidade}",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    text = "Doador: ${material.doador.nome}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ProfileAvatar(
+                        imageUrl = material.doador.fotoPerfilUrl,
+                        name = material.doador.nome,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Text(
+                        text = "Doador: ${material.doador.nome}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Text(
                     text = buildMetaLine(material),
                     style = MaterialTheme.typography.bodySmall,

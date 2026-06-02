@@ -71,11 +71,19 @@ fun AuthScreen(
                         "Criar conta no EcoBook"
                     },
                     subtitle = if (uiState.mode == AuthMode.LOGIN) {
-                        "Entre com email e senha para continuar seu cadastro no aplicativo."
+                        "Entre com email e senha para continuar o cadastro do adulto responsável."
                     } else {
-                        "Crie sua conta com nome, email e senha. Os demais dados ficam para a próxima etapa do cadastro."
+                        "Crie a conta do pai, mãe ou responsável legal. Os demais dados ficam para a próxima etapa do cadastro."
                     }
                 )
+
+                GlassCard {
+                    Text(
+                        text = "Uso destinado a pais, mães e responsáveis legais. O app não organiza conversa nem entrega dentro da plataforma: o contato e o ponto de encontro são combinados depois, via WhatsApp, entre as partes adultas.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 if (!sessionMessage.isNullOrBlank()) {
                     GlassCard {
@@ -150,9 +158,9 @@ private fun AuthCard(
     GlassCard {
         Text(
             text = if (uiState.mode == AuthMode.LOGIN) {
-                "Use o email e a senha cadastrados para retomar sua sessão."
+                "Use o email e a senha cadastrados para retomar a sessão do responsável."
             } else {
-                "Crie sua conta com nome, email e senha. Os demais dados ficam para a próxima etapa do cadastro."
+                "Crie a conta com nome, email e senha. O WhatsApp, CPF e a localização do adulto responsável ficam para a próxima etapa."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -325,11 +333,11 @@ private fun backendOfflineHint(
 
     return when {
         configuredBackendUrl.contains("10.0.2.2") -> {
-            "Dica: $emulatorUrl funciona no emulador Android. Se o backend estiver no WSL ou se você estiver usando um celular físico, troque para o IP real da máquina, por exemplo $physicalUrl."
+            "Dica: $emulatorUrl funciona no emulador Android. Se o backend estiver no WSL ou se voce estiver usando um celular fisico, troque para o IP real da maquina, por exemplo $physicalUrl."
         }
 
         configuredBackendUrl.contains("192.168.0.10") -> {
-            "Dica: $physicalUrl é apenas um exemplo. Substitua esse endpoint pelo IP real da máquina host na mesma rede Wi-Fi."
+            "Dica: $physicalUrl e apenas um exemplo. Substitua esse endpoint pelo IP real da maquina host na mesma rede Wi-Fi."
         }
 
         else -> null

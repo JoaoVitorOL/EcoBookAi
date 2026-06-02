@@ -11,6 +11,7 @@ data class MaterialDTO(
     val ano: Int?,
     val sistemaEnsino: String,
     val estadoConservacao: String,
+    val necessidadeAcademica: String,
     val status: String,
     val imagemUrl: String?,
     val imagemVersoUrl: String? = null,

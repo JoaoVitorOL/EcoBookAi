@@ -11,6 +11,7 @@ import com.ecobook.exception.UnprocessableEntityException;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.repository.UsuarioRepository;
+import com.ecobook.validator.CpfValidator;
 import com.ecobook.validation.ProfileCompletionValidation;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -19,14 +20,22 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +50,7 @@ public class UsuarioService {
     private final Validator validator;
     private final ApplicationEventPublisher eventPublisher;
     private final ConsentService consentService;
+    private final ImageStorageService imageStorageService;
 
     /**
      * Loads the profile DTO for the user identified by email.
@@ -73,6 +83,7 @@ public class UsuarioService {
 
         validateRequiredFields(request);
         validateWhatsApp(request.getWhatsapp());
+        validateCpf(request.getCpf());
         validateEmailChange(usuario, request.getEmail());
 
         boolean profileWasComplete = usuario.isPerfilCompleto();
@@ -85,6 +96,7 @@ public class UsuarioService {
         }
         usuario.setNome(request.getNome().trim());
         usuario.setWhatsapp(request.getWhatsapp().trim());
+        usuario.setCpf(CpfValidator.normalize(request.getCpf()));
         usuario.setCidade(normalizedGeo.city());
         usuario.setBairro(normalizedGeo.neighborhood());
         usuario.setInstituicao(StringUtils.hasText(request.getInstituicao()) ? request.getInstituicao().trim() : null);
@@ -176,10 +188,12 @@ public class UsuarioService {
                 .email(usuario.getEmail())
                 .nome(usuario.getNome())
                 .whatsapp(usuario.getWhatsapp())
+                .cpf(usuario.getCpf())
                 .cidade(usuario.getCidade())
                 .bairro(usuario.getBairro())
                 .instituicao(usuario.getInstituicao())
-                .perfilCompleto(usuario.getPerfilCompleto())
+                .fotoPerfilUrl(UserProfilePhotoPaths.resolveUrl(usuario))
+                .perfilCompleto(usuario.isPerfilCompleto())
                 .consentimentoIa(usuario.getConsentimentoIa())
                 .role(usuario.getRole().name())
                 .necessidadesAcademicas(usuario.getNecessidadesAcademicas() == null ? Set.of()
@@ -202,6 +216,9 @@ public class UsuarioService {
         }
         if (!StringUtils.hasText(request.getWhatsapp())) {
             fieldErrors.put("whatsapp", "Informe um WhatsApp");
+        }
+        if (!StringUtils.hasText(request.getCpf())) {
+            fieldErrors.put("cpf", "Informe seu CPF");
         }
         if (!StringUtils.hasText(request.getCidade())) {
             fieldErrors.put("cidade", "Informe sua cidade");
@@ -261,6 +278,20 @@ public class UsuarioService {
         }
     }
 
+    private void validateCpf(String cpf) {
+        if (cpf == null) {
+            return;
+        }
+
+        String normalizedCpf = CpfValidator.normalize(cpf);
+        if (!CpfValidator.isValid(normalizedCpf)) {
+            throw new BadRequestException(
+                    "O perfil contem campos invalidos",
+                    new LinkedHashMap<>(Map.of("cpf", "Informe um CPF com 11 digitos"))
+            );
+        }
+    }
+
     private void validateEntityConstraints(Usuario usuario) {
         Set<ConstraintViolation<Usuario>> violations = validator.validate(usuario, ProfileCompletionValidation.class);
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
@@ -276,7 +307,8 @@ public class UsuarioService {
             return;
         }
 
-        if (fieldErrors.keySet().stream().allMatch(field -> field.equals("whatsapp") || field.equals("email"))) {
+        if (fieldErrors.keySet().stream().allMatch(field ->
+                field.equals("whatsapp") || field.equals("email") || field.equals("cpf"))) {
             throw new BadRequestException("O perfil contem campos invalidos", fieldErrors);
         }
 
@@ -289,5 +321,104 @@ public class UsuarioService {
 
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE, key = "#email"),
+            @CacheEvict(value = CacheNames.USER_AUTH_CONTEXT, key = "#email")
+    })
+    @Transactional
+    public UsuarioDTO updateProfilePhoto(String email, MultipartFile image) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+
+        byte[] imageBytes = readImageBytes(image);
+        String mimeType = imageStorageService.validateImage(imageBytes);
+        Path targetPath = profilePhotoPath(usuario.getId(), mimeType);
+
+        try {
+            Files.createDirectories(targetPath.getParent());
+            Files.write(targetPath, imageBytes);
+        } catch (IOException exception) {
+            throw new ResourceNotFoundException("Nao foi possivel armazenar a foto de perfil", exception);
+        }
+
+        String previousPath = usuario.getFotoPerfilPath();
+        usuario.setFotoPerfilPath(targetPath.toString());
+        usuario.setFotoPerfilMimeType(mimeType);
+        Usuario savedUser = usuarioRepository.save(usuario);
+
+        if (StringUtils.hasText(previousPath) && !previousPath.equals(targetPath.toString())) {
+            imageStorageService.deleteIfExists(previousPath);
+        }
+
+        return toDto(savedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public ProfilePhotoPayload loadProfilePhoto(String requesterEmail, String userId) {
+        usuarioRepository.findByEmailIgnoreCase(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario autenticado nao encontrado"));
+
+        Usuario usuario = usuarioRepository.findById(parseUserId(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+
+        if (!StringUtils.hasText(usuario.getFotoPerfilPath())) {
+            throw new ResourceNotFoundException("Foto de perfil nao encontrada");
+        }
+
+        Path path = Path.of(usuario.getFotoPerfilPath()).toAbsolutePath().normalize();
+        if (!Files.exists(path)) {
+            throw new ResourceNotFoundException("Foto de perfil nao encontrada");
+        }
+
+        String contentType = StringUtils.hasText(usuario.getFotoPerfilMimeType())
+                ? usuario.getFotoPerfilMimeType().trim()
+                : resolvePhotoMimeType(path);
+        return new ProfilePhotoPayload(new FileSystemResource(path), contentType);
+    }
+
+    public record ProfilePhotoPayload(Resource resource, String contentType) {
+    }
+
+    private byte[] readImageBytes(MultipartFile image) {
+        try {
+            return image.getBytes();
+        } catch (IOException exception) {
+            throw new BadRequestException("Imagem invalida", Map.of(
+                    "image", "Nao foi possivel ler a foto de perfil enviada. Escolha a imagem novamente e tente de novo."
+            ));
+        }
+    }
+
+    private Path profilePhotoPath(UUID userId, String mimeType) {
+        String extension = "image/png".equals(mimeType) ? ".png" : ".jpg";
+        return Path.of(imageStorageService.getUploadDir(), userId.toString(), "profile", "profile-photo" + extension)
+                .toAbsolutePath()
+                .normalize();
+    }
+
+    private UUID parseUserId(String rawUserId) {
+        if (!StringUtils.hasText(rawUserId)) {
+            throw new BadRequestException("Identificador de usuario invalido", Map.of(
+                    "user_id", "Informe um UUID valido"
+            ));
+        }
+
+        try {
+            return UUID.fromString(rawUserId.trim());
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestException("Identificador de usuario invalido", Map.of(
+                    "user_id", "Informe um UUID valido"
+            ));
+        }
+    }
+
+    private String resolvePhotoMimeType(Path path) {
+        String fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
+        if (fileName.endsWith(".png")) {
+            return "image/png";
+        }
+        return "image/jpeg";
     }
 }

@@ -70,6 +70,9 @@ fun NavGraph(
     val notificationsUiState by notificationsViewModel.uiState.collectAsStateWithLifecycle()
     val pendingNotification by notificationNavigationManager.pendingDestination.collectAsStateWithLifecycle()
     val sessionDestination = uiState.session.destination
+    val donorRequestUnreadCount = notificationsUiState.notifications.count { notification ->
+        notification.route == AppRoutes.DONOR_REQUESTS
+    }
     val mainDestinations = listOf(
         AppDestination.MyRequests,
         AppDestination.Discovery,
@@ -180,6 +183,7 @@ fun NavGraph(
                         DonateScreen(
                             onOpenDonorRequests = { navController.navigate(AppDestination.DonorRequests.route) },
                             onOpenPublishNew = { navController.navigate(AppDestination.DonatePublish.route) },
+                            donorRequestUnreadCount = donorRequestUnreadCount,
                             unreadNotifications = notificationsUiState.unreadCount,
                             onOpenNotifications = {
                                 navController.navigateToNotifications()
@@ -259,9 +263,11 @@ fun NavGraph(
                             onNameChange = viewModel::updateNome,
                             onEmailChange = viewModel::updateEmail,
                             onWhatsappChange = viewModel::updateWhatsapp,
+                            onCpfChange = viewModel::updateCpf,
                             onCityChange = viewModel::updateCidade,
                             onNeighborhoodChange = viewModel::updateBairro,
                             onInstitutionChange = viewModel::updateInstituicao,
+                            onUploadProfilePhoto = viewModel::uploadProfilePhoto,
                             onSaveProfile = viewModel::saveProfile,
                             onToggleDarkTheme = viewModel::updateDarkThemeOverride,
                             onFollowSystemTheme = viewModel::followSystemTheme,

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ecobook.dto.MaterialDTO
+import com.ecobook.ui.components.ProfileAvatar
 import com.ecobook.ui.components.StatusBadge
 import com.ecobook.ui.theme.EcoBookTone
 import com.ecobook.ui.theme.ecoBookBadgeColors
@@ -101,7 +103,7 @@ fun MaterialDetailDialog(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = material.descricao.ifBlank { "Sem descrição adicional." },
+                    text = material.descricao.ifBlank { "Sem descricao adicional." },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -130,13 +132,32 @@ fun MaterialDetailDialog(
                     )
                 }
                 MetadataLine("Sistema de ensino", formatSistemaEnsino(material.sistemaEnsino))
+                MetadataLine("Necessidade acadêmica", formatNecessidadeAcademica(material.necessidadeAcademica))
                 MetadataLine("Local", "${material.bairro}, ${material.cidade}")
                 MetadataLine("Ano de publicação", material.dataPublicacao?.toString() ?: "Não informado")
                 MetadataLine("Autor", material.autor ?: "Não informado")
                 MetadataLine("Editora", material.editora ?: "Não informada")
-                MetadataLine("Doador", material.doador.nome)
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ProfileAvatar(
+                        imageUrl = material.doador.fotoPerfilUrl,
+                        name = material.doador.nome,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Doador",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = material.doador.nome,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
                 Text(
-                    text = "O contato do doador só aparece depois que a solicitação for aprovada.",
+                    text = "O contato do doador só aparece depois que a solicitação for aprovada. A entrega e o ponto de encontro são combinados exclusivamente pelo WhatsApp entre os adultos responsáveis.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

@@ -39,7 +39,7 @@ class DiscoveryViewModelTest {
         every { secureStorage.getUserCidade() } returns "Florianopolis"
         every { secureStorage.getUserBairro() } returns "Centro"
         coEvery {
-            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns pagedResponse(
             results = listOf(sampleMaterial(id = "mat-1")),
             page = 0,
@@ -64,6 +64,7 @@ class DiscoveryViewModelTest {
                 nivelEnsino = null,
                 ano = null,
                 sistemaEnsino = null,
+                necessidadeAcademica = null,
                 cidade = "Florianopolis",
                 bairro = "Centro",
                 minAnoPublicacao = null,
@@ -84,7 +85,7 @@ class DiscoveryViewModelTest {
         every { secureStorage.getUserCidade() } returns null
         every { secureStorage.getUserBairro() } returns null
         coEvery {
-            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns pagedResponse()
 
         val viewModel = DiscoveryViewModel(repository, requestRepository, referenceDataRepository, secureStorage)
@@ -102,7 +103,7 @@ class DiscoveryViewModelTest {
         )
 
         coVerify(exactly = 0) {
-            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -121,6 +122,7 @@ class DiscoveryViewModelTest {
                 nivelEnsino = null,
                 ano = null,
                 sistemaEnsino = null,
+                necessidadeAcademica = null,
                 cidade = "Sao Jose",
                 bairro = null,
                 minAnoPublicacao = null,
@@ -143,6 +145,7 @@ class DiscoveryViewModelTest {
                 nivelEnsino = null,
                 ano = null,
                 sistemaEnsino = null,
+                necessidadeAcademica = null,
                 cidade = "Sao Jose",
                 bairro = null,
                 minAnoPublicacao = null,
@@ -179,7 +182,7 @@ class DiscoveryViewModelTest {
         every { secureStorage.getUserCidade() } returns null
         every { secureStorage.getUserBairro() } returns null
         coEvery {
-            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns pagedResponse()
 
         val viewModel = DiscoveryViewModel(repository, requestRepository, referenceDataRepository, secureStorage)
@@ -200,7 +203,7 @@ class DiscoveryViewModelTest {
         every { secureStorage.getUserCidade() } returns null
         every { secureStorage.getUserBairro() } returns null
         coEvery {
-            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns pagedResponse()
 
         val viewModel = DiscoveryViewModel(repository, requestRepository, referenceDataRepository, secureStorage)
@@ -246,6 +249,7 @@ class DiscoveryViewModelTest {
             ano = 7,
             sistemaEnsino = "ANGLO",
             estadoConservacao = "BOM",
+            necessidadeAcademica = "TEXTBOOKS",
             status = "DISPONIVEL",
             imagemUrl = null,
             uploadId = null,

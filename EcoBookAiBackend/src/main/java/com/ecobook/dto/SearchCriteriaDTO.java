@@ -1,6 +1,7 @@
 package com.ecobook.dto;
 
 import com.ecobook.model.enums.Disciplina;
+import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.NivelEnsino;
 import com.ecobook.model.enums.SistemaEnsino;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -9,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,4 +25,5 @@ public class SearchCriteriaDTO {
     private String bairro;
     private Integer minAnoPublicacao;
     private Integer maxAnoPublicacao;
+    private NecessidadeAcademica necessidadeAcademica;
 }

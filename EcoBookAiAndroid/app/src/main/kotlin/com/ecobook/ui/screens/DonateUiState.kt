@@ -3,6 +3,7 @@ package com.ecobook.ui.screens
 import com.ecobook.dto.MaterialDTO
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.ReferenceDataCatalog
 import com.ecobook.model.SistemaEnsino
@@ -17,6 +18,7 @@ data class DonateMaterialDraft(
     val ano: String = "",
     val sistemaEnsino: SistemaEnsino? = null,
     val estadoConservacao: EstadoConservacao? = null,
+    val necessidadeAcademica: NecessidadeAcademica? = null,
     val dataPublicacao: String = ""
 )
 
@@ -26,6 +28,7 @@ data class DonateUiState(
     val niveisEnsino: List<NivelEnsino> = ReferenceDataCatalog.defaults().niveisEnsino,
     val sistemasEnsino: List<SistemaEnsino> = ReferenceDataCatalog.defaults().sistemasEnsino,
     val estadosConservacao: List<EstadoConservacao> = ReferenceDataCatalog.defaults().estadosConservacao,
+    val necessidadesAcademicas: List<NecessidadeAcademica> = ReferenceDataCatalog.defaults().necessidadesAcademicas,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isDeleting: Boolean = false,

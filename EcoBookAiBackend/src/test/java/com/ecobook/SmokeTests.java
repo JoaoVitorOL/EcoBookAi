@@ -143,6 +143,7 @@ class SmokeTests extends BaseIntegrationTest {
                                 {
                                   "nome": "%s",
                                   "whatsapp": "+5511991234567",
+                                  "cpf": "52998224725",
                                   "cidade": "Florianopolis",
                                   "bairro": "Centro",
                                   "instituicao": "Escola Smoke",

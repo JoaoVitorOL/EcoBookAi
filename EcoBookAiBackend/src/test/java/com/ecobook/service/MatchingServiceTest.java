@@ -8,6 +8,7 @@ import com.ecobook.model.Material;
 import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Disciplina;
 import com.ecobook.model.enums.EstadoConservacao;
+import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.NivelEnsino;
 import com.ecobook.model.enums.Role;
 import com.ecobook.model.enums.SistemaEnsino;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -155,6 +157,33 @@ class MatchingServiceTest extends BaseIntegrationTest {
                 .doesNotContain("Historia Direta");
     }
 
+    @Test
+    @DisplayName("findMatching should filter materials by academic need")
+    void shouldFilterByAcademicNeed() {
+        Usuario donor = createUser("needs-donor@example.com", "CURITIBA", "CENTRO");
+
+        createMaterial(donor, "Colecao Escolar 2024", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 7,
+                SistemaEnsino.ANGLO, "CURITIBA", "CENTRO", 2024);
+        createMaterial(donor, "Guia Enem Matematica 2020", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 7,
+                SistemaEnsino.ANGLO, "CURITIBA", "CENTRO", 2020);
+
+        PagedResponseDTO<MaterialDTO> response = matchingService.findMatching(
+                SearchCriteriaDTO.builder()
+                        .disciplina(Disciplina.MATEMATICA)
+                        .nivelEnsino(NivelEnsino.FUNDAMENTAL)
+                        .ano(7)
+                        .sistemaEnsino(SistemaEnsino.ANGLO)
+                        .cidade("Curitiba")
+                        .bairro("Centro")
+                        .necessidadeAcademica(NecessidadeAcademica.TEST_PREP)
+                        .build(),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(response.getResults()).extracting(MaterialDTO::getTitulo)
+                .containsExactly("Guia Enem Matematica 2020");
+    }
+
     private Usuario createUser(String email, String cidade, String bairro) {
         return usuarioRepository.saveAndFlush(Usuario.builder()
                 .email(email)
@@ -187,6 +216,9 @@ class MatchingServiceTest extends BaseIntegrationTest {
                 .ano(ano)
                 .sistemaEnsino(sistemaEnsino)
                 .estadoConservacao(EstadoConservacao.BOM)
+                .necessidadeAcademica(titulo.contains("Enem")
+                        ? NecessidadeAcademica.TEST_PREP
+                        : NecessidadeAcademica.TEXTBOOKS)
                 .status(StatusMaterial.DISPONIVEL)
                 .cidade(cidade)
                 .bairro(bairro)

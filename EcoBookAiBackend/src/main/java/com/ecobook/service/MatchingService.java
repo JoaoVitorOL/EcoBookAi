@@ -1,4 +1,4 @@
-﻿package com.ecobook.service;
+package com.ecobook.service;
 
 import com.ecobook.dto.MaterialDTO;
 import com.ecobook.dto.PagedResponseDTO;
@@ -135,6 +135,7 @@ public class MatchingService {
                 .nivelEnsino(criteria.getNivelEnsino())
                 .ano(criteria.getAno())
                 .sistemaEnsino(criteria.getSistemaEnsino())
+                .necessidadeAcademica(criteria.getNecessidadeAcademica())
                 .cidade(city == null ? null : geoNormalizationService.normalize(city))
                 .bairro(neighborhood == null ? null : geoNormalizationService.normalize(neighborhood))
                 .minAnoPublicacao(criteria.getMinAnoPublicacao())
@@ -177,6 +178,10 @@ public class MatchingService {
 
             if (criteria.getSistemaEnsino() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("sistemaEnsino"), criteria.getSistemaEnsino()));
+            }
+
+            if (criteria.getNecessidadeAcademica() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("necessidadeAcademica"), criteria.getNecessidadeAcademica()));
             }
 
             if (criteria.getMinAnoPublicacao() != null) {
@@ -236,8 +241,8 @@ public class MatchingService {
             cursorId = UUID.fromString(afterId);
         } catch (IllegalArgumentException ex) {
             throw new BadRequestException(
-                    "O cursor after_id e invalido",
-                    Map.of("after_id", "Informe um UUID valido para after_id")
+                    "O cursor after_id é inválido",
+                    Map.of("after_id", "Informe um UUID válido para after_id")
             );
         }
 
@@ -246,8 +251,8 @@ public class MatchingService {
                                 criteriaBuilder.equal(root.get("id"), cursorId))
                 )
                 .orElseThrow(() -> new BadRequestException(
-                        "O cursor after_id nao pertence ao resultado atual",
-                        Map.of("after_id", "Use um after_id retornado pela pagina anterior com os mesmos filtros")
+                        "O cursor after_id não pertence ao resultado atual",
+                        Map.of("after_id", "Use um after_id retornado pela página anterior com os mesmos filtros")
                 ));
     }
 

@@ -30,10 +30,13 @@ class SessionManager @Inject constructor(
         secureStorage.saveUserRole(response.role)
         secureStorage.saveProfileComplete(response.perfilCompleto)
         secureStorage.saveUserWhatsapp(response.whatsapp)
+        secureStorage.saveUserCpf(response.cpf)
         secureStorage.saveUserCidade(response.cidade)
         secureStorage.saveUserBairro(response.bairro)
         secureStorage.saveUserInstituicao(response.instituicao)
+        secureStorage.saveUserFotoPerfilUrl(response.fotoPerfilUrl)
         secureStorage.saveConsentimentoIa(response.consentimentoIa)
+        secureStorage.saveUserNecessidadesAcademicas(response.necessidadesAcademicas)
 
         _sessionState.value = SessionUiState(
             isAuthenticated = true,
@@ -52,10 +55,13 @@ class SessionManager @Inject constructor(
         secureStorage.saveUserRole(response.role)
         secureStorage.saveProfileComplete(response.perfilCompleto)
         secureStorage.saveUserWhatsapp(response.whatsapp)
+        secureStorage.saveUserCpf(response.cpf)
         secureStorage.saveUserCidade(response.cidade)
         secureStorage.saveUserBairro(response.bairro)
         secureStorage.saveUserInstituicao(response.instituicao)
+        secureStorage.saveUserFotoPerfilUrl(response.fotoPerfilUrl)
         secureStorage.saveConsentimentoIa(response.consentimentoIa)
+        secureStorage.saveUserNecessidadesAcademicas(response.necessidadesAcademicas)
 
         _sessionState.update {
             it.copy(

@@ -1,12 +1,14 @@
 # EcoBook AI
 
-Plataforma Android + backend Spring Boot para doacao e solicitacao de materiais de estudo, com classificacao assistida por IA, matching geografico, notificacoes e controles de consentimento/LGPD.
+Plataforma Android + backend Spring Boot para doacao e solicitacao de materiais de estudo, com classificacao assistida por IA, matching geografico, filtros por necessidade academica do material, notificacoes e controles de consentimento/LGPD.
+
+O uso previsto do MVP e por adultos, pais e responsaveis legais dos alunos. O app nao intermedeia a conversa nem o ponto de encontro: depois da aprovacao, contato e entrega sao combinados exclusivamente via WhatsApp entre as partes.
 
 ## Status Atual
 
 - Fases `1` a `10` estao implementadas e validadas no estado atual do repositorio; o que resta para lancamento real e revisao juridica do texto legal, monitoramento continuo de dependencias e revalidacao do ambiente alvo.
 - Backend: auth `email + senha + JWT`, onboarding, preview IA, materiais, discovery, solicitacoes, notificacoes, moderacao/admin, consentimentos, exclusao de conta, exportacao de dados, OpenAPI e observabilidade.
-- Android: login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador, central de notificacoes, edicao de perfil, consentimentos, exportacao de dados e exclusao de conta.
+- Android: login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador, central de notificacoes, edicao de perfil com CPF obrigatorio e foto de perfil, consentimentos, exportacao de dados e exclusao de conta.
 - Em `2026-05-23`, o app Android tambem passou por uma revisao de UI/codigo baseada em referencias oficiais do Compose para acessibilidade, state hoisting e layouts adaptativos.
 
 ## O Jeito Mais Seguro De Rodar Tudo

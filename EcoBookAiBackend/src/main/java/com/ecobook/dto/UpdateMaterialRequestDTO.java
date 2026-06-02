@@ -22,5 +22,6 @@ public class UpdateMaterialRequestDTO {
     private Integer ano;
     private String sistemaEnsino;
     private String estadoConservacao;
+    private String necessidadeAcademica;
     private Integer dataPublicacao;
 }

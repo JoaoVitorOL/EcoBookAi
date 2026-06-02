@@ -2,6 +2,7 @@ package com.ecobook.discovery
 
 import com.ecobook.model.Disciplina
 import com.ecobook.model.EstadoConservacao
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
 import java.time.LocalDateTime
@@ -26,6 +27,10 @@ internal fun formatSistemaEnsino(value: String): String {
 
 internal fun formatEstadoConservacao(value: String): String {
     return EstadoConservacao.entries.firstOrNull { it.name == value }?.label ?: humanizeEnum(value)
+}
+
+internal fun formatNecessidadeAcademica(value: String): String {
+    return NecessidadeAcademica.entries.firstOrNull { it.name == value }?.label ?: humanizeEnum(value)
 }
 
 internal fun formatAnoEscolar(value: Int?): String {

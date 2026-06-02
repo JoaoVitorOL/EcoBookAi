@@ -5,13 +5,13 @@ Backend Spring Boot do EcoBook AI.
 ## O Que Este Modulo Entrega
 
 - Autenticacao com `email + senha + JWT`
-- Perfil do usuario com onboarding e `perfil_completo`
+- Perfil do usuario com onboarding, `perfil_completo`, CPF obrigatorio para conclusao e foto de perfil opcional
 - Atualizacao de perfil com troca opcional de email, preservacao de consentimentos/dados opcionais omitidos e reautenticacao quando a identidade principal muda
 - Preview IA de material com capa frontal obrigatoria e capa traseira opcional
-- Publicacao, listagem, edicao e exclusao de materiais do doador
-- Discovery com filtros, ranking geografico e paginacao offset/cursor
+- Publicacao, listagem, edicao e exclusao de materiais do doador, incluindo necessidade academica por item
+- Discovery com filtros, ranking geografico, necessidade academica do material e paginacao offset/cursor
 - Fluxo de solicitacoes com aprovar, recusar, cancelar, concluir e expiracao automatica
-- Registro de token FCM, retry persistente e inbox de notificacoes
+- Registro de token FCM, retry persistente e inbox de notificacoes com rotas de abertura mais consistentes
 - Consentimentos, exportacao de dados, exclusao/anonimizacao de conta e trilha de auditoria
 - Observabilidade com `Micrometer`, endpoint `/actuator/prometheus`, smoke suite, cache para leituras autenticadas, catalogo publico/cacheado em `/api/v1/reference-data/material-options` e cursor `after_id` na busca de materiais
 
@@ -241,12 +241,19 @@ curl -X PUT http://127.0.0.1:8080/api/v1/usuarios/me \
   -d '{
     "nome": "Usuario Teste",
     "whatsapp": "+5511999999999",
+    "cpf": "52998224725",
     "cidade": "Florianopolis",
     "bairro": "Centro",
     "consentimento_ia": true,
     "necessidades_academicas": ["TEXTBOOKS", "WORKBOOKS"]
   }'
 ```
+
+Observacao operacional:
+
+- o uso previsto do app e por adultos responsaveis
+- o backend nao define ponto de encontro ou conversa dentro da plataforma
+- apos a aprovacao, entrega e retirada sao combinadas entre doador e responsavel via WhatsApp
 
 ## Firebase Para Push Real
 

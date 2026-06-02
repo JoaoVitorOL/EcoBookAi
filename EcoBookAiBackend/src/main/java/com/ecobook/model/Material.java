@@ -2,6 +2,7 @@ package com.ecobook.model;
 
 import com.ecobook.model.enums.Disciplina;
 import com.ecobook.model.enums.EstadoConservacao;
+import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.NivelEnsino;
 import com.ecobook.model.enums.SistemaEnsino;
 import com.ecobook.model.enums.StatusIA;
@@ -49,6 +50,7 @@ import java.util.UUID;
         @Index(name = "idx_material_status_disciplina", columnList = "status, disciplina"),
         @Index(name = "idx_material_status_nivel_ensino", columnList = "status, nivel_ensino"),
         @Index(name = "idx_material_sistema_ensino", columnList = "sistema_ensino"),
+        @Index(name = "idx_material_necessidade_academica", columnList = "necessidade_academica"),
         @Index(name = "idx_material_cidade_bairro", columnList = "cidade, bairro"),
         @Index(name = "idx_material_data_publicacao", columnList = "data_publicacao"),
         @Index(name = "idx_material_doador_id", columnList = "doador_id")
@@ -108,6 +110,12 @@ public class Material extends AuditedEntity {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, columnDefinition = "estado_conservacao_enum")
     private EstadoConservacao estadoConservacao;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "necessidade_academica", nullable = false, columnDefinition = "necessidade_academica_enum")
+    @Builder.Default
+    private NecessidadeAcademica necessidadeAcademica = NecessidadeAcademica.TEXTBOOKS;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

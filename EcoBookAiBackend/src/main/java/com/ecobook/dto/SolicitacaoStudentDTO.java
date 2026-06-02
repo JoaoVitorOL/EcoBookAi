@@ -17,4 +17,5 @@ public class SolicitacaoStudentDTO {
     private String nome;
     private String cidade;
     private String bairro;
+    private String fotoPerfilUrl;
 }

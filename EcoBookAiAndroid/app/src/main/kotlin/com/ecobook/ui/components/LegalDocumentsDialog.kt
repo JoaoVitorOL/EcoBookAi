@@ -14,9 +14,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun LegalDocumentsDialog(
@@ -43,7 +43,7 @@ fun LegalDocumentsDialog(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
-                    text = "Resumo do que o EcoBook faz com sua conta e seus dados antes do aceite.",
+                    text = "Resumo do comportamento atual do EcoBook antes do aceite da plataforma.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -56,27 +56,27 @@ fun LegalDocumentsDialog(
                 ) {
                     LegalSection(
                         title = "Uso da plataforma",
-                        body = "O EcoBook conecta doadores e estudantes para doar materiais de estudo sem venda dentro do app. O usuário deve informar dados verdadeiros, usar somente materiais que possa compartilhar e respeitar outros usuários durante o contato e a retirada."
+                        body = "O EcoBook conecta doadores e responsáveis interessados em materiais de estudo. A conta deve ser usada por pais, mães e responsáveis legais, nunca por crianças ou adolescentes sozinhos."
                     )
                     LegalSection(
-                        title = "Dados coletados",
-                        body = "A conta usa nome, email, telefone, cidade, bairro, instituição, consentimentos, histórico de materiais, solicitações, notificações e trilhas de auditoria para operar o serviço com segurança."
-                    )
-                    LegalSection(
-                        title = "Como os dados são usados",
-                        body = "Esses dados servem para autenticação, matching geográfico, contato entre as partes, envio de notificações, prevenção de abuso e exclusão/anonimização da conta."
+                        title = "Fluxo do aplicativo",
+                        body = "O perfil libera os recursos protegidos. Cada material é revisado manualmente, inclusive a necessidade acadêmica. A busca usa filtros reais e o pedido é aprovado dentro do app antes de qualquer contato externo."
                     )
                     LegalSection(
                         title = "IA opcional",
-                        body = "O consentimento de IA é separado. Quando ativado, imagens de materiais podem ser analisadas para sugerir classificação. Quando desativado, o usuário continua podendo preencher os dados manualmente."
+                        body = "Se o consentimento para IA estiver ativo, as imagens podem ser analisadas para sugerir metadados do material. A publicação continua dependendo de revisão humana e a necessidade acadêmica segue sendo escolhida manualmente."
                     )
                     LegalSection(
-                        title = "Compartilhamento e retenção",
-                        body = "Dados de contato sensíveis só devem ser exibidos quando o fluxo da solicitação exige. O usuário pode revisar, corrigir e excluir a própria conta pelo app. Ao excluir, materiais e imagens são removidos do fluxo ativo e os registros necessários ficam anonimizados."
+                        title = "Entrega e contato",
+                        body = "O app não organiza conversa, retirada nem ponto de encontro dentro da plataforma. Depois da aprovação, doador e responsável combinam tudo diretamente pelo WhatsApp, por conta própria e fora do EcoBook."
+                    )
+                    LegalSection(
+                        title = "Privacidade e LGPD",
+                        body = "O serviço trata dados como nome, email, WhatsApp, CPF, cidade, bairro, materiais, solicitações e notificações para autenticação, segurança, discovery, exportação e exclusão da conta. O titular pode pedir acesso, correção, eliminação e revogação de consentimento, conforme a LGPD e o que estiver implementado no produto."
                     )
                     LegalSection(
                         title = "Aviso importante",
-                        body = "Este texto é um rascunho operacional do MVP baseado no comportamento atual do app. Antes de uma publicação real, ele ainda deve passar por revisão jurídica e de privacidade."
+                        body = "Este texto é um rascunho operacional do MVP baseado no comportamento atual do app. Antes de uma publicação real, ele ainda deve passar por revisão jurídica, definição do controlador e publicação do canal oficial de privacidade."
                     )
                 }
                 Row(

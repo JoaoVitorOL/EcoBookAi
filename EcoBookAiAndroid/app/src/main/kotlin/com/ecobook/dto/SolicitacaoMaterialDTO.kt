@@ -11,5 +11,6 @@ data class SolicitacaoMaterialDTO(
     val status: String,
     val cidade: String,
     val bairro: String,
-    val doadorNome: String
+    val doadorNome: String,
+    val doadorFotoPerfilUrl: String? = null
 )

@@ -23,6 +23,7 @@ public class UpdateProfileRequestDTO {
     private String email;
     private String nome;
     private String whatsapp;
+    private String cpf;
     private String cidade;
     private String bairro;
     private String instituicao;

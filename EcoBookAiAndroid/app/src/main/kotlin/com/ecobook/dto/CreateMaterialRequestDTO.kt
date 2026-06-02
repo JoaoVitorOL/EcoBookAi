@@ -11,5 +11,6 @@ data class CreateMaterialRequestDTO(
     val ano: Int?,
     val sistemaEnsino: String,
     val estadoConservacao: String,
+    val necessidadeAcademica: String,
     val dataPublicacao: Int?
 )

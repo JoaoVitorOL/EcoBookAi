@@ -5,5 +5,6 @@ data class MaterialDonorDTO(
     val nome: String,
     val whatsapp: String,
     val cidade: String,
-    val bairro: String
+    val bairro: String,
+    val fotoPerfilUrl: String? = null
 )

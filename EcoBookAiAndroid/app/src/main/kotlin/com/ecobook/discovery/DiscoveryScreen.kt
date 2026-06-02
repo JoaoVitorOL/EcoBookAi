@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.ecobook.model.Disciplina
+import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
 import com.ecobook.model.SistemaEnsino
 import com.ecobook.ui.components.AdaptiveScreenContent
@@ -146,6 +147,7 @@ fun DiscoveryScreen(
                 onNivelEnsinoChange = viewModel::updateNivelEnsino,
                 onAnoChange = viewModel::updateAno,
                 onSistemaEnsinoChange = viewModel::updateSistemaEnsino,
+                onNecessidadeAcademicaChange = viewModel::updateNecessidadeAcademica,
                 onCidadeChange = viewModel::updateCidade,
                 onBairroChange = viewModel::updateBairro,
                 onMinAnoPublicacaoChange = viewModel::updateMinAnoPublicacao,
@@ -269,6 +271,7 @@ private fun DiscoveryFiltersCard(
     onNivelEnsinoChange: (NivelEnsino?) -> Unit,
     onAnoChange: (String) -> Unit,
     onSistemaEnsinoChange: (SistemaEnsino?) -> Unit,
+    onNecessidadeAcademicaChange: (NecessidadeAcademica?) -> Unit,
     onCidadeChange: (String) -> Unit,
     onBairroChange: (String) -> Unit,
     onMinAnoPublicacaoChange: (String) -> Unit,
@@ -345,6 +348,14 @@ private fun DiscoveryFiltersCard(
                     allLabel = "Todos",
                     optionLabel = { it.label },
                     onSelected = onSistemaEnsinoChange
+                )
+                DropdownField(
+                    label = "Necessidade acadêmica",
+                    selectedOption = uiState.filters.necessidadeAcademica,
+                    options = uiState.necessidadesAcademicas,
+                    allLabel = "Todas",
+                    optionLabel = { it.label },
+                    onSelected = onNecessidadeAcademicaChange
                 )
                 OutlinedTextField(
                     value = uiState.filters.ano,
@@ -427,6 +438,7 @@ private fun collapsedFiltersSummary(uiState: DiscoveryUiState): String {
         uiState.filters.disciplina?.let { add(it.label) }
         uiState.filters.nivelEnsino?.let { add(it.label) }
         uiState.filters.sistemaEnsino?.let { add(it.label) }
+        uiState.filters.necessidadeAcademica?.let { add(it.label) }
         uiState.filters.cidade.takeIf { it.isNotBlank() }?.let { add(it) }
         uiState.filters.bairro.takeIf { it.isNotBlank() }?.let { add(it) }
     }

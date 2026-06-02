@@ -93,12 +93,14 @@ class FirebaseRealDeviceValidationTest {
         val donorProfile = completeProfile(
             auth = donorAuth,
             whatsapp = "+5511991234501",
+            cpf = "52998224725",
             cidade = "Florianopolis",
             bairro = "Centro"
         )
         completeProfile(
             auth = studentAuth,
             whatsapp = "+5511991234502",
+            cpf = "11144477735",
             cidade = "Florianopolis",
             bairro = "Trindade"
         )
@@ -176,6 +178,7 @@ class FirebaseRealDeviceValidationTest {
     private fun completeProfile(
         auth: AuthResponseDTO,
         whatsapp: String,
+        cpf: String,
         cidade: String,
         bairro: String
     ): UsuarioDTO {
@@ -186,6 +189,7 @@ class FirebaseRealDeviceValidationTest {
                     UpdateProfileRequestDTO(
                         nome = auth.nome,
                         whatsapp = whatsapp,
+                        cpf = cpf,
                         cidade = cidade,
                         bairro = bairro,
                         instituicao = "UFSC",

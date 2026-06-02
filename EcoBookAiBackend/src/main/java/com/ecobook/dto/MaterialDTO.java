@@ -25,6 +25,7 @@ public class MaterialDTO {
     private Integer ano;
     private String sistemaEnsino;
     private String estadoConservacao;
+    private String necessidadeAcademica;
     private String status;
     private String imagemUrl;
     private String imagemVersoUrl;

@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/v1/usuarios")
@@ -100,6 +104,40 @@ public class UsuarioController {
                 "Perfil atualizado com sucesso",
                 usuarioService.updateProfile(authentication.getName(), request)
         );
+    }
+
+    @PostMapping(value = "/me/foto-perfil", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Atualizar foto de perfil", description = "Substitui a foto de perfil atual do usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Foto de perfil atualizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Imagem invalida"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido")
+    })
+    public ResponseEntity<ApiEnvelope<UsuarioDTO>> updateProfilePhoto(Authentication authentication,
+                                                                      @RequestPart("image") MultipartFile image,
+                                                                      HttpServletRequest servletRequest) {
+        return ApiEnvelopeResponses.ok(
+                servletRequest,
+                "Foto de perfil atualizada com sucesso",
+                usuarioService.updateProfilePhoto(authentication.getName(), image)
+        );
+    }
+
+    @GetMapping("/{userId}/foto-perfil")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Baixar foto de perfil", description = "Retorna a foto de perfil publicada para o usuario informado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Foto de perfil carregada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "404", description = "Foto de perfil nao encontrada")
+    })
+    public ResponseEntity<Resource> getProfilePhoto(@PathVariable String userId,
+                                                    Authentication authentication) {
+        UsuarioService.ProfilePhotoPayload payload = usuarioService.loadProfilePhoto(authentication.getName(), userId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(payload.contentType()))
+                .body(payload.resource());
     }
 
     /**

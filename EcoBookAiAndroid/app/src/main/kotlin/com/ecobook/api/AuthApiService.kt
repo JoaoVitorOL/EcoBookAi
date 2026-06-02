@@ -10,12 +10,15 @@ import com.ecobook.dto.UserConsentStatusDTO
 import com.ecobook.dto.UpdateAiConsentRequestDTO
 import com.ecobook.dto.UpdateProfileRequestDTO
 import com.ecobook.dto.UsuarioDTO
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.PUT
 
 interface AuthApiService {
@@ -34,6 +37,10 @@ interface AuthApiService {
 
     @PUT("v1/usuarios/me")
     suspend fun updateProfile(@Body request: UpdateProfileRequestDTO): Response<ApiEnvelopeDTO<UsuarioDTO>>
+
+    @Multipart
+    @POST("v1/usuarios/me/foto-perfil")
+    suspend fun uploadProfilePhoto(@Part image: MultipartBody.Part): Response<ApiEnvelopeDTO<UsuarioDTO>>
 
     @PATCH("v1/usuarios/me/consent")
     suspend fun updateAiConsent(@Body request: UpdateAiConsentRequestDTO): Response<ApiEnvelopeDTO<UsuarioDTO>>
