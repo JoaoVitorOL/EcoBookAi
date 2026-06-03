@@ -12,7 +12,7 @@ Backend Spring Boot do EcoBook AI.
 - Discovery com filtros, ranking geográfico, necessidade acadêmica do material e paginação offset/cursor
 - Fluxo de solicitações com aprovar, recusar, cancelar, concluir e expiração automática
 - Registro de token FCM, retry persistente e inbox de notificações com rotas de abertura mais consistentes
-- Consentimentos, exportação de dados, exclusão/anonimização de conta e trilha de auditoria
+- Consentimentos, exclusão/anonimização de conta, acesso autenticado a imagens e trilha de auditoria
 - Observabilidade com `Micrometer`, endpoint `/actuator/prometheus`, smoke suite, cache para leituras autenticadas, catálogo público/cacheado em `/api/v1/reference-data/material-options` e cursor `after_id` na busca de materiais
 
 ## Requisitos
@@ -244,8 +244,7 @@ curl -X PUT http://127.0.0.1:8080/api/v1/usuarios/me \
     "cpf": "52998224725",
     "cidade": "Florianopolis",
     "bairro": "Centro",
-    "consentimento_ia": true,
-    "necessidades_academicas": ["TEXTBOOKS", "WORKBOOKS"]
+    "consentimento_ia": true
   }'
 ```
 

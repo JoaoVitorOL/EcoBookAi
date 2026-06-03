@@ -199,7 +199,7 @@ Runtime note:
 
 ## GET /reference-data/material-options
 
-Return the immutable option catalog consumed by Android discovery filters, onboarding needs and donation/edit forms.
+Return the immutable option catalog consumed by Android discovery filters, profile preferences and donation/edit forms.
 
 ### Request
 
@@ -625,31 +625,6 @@ Authorization: Bearer <jwt_token>
 - `400 VALIDATION_ERROR`: password missing or reason too long
 - `401 UNAUTHORIZED`: invalid password
 - `404 NOT_FOUND`: user not found
-
----
-
-## POST /usuarios/me/export
-
-Export the authenticated user's personal data bundle.
-
-### Request
-
-```http
-POST /api/v1/usuarios/me/export
-Authorization: Bearer <jwt_token>
-```
-
-### Runtime Rules
-
-- Requires an authenticated user with role `USER`
-- Returns a ZIP file immediately in the HTTP response
-- Current ZIP entries include `profile.json`, `materials.json`, `requests.json`, `notifications.json`, `failed-notifications.json`, `consents.json`, `audit-log.json`, and `summary.json`
-
-### Response
-
-**HTTP 200 OK**
-- `Content-Type: application/octet-stream`
-- `Content-Disposition: attachment; filename="ecobook-dados-YYYY-MM-DD.zip"`
 
 ---
 

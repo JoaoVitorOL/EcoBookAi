@@ -12,6 +12,8 @@ Runtime note (2026-05-14):
 - Android implementation must follow official Android references and patterns from `developer.android.com`.
 - Material publication runtime now supports a required front-cover image plus an optional back-cover image stored with the published item; the front cover remains the primary AI input for `/materiais/preview`.
 - Notification runtime already belongs to the delivered Phase 6 codepath; when push does not arrive in local tests, the first configuration to verify is `FIREBASE_SERVICE_ACCOUNT_PATH` on the backend and Google Play services availability on the target device/emulator.
+- Current runtime divergence: profile-level academic needs remain optional metadata, while the active discovery filter is `necessidade_academica` on each material.
+- Current public runtime documentation does not advertise personal-data export as a supported product capability.
 
 ---
 
@@ -83,15 +85,15 @@ A donor uploads a material image. The backend calls Google Gemini to extract met
 
 ### User Story 3 - Student Discovers Matching Materials (Priority: P1)
 
-A student specifies their academic needs (discipline, education level, curriculum system, grade year, geographic area). The system matches available materials using a deterministic algorithm and displays results ranked by proximity and recency.
+A student applies academic and geographic filters (discipline, education level, curriculum system, grade year, material-level academic need and region). The system matches available materials using a deterministic algorithm and displays results ranked by proximity and recency.
 
 **Why this priority**: Core value delivery - students must reliably find materials that match their requirements.
 
-**Independent Test**: Can be fully tested by: (1) Creating a student profile with specific needs, (2) Querying materials in various discipline/level/system combinations, (3) Verifying ranking order (same neighborhood first, then same city, then by date).
+**Independent Test**: Can be fully tested by: (1) Creating materials with varied metadata, (2) Querying the discovery endpoint with different discipline/level/system/need combinations, (3) Verifying ranking order (same neighborhood first, then same city, then by date).
 
 **Acceptance Scenarios**:
 
-1. **Given** a student with profile (discipline: MATEMATICA, nivel_ensino: FUNDAMENTAL, ano: 7, cidade: Florianópolis, bairro: Centro), **When** they query available materials, **Then** the system returns materials where: status = DISPONIVEL AND disciplina = MATEMATICA AND nivel_ensino = FUNDAMENTAL AND |ano_material - 7| ≤ 1 (or SUPERIOR ignores year filter) AND sistema_ensino matches
+1. **Given** a student filters by disciplina = MATEMATICA, nivel_ensino = FUNDAMENTAL, ano = 7, cidade = Florianópolis e bairro = Centro, **When** they query available materials, **Then** the system returns materials where: status = DISPONIVEL AND disciplina = MATEMATICA AND nivel_ensino = FUNDAMENTAL AND |ano_material - 7| ≤ 1 (or SUPERIOR ignores year filter) AND sistema_ensino matches
 2. **Given** multiple matching materials exist, **When** results are ranked, **Then** order is: (a) same neighborhood first, (b) same city next, (c) sorted by data_publicacao DESC (most recent publication first), (d) ID as tiebreaker
 3. **Given** a student searches for SUPERIOR level materials, **When** results are filtered, **Then** year constraint is ignored; materials are matched purely by discipline, level, and system
 4. **Given** a student searches for sistema_ensino = OUTRO, **When** the system filters, **Then** it returns ONLY materials with sistema_ensino = OUTRO (not all systems)

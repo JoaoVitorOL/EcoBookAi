@@ -2,7 +2,7 @@
 
 **Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 Complete / 10 Complete  
 **Date**: 2026-06-03  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are implemented and validated; the 2026-06-03 follow-up closed the backend reliability fixes discovered after the audit, removed stale Android demo code and rebased the documentation away from the non-existent Android data-export flow
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are implemented and validated; the 2026-06-03 follow-up closed the backend reliability fixes discovered after the audit, removed stale Android demo code and rebased the documentation to the current privacy flow
 
 ---
 
@@ -158,7 +158,7 @@ What is already implemented in the repository:
    - backend enforces `consentimento_ia=false` before any Gemini call and now persists consent history through `ConsentRecord`
    - backend exposes `PATCH /api/v1/usuarios/me/consentimento-ia`, the compatibility alias `PATCH /api/v1/usuarios/me/consent`, `DELETE /api/v1/usuarios/me/consent/ai-classification` and `GET /api/v1/usuarios/me/consent`
    - secure image access now flows through `GET /api/v1/images/{upload_tracking_id}` with role-aware authorization
-   - account deletion, anonymization, token revocation, data export and admin audit log querying are implemented in runtime
+   - account deletion, anonymization, token revocation and admin audit log querying are implemented in runtime
 
 What closed Phase 3 formally:
 
@@ -194,7 +194,7 @@ What closed Phase 8 concretely:
 
 1. Consent history is no longer backlog-only: the runtime now records platform and AI consent changes and exposes the summary/history endpoint consumed by the Android profile surface
 2. LGPD account deletion now anonymizes users, revokes tokens, clears stored uploads, propagates request/material side effects and leaves an audit trail
-3. Data export and authenticated image access are both live, which closes the originally open security/privacy execution fronts for the MVP runtime
+3. Authenticated image access, consent history and deletion-side privacy handling close the originally open security/privacy execution fronts for the MVP runtime
 
 What advanced Phase 9 concretely:
 
@@ -219,7 +219,7 @@ Validation update on 2026-05-23:
 2. Backend startup/test guidance is now explicit about the Java 21+ requirement to avoid the previous class-version mismatch failure mode
 3. Root/runtime documentation was rebased so the repository is clearly documented as implementation-complete for `Phase 10`, with the remaining follow-ups called out as legal/operational rather than coding blockers
 4. The Phase 9 observability baseline is now live through Micrometer/Prometheus, HikariCP metrics, runtime business counters and an actuator-backed smoke suite
-5. At that `2026-05-23` validation point, the backend regression suite was green with `223` tests / `3` controlled skips via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update, edge-case, boundary, rollback, OpenAPI smoke, export/inbox/audit unit coverage and load-harness fronts
+5. At that `2026-05-23` validation point, the backend regression suite was green with `223` tests / `3` controlled skips via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update, edge-case, boundary, rollback, OpenAPI smoke, inbox/audit unit coverage and load-harness fronts
 6. Android consent/account UX is now aligned with the current runtime: the user can read an in-app summary before accepting platform terms, edit the main profile fields later, and confirm account deletion through an explicit destructive dialog
 7. Android local JVM validation remains green through `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 8. Phase 9 hardening now also includes explicit edge/boundary coverage for account-deletion cascade reopening, exact 5MB image acceptance, large request/material backlogs and exact reservation-expiry timing
@@ -238,12 +238,12 @@ Validation update on 2026-06-02:
 
 1. Backend fixtures and integration slices were aligned with the current runtime rules: `cpf` is now present in complete-profile test users, `necessidade_academica` is now included in material creation fixtures, and the `UsuarioControllerWebMvcTest` slice now mocks the image-storage dependency it imports transitively
 2. The Android module no longer carries the legacy `HomeScreen` showcase, sample insights, sample donation preview or the orphaned UI models/components that were no longer reachable from the real navigation graph
-3. Root/runtime documentation no longer claims that the Android app offers a self-service personal-data export flow; that capability remains backend-only in the current repository
+3. Root/runtime documentation no longer advertises unsupported personal-data download flows and now follows the privacy behavior actually exposed to users
 4. The latest validation pass reran `mvn test` and `app:testDebugUnitTest`; the repository stayed green with `229` backend tests, `0` failures, `0` errors, `3` controlled skips, `84.72%` JaCoCo line coverage and a green Android JVM baseline via the ASCII-path Gradle wrapper
 
 Validation update on 2026-06-03:
 
-1. The legal/privacy text in both the checked-in document and the in-app summary no longer implies that the Android app exposes a self-service personal-data export action
+1. The legal/privacy text in both the checked-in document and the in-app summary now follows the current privacy flow exposed by the product
 2. The baseline was rerun with `mvn test`, `app:testDebugUnitTest` and `app:lintDebug`
 3. The repository remained green with `229` backend tests, `0` failures, `0` errors, `3` controlled skips, `84.72%` JaCoCo line coverage, Android JVM tests green and Android lint green with `0` errors / `20` warnings
 

@@ -53,7 +53,7 @@ rg -n "System\\.out\\.print|printStackTrace\\(|Thread\\.sleep\\(|Runtime\\.getRu
 
 ## Conclusion
 
-The repository-level inconsistencies found in the 2026-06-03 follow-up audit were corrected: backend fixtures now reflect the current profile/material requirements, the broken `UsuarioControllerWebMvcTest` slice was restored, the stale Android demo surface was removed, the legal/UI text no longer implies a non-existent Android self-service export flow, and the main runbooks were rebased to the actual runtime. No additional silent runtime inconsistencies from that audit remain open as implementation blockers.
+The repository-level inconsistencies found in the 2026-06-03 follow-up audit were corrected: backend fixtures now reflect the current profile/material requirements, the broken `UsuarioControllerWebMvcTest` slice was restored, the stale Android demo surface was removed, the legal/UI text was rebased to the actual privacy flow, and the main runbooks were rebased to the actual runtime. No additional silent runtime inconsistencies from that audit remain open as implementation blockers.
 
 Residual follow-up context remains documented in:
 

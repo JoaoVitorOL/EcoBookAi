@@ -1,6 +1,7 @@
 # EcoBook IA Specification - Generation Summary
 
 > Historical note (2026-05-05): this file summarizes the original specification-generation pass. It is useful as provenance, but it must not be used as the current source of truth for phase readiness or implementation status.
+> Current runtime divergence: profile-level academic needs no longer drive discovery; the supported search filter is `necessidade_academica` on each material. The current public runtime documentation also does not advertise personal-data export as a supported product capability.
 
 **Date**: 2026-04-15  
 **Status**: Historical artifact from the original planning handoff  
@@ -110,7 +111,7 @@
 |-------|-------|----------|---|
 | 1 | Donor Registration & Material Profile | P1 | Register → Complete Profile → Create Material |
 | 2 | AI Classification | P1 | Upload Image → Gemini → Confidence Fallback → Review |
-| 3 | Student Material Discovery | P1 | Profile Needs → Query → Ranking Algorithm → Results |
+| 3 | Student Material Discovery | P1 | Search Filters → Query → Ranking Algorithm → Results |
 | 4 | Student Request | P1 | View Material → Submit Request → Donor Notification |
 | 5 | Donation Completion | P2 | Approve Request → Mark DOADO → Send Contact |
 | 6 | Material Cancellation | P2 | Cancel at Various Stages → Cascade Effects |

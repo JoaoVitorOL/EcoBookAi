@@ -16,6 +16,7 @@ Shared runtime assumptions:
 - authentication is `email + password + JWT`
 - `perfil_completo` gates material, request, and notifications inbox operations
 - the backend currently exposes both FCM token registration and a persisted notification inbox API
+- this folder documents the supported public contracts used by the current Android app and validated runbooks; dormant or non-supported surfaces are intentionally omitted
 
 ---
 
@@ -35,7 +36,6 @@ Authentication and profile endpoints:
 - `PATCH /api/v1/usuarios/me/consent` (`alias` de compatibilidade)
 - `DELETE /api/v1/usuarios/me/consent/ai-classification`
 - `POST /api/v1/usuarios/delete`
-- `POST /api/v1/usuarios/me/export`
 
 ### [material-api.md](material-api.md)
 

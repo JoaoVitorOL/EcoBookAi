@@ -127,7 +127,7 @@ Validado em `2026-06-03`:
 
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
-- revisão do texto legal exibido no app para não prometer exportação self-service inexistente no Android atual
+- revisão do texto legal exibido no app para mantê-lo fiel ao fluxo atual de privacidade
 
 Lint/UI baseline atual:
 

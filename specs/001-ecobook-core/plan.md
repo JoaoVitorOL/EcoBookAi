@@ -9,12 +9,14 @@ Historical note:
 - This file remains the original implementation-planning artifact from April 2026.
 - It is still useful for scope and sequencing rationale, but it is not the source of truth for current runtime readiness.
 - For the actual repository stop point and implemented endpoints, use `PLAN-SUMMARY.md`, `TASKS.md`, and `contracts/`.
+- Current runtime divergence: profile-level academic needs remain optional metadata, while the active discovery filter is `necessidade_academica` on each material.
+- Current public runtime documentation does not advertise personal-data export as a supported product capability.
 
 ---
 
 ## Summary
 
-**EcoBook IA** is an AI-powered educational material donation and matching platform exclusively for Android (API 26+, Kotlin/Jetpack Compose). The core system implements deterministic student-to-material matching powered by Google Gemini 2.5 Flash for image-based material classification, with a Spring Boot backend and PostgreSQL database. The MVP supports up to 100 active users with ~500 total materials and implements the complete donation workflow: user registration and login with email/password, mandatory profile completion (geographic + academic needs), material upload with AI classification, intelligent matching algorithm (discipline + level + year ± 1 + system + geographic ranking), request lifecycle (PENDENTE → APROVADA → DOADO), and push notifications via Firebase Cloud Messaging.
+**EcoBook IA** is an AI-powered educational material donation and matching platform exclusively for Android (API 26+, Kotlin/Jetpack Compose). The core system implements deterministic student-to-material matching powered by Google Gemini 2.5 Flash for image-based material classification, with a Spring Boot backend and PostgreSQL database. The MVP supports up to 100 active users with ~500 total materials and implements the complete donation workflow: user registration and login with email/password, mandatory profile completion (adult identity + geography), material upload with AI classification, deterministic discovery filters (including material-level `necessidade_academica`) plus geographic ranking, request lifecycle (PENDENTE → APROVADA → DOADO), and push notifications via Firebase Cloud Messaging.
 
 **Technical Approach**:
 - **Frontend**: Native Android (Kotlin, Jetpack Compose) with Material Design 3
@@ -354,7 +356,7 @@ docs/
 2. **Android Skeleton**
    - Jetpack Compose project setup (minSdk=26, targetSdk=34)
    - Email/password auth screen (login + register)
-   - Onboarding flow (profile completion: city, neighborhood, academic needs)
+   - Onboarding flow (profile completion: city, neighborhood and consent)
    - Material upload screen (image picker, file validation, preview)
    - Discovery/search screen (basic filter, results list)
    - Request flow (create, list, approve/decline)

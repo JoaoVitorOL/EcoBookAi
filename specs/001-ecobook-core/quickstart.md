@@ -139,8 +139,7 @@ curl -X PUT http://127.0.0.1:8080/api/v1/usuarios/me \
     "cpf": "52998224725",
     "cidade": "Florianopolis",
     "bairro": "Centro",
-    "consentimento_ia": true,
-    "necessidades_academicas": ["TEXTBOOKS", "WORKBOOKS"]
+    "consentimento_ia": true
   }'
 ```
 
@@ -149,6 +148,7 @@ Expected result:
 - HTTP `200`
 - `perfil_completo = true`
 - normalized `cidade` and `bairro`
+- a necessidade acadêmica usada na discovery é escolhida depois, no cadastro de cada material
 
 ### 4. Run a first discovery query
 

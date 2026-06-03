@@ -38,7 +38,7 @@ The backend follows the current runtime flow:
 Key runtime modules:
 
 - `AuthController` / `AuthService`: register, login, password hashing, JWT issuance
-- `UsuarioController` / `UsuarioService`: profile completion, consent changes, export and self-service profile edits
+- `UsuarioController` / `UsuarioService`: profile completion, consent changes, account deletion and self-service profile edits
 - `MaterialController` / `MaterialService`: preview, upload promotion, publication, edit and delete
 - `SolicitacaoController` / `SolicitacaoService`: request lifecycle and reservation expiry
 - `AdminController`, `ReportController`, `NotificationController`: moderation, inbox and admin surfaces

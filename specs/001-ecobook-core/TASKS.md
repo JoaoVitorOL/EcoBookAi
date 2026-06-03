@@ -36,6 +36,7 @@ Historical note:
 - Local operational startup is now revalidated through the `local` backend profile plus the README/quickstart runbooks updated on `2026-05-21`.
 - The `2026-05-23` post-closeout review also hardened the Android ASCII Gradle wrapper against temporary-drive races and rebased the root/module runbooks to the now-validated startup order.
 - The dependency graph and several summary ranges below came from an earlier 370-task draft; the detailed sections `T181–T230` plus `PLAN-SUMMARY.md` are the current runtime truth for Phases 7–10.
+- Earlier privacy-planning notes in this file should not be read as supported public product features unless they also remain documented in the current contracts and READMEs.
 
 ---
 
@@ -559,7 +560,7 @@ Phase 10: Polish & Documentation
 
 ## PHASE 4: USER STORY 3 — Material Discovery (Weeks 13–14)
 
-**Story Goal**: Student can specify academic needs and discover matching donated materials ranked by relevance and proximity.
+**Story Goal**: Student can apply academic and geographic filters and discover matching donated materials ranked by relevance and proximity.
 
 **Independent Test Criteria**:
 - ✅ 7-step matching algorithm correctly filters materials (5 core + 1 optional publication range)
@@ -1139,14 +1140,9 @@ Runtime note on 2026-05-14:
   - **GET /api/v1/admin/audit-log**: Query audit logs
   - Filters: user_id, action, resource_type, date_range
   - Response: Paginated list of AuditLogDto
-- [x] **T203** [P] Create data export endpoint (LGPD right-to-data):
-  - **POST /api/v1/usuarios/me/export**: Request personal data export
-  - Backend generates ZIP with:
-    - User profile JSON
-    - All materials (metadata + image URLs)
-    - All requests (anonymized as needed)
-    - All consent records
-    - All audit events involving user
+- [x] **T203** [P] Historical privacy/export work item:
+  - Earlier planning tracked `POST /api/v1/usuarios/me/export` as a possible path.
+  - The current public documentation set does **not** advertise data export as a supported product capability.
   - Runtime note: the current backend streams the ZIP response synchronously instead of emailing a deferred link
 
 #### Android: Consent UI
@@ -1394,7 +1390,7 @@ What is already true in the repository:
 - ✅ Phase 5 request workflow is already present in runtime on backend and Android
 - ✅ FCM token registration plus basic notification dispatch/permission flow already exist as the start of Phase 6
 - ✅ Phase 7 reporting plus admin moderation/runtime authorization are now implemented on backend, with the Android student reporting flow already live
-- ✅ Phase 8 LGPD/security runtime is implemented through consent history, account deletion/anonymization, authenticated image access, audit logging and data export
+- ✅ Phase 8 LGPD/security runtime is implemented through consent history, account deletion/anonymization, authenticated image access and audit logging
 - ✅ Phase 9 hardening is now closed in runtime, including response compression, Micrometer/Prometheus metrics, smoke coverage, immutable reference-data catalog caching, discovery cursor pagination, rollback cleanup, Firebase validation and explicit 50-user load evidence
 - ✅ Backend regression is stable again (`mvn test` green com `229` testes / `3` skips controlados: `LoadValidationTest` manual gate + `2` cenarios snapshot-only de rollback) and Android local JVM validation remains green through `scripts/Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
