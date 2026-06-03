@@ -223,7 +223,7 @@ Current runtime note:
 {
   "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Um token JWT valido e obrigatorio"
+  "message": "Um token JWT válido é obrigatório"
 }
 ```
 

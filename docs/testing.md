@@ -1,7 +1,7 @@
 # EcoBook AI - Testing Guide
 
 **Status**: current automated-testing map  
-**Date**: 2026-06-02
+**Date**: 2026-06-03
 
 ---
 
@@ -65,11 +65,13 @@ Focused load/performance validation (`T217`):
 mvn --% -Decobook.runLoadTest=true -Dtest=LoadValidationTest test
 ```
 
-Latest validated local outcome on `2026-06-02`:
+Latest validated local outcome on `2026-06-03`:
 
 - Backend full suite green with `229` tests, `0` failures, `0` errors and `3` controlled skips
 - JaCoCo regenerated at `84.72%` line coverage
 - latest stored load-evidence remains `20` concurrent upload flows plus `30` concurrent searches, `562 ms` search p95, `616 ms` upload p95 and `0%` error rate under `EcoBookAiBackend/target/load-reports/`
+- Android `app:testDebugUnitTest` green again through the ASCII-path wrapper
+- Android `app:lintDebug` green with `0` errors and `20` warnings
 
 Android JVM tests:
 

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Autenticacao", description = "Cadastro e login do usuario com email, senha e JWT")
+@Tag(name = "Autenticação", description = "Cadastro e login do usuário com e-mail, senha e JWT")
 public class AuthController {
 
     private final AuthService authService;
@@ -37,15 +37,15 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(
             summary = "Criar conta",
-            description = "Cria uma conta com email e senha e retorna o JWT inicial do usuario."
+            description = "Cria uma conta com e-mail e senha e retorna o JWT inicial do usuário."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Conta criada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Email invalido ou payload mal formatado"),
-            @ApiResponse(responseCode = "409", description = "Email ja cadastrado")
+            @ApiResponse(responseCode = "400", description = "E-mail inválido ou payload mal formatado"),
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado")
     })
     public ResponseEntity<ApiEnvelope<AuthResponseDTO>> register(@Valid @RequestBody RegisterRequestDTO request,
-                                                                HttpServletRequest servletRequest) {
+                                                                 HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.created(
                 servletRequest,
                 "Conta criada com sucesso",
@@ -62,19 +62,19 @@ public class AuthController {
      */
     @PostMapping("/login")
     @Operation(
-            summary = "Autenticar usuario",
-            description = "Autentica o usuario com email e senha e retorna um novo JWT com o snapshot atual do perfil."
+            summary = "Autenticar usuário",
+            description = "Autentica o usuário com e-mail e senha e retorna um novo JWT com o snapshot atual do perfil."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Autenticacao realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Payload invalido"),
-            @ApiResponse(responseCode = "401", description = "Credenciais invalidas")
+            @ApiResponse(responseCode = "200", description = "Autenticação realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Payload inválido"),
+            @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     public ResponseEntity<ApiEnvelope<AuthResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request,
-                                                             HttpServletRequest servletRequest) {
+                                                              HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Autenticacao realizada com sucesso",
+                "Autenticação realizada com sucesso",
                 authService.login(request)
         );
     }

@@ -1,8 +1,8 @@
 # Implementation Plan Summary
 
 **Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 Complete / 10 Complete  
-**Date**: 2026-05-25  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are implemented and validated; the 2026-06-02 follow-up closed the backend reliability fixes discovered after the audit, removed stale Android demo code and rebased the documentation away from the non-existent Android data-export flow
+**Date**: 2026-06-03  
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are implemented and validated; the 2026-06-03 follow-up closed the backend reliability fixes discovered after the audit, removed stale Android demo code and rebased the documentation away from the non-existent Android data-export flow
 
 ---
 
@@ -240,6 +240,12 @@ Validation update on 2026-06-02:
 2. The Android module no longer carries the legacy `HomeScreen` showcase, sample insights, sample donation preview or the orphaned UI models/components that were no longer reachable from the real navigation graph
 3. Root/runtime documentation no longer claims that the Android app offers a self-service personal-data export flow; that capability remains backend-only in the current repository
 4. The latest validation pass reran `mvn test` and `app:testDebugUnitTest`; the repository stayed green with `229` backend tests, `0` failures, `0` errors, `3` controlled skips, `84.72%` JaCoCo line coverage and a green Android JVM baseline via the ASCII-path Gradle wrapper
+
+Validation update on 2026-06-03:
+
+1. The legal/privacy text in both the checked-in document and the in-app summary no longer implies that the Android app exposes a self-service personal-data export action
+2. The baseline was rerun with `mvn test`, `app:testDebugUnitTest` and `app:lintDebug`
+3. The repository remained green with `229` backend tests, `0` failures, `0` errors, `3` controlled skips, `84.72%` JaCoCo line coverage, Android JVM tests green and Android lint green with `0` errors / `20` warnings
 
 ---
 

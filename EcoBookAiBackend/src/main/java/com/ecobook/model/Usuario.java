@@ -85,7 +85,7 @@ public class Usuario extends AuditedEntity {
     @Pattern(
             regexp = "^\\+55\\d{11}$",
             groups = ProfileCompletionValidation.class,
-            message = "Use o formato E.164 (+55XXXXXXXXXXX)"
+            message = "Use o formato E.164, por exemplo +5511999999999"
     )
     private String whatsapp;
 
@@ -95,7 +95,7 @@ public class Usuario extends AuditedEntity {
     @Pattern(
             regexp = "^\\d{11}$",
             groups = ProfileCompletionValidation.class,
-            message = "Informe um CPF com 11 digitos"
+            message = "Informe um CPF com 11 dígitos"
     )
     private String cpf;
 

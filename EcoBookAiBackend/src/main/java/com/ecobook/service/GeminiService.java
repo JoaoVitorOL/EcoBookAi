@@ -425,7 +425,7 @@ public class GeminiService {
             return true;
         }
 
-        log.info("Google Search grounding desativado para o modelo {} porque esta integracao exige JSON mode e essa combinacao so e habilitada aqui para modelos Gemini 3", model);
+        log.info("Google Search grounding desativado para o modelo {} porque esta integração exige JSON mode e essa combinação só é habilitada aqui para modelos Gemini 3", model);
         return false;
     }
 

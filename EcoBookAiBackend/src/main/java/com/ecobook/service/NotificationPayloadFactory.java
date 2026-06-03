@@ -57,7 +57,7 @@ public class NotificationPayloadFactory {
                 "Solicitacao aprovada",
                 "Sua solicitacao do material \"" + materialTitle + "\" foi aprovada por " +
                         safeName(doador, "o doador") +
-                        ". O contato do doador ja esta disponivel no pedido.",
+                        ". O contato do doador já está disponível no pedido.",
                 requestId,
                 materialId,
                 participantMetadata(materialTitle, doador, solicitante)
@@ -190,7 +190,7 @@ public class NotificationPayloadFactory {
                                                     Usuario solicitante) {
         return build(
                 NotificationType.MATERIAL_DOADO,
-                "Doacao concluida",
+                "Doação concluída",
                 "A doacao do material \"" + materialTitle + "\" foi concluida entre " +
                         safeName(doador, "o doador") +
                         " e " + safeName(solicitante, "o solicitante") + ".",

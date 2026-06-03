@@ -1,7 +1,7 @@
 # EcoBook AI - Termos de Uso, Privacidade e LGPD
 
 **Status**: rascunho operacional ampliado do MVP  
-**Data**: 2026-06-02  
+**Data**: 2026-06-03  
 **Importante**: este texto descreve o fluxo atual do aplicativo e do backend, mas ainda precisa de revisão jurídica formal antes de qualquer publicação pública, comercial ou institucional.
 
 ---
@@ -61,7 +61,7 @@ O funcionamento atual do EcoBook pode envolver as seguintes etapas:
    Depois da aprovação, a conversa, o alinhamento do local e o agendamento da entrega passam a ocorrer via WhatsApp, entre os adultos responsáveis.
 
 10. Conclusão, exclusão e auditoria
-    O sistema mantém histórico técnico, notificações, eventos de segurança, registros de consentimento e rotinas de exportação/exclusão dentro do escopo do MVP.
+    O sistema mantém histórico técnico, notificações, eventos de segurança, registros de consentimento e rotinas de exclusão dentro do escopo do MVP. Pedidos de acesso, cópia ou portabilidade de dados dependem do canal operacional definido pelo controlador real antes de qualquer lançamento público.
 
 ---
 
@@ -86,7 +86,7 @@ Dependendo do uso do app, o EcoBook pode coletar, armazenar, exibir internamente
 - solicitações, aprovações, recusas, cancelamentos e conclusões
 - notificações e caixa de entrada interna
 - tokens técnicos de notificação
-- dados de auditoria, segurança, exportação e exclusão de conta
+- dados de auditoria, segurança, solicitações de acesso/cópia e exclusão de conta
 
 Alguns desses dados são obrigatórios para liberar recursos protegidos do aplicativo. Outros são opcionais, mas podem melhorar a identificação do responsável, a usabilidade ou a contextualização do material.
 
@@ -106,7 +106,7 @@ Os dados são tratados para:
 - liberar a comunicação entre as partes no momento certo do fluxo
 - enviar notificações dentro do app e por infraestrutura compatível
 - prevenir abuso, fraude, spam, uso indevido e inconsistências operacionais
-- gerar exportação de dados
+- atender solicitações de acesso, cópia ou portabilidade de dados quando houver canal adequado para isso
 - executar rotinas de exclusão, anonimização e auditoria
 
 Quando o usuário altera o email da conta, o backend passa a tratar o novo email como identidade principal. Por isso, a sessão anterior pode ser encerrada e um novo login pode ser exigido.
@@ -218,8 +218,10 @@ O usuário pode, dentro do escopo suportado pelo MVP:
 
 - revisar dados do próprio perfil
 - corrigir dados cadastrais
-- exportar os próprios dados
+- solicitar acesso ou cópia dos próprios dados pelos canais disponibilizados pelo operador responsável
 - solicitar a exclusão da conta
+
+No estado atual do aplicativo Android, não existe uma ação self-service na interface para baixar um pacote de exportação. Se o operador real decidir oferecer esse direito em produção, isso pode ocorrer por endpoint autenticado no backend, processo administrativo ou canal oficial de privacidade, conforme a implementação vigente e as obrigações legais aplicáveis.
 
 Quando a conta é excluída, o comportamento esperado do backend inclui, conforme aplicável:
 

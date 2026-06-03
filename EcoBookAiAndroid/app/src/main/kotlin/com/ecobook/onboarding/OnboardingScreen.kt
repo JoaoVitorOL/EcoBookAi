@@ -225,7 +225,7 @@ private fun ContactStep(
             onValueChange = onWhatsappChange,
             label = { Text("WhatsApp com DDD") },
             isError = uiState.fieldErrors.containsKey("whatsapp"),
-            placeholder = { Text("84999999999") },
+            placeholder = { Text("11999999999") },
             supportingText = {
                 Text(
                     uiState.fieldErrors["whatsapp"]

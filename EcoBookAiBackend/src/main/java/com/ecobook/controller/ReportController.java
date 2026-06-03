@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
-@Tag(name = "Reportes", description = "Fluxo de reporte de nao recebimento de material")
+@Tag(name = "Reportes", description = "Fluxo de reporte de não recebimento de material")
 @SecurityRequirement(name = "bearer-jwt")
 public class ReportController {
 
@@ -43,15 +43,15 @@ public class ReportController {
     @PostMapping("/materiais/{id}/nao-recebido")
     @RequireCompleteProfile
     @Operation(
-            summary = "Reportar nao recebimento",
-            description = "Abre um reporte quando o estudante aprovado informa que nao recebeu o material combinado."
+            summary = "Reportar não recebimento",
+            description = "Abre um reporte quando o estudante aprovado informa que não recebeu o material combinado."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Reporte criado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Fluxo invalido para o material informado"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Fluxo inválido para o material informado"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto ou acesso negado"),
-            @ApiResponse(responseCode = "404", description = "Material ou solicitacao relacionada nao encontrada")
+            @ApiResponse(responseCode = "404", description = "Material ou solicitação relacionada não encontrada")
     })
     public ResponseEntity<ApiEnvelope<MaterialNonReceiptReportDTO>> reportNonReceipt(
             @PathVariable @Parameter(description = "Identificador do material reportado") String id,

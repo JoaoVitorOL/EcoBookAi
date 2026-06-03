@@ -120,7 +120,7 @@ public class SecurityConfig {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("status", 401);
         payload.put("error", "UNAUTHORIZED");
-        payload.put("message", "Um token JWT valido e obrigatorio");
+        payload.put("message", "Um token JWT válido é obrigatório");
         payload.put("path", requestUri);
 
         response.setStatus(401);

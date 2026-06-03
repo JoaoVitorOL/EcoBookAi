@@ -272,17 +272,17 @@ public class UserDeletionService {
                             }
                         } catch (IOException ignored) {
                             failedDeletes.incrementAndGet();
-                            log.warn("Nao foi possivel remover o caminho {} durante a exclusao da conta {}", path, userId, ignored);
+                            log.warn("Não foi possível remover o caminho {} durante a exclusão da conta {}", path, userId, ignored);
                         }
                     });
         } catch (IOException ignored) {
             failedDeletes.incrementAndGet();
-            log.warn("Nao foi possivel percorrer o diretorio {} durante a exclusao da conta {}", userDirectory, userId, ignored);
+            log.warn("Não foi possível percorrer o diretório {} durante a exclusão da conta {}", userDirectory, userId, ignored);
         }
 
         if (failedDeletes.get() > 0) {
             log.warn(
-                    "A exclusao da conta {} terminou com {} falhas ao limpar o diretorio do usuario",
+                    "A exclusão da conta {} terminou com {} falhas ao limpar o diretório do usuário",
                     userId,
                     failedDeletes.get()
             );

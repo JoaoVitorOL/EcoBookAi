@@ -1,11 +1,11 @@
 package com.ecobook.controller;
 
 import com.ecobook.annotation.AuditAction;
-import com.ecobook.dto.AuditLogDTO;
 import com.ecobook.dto.AdminNonReceiptReportDTO;
 import com.ecobook.dto.AdminUserSummaryDTO;
 import com.ecobook.dto.ApiEnvelope;
 import com.ecobook.dto.ApiEnvelopeResponses;
+import com.ecobook.dto.AuditLogDTO;
 import com.ecobook.dto.MaterialDTO;
 import com.ecobook.dto.PagedResponseDTO;
 import com.ecobook.dto.ResolveNonReceiptReportRequestDTO;
@@ -23,8 +23,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,7 +43,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1/admin")
 @RequiredArgsConstructor
-@Tag(name = "Administracao", description = "Moderacao, auditoria e gestao administrativa da plataforma")
+@Tag(name = "Administração", description = "Moderação, auditoria e gestão administrativa da plataforma")
 @SecurityRequirement(name = "bearer-jwt")
 public class AdminController {
 
@@ -62,17 +62,17 @@ public class AdminController {
      */
     @GetMapping("/reports")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar reportes", description = "Retorna os reportes administrativos de nao recebimento com paginacao e filtro opcional por status.")
+    @Operation(summary = "Listar reportes", description = "Retorna os reportes administrativos de não recebimento com paginação e filtro opcional por status.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reportes carregados com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Filtros invalidos"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
     })
     public ResponseEntity<ApiEnvelope<PagedResponseDTO<AdminNonReceiptReportDTO>>> listReports(
             @RequestParam(required = false) @Parameter(description = "Filtro por status OPEN ou RESOLVED") String status,
-            @RequestParam(defaultValue = "0") @Parameter(description = "Pagina offset") Integer page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da pagina, entre 1 e 100") Integer size,
+            @RequestParam(defaultValue = "0") @Parameter(description = "Página offset") Integer page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da página, entre 1 e 100") Integer size,
             HttpServletRequest servletRequest
     ) {
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
@@ -103,16 +103,16 @@ public class AdminController {
     @AuditAction(action = "ADMIN_REPORT_RESOLVED", resourceType = "NON_RECEIPT_REPORT", resourceIdExpression = "#id")
     @Operation(
             summary = "Resolver reporte",
-            description = "Resolve administrativamente um reporte aberto de nao recebimento.",
+            description = "Resolve administrativamente um reporte aberto de não recebimento.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Detalhes opcionais da resolucao administrativa"
+                    description = "Detalhes opcionais da resolução administrativa"
             )
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reporte resolvido com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores"),
-            @ApiResponse(responseCode = "404", description = "Reporte nao encontrado")
+            @ApiResponse(responseCode = "404", description = "Reporte não encontrado")
     })
     public ResponseEntity<ApiEnvelope<AdminNonReceiptReportDTO>> resolveReport(
             @PathVariable @Parameter(description = "Identificador do reporte") String id,
@@ -137,17 +137,17 @@ public class AdminController {
      */
     @GetMapping("/materials")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar materiais para moderacao", description = "Lista os materiais da plataforma com filtro opcional por status.")
+    @Operation(summary = "Listar materiais para moderação", description = "Lista os materiais da plataforma com filtro opcional por status.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Materiais carregados com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Filtros invalidos"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
     })
     public ResponseEntity<ApiEnvelope<PagedResponseDTO<MaterialDTO>>> listMaterials(
             @RequestParam(required = false) @Parameter(description = "Filtro por status do material") String status,
-            @RequestParam(defaultValue = "0") @Parameter(description = "Pagina offset") Integer page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da pagina, entre 1 e 100") Integer size,
+            @RequestParam(defaultValue = "0") @Parameter(description = "Página offset") Integer page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da página, entre 1 e 100") Integer size,
             HttpServletRequest servletRequest
     ) {
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
@@ -174,10 +174,10 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Excluir material como admin", description = "Remove um material da plataforma pelo painel administrativo.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Material excluido com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "204", description = "Material excluído com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores"),
-            @ApiResponse(responseCode = "404", description = "Material nao encontrado")
+            @ApiResponse(responseCode = "404", description = "Material não encontrado")
     })
     public ResponseEntity<Void> deleteMaterial(@PathVariable @Parameter(description = "Identificador do material") String id) {
         adminPlatformService.deleteMaterial(id);
@@ -194,16 +194,16 @@ public class AdminController {
      */
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar usuarios", description = "Lista os usuarios da plataforma em formato resumido para auditoria e moderacao.")
+    @Operation(summary = "Listar usuários", description = "Lista os usuários da plataforma em formato resumido para auditoria e moderação.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Usuarios carregados com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Filtros invalidos"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Usuários carregados com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
     })
     public ResponseEntity<ApiEnvelope<PagedResponseDTO<AdminUserSummaryDTO>>> listUsers(
-            @RequestParam(defaultValue = "0") @Parameter(description = "Pagina offset") Integer page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da pagina, entre 1 e 100") Integer size,
+            @RequestParam(defaultValue = "0") @Parameter(description = "Página offset") Integer page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da página, entre 1 e 100") Integer size,
             HttpServletRequest servletRequest
     ) {
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
@@ -215,7 +215,7 @@ public class AdminController {
 
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Usuarios carregados com sucesso",
+                "Usuários carregados com sucesso",
                 adminPlatformService.listUsers(PageRequest.of(page, size))
         );
     }
@@ -235,21 +235,21 @@ public class AdminController {
      */
     @GetMapping("/audit-log")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar auditoria", description = "Consulta o log de auditoria com filtros por ator, alvo, acao e intervalo temporal.")
+    @Operation(summary = "Listar auditoria", description = "Consulta o log de auditoria com filtros por ator, alvo, ação e intervalo temporal.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Auditoria carregada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Filtros invalidos"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
     })
     public ResponseEntity<ApiEnvelope<PagedResponseDTO<AuditLogDTO>>> listAuditLogs(
-            @RequestParam(required = false, name = "actor_user_id") @Parameter(description = "UUID do usuario ator") String actorUserId,
-            @RequestParam(required = false, name = "target_user_id") @Parameter(description = "UUID do usuario alvo") String targetUserId,
-            @RequestParam(required = false) @Parameter(description = "Filtro por nome da acao de auditoria") String action,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @Parameter(description = "Inicio do intervalo ISO-8601") java.time.LocalDateTime from,
+            @RequestParam(required = false, name = "actor_user_id") @Parameter(description = "UUID do usuário ator") String actorUserId,
+            @RequestParam(required = false, name = "target_user_id") @Parameter(description = "UUID do usuário alvo") String targetUserId,
+            @RequestParam(required = false) @Parameter(description = "Filtro por nome da ação de auditoria") String action,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @Parameter(description = "Início do intervalo ISO-8601") java.time.LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @Parameter(description = "Fim do intervalo ISO-8601") java.time.LocalDateTime to,
-            @RequestParam(defaultValue = "0") @Parameter(description = "Pagina offset") Integer page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da pagina, entre 1 e 100") Integer size,
+            @RequestParam(defaultValue = "0") @Parameter(description = "Página offset") Integer page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "Tamanho da página, entre 1 e 100") Integer size,
             HttpServletRequest servletRequest
     ) {
         LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();

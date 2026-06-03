@@ -27,7 +27,7 @@ public class AuthenticatedUserLookupService {
     @Transactional(readOnly = true)
     public AuthenticatedUserSnapshot loadRequiredByEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         return new AuthenticatedUserSnapshot(
                 usuario.getId(),

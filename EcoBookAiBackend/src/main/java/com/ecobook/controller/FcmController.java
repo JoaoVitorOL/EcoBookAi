@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/fcm")
 @RequiredArgsConstructor
-@Tag(name = "FCM", description = "Sincronizacao do token do dispositivo para notificacoes push")
+@Tag(name = "FCM", description = "Sincronização do token do dispositivo para notificações push")
 @SecurityRequirement(name = "bearer-jwt")
 public class FcmController {
 
@@ -41,13 +41,13 @@ public class FcmController {
     @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "Registrar token FCM",
-            description = "Associa o token FCM atual do dispositivo ao usuario autenticado."
+            description = "Associa o token FCM atual do dispositivo ao usuário autenticado."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Token sincronizado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
-            @ApiResponse(responseCode = "403", description = "Usuario sem permissao"),
-            @ApiResponse(responseCode = "422", description = "Token ausente ou invalido")
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão"),
+            @ApiResponse(responseCode = "422", description = "Token ausente ou inválido")
     })
     public ResponseEntity<ApiEnvelope<Void>> registerToken(Authentication authentication,
                                                            @Valid @RequestBody FcmTokenRequestDTO request,

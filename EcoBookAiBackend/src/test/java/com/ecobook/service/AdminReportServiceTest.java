@@ -78,7 +78,7 @@ class AdminReportServiceTest {
 
         assertThatThrownBy(() -> adminReportService.resolveReport(report.getId().toString(), null))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("Este reporte ja foi resolvido");
+                .hasMessage("Este reporte já foi resolvido");
     }
 
     @Test
@@ -94,7 +94,7 @@ class AdminReportServiceTest {
                 new ResolveNonReceiptReportRequestDTO(longNotes)
         ))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("As notas de resolucao sao invalidas");
+                .hasMessage("As notas de resolução são inválidas");
     }
 
     private MaterialNonReceiptReport sampleReport(NonReceiptReportStatus status) {
@@ -133,7 +133,7 @@ class AdminReportServiceTest {
                 .material(material)
                 .solicitacao(solicitacao)
                 .estudante(student)
-                .reason("Nao chegou")
+                .reason("Não chegou")
                 .status(status)
                 .createdAt(createdAt)
                 .updatedAt(createdAt)

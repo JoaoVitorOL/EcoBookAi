@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
-@Tag(name = "Solicitacoes", description = "Fluxo transacional entre estudante e doador")
+@Tag(name = "Solicitações", description = "Fluxo transacional entre estudante e doador")
 @SecurityRequirement(name = "bearer-jwt")
 public class SolicitacaoController {
 
@@ -49,22 +49,24 @@ public class SolicitacaoController {
      */
     @PostMapping("/materiais/{materialId}/solicitacoes")
     @RequireCompleteProfile
-    @Operation(summary = "Criar solicitacao", description = "Cria uma solicitacao do estudante para um material disponivel.")
+    @Operation(summary = "Criar solicitação", description = "Cria uma solicitação do estudante para um material disponível.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Solicitacao criada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Material proprio ou fluxo invalido"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "201", description = "Solicitação criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Material próprio ou fluxo inválido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Material nao encontrado"),
-            @ApiResponse(responseCode = "409", description = "Solicitacao duplicada ou material indisponivel")
+            @ApiResponse(responseCode = "404", description = "Material não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Solicitação duplicada ou material indisponível")
     })
-    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> createSolicitacao(@PathVariable @Parameter(description = "Identificador do material solicitado") String materialId,
-                                                                         Authentication authentication,
-                                                                         HttpServletRequest servletRequest) {
+    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> createSolicitacao(
+            @PathVariable @Parameter(description = "Identificador do material solicitado") String materialId,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.status(
                 HttpStatus.CREATED,
                 servletRequest,
-                "Solicitacao criada com sucesso",
+                "Solicitação criada com sucesso",
                 solicitacaoService.createRequest(authentication.getName(), materialId)
         );
     }
@@ -79,24 +81,22 @@ public class SolicitacaoController {
      */
     @GetMapping("/solicitacoes/minhas")
     @RequireCompleteProfile
-    @Operation(summary = "Listar solicitacoes do estudante", description = "Retorna as solicitacoes do usuario autenticado, com filtro opcional por status.")
+    @Operation(summary = "Listar solicitações do estudante", description = "Retorna as solicitações do usuário autenticado, com filtro opcional por status.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacoes carregadas com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Status invalido"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitações carregadas com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Status inválido"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto")
     })
     public ResponseEntity<ApiEnvelope<List<SolicitacaoDTO>>> listMyRequests(
-            @RequestParam(required = false) @Parameter(description = "Filtro opcional por status da solicitacao") String status,
+            @RequestParam(required = false) @Parameter(description = "Filtro opcional por status da solicitação") String status,
             Authentication authentication,
-            HttpServletRequest servletRequest) {
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacoes do estudante carregadas com sucesso",
-                solicitacaoService.listCurrentUserRequests(
-                        authentication.getName(),
-                        parseStatus(status)
-                )
+                "Solicitações do estudante carregadas com sucesso",
+                solicitacaoService.listCurrentUserRequests(authentication.getName(), parseStatus(status))
         );
     }
 
@@ -109,18 +109,19 @@ public class SolicitacaoController {
      */
     @GetMapping("/solicitacoes/pendentes")
     @RequireCompleteProfile
-    @Operation(summary = "Listar pendentes do doador", description = "Retorna as solicitacoes pendentes recebidas pelo doador autenticado.")
+    @Operation(summary = "Listar pendentes do doador", description = "Retorna as solicitações pendentes recebidas pelo doador autenticado.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacoes pendentes carregadas com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitações pendentes carregadas com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto")
     })
     public ResponseEntity<ApiEnvelope<List<SolicitacaoDTO>>> listPendingDonorRequests(
             Authentication authentication,
-            HttpServletRequest servletRequest) {
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacoes pendentes do doador carregadas com sucesso",
+                "Solicitações pendentes do doador carregadas com sucesso",
                 solicitacaoService.listPendingRequestsForDonor(authentication.getName())
         );
     }
@@ -134,18 +135,19 @@ public class SolicitacaoController {
      */
     @GetMapping("/solicitacoes/aprovadas")
     @RequireCompleteProfile
-    @Operation(summary = "Listar aprovadas do doador", description = "Retorna as solicitacoes aprovadas ainda ativas para o doador autenticado.")
+    @Operation(summary = "Listar aprovadas do doador", description = "Retorna as solicitações aprovadas ainda ativas para o doador autenticado.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacoes aprovadas carregadas com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitações aprovadas carregadas com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto")
     })
     public ResponseEntity<ApiEnvelope<List<SolicitacaoDTO>>> listApprovedDonorRequests(
             Authentication authentication,
-            HttpServletRequest servletRequest) {
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacoes aprovadas do doador carregadas com sucesso",
+                "Solicitações aprovadas do doador carregadas com sucesso",
                 solicitacaoService.listApprovedRequestsForDonor(authentication.getName())
         );
     }
@@ -160,19 +162,21 @@ public class SolicitacaoController {
      */
     @GetMapping("/solicitacoes/{id}")
     @RequireCompleteProfile
-    @Operation(summary = "Consultar solicitacao", description = "Retorna os detalhes de uma solicitacao acessivel ao usuario autenticado.")
+    @Operation(summary = "Consultar solicitação", description = "Retorna os detalhes de uma solicitação acessível ao usuário autenticado.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacao carregada com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitação carregada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Solicitacao nao encontrada")
+            @ApiResponse(responseCode = "404", description = "Solicitação não encontrada")
     })
-    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> getRequest(@PathVariable @Parameter(description = "Identificador da solicitacao") String id,
-                                                                  Authentication authentication,
-                                                                  HttpServletRequest servletRequest) {
+    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> getRequest(
+            @PathVariable @Parameter(description = "Identificador da solicitação") String id,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao carregada com sucesso",
+                "Solicitação carregada com sucesso",
                 solicitacaoService.getRequest(authentication.getName(), id)
         );
     }
@@ -187,21 +191,23 @@ public class SolicitacaoController {
      */
     @PatchMapping("/solicitacoes/{id}/aprovar")
     @RequireCompleteProfile
-    @Operation(summary = "Aprovar solicitacao", description = "Aprova uma solicitacao pendente e reserva o material para o estudante escolhido.")
+    @Operation(summary = "Aprovar solicitação", description = "Aprova uma solicitação pendente e reserva o material para o estudante escolhido.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacao aprovada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Fluxo invalido para aprovacao"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitação aprovada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Fluxo inválido para aprovação"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Solicitacao nao encontrada"),
-            @ApiResponse(responseCode = "409", description = "Corrida de aprovacao ou estado concorrente")
+            @ApiResponse(responseCode = "404", description = "Solicitação não encontrada"),
+            @ApiResponse(responseCode = "409", description = "Corrida de aprovação ou estado concorrente")
     })
-    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> approveRequest(@PathVariable @Parameter(description = "Identificador da solicitacao") String id,
-                                                                      Authentication authentication,
-                                                                      HttpServletRequest servletRequest) {
+    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> approveRequest(
+            @PathVariable @Parameter(description = "Identificador da solicitação") String id,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao aprovada com sucesso",
+                "Solicitação aprovada com sucesso",
                 solicitacaoService.approveRequest(authentication.getName(), id)
         );
     }
@@ -216,20 +222,22 @@ public class SolicitacaoController {
      */
     @PatchMapping("/solicitacoes/{id}/recusar")
     @RequireCompleteProfile
-    @Operation(summary = "Recusar solicitacao", description = "Recusa uma solicitacao pendente do material.")
+    @Operation(summary = "Recusar solicitação", description = "Recusa uma solicitação pendente do material.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacao recusada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Fluxo invalido para recusa"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitação recusada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Fluxo inválido para recusa"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Solicitacao nao encontrada")
+            @ApiResponse(responseCode = "404", description = "Solicitação não encontrada")
     })
-    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> declineRequest(@PathVariable @Parameter(description = "Identificador da solicitacao") String id,
-                                                                      Authentication authentication,
-                                                                      HttpServletRequest servletRequest) {
+    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> declineRequest(
+            @PathVariable @Parameter(description = "Identificador da solicitação") String id,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao recusada com sucesso",
+                "Solicitação recusada com sucesso",
                 solicitacaoService.declineRequest(authentication.getName(), id)
         );
     }
@@ -244,20 +252,22 @@ public class SolicitacaoController {
      */
     @PatchMapping("/solicitacoes/{id}/cancelar")
     @RequireCompleteProfile
-    @Operation(summary = "Cancelar solicitacao", description = "Cancela uma solicitacao do estudante ou do doador quando o fluxo permitir.")
+    @Operation(summary = "Cancelar solicitação", description = "Cancela uma solicitação do estudante ou do doador quando o fluxo permitir.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Solicitacao cancelada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Fluxo invalido para cancelamento"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Solicitação cancelada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Fluxo inválido para cancelamento"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Solicitacao nao encontrada")
+            @ApiResponse(responseCode = "404", description = "Solicitação não encontrada")
     })
-    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> cancelRequest(@PathVariable @Parameter(description = "Identificador da solicitacao") String id,
-                                                                     Authentication authentication,
-                                                                     HttpServletRequest servletRequest) {
+    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> cancelRequest(
+            @PathVariable @Parameter(description = "Identificador da solicitação") String id,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Solicitacao cancelada com sucesso",
+                "Solicitação cancelada com sucesso",
                 solicitacaoService.cancelRequest(authentication.getName(), id)
         );
     }
@@ -272,20 +282,22 @@ public class SolicitacaoController {
      */
     @PatchMapping("/solicitacoes/{id}/concluir")
     @RequireCompleteProfile
-    @Operation(summary = "Concluir doacao", description = "Conclui a doacao aprovada e marca o material como doado.")
+    @Operation(summary = "Concluir doação", description = "Conclui a doação aprovada e marca o material como doado.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Doacao concluida com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Fluxo invalido para conclusao"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Doação concluída com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Fluxo inválido para conclusão"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto"),
-            @ApiResponse(responseCode = "404", description = "Solicitacao nao encontrada")
+            @ApiResponse(responseCode = "404", description = "Solicitação não encontrada")
     })
-    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> completeDonation(@PathVariable @Parameter(description = "Identificador da solicitacao") String id,
-                                                                        Authentication authentication,
-                                                                        HttpServletRequest servletRequest) {
+    public ResponseEntity<ApiEnvelope<SolicitacaoDTO>> completeDonation(
+            @PathVariable @Parameter(description = "Identificador da solicitação") String id,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Doacao concluida com sucesso",
+                "Doação concluída com sucesso",
                 solicitacaoService.completeDonation(authentication.getName(), id)
         );
     }
@@ -299,8 +311,8 @@ public class SolicitacaoController {
             return StatusSolicitacao.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException(
-                    "O filtro de status informado e invalido",
-                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA")
+                    "O filtro de status informado é inválido",
+                    Map.of("status", "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUÍDA")
             );
         }
     }

@@ -72,7 +72,7 @@ fun LegalDocumentsDialog(
                     )
                     LegalSection(
                         title = "Privacidade e LGPD",
-                        body = "O serviço trata dados como nome, email, WhatsApp, CPF, cidade, bairro, materiais, solicitações e notificações para autenticação, segurança, discovery, exportação e exclusão da conta. O titular pode pedir acesso, correção, eliminação e revogação de consentimento, conforme a LGPD e o que estiver implementado no produto."
+                        body = "O serviço trata dados como nome, email, WhatsApp, CPF, cidade, bairro, materiais, solicitações e notificações para autenticação, segurança, busca e exclusão da conta. O titular pode pedir acesso, correção, eliminação e revogação de consentimento, conforme a LGPD e os canais efetivamente oferecidos pelo produto e pelo operador responsável."
                     )
                     LegalSection(
                         title = "Aviso importante",

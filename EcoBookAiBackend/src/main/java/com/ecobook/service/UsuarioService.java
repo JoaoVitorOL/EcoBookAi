@@ -61,7 +61,7 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public UsuarioDTO getByEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         return toDto(usuario);
     }
 
@@ -79,7 +79,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioDTO updateProfile(String email, UpdateProfileRequestDTO request) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         validateRequiredFields(request);
         validateWhatsApp(request.getWhatsapp());
@@ -128,7 +128,7 @@ public class UsuarioService {
     @Transactional
     public void updateFcmToken(String email, String token) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         String normalizedToken = token.trim();
         if (normalizedToken.equals(usuario.getFcmToken())) {
@@ -152,7 +152,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioDTO updateAiConsent(String email, boolean consentimentoIa) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (Boolean.valueOf(consentimentoIa).equals(usuario.getConsentimentoIa())) {
             return toDto(usuario);
@@ -173,7 +173,7 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public UserConsentStatusDTO getConsentStatus(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         return consentService.getConsentStatus(usuario);
     }
 
@@ -228,7 +228,7 @@ public class UsuarioService {
         }
 
         if (!fieldErrors.isEmpty()) {
-            throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
+            throw new UnprocessableEntityException("Preencha todos os campos obrigatórios do perfil", fieldErrors);
         }
     }
 
@@ -244,7 +244,7 @@ public class UsuarioService {
 
         if (usuarioRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new BadRequestException(
-                    "O perfil contem campos invalidos",
+                    "O perfil contém campos inválidos",
                     new LinkedHashMap<>(java.util.Map.of("email", "Este email já está cadastrado"))
             );
         }
@@ -267,7 +267,7 @@ public class UsuarioService {
 
         if (!violations.isEmpty()) {
             throw new BadRequestException(
-                    "O perfil contem campos invalidos",
+                    "O perfil contém campos inválidos",
                     violations.stream().collect(Collectors.toMap(
                             violation -> violation.getPropertyPath().toString(),
                             ConstraintViolation::getMessage,
@@ -286,8 +286,8 @@ public class UsuarioService {
         String normalizedCpf = CpfValidator.normalize(cpf);
         if (!CpfValidator.isValid(normalizedCpf)) {
             throw new BadRequestException(
-                    "O perfil contem campos invalidos",
-                    new LinkedHashMap<>(Map.of("cpf", "Informe um CPF com 11 digitos"))
+                    "O perfil contém campos inválidos",
+                    new LinkedHashMap<>(Map.of("cpf", "Informe um CPF com 11 dígitos"))
             );
         }
     }
@@ -309,10 +309,10 @@ public class UsuarioService {
 
         if (fieldErrors.keySet().stream().allMatch(field ->
                 field.equals("whatsapp") || field.equals("email") || field.equals("cpf"))) {
-            throw new BadRequestException("O perfil contem campos invalidos", fieldErrors);
+            throw new BadRequestException("O perfil contém campos inválidos", fieldErrors);
         }
 
-        throw new UnprocessableEntityException("Preencha todos os campos obrigatorios do perfil", fieldErrors);
+        throw new UnprocessableEntityException("Preencha todos os campos obrigatórios do perfil", fieldErrors);
     }
 
     private Set<NecessidadeAcademica> resolveNeeds(Set<NecessidadeAcademica> necessidadesAcademicas) {
@@ -330,7 +330,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioDTO updateProfilePhoto(String email, MultipartFile image) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         byte[] imageBytes = readImageBytes(image);
         String mimeType = imageStorageService.validateImage(imageBytes);
@@ -340,7 +340,7 @@ public class UsuarioService {
             Files.createDirectories(targetPath.getParent());
             Files.write(targetPath, imageBytes);
         } catch (IOException exception) {
-            throw new ResourceNotFoundException("Nao foi possivel armazenar a foto de perfil", exception);
+            throw new ResourceNotFoundException("Não foi possível armazenar a foto de perfil", exception);
         }
 
         String previousPath = usuario.getFotoPerfilPath();
@@ -358,18 +358,18 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public ProfilePhotoPayload loadProfilePhoto(String requesterEmail, String userId) {
         usuarioRepository.findByEmailIgnoreCase(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario autenticado nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário autenticado não encontrado"));
 
         Usuario usuario = usuarioRepository.findById(parseUserId(userId))
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (!StringUtils.hasText(usuario.getFotoPerfilPath())) {
-            throw new ResourceNotFoundException("Foto de perfil nao encontrada");
+            throw new ResourceNotFoundException("Foto de perfil não encontrada");
         }
 
         Path path = Path.of(usuario.getFotoPerfilPath()).toAbsolutePath().normalize();
         if (!Files.exists(path)) {
-            throw new ResourceNotFoundException("Foto de perfil nao encontrada");
+            throw new ResourceNotFoundException("Foto de perfil não encontrada");
         }
 
         String contentType = StringUtils.hasText(usuario.getFotoPerfilMimeType())
@@ -385,8 +385,8 @@ public class UsuarioService {
         try {
             return image.getBytes();
         } catch (IOException exception) {
-            throw new BadRequestException("Imagem invalida", Map.of(
-                    "image", "Nao foi possivel ler a foto de perfil enviada. Escolha a imagem novamente e tente de novo."
+            throw new BadRequestException("Imagem inválida", Map.of(
+                    "image", "Não foi possível ler a foto de perfil enviada. Escolha a imagem novamente e tente de novo."
             ));
         }
     }
@@ -400,16 +400,16 @@ public class UsuarioService {
 
     private UUID parseUserId(String rawUserId) {
         if (!StringUtils.hasText(rawUserId)) {
-            throw new BadRequestException("Identificador de usuario invalido", Map.of(
-                    "user_id", "Informe um UUID valido"
+            throw new BadRequestException("Identificador de usuário inválido", Map.of(
+                    "user_id", "Informe um UUID válido"
             ));
         }
 
         try {
             return UUID.fromString(rawUserId.trim());
         } catch (IllegalArgumentException exception) {
-            throw new BadRequestException("Identificador de usuario invalido", Map.of(
-                    "user_id", "Informe um UUID valido"
+            throw new BadRequestException("Identificador de usuário inválido", Map.of(
+                    "user_id", "Informe um UUID válido"
             ));
         }
     }

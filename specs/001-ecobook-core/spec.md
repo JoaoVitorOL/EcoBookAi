@@ -361,7 +361,7 @@ Represents a registered user who can simultaneously act as both material donor a
 - `email` (String): Unique email address
 - `password_hash` (String, internal): Strong one-way hash stored by backend; never exposed by API
 - `nome` (String): User's full name
-- `whatsapp` (String): E.164 format (+55XXXXXXXXXXX)
+- `whatsapp` (String): formato E.164, por exemplo `+5511999999999`
 - `cidade` (String): Normalized to uppercase, no accents
 - `bairro` (String): Normalized to uppercase, no accents
 - `instituicao` (String, optional): School/organization affiliation

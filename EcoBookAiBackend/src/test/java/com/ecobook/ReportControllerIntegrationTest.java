@@ -65,7 +65,7 @@ class ReportControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "reason": "Combinei a retirada, mas o material nao chegou."
+                                  "reason": "Combinei a retirada, mas o material não chegou."
                                 }
                                 """))
                 .andExpect(status().isCreated())
@@ -73,7 +73,7 @@ class ReportControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.data.material_id").value(material.getId().toString()))
                 .andExpect(jsonPath("$.data.solicitacao_id").value(request.getId().toString()))
                 .andExpect(jsonPath("$.data.estudante_id").value(student.getId().toString()))
-                .andExpect(jsonPath("$.data.reason").value("Combinei a retirada, mas o material nao chegou."));
+                .andExpect(jsonPath("$.data.reason").value("Combinei a retirada, mas o material não chegou."));
 
         assertThat(materialNonReceiptReportRepository.findAll())
                 .singleElement()
@@ -107,7 +107,7 @@ class ReportControllerIntegrationTest extends BaseIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Ja existe um reporte aberto para este material"));
+                .andExpect(jsonPath("$.message").value("Já existe um reporte aberto para este material"));
     }
 
     @Test

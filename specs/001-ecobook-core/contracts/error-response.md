@@ -57,7 +57,7 @@ Example:
 {
   "status": 400,
   "error": "VALIDATION_ERROR",
-  "message": "Falha de validacao",
+  "message": "Falha de validação",
   "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/auth/register",
   "field_errors": {
@@ -79,7 +79,7 @@ Examples:
 {
   "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Email ou senha invalidos",
+  "message": "Email ou senha inválidos",
   "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/auth/login"
 }
@@ -89,7 +89,7 @@ Examples:
 {
   "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Um token JWT valido e obrigatorio",
+  "message": "Um token JWT válido é obrigatório",
   "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/usuarios/me"
 }
@@ -128,7 +128,7 @@ Example:
 {
   "status": 404,
   "error": "NOT_FOUND",
-  "message": "Usuario nao encontrado",
+  "message": "Usuário não encontrado",
   "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/usuarios/me"
 }
@@ -150,7 +150,7 @@ Example:
 {
   "status": 409,
   "error": "CONFLICT",
-  "message": "Este email ja esta cadastrado",
+  "message": "Este email já está cadastrado",
   "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/auth/register"
 }
@@ -170,7 +170,7 @@ Example:
 {
   "status": 422,
   "error": "UNPROCESSABLE_ENTITY",
-  "message": "Preencha todos os campos obrigatorios do perfil",
+  "message": "Preencha todos os campos obrigatórios do perfil",
   "timestamp": "2026-05-12T18:00:00",
   "path": "/api/v1/usuarios/me",
   "field_errors": {

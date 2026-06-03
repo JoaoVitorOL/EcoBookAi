@@ -70,7 +70,7 @@ Content-Type: application/json
 {
   "status": 400,
   "error": "VALIDATION_ERROR",
-  "message": "Falha de validacao",
+  "message": "Falha de validação",
   "field_errors": {
     "password": "A senha deve ter entre 8 e 72 caracteres"
   }
@@ -82,7 +82,7 @@ Content-Type: application/json
 {
   "status": 409,
   "error": "CONFLICT",
-  "message": "Este email ja esta cadastrado"
+  "message": "Este email já está cadastrado"
 }
 ```
 
@@ -137,7 +137,7 @@ Content-Type: application/json
 {
   "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Email ou senha invalidos"
+  "message": "Email ou senha inválidos"
 }
 ```
 
@@ -187,7 +187,7 @@ Authorization: Bearer <jwt_token>
 {
   "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Um token JWT valido e obrigatorio",
+  "message": "Um token JWT válido é obrigatório",
   "path": "/api/v1/usuarios/me"
 }
 ```
@@ -248,7 +248,7 @@ GET /api/v1/reference-data/material-options
 {
   "status": 500,
   "error": "INTERNAL_SERVER_ERROR",
-  "message": "Nao foi possivel carregar o catalogo de referencia"
+  "message": "Não foi possível carregar o catálogo de referência"
 }
 ```
 
@@ -284,7 +284,7 @@ Authorization: Bearer <jwt_token>
 **Validation Rules**:
 - `email`: optional, valid format, max 255 characters, unique when changed
 - `nome`: required for successful profile completion
-- `whatsapp`: required for successful profile completion; must match `+55XXXXXXXXXXX`
+- `whatsapp`: required for successful profile completion; must match E.164, for example `+5511999999999`
 - `cpf`: required for successful profile completion; must contain exactly `11` digits
 - `cidade`: required for successful profile completion; normalized before save
 - `bairro`: required for successful profile completion; normalized before save
@@ -325,10 +325,10 @@ Authorization: Bearer <jwt_token>
 {
   "status": 400,
   "error": "INVALID_FORMAT",
-  "message": "O perfil contem campos invalidos",
+  "message": "O perfil contém campos inválidos",
   "field_errors": {
-    "whatsapp": "Use o formato E.164 (+55XXXXXXXXXXX)",
-    "cpf": "Informe um CPF valido com 11 digitos"
+    "whatsapp": "Use o formato E.164, por exemplo +5511999999999",
+    "cpf": "Informe um CPF com 11 dígitos"
   }
 }
 ```
@@ -338,9 +338,9 @@ Authorization: Bearer <jwt_token>
 {
   "status": 400,
   "error": "INVALID_FORMAT",
-  "message": "O perfil contem campos invalidos",
+  "message": "O perfil contém campos inválidos",
   "field_errors": {
-    "email": "Este email ja esta cadastrado"
+    "email": "Este email já está cadastrado"
   }
 }
 ```
@@ -350,7 +350,7 @@ Authorization: Bearer <jwt_token>
 {
   "status": 422,
   "error": "UNPROCESSABLE_ENTITY",
-  "message": "Preencha todos os campos obrigatorios do perfil",
+  "message": "Preencha todos os campos obrigatórios do perfil",
   "field_errors": {
     "cidade": "Informe sua cidade",
     "bairro": "Informe seu bairro"
@@ -479,9 +479,9 @@ Authorization: Bearer <jwt_token>
 {
   "status": 400,
   "error": "VALIDATION_ERROR",
-  "message": "Falha de validacao",
+  "message": "Falha de validação",
   "field_errors": {
-    "consentimento_ia": "Informe se o consentimento de IA deve ficar ativo ou nao"
+    "consentimento_ia": "Informe se o consentimento de IA deve ficar ativo ou não"
   }
 }
 ```
@@ -538,7 +538,7 @@ Authorization: Bearer <jwt_token>
 {
   "status": 401,
   "error": "UNAUTHORIZED",
-  "message": "Um token JWT valido e obrigatorio"
+  "message": "Um token JWT válido é obrigatório"
 }
 ```
 
@@ -599,7 +599,7 @@ Authorization: Bearer <jwt_token>
 
 {
   "password": "SenhaSegura123",
-  "reason": "Nao utilizo mais a plataforma"
+  "reason": "Não utilizo mais a plataforma"
 }
 ```
 

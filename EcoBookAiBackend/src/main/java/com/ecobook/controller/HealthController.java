@@ -18,7 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/health")
-@Tag(name = "Saude", description = "Verificacao publica de disponibilidade do backend")
+@Tag(name = "Saúde", description = "Verificação pública de disponibilidade do backend")
 public class HealthController {
 
     /**
@@ -27,7 +27,7 @@ public class HealthController {
      * @return result of the operation
      */
     @GetMapping
-    @Operation(summary = "Consultar saude da API", description = "Retorna o status publico minimo do backend EcoBook AI.")
+    @Operation(summary = "Consultar saúde da API", description = "Retorna o status público mínimo do backend EcoBook AI.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Backend online")
     })

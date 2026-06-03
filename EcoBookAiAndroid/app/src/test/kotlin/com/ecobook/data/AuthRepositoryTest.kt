@@ -79,7 +79,7 @@ class AuthRepositoryTest {
         val apiService = FakeAuthApiService(
             uploadProfilePhotoResponse = Response.error(
                 422,
-                """{"error":"UNPROCESSABLE_ENTITY","message":"Imagem invalida","fieldErrors":{"image":"Selecione JPG ou PNG"}}"""
+                """{"error":"UNPROCESSABLE_ENTITY","message":"Imagem inválida","fieldErrors":{"image":"Selecione JPG ou PNG"}}"""
                     .toResponseBody("application/json".toMediaType())
             )
         )
@@ -100,7 +100,7 @@ class AuthRepositoryTest {
             )
         } catch (error: ApiException) {
             assertEquals(422, error.statusCode)
-            assertEquals("Imagem invalida", error.message)
+            assertEquals("Imagem inválida", error.message)
             assertEquals("Selecione JPG ou PNG", error.fieldErrors["image"])
             verify(exactly = 0) { sessionManager.onUserLoaded(any()) }
             return@runTest

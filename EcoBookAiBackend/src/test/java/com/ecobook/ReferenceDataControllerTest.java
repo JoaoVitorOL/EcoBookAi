@@ -19,7 +19,7 @@ class ReferenceDataControllerTest extends BaseIntegrationTest {
     void shouldReturnMaterialOptionsCatalog() throws Exception {
         mockMvc.perform(get("/v1/reference-data/material-options"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Catalogos de referencia carregados com sucesso"))
+                .andExpect(jsonPath("$.message").value("Catálogos de referência carregados com sucesso"))
                 .andExpect(jsonPath("$.data.disciplinas[0].value").value("TODAS"))
                 .andExpect(jsonPath("$.data.disciplinas[1].label").value("Matematica"))
                 .andExpect(jsonPath("$.data.niveis_ensino[1].value").value("MEDIO"))

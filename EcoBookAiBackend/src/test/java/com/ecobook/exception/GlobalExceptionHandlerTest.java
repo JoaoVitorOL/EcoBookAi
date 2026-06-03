@@ -28,13 +28,13 @@ class GlobalExceptionHandlerTest {
     @DisplayName("handleBadRequestException should preserve field-level errors")
     void shouldHandleBadRequestException() {
         var response = handler.handleBadRequestException(
-                new BadRequestException("Payload invalido", Map.of("email", "Obrigatorio")),
+                new BadRequestException("Payload inválido", Map.of("email", "Obrigatório")),
                 request("/api/v1/auth/register")
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody().getError()).isEqualTo("INVALID_FORMAT");
-        assertThat(response.getBody().getFieldErrors()).containsEntry("email", "Obrigatorio");
+        assertThat(response.getBody().getFieldErrors()).containsEntry("email", "Obrigatório");
         assertThat(response.getBody().getPath()).isEqualTo("/api/v1/auth/register");
     }
 
@@ -55,25 +55,25 @@ class GlobalExceptionHandlerTest {
     @DisplayName("handleAuthenticationException should return UNAUTHORIZED")
     void shouldHandleAuthenticationException() {
         var response = handler.handleAuthenticationException(
-                new BadCredentialsException("Credenciais invalidas"),
+                new BadCredentialsException("Credenciais inválidas"),
                 request("/api/v1/auth/login")
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody().getError()).isEqualTo("UNAUTHORIZED");
-        assertThat(response.getBody().getMessage()).isEqualTo("Credenciais invalidas");
+        assertThat(response.getBody().getMessage()).isEqualTo("Credenciais inválidas");
     }
 
     @Test
     @DisplayName("handleUnprocessableEntityException should propagate field errors")
     void shouldHandleUnprocessableEntityException() {
         var response = handler.handleUnprocessableEntityException(
-                new UnprocessableEntityException("Estado invalido", Map.of("status", "Transicao invalida")),
+                new UnprocessableEntityException("Estado inválido", Map.of("status", "Transição inválida")),
                 request("/api/v1/solicitacoes/1/aprovar")
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getFieldErrors()).containsEntry("status", "Transicao invalida");
+        assertThat(response.getBody().getFieldErrors()).containsEntry("status", "Transição inválida");
     }
 
     @Test
@@ -107,8 +107,8 @@ class GlobalExceptionHandlerTest {
     @DisplayName("handleMethodArgumentNotValid should flatten field errors into the API response")
     void shouldHandleMethodArgumentNotValid() throws Exception {
         BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(new SampleRequest(), "sampleRequest");
-        bindingResult.addError(new FieldError("sampleRequest", "email", "Email invalido"));
-        bindingResult.addError(new FieldError("sampleRequest", "password", "Senha obrigatoria"));
+        bindingResult.addError(new FieldError("sampleRequest", "email", "E-mail inválido"));
+        bindingResult.addError(new FieldError("sampleRequest", "password", "Senha obrigatória"));
 
         Method method = SampleController.class.getDeclaredMethod("submit", SampleRequest.class);
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(new MethodParameter(method, 0), bindingResult);
@@ -124,8 +124,8 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(body.getError()).isEqualTo("VALIDATION_ERROR");
         assertThat(body.getFieldErrors())
-                .containsEntry("email", "Email invalido")
-                .containsEntry("password", "Senha obrigatoria");
+                .containsEntry("email", "E-mail inválido")
+                .containsEntry("password", "Senha obrigatória");
     }
 
     @Test

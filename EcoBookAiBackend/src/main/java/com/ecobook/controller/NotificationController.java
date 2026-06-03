@@ -26,7 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/notificacoes")
 @RequiredArgsConstructor
-@Tag(name = "Notificacoes", description = "Inbox persistida de notificacoes do usuario")
+@Tag(name = "Notificações", description = "Inbox persistida de notificações do usuário")
 @SecurityRequirement(name = "bearer-jwt")
 public class NotificationController {
 
@@ -41,10 +41,10 @@ public class NotificationController {
      */
     @GetMapping
     @RequireCompleteProfile
-    @Operation(summary = "Listar notificacoes", description = "Retorna a inbox persistida de notificacoes do usuario autenticado.")
+    @Operation(summary = "Listar notificações", description = "Retorna a inbox persistida de notificações do usuário autenticado.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Notificacoes carregadas com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Notificações carregadas com sucesso"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto ou acesso negado")
     })
     public ResponseEntity<ApiEnvelope<List<UserNotificationDTO>>> listNotifications(
@@ -68,15 +68,15 @@ public class NotificationController {
      */
     @PatchMapping("/{id}/ler")
     @RequireCompleteProfile
-    @Operation(summary = "Marcar notificacao como lida", description = "Marca uma notificacao especifica da inbox como lida.")
+    @Operation(summary = "Marcar notificação como lida", description = "Marca uma notificação específica da inbox como lida.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Notificacao marcada como lida"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Notificação marcada como lida"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto ou acesso negado"),
-            @ApiResponse(responseCode = "404", description = "Notificacao nao encontrada")
+            @ApiResponse(responseCode = "404", description = "Notificação não encontrada")
     })
     public ResponseEntity<ApiEnvelope<Void>> markAsRead(
-            @PathVariable @Parameter(description = "Identificador da notificacao do usuario") String id,
+            @PathVariable @Parameter(description = "Identificador da notificação do usuário") String id,
             Authentication authentication,
             HttpServletRequest servletRequest
     ) {
@@ -93,10 +93,10 @@ public class NotificationController {
      */
     @PatchMapping("/ler-todas")
     @RequireCompleteProfile
-    @Operation(summary = "Marcar todas como lidas", description = "Marca todas as notificacoes da inbox atual como lidas.")
+    @Operation(summary = "Marcar todas como lidas", description = "Marca todas as notificações da inbox atual como lidas.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Notificacoes marcadas como lidas"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
+            @ApiResponse(responseCode = "200", description = "Notificações marcadas como lidas"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Perfil incompleto ou acesso negado")
     })
     public ResponseEntity<ApiEnvelope<Void>> markAllAsRead(

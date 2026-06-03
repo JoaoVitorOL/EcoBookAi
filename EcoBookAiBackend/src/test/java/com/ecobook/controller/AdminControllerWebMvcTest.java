@@ -268,7 +268,7 @@ class AdminControllerWebMvcTest {
                 .material(material)
                 .solicitacao(solicitacao)
                 .estudante(student)
-                .reason("Nao chegou")
+                .reason("Não chegou")
                 .status(reportStatus)
                 .createdAt(createdAt)
                 .updatedAt(createdAt)

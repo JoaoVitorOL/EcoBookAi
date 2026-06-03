@@ -127,9 +127,9 @@ public final class TestDatabaseConfig {
                     null
             );
         } catch (SQLException sqlException) {
-            String message = "Nao foi possivel preparar o banco externo de testes em "
+            String message = "Não foi possível preparar o banco externo de testes em "
                     + EXTERNAL_HOST + ":" + EXTERNAL_PORT
-                    + ". Rode `docker compose up -d postgres` na raiz do repositorio ou corrija as variaveis ECOBOOK_TEST_DB_*.";
+                    + ". Rode `docker compose up -d postgres` na raiz do repositório ou corrija as variáveis ECOBOOK_TEST_DB_*.";
             if (testcontainersFailure != null) {
                 IllegalStateException failure = new IllegalStateException(message, sqlException);
                 failure.addSuppressed(testcontainersFailure);

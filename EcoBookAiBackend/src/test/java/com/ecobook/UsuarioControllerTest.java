@@ -82,7 +82,7 @@ class UsuarioControllerTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("Um token JWT valido e obrigatorio"));
+                .andExpect(jsonPath("$.message").value("Um token JWT válido é obrigatório"));
     }
 
     @Test

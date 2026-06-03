@@ -51,10 +51,10 @@ public class ReportService {
                                                         String materialId,
                                                         CreateNonReceiptReportRequestDTO request) {
         Usuario estudante = usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         Material material = materialRepository.findById(parseMaterialId(materialId))
-                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Material não encontrado"));
 
         if (material.getStatus() != StatusMaterial.DOADO) {
             throw new UnprocessableEntityException("Somente materiais marcados como doados podem ser reportados");
@@ -67,28 +67,28 @@ public class ReportService {
                         StatusSolicitacao.CONCLUIDA
                 )
                 .orElseThrow(() -> new AccessDeniedException(
-                        "Apenas o estudante com solicitacao concluida pode reportar nao recebimento"
+                        "Apenas o estudante com solicitação concluída pode reportar não recebimento"
                 ));
 
         if (materialNonReceiptReportRepository.existsBySolicitacaoIdAndStatus(
                 solicitacao.getId(),
                 NonReceiptReportStatus.OPEN
         )) {
-            throw new ConflictException("Ja existe um reporte aberto para este material");
+            throw new ConflictException("Já existe um reporte aberto para este material");
         }
 
         String reason = trimToNull(request != null ? request.getReason() : null);
         if (reason == null) {
             throw new BadRequestException(
-                    "O motivo informado e invalido",
+                    "O motivo informado é inválido",
                     Map.of("reason", "Informe o motivo do reporte")
             );
         }
 
         if (reason.length() > 500) {
             throw new BadRequestException(
-                    "O motivo informado e invalido",
-                    Map.of("reason", "O motivo deve ter no maximo 500 caracteres")
+                    "O motivo informado é inválido",
+                    Map.of("reason", "O motivo deve ter no máximo 500 caracteres")
             );
         }
 
@@ -112,16 +112,16 @@ public class ReportService {
 
     private UUID parseMaterialId(String materialId) {
         if (!StringUtils.hasText(materialId)) {
-            throw new BadRequestException("Identificador de material invalido", Map.of(
-                    "material_id", "Informe um UUID valido"
+            throw new BadRequestException("Identificador de material inválido", Map.of(
+                    "material_id", "Informe um UUID válido"
             ));
         }
 
         try {
             return UUID.fromString(materialId.trim());
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de material invalido", Map.of(
-                    "material_id", "Informe um UUID valido"
+            throw new BadRequestException("Identificador de material inválido", Map.of(
+                    "material_id", "Informe um UUID válido"
             ));
         }
     }

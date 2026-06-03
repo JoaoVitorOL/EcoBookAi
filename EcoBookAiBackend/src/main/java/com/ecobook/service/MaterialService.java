@@ -286,7 +286,7 @@ public class MaterialService {
         try {
             return UUID.fromString(materialId);
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de material invalido", Map.of(
+            throw new BadRequestException("Identificador de material inválido", Map.of(
                     "id", "Informe um identificador de material válido"
             ));
         }
@@ -348,7 +348,7 @@ public class MaterialService {
         );
 
         if (!errors.isEmpty()) {
-            throw new BadRequestException("Os dados do material sao invalidos", errors);
+            throw new BadRequestException("Os dados do material são inválidos", errors);
         }
 
         return new ValidatedMaterialRequest(uploadId, data);
@@ -372,7 +372,7 @@ public class MaterialService {
         );
 
         if (!errors.isEmpty()) {
-            throw new BadRequestException("Os dados do material sao invalidos", errors);
+            throw new BadRequestException("Os dados do material são inválidos", errors);
         }
 
         return data;
@@ -481,7 +481,7 @@ public class MaterialService {
         try {
             return Enum.valueOf(enumType, normalizeEnum(value));
         } catch (IllegalArgumentException ex) {
-            errors.put(field, "Valor invalido para " + field);
+            errors.put(field, "Valor inválido para " + field);
             return null;
         }
     }

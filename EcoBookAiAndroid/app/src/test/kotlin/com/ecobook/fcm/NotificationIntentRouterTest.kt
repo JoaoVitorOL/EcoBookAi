@@ -32,7 +32,7 @@ class NotificationIntentRouterTest {
         val notification = NotificationIntentRouter.messageFromData(
             mapOf(
                 "type" to "MATERIAL_DOADO",
-                "title" to "Doacao concluida",
+                "title" to "Doação concluída",
                 "body" to "O material foi marcado como doado.",
                 "solicitacao_id" to "request-2"
             )

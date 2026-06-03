@@ -257,7 +257,7 @@ class E2ETests extends BaseIntegrationTest {
                                 }
                                 """.formatted(uploadId)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field_errors.disciplina").value("Valor invalido para disciplina"));
+                .andExpect(jsonPath("$.field_errors.disciplina").value("Valor inválido para disciplina"));
     }
 
     @Test
@@ -268,7 +268,7 @@ class E2ETests extends BaseIntegrationTest {
         mockMvc.perform(post("/v1/materiais/{id}/solicitacoes", UUID.randomUUID())
                         .header("Authorization", "Bearer " + tokenFor(student)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Material nao encontrado"));
+                .andExpect(jsonPath("$.message").value("Material não encontrado"));
     }
 
     @Test
@@ -280,7 +280,7 @@ class E2ETests extends BaseIntegrationTest {
         mockMvc.perform(post("/v1/materiais/{id}/solicitacoes", material.getId())
                         .header("Authorization", "Bearer " + tokenFor(donor)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Nao e possivel solicitar o proprio material"));
+                .andExpect(jsonPath("$.message").value("Não é possível solicitar o próprio material"));
     }
 
     @Test
@@ -295,7 +295,7 @@ class E2ETests extends BaseIntegrationTest {
         mockMvc.perform(post("/v1/materiais/{id}/solicitacoes", material.getId())
                         .header("Authorization", "Bearer " + tokenFor(student)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Voce ja possui uma solicitacao ativa para este material"));
+                .andExpect(jsonPath("$.message").value("Você já possui uma solicitação ativa para este material"));
     }
 
     @Test
@@ -378,7 +378,7 @@ class E2ETests extends BaseIntegrationTest {
                 }
                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field_errors.whatsapp").value("Use o formato E.164 (+55XXXXXXXXXXX)"));
+                .andExpect(jsonPath("$.field_errors.whatsapp").value("Use o formato E.164, por exemplo +5511999999999"));
     }
 
     @Test

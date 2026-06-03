@@ -44,9 +44,6 @@ try {
         throw "Falha ao criar o alias temporario $mappedDrive para $projectDir."
     }
 
-    $mutex.ReleaseMutex()
-    $hasMutex = $false
-
     Push-Location "$mappedDrive\"
     $enteredLocation = $true
 
@@ -59,9 +56,6 @@ finally {
     }
 
     if ($mappedDrive) {
-        if ($mutex -and -not $hasMutex) {
-            $hasMutex = $mutex.WaitOne([TimeSpan]::FromSeconds(30))
-        }
         & subst $mappedDrive /d | Out-Null
     }
 

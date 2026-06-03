@@ -82,7 +82,7 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
         mockMvc.perform(post("/v1/materiais/{id}/solicitacoes", material.getId())
                         .header("Authorization", "Bearer " + tokenFor(donor)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Nao e possivel solicitar o proprio material"));
+                .andExpect(jsonPath("$.message").value("Não é possível solicitar o próprio material"));
     }
 
     @Test
@@ -111,7 +111,7 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
         mockMvc.perform(post("/v1/materiais/{id}/solicitacoes", material.getId())
                         .header("Authorization", "Bearer " + tokenFor(secondStudent)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("O material ja possui uma solicitacao aprovada"));
+                .andExpect(jsonPath("$.message").value("O material já possui uma solicitação aprovada"));
 
         mockMvc.perform(patch("/v1/solicitacoes/{id}/cancelar", firstRequest.getId())
                         .header("Authorization", "Bearer " + tokenFor(firstStudent)))
@@ -220,9 +220,9 @@ class SolicitacaoWorkflowTest extends BaseIntegrationTest {
                         .param("status", "EM_ANALISE")
                         .header("Authorization", "Bearer " + tokenFor(student)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("O filtro de status informado e invalido"))
+                .andExpect(jsonPath("$.message").value("O filtro de status informado é inválido"))
                 .andExpect(jsonPath("$.field_errors.status").value(
-                        "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUIDA"
+                        "Use um dos valores: PENDENTE, APROVADA, RECUSADA, CANCELADA, CONCLUÍDA"
                 ));
     }
 

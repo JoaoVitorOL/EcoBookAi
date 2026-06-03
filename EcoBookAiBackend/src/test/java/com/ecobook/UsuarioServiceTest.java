@@ -114,7 +114,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
-                .andExpect(jsonPath("$.field_errors.whatsapp").value("Use o formato E.164 (+55XXXXXXXXXXX)"));
+                .andExpect(jsonPath("$.field_errors.whatsapp").value("Use o formato E.164, por exemplo +5511999999999"));
     }
 
     @Test

@@ -54,15 +54,15 @@ public class SolicitacaoService {
         Material material = loadMaterial(materialId);
 
         if (material.getDoador().getId().equals(estudante.getId())) {
-            throw new BadRequestException("Nao e possivel solicitar o proprio material", Map.of());
+            throw new BadRequestException("Não é possível solicitar o próprio material", Map.of());
         }
 
         if (material.getStatus() == StatusMaterial.RESERVADO) {
-            throw new ConflictException("O material ja possui uma solicitacao aprovada");
+            throw new ConflictException("O material já possui uma solicitação aprovada");
         }
 
         if (material.getStatus() != StatusMaterial.DISPONIVEL) {
-            throw new UnprocessableEntityException("O material nao esta disponivel para novas solicitacoes");
+            throw new UnprocessableEntityException("O material não está disponível para novas solicitações");
         }
 
         if (solicitacaoRepository.existsByMaterialIdAndEstudanteIdAndStatusIn(
@@ -70,7 +70,7 @@ public class SolicitacaoService {
                 estudante.getId(),
                 List.of(StatusSolicitacao.PENDENTE, StatusSolicitacao.APROVADA)
         )) {
-            throw new ConflictException("Voce ja possui uma solicitacao ativa para este material");
+            throw new ConflictException("Você já possui uma solicitação ativa para este material");
         }
 
         Solicitacao solicitacao = solicitacaoRepository.save(Solicitacao.builder()
@@ -327,27 +327,27 @@ public class SolicitacaoService {
 
     private Usuario loadUsuario(String email) {
         return usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 
     private Material loadMaterial(String materialId) {
         return materialRepository.findById(parseUuid(materialId, "material"))
-                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Material não encontrado"));
     }
 
     private Material lockMaterial(UUID materialId) {
         return materialRepository.findByIdForUpdate(materialId)
-                .orElseThrow(() -> new ResourceNotFoundException("Material nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Material não encontrado"));
     }
 
     private Solicitacao loadSolicitacao(String requestId) {
         return solicitacaoRepository.findById(parseUuid(requestId, "solicitacao"))
-                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitação não encontrada"));
     }
 
     private Solicitacao loadSolicitacaoForUpdate(String requestId) {
         return solicitacaoRepository.findByIdForUpdate(parseUuid(requestId, "solicitacao"))
-                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitação não encontrada"));
     }
 
     private void ensureDonor(Solicitacao solicitacao, Usuario usuario) {
@@ -384,13 +384,13 @@ public class SolicitacaoService {
 
     private UUID parseUuid(String rawValue, String label) {
         if (!StringUtils.hasText(rawValue)) {
-            throw new BadRequestException("Identificador de " + label + " invalido", Map.of(label, "Informe um UUID valido"));
+            throw new BadRequestException("Identificador de " + label + " inválido", Map.of(label, "Informe um UUID válido"));
         }
 
         try {
             return UUID.fromString(rawValue.trim());
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Identificador de " + label + " invalido", Map.of(label, "Informe um UUID valido"));
+            throw new BadRequestException("Identificador de " + label + " inválido", Map.of(label, "Informe um UUID válido"));
         }
     }
 

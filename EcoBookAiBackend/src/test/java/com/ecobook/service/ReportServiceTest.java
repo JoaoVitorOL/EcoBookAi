@@ -82,14 +82,14 @@ class ReportServiceTest {
         var response = reportService.reportNonReceipt(
                 student.getEmail(),
                 material.getId().toString(),
-                new CreateNonReceiptReportRequestDTO("O material nao foi entregue")
+                new CreateNonReceiptReportRequestDTO("O material não foi entregue")
         );
 
         assertThat(response.getStatus()).isEqualTo("OPEN");
         assertThat(response.getMaterialId()).isEqualTo(material.getId().toString());
         assertThat(response.getSolicitacaoId()).isEqualTo(request.getId().toString());
         assertThat(response.getEstudanteId()).isEqualTo(student.getId().toString());
-        assertThat(response.getReason()).isEqualTo("O material nao foi entregue");
+        assertThat(response.getReason()).isEqualTo("O material não foi entregue");
 
         ArgumentCaptor<NonReceiptReportCreatedEvent> captor = ArgumentCaptor.forClass(NonReceiptReportCreatedEvent.class);
         verify(eventPublisher).publishEvent(captor.capture());
@@ -110,7 +110,7 @@ class ReportServiceTest {
         assertThatThrownBy(() -> reportService.reportNonReceipt(
                 student.getEmail(),
                 material.getId().toString(),
-                new CreateNonReceiptReportRequestDTO("Ainda nao recebi")
+                new CreateNonReceiptReportRequestDTO("Ainda não recebi")
         ))
                 .isInstanceOf(UnprocessableEntityException.class)
                 .hasMessage("Somente materiais marcados como doados podem ser reportados");
@@ -139,7 +139,7 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("Tentativa repetida")
         ))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("Ja existe um reporte aberto para este material");
+                .hasMessage("Já existe um reporte aberto para este material");
     }
 
     @Test
@@ -165,7 +165,7 @@ class ReportServiceTest {
                 new CreateNonReceiptReportRequestDTO("   ")
         ))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("O motivo informado e invalido");
+                .hasMessage("O motivo informado é inválido");
     }
 
     @Test
@@ -185,10 +185,10 @@ class ReportServiceTest {
         assertThatThrownBy(() -> reportService.reportNonReceipt(
                 student.getEmail(),
                 material.getId().toString(),
-                new CreateNonReceiptReportRequestDTO("Nao chegou")
+                new CreateNonReceiptReportRequestDTO("Não chegou")
         ))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("Apenas o estudante com solicitacao concluida pode reportar nao recebimento");
+                .hasMessage("Apenas o estudante com solicitação concluída pode reportar não recebimento");
     }
 
     private Usuario createStudent(String email) {

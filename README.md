@@ -1,28 +1,28 @@
 # EcoBook AI
 
-Plataforma Android + backend Spring Boot para doacao e solicitacao de materiais de estudo, com classificacao assistida por IA, matching geografico, filtros por necessidade academica do material, notificacoes e controles de consentimento/LGPD.
+Plataforma Android + backend Spring Boot para doação e solicitação de materiais de estudo, com classificação assistida por IA, matching geográfico, filtros por necessidade acadêmica do material, notificações e controles de consentimento/LGPD.
 
-O uso previsto do MVP e por adultos, pais e responsaveis legais dos alunos. O app nao intermedeia a conversa nem o ponto de encontro: depois da aprovacao, contato e entrega sao combinados exclusivamente via WhatsApp entre as partes.
+O uso previsto do MVP é por adultos, pais e responsáveis legais dos alunos. O app não intermedeia a conversa nem o ponto de encontro: depois da aprovação, contato e entrega são combinados exclusivamente via WhatsApp entre as partes.
 
 ## Status Atual
 
-- Fases `1` a `10` estao implementadas e validadas no estado atual do repositorio; o que resta para lancamento real e revisao juridica do texto legal, monitoramento continuo de dependencias e revalidacao do ambiente alvo.
-- Backend: auth `email + senha + JWT`, onboarding, preview IA, materiais, discovery, solicitacoes, notificacoes, moderacao/admin, consentimentos, exclusao de conta, exportacao de dados, OpenAPI e observabilidade.
-- Android: login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador, central de notificacoes, edicao de perfil com CPF obrigatorio e foto de perfil, consentimentos e exclusao de conta.
-- Em `2026-05-23`, o app Android tambem passou por uma revisao de UI/codigo baseada em referencias oficiais do Compose para acessibilidade, state hoisting e layouts adaptativos.
+- Fases `1` a `10` estão implementadas e validadas no estado atual do repositório; o que resta para lançamento real é revisão jurídica do texto legal, monitoramento contínuo de dependências e revalidação do ambiente alvo.
+- Backend: auth `email + senha + JWT`, onboarding, preview IA, materiais, discovery, solicitações, notificações, moderação/admin, consentimentos, exclusão de conta, exportação de dados, OpenAPI e observabilidade.
+- Android: login/cadastro, onboarding, doação, busca, pedidos do estudante, pedidos do doador, central de notificações, edição de perfil com CPF obrigatório e foto de perfil, consentimentos e exclusão de conta.
+- Em `2026-05-23`, o app Android também passou por uma revisão de UI/código baseada em referências oficiais do Compose para acessibilidade, state hoisting e layouts adaptativos.
 
 ## O Jeito Mais Seguro De Rodar Tudo
 
-Se voce quer subir o projeto inteiro sem cair em armadilhas de ambiente, siga exatamente esta ordem:
+Se você quer subir o projeto inteiro sem cair em armadilhas de ambiente, siga exatamente esta ordem:
 
-1. Abra um PowerShell na raiz do repositorio `EcoBookAi`.
+1. Abra um PowerShell na raiz do repositório `EcoBookAi`.
 2. Suba o backend no perfil `local` com H2.
 3. Valide o `health` da API.
 4. Configure `EcoBookAiAndroid/local.properties`.
-5. Rode `assembleDebug`, `lintDebug` e `testDebugUnitTest` no Android, em sequencia.
+5. Rode `assembleDebug`, `lintDebug` e `testDebugUnitTest` no Android, em sequência.
 6. Abra `EcoBookAiAndroid` no Android Studio e execute o app.
 
-Essa ordem foi revalidada nesta maquina em `2026-05-24`.
+Essa ordem foi revalidada nesta máquina em `2026-06-03`.
 
 ## Requisitos
 
@@ -31,16 +31,16 @@ Essa ordem foi revalidada nesta maquina em `2026-05-24`.
 - Maven `3.9+`
 - Android Studio
 - Android SDK Platform `34`
-- Emulador Android ou dispositivo fisico
+- Emulador Android ou dispositivo físico
 - Docker Desktop opcional, apenas para o perfil PostgreSQL
 
-## Estrutura Do Repositorio
+## Estrutura Do Repositório
 
 ```text
 .
-|-- EcoBookAiBackend/        # API REST e regras de negocio
+|-- EcoBookAiBackend/        # API REST e regras de negócio
 |-- EcoBookAiAndroid/        # App Android nativo
-|-- specs/001-ecobook-core/ # Spec kit, contratos e backlog historico
+|-- specs/001-ecobook-core/ # Spec kit, contratos e backlog histórico
 |-- docs/                    # Guias, revisoes e runbooks
 |-- scripts/                 # Scripts auxiliares
 `-- docker-compose.yml       # PostgreSQL local para o perfil default
@@ -50,7 +50,7 @@ Essa ordem foi revalidada nesta maquina em `2026-05-24`.
 
 ### 1. Subir o backend local
 
-Na raiz do repositorio:
+Na raiz do repositório:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
@@ -59,24 +59,24 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHom
 O perfil `local`:
 
 - usa H2 em arquivo
-- nao depende de Docker
+- não depende de Docker
 - sobe o backend em `http://127.0.0.1:8080/api`
-- usa preview mock do Gemini apenas quando `GEMINI_API_KEY` nao estiver presente no processo
+- usa preview mock do Gemini apenas quando `GEMINI_API_KEY` não estiver presente no processo
 
 Se `GEMINI_API_KEY` estiver configurada, o backend local passa a usar o Gemini real automaticamente.
-Se voce quiser forcar o preview mock mesmo com chave presente, defina:
+Se você quiser forçar o preview mock mesmo com chave presente, defina:
 
 ```powershell
 $env:GEMINI_MOCK_FORCE = "true"
 ```
 
-Antes de subir outra instancia local, vale checar se ja existe uma API respondendo em `8080`:
+Antes de subir outra instância local, vale checar se já existe uma API respondendo em `8080`:
 
 ```powershell
 Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8080/api/v1/health
 ```
 
-Se esse comando ja responder `200`, o backend ja esta rodando e voce nao precisa abrir uma segunda instancia. Isso evita conflito de porta, disputa pelo H2 local e ruído no `logs/ecobook.log`.
+Se esse comando já responder `200`, o backend já está rodando e você não precisa abrir uma segunda instância. Isso evita conflito de porta, disputa pelo H2 local e ruído no `logs/ecobook.log`.
 
 Se a porta `8080` estiver ocupada:
 
@@ -98,9 +98,9 @@ Resposta esperada:
 {"status":200,"message":"Backend online", ...}
 ```
 
-Se voce usou outra porta no passo anterior, ajuste aqui e tambem no `backend.url` do Android.
+Se você usou outra porta no passo anterior, ajuste aqui e também no `backend.url` do Android.
 
-Se o `health` ja estava respondendo antes do passo 1, apenas reaproveite essa instancia e siga para a configuracao do Android.
+Se o `health` já estava respondendo antes do passo 1, apenas reaproveite essa instância e siga para a configuração do Android.
 
 ### 3. Configurar o Android
 
@@ -113,7 +113,7 @@ sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
 ```
 
-Se o backend estiver no WSL ou se voce estiver usando um aparelho fisico, troque `10.0.2.2` pelo IP real da maquina host.
+Se o backend estiver no WSL ou se você estiver usando um aparelho físico, troque `10.0.2.2` pelo IP real da máquina host.
 
 Para descobrir o IP do WSL:
 
@@ -127,18 +127,18 @@ Exemplo:
 backend.url=http://172.22.160.34:8080/api
 ```
 
-`google-services.json` nao e obrigatorio para compilar ou testar os fluxos principais. Ele so e necessario quando voce quer validar push real do Firebase.
+`google-services.json` não é obrigatório para compilar ou testar os fluxos principais. Ele só é necessário quando você quer validar push real do Firebase.
 
 ## Onde Fica A Chave Do Gemini
 
 A chave do Gemini deve ficar **somente no backend**, nunca no Android.
 
-Hoje o codigo do backend le a chave por variavel de ambiente em:
+Hoje o código do backend lê a chave por variável de ambiente em:
 
 - `EcoBookAiBackend/src/main/resources/application.yml` -> `gemini.api-key: ${GEMINI_API_KEY:}`
 - `EcoBookAiBackend/src/main/java/com/ecobook/service/GeminiService.java`
 
-Para ambiente local ou producao, esconda a chave no processo do backend:
+Para ambiente local ou produção, esconda a chave no processo do backend:
 
 ```powershell
 $env:GEMINI_API_KEY = "sua-chave-aqui"
@@ -146,13 +146,13 @@ $env:GEMINI_API_KEY = "sua-chave-aqui"
 
 Depois suba o backend normalmente.
 
-O que nao fazer:
+O que não fazer:
 
-- nao colocar a chave em `EcoBookAiAndroid/local.properties`
-- nao colocar a chave no app Android, `BuildConfig`, Compose UI ou frontend
-- nao commitar a chave em `application.yml`, `application-local.yml`, `README.md` ou qualquer arquivo versionado
+- não colocar a chave em `EcoBookAiAndroid/local.properties`
+- não colocar a chave no app Android, `BuildConfig`, Compose UI ou frontend
+- não commitar a chave em `application.yml`, `application-local.yml`, `README.md` ou qualquer arquivo versionado
 
-No perfil `local` documentado acima, o backend sobe com preview mock apenas quando `GEMINI_API_KEY` nao estiver configurada. Se a chave estiver presente, o preview usa o Gemini real automaticamente.
+No perfil `local` documentado acima, o backend sobe com preview mock apenas quando `GEMINI_API_KEY` não estiver configurada. Se a chave estiver presente, o preview usa o Gemini real automaticamente.
 
 ### 4. Build, lint e testes do Android
 
@@ -162,7 +162,7 @@ Entre na pasta do app:
 cd .\EcoBookAiAndroid
 ```
 
-Rode os comandos abaixo em sequencia:
+Rode os comandos abaixo em sequência:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug
@@ -172,9 +172,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 
 Por que usar esse wrapper:
 
-- a workspace atual tem espacos e acentos no caminho do Windows
-- o script cria um alias ASCII temporario para o Gradle
-- em `2026-05-23`, o wrapper tambem foi endurecido contra corrida entre aliases temporarios
+- a workspace atual tem espaços e acentos no caminho do Windows
+- o script cria um alias ASCII temporário para o Gradle
+- em `2026-06-03`, o wrapper passou a serializar a execução inteira do Gradle nessa workspace, evitando corridas entre aliases temporários
 
 Baseline validado nesta rodada:
 
@@ -186,11 +186,11 @@ Baseline validado nesta rodada:
 
 1. Abra a pasta `EcoBookAiAndroid` no Android Studio.
 2. Aguarde o sync do Gradle.
-3. Inicie um emulador API `34` ou conecte um dispositivo fisico.
+3. Inicie um emulador API `34` ou conecte um dispositivo físico.
 4. Execute o app em `debug`.
 5. Use login/cadastro normal no app.
 
-## Validacoes Uteis
+## Validações Úteis
 
 Backend:
 
@@ -210,18 +210,18 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
 ```
 
-Ultimo baseline conhecido em `2026-06-02`:
+Último baseline conhecido em `2026-06-03`:
 
 - Backend: `mvn test` verde com `229` testes, `0` falhas, `0` erros e `3` skips controlados
 - Backend: JaCoCo em `84.72%`
-- Android lint: `0` erros e `20` warnings nao bloqueantes
+- Android lint: `0` erros e `20` avisos não bloqueantes
 - Android JVM: `app:testDebugUnitTest` verde
 
 ## Modos Opcionais
 
 ### PostgreSQL + Flyway
 
-Se voce quiser validar o caminho mais proximo do banco principal:
+Se você quiser validar o caminho mais próximo do banco principal:
 
 ```powershell
 docker compose up -d postgres
@@ -235,16 +235,16 @@ Esse modo espera:
 
 - `localhost:5432`
 - banco `ecobook`
-- usuario `ecobook`
+- usuário `ecobook`
 - senha `dev_password_123` ou `DB_PASSWORD`
 
 ### Firebase real
 
-Para push real no Android, alem do backend local voce precisa:
+Para push real no Android, além do backend local você precisa:
 
 - `EcoBookAiAndroid/app/google-services.json`
-- credencial Admin SDK valida no backend
-- emulador com Google Play services ou dispositivo fisico
+- credencial Admin SDK válida no backend
+- emulador com Google Play services ou dispositivo físico
 
 Backend com Firebase:
 
@@ -259,51 +259,51 @@ cd .\EcoBookAiAndroid
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'
 ```
 
-## Revisao Geral Mais Recente
+## Revisão Geral Mais Recente
 
 Lacunas/falhas corrigidas nesta passada:
 
-- As suites e fixtures agora estao alinhadas ao CPF obrigatorio do perfil, ao campo obrigatorio `necessidade_academica` dos materiais e ao `WebMvcTest` do `UsuarioController`.
-- A exclusao de conta no backend deixou de engolir falhas de remocao de arquivos e agora registra a limpeza executada e qualquer erro residual no detalhe operacional.
-- O bootstrap do Firebase Admin SDK voltou a aceitar novas tentativas de inicializacao depois de uma falha de credencial, sem exigir restart do backend.
-- `NavGraph` deixou de usar o padrao inseguro de `getBackStackEntry()` durante composicao.
-- A UI Android agora usa um conteiner adaptativo com largura maxima nas telas principais.
-- Linhas de consentimento passaram a ser inteiramente clicaveis, nao so o `Switch`/`Checkbox`.
-- Chips customizados passaram a expor melhor semantica de selecao.
+- As suítes e fixtures agora estão alinhadas ao CPF obrigatório do perfil, ao campo obrigatório `necessidade_academica` dos materiais e ao `WebMvcTest` do `UsuarioController`.
+- A exclusão de conta no backend deixou de engolir falhas de remoção de arquivos e agora registra a limpeza executada e qualquer erro residual no detalhe operacional.
+- O bootstrap do Firebase Admin SDK voltou a aceitar novas tentativas de inicialização depois de uma falha de credencial, sem exigir restart do backend.
+- `NavGraph` deixou de usar o padrão inseguro de `getBackStackEntry()` durante composição.
+- A UI Android agora usa um contêiner adaptativo com largura máxima nas telas principais.
+- Linhas de consentimento passaram a ser inteiramente clicáveis, não só o `Switch`/`Checkbox`.
+- Chips customizados passaram a expor melhor semântica de seleção.
 - `SharedPreferences.commit()` foi trocado por `apply()` no override de backend usado em runtime/testes.
-- O servico FCM Android deixou de carregar uma checagem obsoleta de `SDK_INT`.
+- O serviço FCM Android deixou de carregar uma checagem obsoleta de `SDK_INT`.
 - `Run-BackendLocal.ps1` agora expande corretamente `-Port`, em vez de repassar `server.port=$Port` literal para o Spring Boot.
-- A expiracao automatica de reservas agora tambem cobre o instante-limite exato (`expires_at == now`), em linha com os testes e com a regra de negocio documentada.
-- O wrapper `Invoke-GradleAsciiPath.ps1` passou a sincronizar a criacao do drive ASCII temporario, evitando falhas silenciosas em execucoes concorrentes.
-- O Android deixou de carregar a antiga `HomeScreen` de demonstracao e os modelos/sample states que ja nao participavam da navegacao real.
+- A expiração automática de reservas agora também cobre o instante-limite exato (`expires_at == now`), em linha com os testes e com a regra de negócio documentada.
+- O wrapper `Invoke-GradleAsciiPath.ps1` passou a sincronizar a criação do drive ASCII temporário, evitando falhas silenciosas em execuções concorrentes.
+- O Android deixou de carregar a antiga `HomeScreen` de demonstração e os modelos/sample states que já não participavam da navegação real.
 
-Sugestoes para a proxima rodada:
+Sugestões para a próxima rodada:
 
-- subir `targetSdk` e revisar o bloco de dependencias Android
-- expandir validacao visual em tablet/foldable
+- subir `targetSdk` e revisar o bloco de dependências Android
+- expandir validação visual em tablet/foldable
 - fazer uma passada dedicada de edge-to-edge/insets
-- mover mais strings visiveis para `res/values/strings.xml` se localizacao entrar no curto prazo
-- revisar `SecureStorage` porque `EncryptedSharedPreferences`/`MasterKey` hoje geram warnings de deprecacao no assemble validado
+- mover mais strings visíveis para `res/values/strings.xml` se localização entrar no curto prazo
+- revisar `SecureStorage` porque `EncryptedSharedPreferences`/`MasterKey` hoje geram avisos de deprecação no assemble validado
 
 ## Limites Conhecidos
 
-- O texto de termos/privacidade do MVP existe e esta visivel no app, mas ainda precisa de revisao juridica antes de publicacao real.
+- O texto de termos/privacidade do MVP existe e está visível no app, mas ainda precisa de revisão jurídica antes de publicação real.
 - O `OWASP Dependency Check` ainda aponta risco residual documentado em `docs/security-scan.md`.
-- O Android lint ainda lista warnings de dependencia desatualizada e `targetSdk = 34`, mas sem erro funcional bloqueante nesta rodada.
+- O Android lint ainda lista avisos de dependência desatualizada e `targetSdk = 34`, mas sem erro funcional bloqueante nesta rodada.
 
-## Documentacao
+## Documentação
 
 - Backend: [EcoBookAiBackend/README.md](EcoBookAiBackend/README.md)
 - Android: [EcoBookAiAndroid/README.md](EcoBookAiAndroid/README.md)
-- Quickstart tecnico: [specs/001-ecobook-core/quickstart.md](specs/001-ecobook-core/quickstart.md)
+- Quickstart técnico: [specs/001-ecobook-core/quickstart.md](specs/001-ecobook-core/quickstart.md)
 - Contratos HTTP: [specs/001-ecobook-core/contracts/README.md](specs/001-ecobook-core/contracts/README.md)
 - Plano consolidado: [specs/001-ecobook-core/PLAN-SUMMARY.md](specs/001-ecobook-core/PLAN-SUMMARY.md)
-- Backlog historico: [specs/001-ecobook-core/TASKS.md](specs/001-ecobook-core/TASKS.md)
+- Backlog histórico: [specs/001-ecobook-core/TASKS.md](specs/001-ecobook-core/TASKS.md)
 - Guia de testes: [docs/testing.md](docs/testing.md)
-- Revisao Android UI: [docs/android-ui-review.md](docs/android-ui-review.md)
-- Revisao de codigo: [docs/code-review.md](docs/code-review.md)
-- Analise estatica: [docs/static-analysis.md](docs/static-analysis.md)
-- Seguranca de dependencias: [docs/security-scan.md](docs/security-scan.md)
+- Revisão Android UI: [docs/android-ui-review.md](docs/android-ui-review.md)
+- Revisão de código: [docs/code-review.md](docs/code-review.md)
+- Análise estática: [docs/static-analysis.md](docs/static-analysis.md)
+- Segurança de dependências: [docs/security-scan.md](docs/security-scan.md)
 - Rollback de migrations: [docs/migration-rollbacks.md](docs/migration-rollbacks.md)
 - Arquitetura: [docs/architecture.md](docs/architecture.md)
 - Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)

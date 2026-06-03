@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/reference-data")
 @RequiredArgsConstructor
-@Tag(name = "Reference Data", description = "Catalogos publicos e cacheados para onboarding e materiais")
+@Tag(name = "Reference Data", description = "Catálogos públicos e cacheados para onboarding e materiais")
 public class ReferenceDataController {
 
     private final ReferenceDataService referenceDataService;
@@ -30,16 +30,16 @@ public class ReferenceDataController {
      */
     @GetMapping("/material-options")
     @Operation(
-            summary = "Listar catalogos de material",
-            description = "Retorna os enums e labels usados pelo app Android para filtros, onboarding e publicacao de materiais."
+            summary = "Listar catálogos de material",
+            description = "Retorna os enums e labels usados pelo app Android para filtros, onboarding e publicação de materiais."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Catalogos carregados com sucesso")
+            @ApiResponse(responseCode = "200", description = "Catálogos carregados com sucesso")
     })
     public ResponseEntity<ApiEnvelope<ReferenceDataCatalogDTO>> getMaterialOptions(HttpServletRequest servletRequest) {
         return ApiEnvelopeResponses.ok(
                 servletRequest,
-                "Catalogos de referencia carregados com sucesso",
+                "Catálogos de referência carregados com sucesso",
                 referenceDataService.getMaterialOptions()
         );
     }

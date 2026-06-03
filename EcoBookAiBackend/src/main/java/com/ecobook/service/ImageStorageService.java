@@ -107,7 +107,7 @@ public class ImageStorageService {
             );
         } catch (IOException ex) {
             cleanupCreatedFiles(createdPaths);
-            throw new ResourceNotFoundException("Nao foi possivel armazenar a imagem temporaria", ex);
+            throw new ResourceNotFoundException("Não foi possível armazenar a imagem temporária", ex);
         } catch (RuntimeException ex) {
             cleanupCreatedFiles(createdPaths);
             throw ex;
@@ -136,10 +136,10 @@ public class ImageStorageService {
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
-                throw invalidImage("image", "O arquivo enviado nao pode ser lido como imagem. Escolha outra foto em JPG ou PNG.");
+                throw invalidImage("image", "O arquivo enviado não pode ser lido como imagem. Escolha outra foto em JPG ou PNG.");
             }
         } catch (IOException ex) {
-            throw invalidImage("image", "O arquivo enviado nao pode ser lido como imagem. Escolha outra foto em JPG ou PNG.");
+            throw invalidImage("image", "O arquivo enviado não pode ser lido como imagem. Escolha outra foto em JPG ou PNG.");
         }
 
         return mimeType;
@@ -183,7 +183,7 @@ public class ImageStorageService {
             String publicUrl = buildPublicUrl(userId, destination.getFileName().toString());
             return new PromotedImage(destination, publicUrl);
         } catch (IOException ex) {
-            throw new ResourceNotFoundException("Nao foi possivel promover a imagem para armazenamento permanente", ex);
+            throw new ResourceNotFoundException("Não foi possível promover a imagem para armazenamento permanente", ex);
         }
     }
 
@@ -199,7 +199,7 @@ public class ImageStorageService {
         try {
             Files.deleteIfExists(resolvePath(filePath));
         } catch (IOException ex) {
-            log.warn("Nao foi possivel remover arquivo temporario {}", filePath, ex);
+            log.warn("Não foi possível remover arquivo temporário {}", filePath, ex);
         }
     }
 
@@ -250,7 +250,7 @@ public class ImageStorageService {
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException ex) {
-            log.warn("Nao foi possivel remover arquivo temporario {}", filePath, ex);
+            log.warn("Não foi possível remover arquivo temporário {}", filePath, ex);
         }
     }
 
@@ -258,7 +258,7 @@ public class ImageStorageService {
         try {
             return file.getBytes();
         } catch (IOException ex) {
-            throw invalidImage("image", "Nao foi possivel ler o arquivo enviado. Escolha a imagem novamente e tente de novo.");
+            throw invalidImage("image", "Não foi possível ler o arquivo enviado. Escolha a imagem novamente e tente de novo.");
         }
     }
 
@@ -301,7 +301,7 @@ public class ImageStorageService {
     private BadRequestException invalidImage(String field, String message) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         fieldErrors.put(field, message);
-        return new BadRequestException("Imagem invalida", fieldErrors);
+        return new BadRequestException("Imagem inválida", fieldErrors);
     }
 
     private Path resolvePath(String filePath) {

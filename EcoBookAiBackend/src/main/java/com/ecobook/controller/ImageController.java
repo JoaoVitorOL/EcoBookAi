@@ -42,13 +42,15 @@ public class ImageController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Imagem carregada com sucesso"),
-            @ApiResponse(responseCode = "401", description = "JWT ausente ou invalido"),
-            @ApiResponse(responseCode = "403", description = "Usuario sem acesso a imagem"),
-            @ApiResponse(responseCode = "404", description = "Imagem nao encontrada")
+            @ApiResponse(responseCode = "401", description = "JWT ausente ou inválido"),
+            @ApiResponse(responseCode = "403", description = "Usuário sem acesso à imagem"),
+            @ApiResponse(responseCode = "404", description = "Imagem não encontrada")
     })
-    public ResponseEntity<Resource> getImage(@PathVariable @Parameter(description = "Identificador do upload tracking promovido") String imageId,
-                                             @RequestParam(defaultValue = "front") @Parameter(description = "Lado da imagem a retornar: front ou back") String side,
-                                             Authentication authentication) {
+    public ResponseEntity<Resource> getImage(
+            @PathVariable @Parameter(description = "Identificador do upload tracking promovido") String imageId,
+            @RequestParam(defaultValue = "front") @Parameter(description = "Lado da imagem a retornar: front ou back") String side,
+            Authentication authentication
+    ) {
         ImageAccessService.ImagePayload payload = imageAccessService.loadImage(authentication.getName(), imageId, side);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(payload.contentType()))
