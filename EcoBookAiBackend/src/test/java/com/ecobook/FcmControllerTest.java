@@ -36,6 +36,10 @@ class FcmControllerTest extends BaseIntegrationTest {
                 .email("fcm@example.com")
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("FCM User")
+                .whatsapp("+5511991234567")
+                .cpf("52998224725")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
                 .perfilCompleto(true)
                 .role(Role.USER)
                 .build());
@@ -76,6 +80,10 @@ class FcmControllerTest extends BaseIntegrationTest {
                 .email("blank-fcm@example.com")
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Blank FCM User")
+                .whatsapp("+5511991234567")
+                .cpf("52998224725")
+                .cidade("SAO PAULO")
+                .bairro("CENTRO")
                 .perfilCompleto(true)
                 .role(Role.USER)
                 .build());

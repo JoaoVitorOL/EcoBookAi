@@ -92,7 +92,7 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("CONFLICT"))
-                .andExpect(jsonPath("$.message").value("Este email ja esta cadastrado"));
+                .andExpect(jsonPath("$.message").value("Este email já está cadastrado"));
     }
 
     @Test
@@ -118,7 +118,7 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("CONFLICT"))
-                .andExpect(jsonPath("$.message").value("Este email ja esta cadastrado"));
+                .andExpect(jsonPath("$.message").value("Este email já está cadastrado"));
 
         assertThat(usuarioRepository.findByEmailIgnoreCase("legacy@example.com"))
                 .hasValueSatisfying(usuario ->
@@ -177,7 +177,7 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("Email ou senha invalidos"));
+                .andExpect(jsonPath("$.message").value("Email ou senha inválidos"));
     }
 
     @Test

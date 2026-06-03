@@ -8,6 +8,7 @@ import com.ecobook.model.enums.Role;
 import com.ecobook.repository.UsuarioRepository;
 import com.ecobook.service.ConsentService;
 import com.ecobook.service.GeoNormalizationService;
+import com.ecobook.service.ImageStorageService;
 import com.ecobook.service.UserDataExportService;
 import com.ecobook.service.UserDeletionService;
 import com.ecobook.service.UsuarioService;
@@ -73,6 +74,9 @@ class UsuarioControllerWebMvcTest {
 
     @MockBean
     private ConsentService consentService;
+
+    @MockBean
+    private ImageStorageService imageStorageService;
 
     @Test
     @DisplayName("PATCH /v1/usuarios/me/consentimento-ia should update AI consent")
@@ -162,6 +166,7 @@ class UsuarioControllerWebMvcTest {
                 .passwordHash("hash")
                 .nome("Usuario Consentimento")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("SAO PAULO")
                 .bairro("CENTRO")
                 .perfilCompleto(true)

@@ -65,6 +65,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Allowed User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("SAO PAULO")
                 .bairro("CENTRO")
                 .perfilCompleto(true)
@@ -86,6 +87,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Preview User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("SAO PAULO")
                 .bairro("CENTRO")
                 .perfilCompleto(true)
@@ -125,6 +127,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Update User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("SAO PAULO")
                 .bairro("CENTRO")
                 .perfilCompleto(true)
@@ -146,6 +149,7 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Delete User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("SAO PAULO")
                 .bairro("CENTRO")
                 .perfilCompleto(true)
@@ -176,7 +180,8 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                   "nivel_ensino": "FUNDAMENTAL",
                   "ano": 7,
                   "sistema_ensino": "ANGLO",
-                  "estado_conservacao": "BOM"
+                  "estado_conservacao": "BOM",
+                  "necessidade_academica": "TEXTBOOKS"
                 }
                 """.formatted(uploadId);
     }
@@ -190,7 +195,8 @@ class ProfileCompletenessAspectTest extends BaseIntegrationTest {
                   "nivel_ensino": "FUNDAMENTAL",
                   "ano": 7,
                   "sistema_ensino": "ANGLO",
-                  "estado_conservacao": "BOM"
+                  "estado_conservacao": "BOM",
+                  "necessidade_academica": "TEXTBOOKS"
                 }
                 """;
     }

@@ -26,6 +26,6 @@ class ReferenceDataControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.data.sistemas_ensino[0].value").value("ANGLO"))
                 .andExpect(jsonPath("$.data.estados_conservacao[0].value").value("NOVO"))
                 .andExpect(jsonPath("$.data.necessidades_academicas[0].value").value("TEXTBOOKS"))
-                .andExpect(jsonPath("$.data.necessidades_academicas[0].label").value("Livros didaticos"));
+                .andExpect(jsonPath("$.data.necessidades_academicas[0].label").value("Livros didáticos"));
     }
 }

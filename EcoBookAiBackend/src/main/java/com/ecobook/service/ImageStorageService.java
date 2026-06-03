@@ -130,7 +130,7 @@ public class ImageStorageService {
 
         String mimeType = detectMimeType(imageBytes);
         if (mimeType == null) {
-            throw invalidImage("image", "Formato nao suportado. Escolha uma imagem em JPG ou PNG.");
+            throw invalidImage("image", "Formato não suportado. Escolha uma imagem em JPG ou PNG.");
         }
 
         try {

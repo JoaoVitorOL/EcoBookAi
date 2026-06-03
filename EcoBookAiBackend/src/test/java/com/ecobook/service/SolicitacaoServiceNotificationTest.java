@@ -153,6 +153,7 @@ class SolicitacaoServiceNotificationTest {
                 .email(email)
                 .nome(nome)
                 .whatsapp("+5511999999999")
+                .cpf("52998224725")
                 .cidade("Rio de Janeiro")
                 .bairro("Centro")
                 .perfilCompleto(true)

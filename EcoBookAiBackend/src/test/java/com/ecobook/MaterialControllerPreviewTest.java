@@ -93,7 +93,7 @@ class MaterialControllerPreviewTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
-                .andExpect(jsonPath("$.field_errors.image").value("A imagem precisa estar em formato JPEG ou PNG"));
+                .andExpect(jsonPath("$.field_errors.image").value("Formato não suportado. Escolha uma imagem em JPG ou PNG."));
     }
 
     @Test
@@ -117,7 +117,7 @@ class MaterialControllerPreviewTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + tokenFor(usuario)))
                 .andExpect(status().isPayloadTooLarge())
                 .andExpect(jsonPath("$.error").value("PAYLOAD_TOO_LARGE"))
-                .andExpect(jsonPath("$.message").value("A imagem excede o limite de 5MB"));
+                .andExpect(jsonPath("$.message").value("A imagem excede 5MB. Escolha um arquivo menor ou recorte a imagem antes de enviar."));
     }
 
     private Usuario createCompleteUser(String email, boolean consentimentoIa) {
@@ -126,6 +126,7 @@ class MaterialControllerPreviewTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Preview User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("FLORIANOPOLIS")
                 .bairro("CENTRO")
                 .perfilCompleto(true)

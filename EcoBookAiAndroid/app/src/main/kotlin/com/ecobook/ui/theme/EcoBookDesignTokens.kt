@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ecobook.model.BackendConnectionState
@@ -58,11 +59,15 @@ fun ecoBookBadgeColors(tone: EcoBookTone): EcoBookBadgeColors {
 fun ecoBookAppBackgroundBrush(): Brush {
     val colorScheme = MaterialTheme.colorScheme
     return if (isEcoBookDarkTheme()) {
+        val topTint = lerp(colorScheme.background, colorScheme.primaryContainer, 0.10f)
+        val midTint = lerp(colorScheme.background, colorScheme.surface, 0.32f)
+        val baseTint = lerp(colorScheme.background, colorScheme.surfaceVariant, 0.08f)
         Brush.verticalGradient(
             colors = listOf(
+                topTint,
+                midTint,
                 colorScheme.background,
-                colorScheme.surfaceVariant.copy(alpha = 0.24f),
-                colorScheme.primaryContainer.copy(alpha = 0.16f)
+                baseTint
             )
         )
     } else {

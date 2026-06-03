@@ -190,6 +190,7 @@ class MatchingServiceTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Matching User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade(cidade)
                 .bairro(bairro)
                 .perfilCompleto(true)

@@ -137,26 +137,3 @@ data class MaterialHighlight(
     val locationLabel: String
         get() = "$neighborhood, $city"
 }
-
-data class ProjectInsight(
-    val title: String,
-    val description: String
-)
-
-data class DonationStep(
-    val title: String,
-    val description: String
-)
-
-data class AIPreviewField(
-    val label: String,
-    val value: String
-)
-
-data class DonationPreview(
-    val aiStatus: AiAssistStatus = AiAssistStatus.SUCCESS,
-    val confidence: Double = 0.82,
-    val description: String = "Exemplo de retorno para o fluxo de classificação assistida por IA.",
-    val fields: List<AIPreviewField> = emptyList(),
-    val steps: List<DonationStep> = emptyList()
-)

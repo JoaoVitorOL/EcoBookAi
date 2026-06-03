@@ -136,6 +136,7 @@ curl -X PUT http://127.0.0.1:8080/api/v1/usuarios/me \
   -d '{
     "nome": "Quickstart User",
     "whatsapp": "+5511999999999",
+    "cpf": "52998224725",
     "cidade": "Florianopolis",
     "bairro": "Centro",
     "consentimento_ia": true,
@@ -228,7 +229,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 
 ## Current Closeout Notes
 
-- The repository is now accurate to describe as `Phase 10 complete`.
+- The repository remains runtime-complete for the implemented MVP scope.
 - The remaining follow-ups are operational or governance items, not implementation blockers:
   - legal review of the MVP terms/privacy text
   - periodic Android dependency/`targetSdk` refresh

@@ -85,6 +85,7 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
                                   "ano": 2,
                                   "sistema_ensino": "OBJETIVO",
                                   "estado_conservacao": "USADO",
+                                  "necessidade_academica": "TEXTBOOKS",
                                   "data_publicacao": 2020
                                 }
                                 """))
@@ -129,7 +130,8 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
                                   "nivel_ensino": "FUNDAMENTAL",
                                   "ano": 7,
                                   "sistema_ensino": "ANGLO",
-                                  "estado_conservacao": "BOM"
+                                  "estado_conservacao": "BOM",
+                                  "necessidade_academica": "TEXTBOOKS"
                                 }
                                 """))
                 .andExpect(status().isForbidden())
@@ -160,6 +162,7 @@ class MaterialControllerOwnerTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Owner User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("FLORIANOPOLIS")
                 .bairro("CENTRO")
                 .perfilCompleto(true)

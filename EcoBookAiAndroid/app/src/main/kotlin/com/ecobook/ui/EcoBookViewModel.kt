@@ -214,10 +214,12 @@ class EcoBookViewModel @Inject constructor(
                 val preparedImage = ImageCompressionHelper.prepareForUpload(context, uri, "profile-photo")
                 authRepository.uploadProfilePhoto(preparedImage)
             }.onSuccess {
+                val savedProfile = repository.buildProfileDraft()
                 _uiState.update { state ->
                     state.copy(
                         isUploadingProfilePhoto = false,
-                        profile = repository.buildProfileDraft(),
+                        profile = savedProfile,
+                        savedProfile = savedProfile,
                         profileFieldErrors = state.profileFieldErrors - PROFILE_PHOTO_FIELD_KEY,
                         profileMessage = "Foto de perfil atualizada com sucesso.",
                         profileMessageIsError = false
@@ -261,9 +263,11 @@ class EcoBookViewModel @Inject constructor(
             runCatching { authRepository.updateAiConsent(enabled) }
                 .onSuccess {
                     val consentStatus = runCatching { authRepository.fetchConsentStatus() }.getOrNull()
+                    val savedProfile = repository.buildProfileDraft()
                     _uiState.update { state ->
                         state.copy(
-                            profile = repository.buildProfileDraft(),
+                            profile = savedProfile,
+                            savedProfile = savedProfile,
                             consentStatus = consentStatus ?: state.consentStatus,
                             isUpdatingAiConsent = false,
                             pendingAiConsent = null,
@@ -366,10 +370,12 @@ class EcoBookViewModel @Inject constructor(
     private fun observeSession() {
         viewModelScope.launch {
             sessionManager.sessionState.collectLatest { session ->
+                val savedProfile = repository.buildProfileDraft()
                 _uiState.update { state ->
                     state.copy(
                         session = session,
-                        profile = repository.buildProfileDraft(),
+                        profile = savedProfile,
+                        savedProfile = savedProfile,
                         consentStatus = if (session.isAuthenticated) state.consentStatus else null,
                         isSavingProfile = false,
                         isUploadingProfilePhoto = false,
@@ -394,7 +400,13 @@ class EcoBookViewModel @Inject constructor(
                     refreshConsentStatus()
                 }
                 .onFailure {
-                    _uiState.update { state -> state.copy(profile = repository.buildProfileDraft()) }
+                    val savedProfile = repository.buildProfileDraft()
+                    _uiState.update { state ->
+                        state.copy(
+                            profile = savedProfile,
+                            savedProfile = savedProfile
+                        )
+                    }
             }
         }
     }
@@ -408,6 +420,11 @@ class EcoBookViewModel @Inject constructor(
                 state.copy(
                     profile = state.profile.copy(
                         necessidadesAcademicas = state.profile.necessidadesAcademicas.filterTo(linkedSetOf()) {
+                            it in catalog.necessidadesAcademicas
+                        }
+                    ),
+                    savedProfile = state.savedProfile.copy(
+                        necessidadesAcademicas = state.savedProfile.necessidadesAcademicas.filterTo(linkedSetOf()) {
                             it in catalog.necessidadesAcademicas
                         }
                     ),

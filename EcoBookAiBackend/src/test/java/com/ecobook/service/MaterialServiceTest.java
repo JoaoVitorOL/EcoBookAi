@@ -111,6 +111,7 @@ class MaterialServiceTest {
                 .passwordHash("hash")
                 .nome("Doador Teste")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("FLORIANOPOLIS")
                 .bairro("CENTRO")
                 .perfilCompleto(true)
@@ -147,6 +148,7 @@ class MaterialServiceTest {
                 .ano(7)
                 .sistemaEnsino("ANGLO")
                 .estadoConservacao("BOM")
+                .necessidadeAcademica("TEXTBOOKS")
                 .dataPublicacao(2024)
                 .build();
     }

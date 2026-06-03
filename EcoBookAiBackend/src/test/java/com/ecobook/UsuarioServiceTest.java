@@ -307,6 +307,10 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                 .email("existing@example.com")
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Existing User")
+                .whatsapp("+5511991234567")
+                .cpf("52998224725")
+                .cidade("CURITIBA")
+                .bairro("CENTRO")
                 .perfilCompleto(true)
                 .role(Role.USER)
                 .build());
@@ -334,7 +338,7 @@ class UsuarioServiceTest extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_FORMAT"))
-                .andExpect(jsonPath("$.field_errors.email").value("Este email ja esta cadastrado"));
+                .andExpect(jsonPath("$.field_errors.email").value("Este email já está cadastrado"));
     }
 
     private String tokenFor(Usuario usuario) {

@@ -134,6 +134,7 @@ class ReservationExpiryJobTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome(nome)
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("FLORIANOPOLIS")
                 .bairro("CENTRO")
                 .perfilCompleto(true)

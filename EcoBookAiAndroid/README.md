@@ -11,7 +11,7 @@ Aplicativo Android nativo do EcoBook AI.
 - `Minhas solicitacoes` para o estudante
 - `Pedidos recebidos` para o doador, incluindo aprovar, recusar, revogar e concluir
 - Inbox local de notificacoes, sininho de nao lidas e acoes de abertura apenas quando existe um destino util
-- Edicao de perfil com foto, gerenciamento de consentimentos, exportacao de dados pessoais e exclusao da conta
+- Edicao de perfil com foto, gerenciamento de consentimentos e exclusao da conta
 
 ## Aviso De Uso
 
@@ -123,12 +123,11 @@ Validado em `2026-05-23`:
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'`
 - fluxo real de `token FCM -> sync backend -> solicitacao criada -> notificacao persistida -> recebimento no app` confirmado em `Pixel_6` AVD com Google Play services
 
-Validado em `2026-05-25`:
+Validado em `2026-06-02`:
 
-- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug`
-- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:compileDebugKotlin`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
-- fluxo de exportacao de dados ligado ao endpoint backend e ao seletor nativo de documentos
+- limpeza da `HomeScreen` legada e dos estados/modelos de demonstracao sem impacto na navegacao principal
 
 Lint/UI baseline atual:
 

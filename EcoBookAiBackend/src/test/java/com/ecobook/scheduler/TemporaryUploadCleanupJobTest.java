@@ -55,6 +55,7 @@ class TemporaryUploadCleanupJobTest extends BaseIntegrationTest {
                 .passwordHash(SEEDED_PASSWORD_HASH)
                 .nome("Cleanup User")
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("FLORIANOPOLIS")
                 .bairro("CENTRO")
                 .perfilCompleto(true)

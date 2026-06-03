@@ -8,7 +8,7 @@ O uso previsto do MVP e por adultos, pais e responsaveis legais dos alunos. O ap
 
 - Fases `1` a `10` estao implementadas e validadas no estado atual do repositorio; o que resta para lancamento real e revisao juridica do texto legal, monitoramento continuo de dependencias e revalidacao do ambiente alvo.
 - Backend: auth `email + senha + JWT`, onboarding, preview IA, materiais, discovery, solicitacoes, notificacoes, moderacao/admin, consentimentos, exclusao de conta, exportacao de dados, OpenAPI e observabilidade.
-- Android: login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador, central de notificacoes, edicao de perfil com CPF obrigatorio e foto de perfil, consentimentos, exportacao de dados e exclusao de conta.
+- Android: login/cadastro, onboarding, doacao, busca, pedidos do estudante, pedidos do doador, central de notificacoes, edicao de perfil com CPF obrigatorio e foto de perfil, consentimentos e exclusao de conta.
 - Em `2026-05-23`, o app Android tambem passou por uma revisao de UI/codigo baseada em referencias oficiais do Compose para acessibilidade, state hoisting e layouts adaptativos.
 
 ## O Jeito Mais Seguro De Rodar Tudo
@@ -210,10 +210,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
 ```
 
-Ultimo baseline conhecido em `2026-05-26`:
+Ultimo baseline conhecido em `2026-06-02`:
 
-- Backend: `mvn test` verde com `225` testes, `0` falhas, `0` erros e `3` skips controlados
-- Backend: JaCoCo em `86.11%`
+- Backend: `mvn test` verde com `229` testes, `0` falhas, `0` erros e `3` skips controlados
+- Backend: JaCoCo em `84.72%`
 - Android lint: `0` erros e `20` warnings nao bloqueantes
 - Android JVM: `app:testDebugUnitTest` verde
 
@@ -263,7 +263,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 
 Lacunas/falhas corrigidas nesta passada:
 
-- A exportacao de dados pessoais agora esta disponivel no Android via `POST /api/v1/usuarios/me/export`, com download do ZIP pelo seletor nativo de documentos.
+- As suites e fixtures agora estao alinhadas ao CPF obrigatorio do perfil, ao campo obrigatorio `necessidade_academica` dos materiais e ao `WebMvcTest` do `UsuarioController`.
 - A exclusao de conta no backend deixou de engolir falhas de remocao de arquivos e agora registra a limpeza executada e qualquer erro residual no detalhe operacional.
 - O bootstrap do Firebase Admin SDK voltou a aceitar novas tentativas de inicializacao depois de uma falha de credencial, sem exigir restart do backend.
 - `NavGraph` deixou de usar o padrao inseguro de `getBackStackEntry()` durante composicao.
@@ -275,7 +275,7 @@ Lacunas/falhas corrigidas nesta passada:
 - `Run-BackendLocal.ps1` agora expande corretamente `-Port`, em vez de repassar `server.port=$Port` literal para o Spring Boot.
 - A expiracao automatica de reservas agora tambem cobre o instante-limite exato (`expires_at == now`), em linha com os testes e com a regra de negocio documentada.
 - O wrapper `Invoke-GradleAsciiPath.ps1` passou a sincronizar a criacao do drive ASCII temporario, evitando falhas silenciosas em execucoes concorrentes.
-- Dois recursos Android nao usados foram removidos.
+- O Android deixou de carregar a antiga `HomeScreen` de demonstracao e os modelos/sample states que ja nao participavam da navegacao real.
 
 Sugestoes para a proxima rodada:
 

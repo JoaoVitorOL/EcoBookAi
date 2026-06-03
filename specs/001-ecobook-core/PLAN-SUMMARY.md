@@ -2,7 +2,7 @@
 
 **Phase**: 1 Complete / 2 Complete / 3 Complete / 4 Complete / 5 Implemented / 6 Implemented / 7 Complete / 8 Complete / 9 Complete / 10 Complete  
 **Date**: 2026-05-25  
-**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are implemented and validated; the 2026-05-25 follow-up also closed the Android data-export gap and the backend reliability fixes discovered after the audit
+**Status**: Phase 5 request workflow, Phase 6 notification workflow, the full Phase 7 admin/moderation runtime, the Phase 8 LGPD/security runtime, the full Phase 9 hardening slice, and the final Phase 10 documentation/quality closeout are implemented and validated; the 2026-06-02 follow-up closed the backend reliability fixes discovered after the audit, removed stale Android demo code and rebased the documentation away from the non-existent Android data-export flow
 
 ---
 
@@ -219,14 +219,14 @@ Validation update on 2026-05-23:
 2. Backend startup/test guidance is now explicit about the Java 21+ requirement to avoid the previous class-version mismatch failure mode
 3. Root/runtime documentation was rebased so the repository is clearly documented as implementation-complete for `Phase 10`, with the remaining follow-ups called out as legal/operational rather than coding blockers
 4. The Phase 9 observability baseline is now live through Micrometer/Prometheus, HikariCP metrics, runtime business counters and an actuator-backed smoke suite
-5. The backend regression suite is green again with `223` tests / `3` controlled skips via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update, edge-case, boundary, rollback, OpenAPI smoke, export/inbox/audit unit coverage and load-harness fronts
+5. At that `2026-05-23` validation point, the backend regression suite was green with `223` tests / `3` controlled skips via `mvn test`, including the request, admin, LGPD, profile-gate, metrics, cache, reference-data, discovery cursor, profile-update, edge-case, boundary, rollback, OpenAPI smoke, export/inbox/audit unit coverage and load-harness fronts
 6. Android consent/account UX is now aligned with the current runtime: the user can read an in-app summary before accepting platform terms, edit the main profile fields later, and confirm account deletion through an explicit destructive dialog
 7. Android local JVM validation remains green through `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 8. Phase 9 hardening now also includes explicit edge/boundary coverage for account-deletion cascade reopening, exact 5MB image acceptance, large request/material backlogs and exact reservation-expiry timing
 9. A dedicated `E2ETests` suite now consolidates 20 API-level end-to-end scenarios, the runtime-aligned docs set now includes architecture, troubleshooting, deployment and testing guides under `docs/`, and the Android side now has a repeatable `FirebaseRealDeviceValidationTest` for the real FCM path
 10. `LoadValidationTest` now closes the missing concurrency evidence with a validated `20 uploads + 30 searches` run, `562 ms` search p95, `616 ms` upload p95, `0%` errors and Prometheus/Hikari report artifacts under `EcoBookAiBackend/target/load-reports/`
 11. Swagger/OpenAPI is now live on the backend through `springdoc`, with public docs at `/api/swagger-ui.html`, raw JSON at `/api/v3/api-docs`, controller-level annotations across the REST surface and smoke coverage that keeps the documentation endpoints under regression
-12. The coverage gate is now closed at `86.08%` JaCoCo line coverage, backed by the full `223`-test regression suite plus the added notification-retry, token-revocation and migration-rollback validation coverage
+12. At that same `2026-05-23` validation point, the coverage gate snapshot stood at `86.08%` JaCoCo line coverage, backed by the `223`-test regression suite plus the added notification-retry, token-revocation and migration-rollback validation coverage
 13. Phase 10 now also has explicit evidence for code review (`docs/code-review.md`), static analysis (`docs/static-analysis.md`), dependency scanning (`docs/security-scan.md`) and migration reversibility inventory (`docs/migration-rollbacks.md`)
 14. The OWASP baseline was reduced from `25` vulnerable dependencies / `131` findings to `13` / `41`, and the residual transitive/framework risk is now explicitly accepted and documented in `docs/security-scan.md`
 15. Flyway rollback coverage is now explicit: every migration has a paired artifact under `db/rollback`, PostgreSQL apply -> rollback -> re-apply is validated in `MigrationRollbackValidationTest`, and the destructive historical migrations now route through a checked-in snapshot/restore workflow
@@ -234,12 +234,12 @@ Validation update on 2026-05-23:
 17. A post-closeout Android UI review was also completed against official Compose guidance for state hoisting, accessibility defaults and adaptive layouts; the runtime now uses centered max-width content panes, full-row toggle semantics for consent controls, a fixed `NavGraph` back-stack pattern and a green `app:lintDebug` baseline with only dependency/targetSdk warnings remaining
 18. The post-closeout operational runbook was then revalidated end to end: the root/module READMEs and `quickstart.md` now reflect the verified startup order, and the Android ASCII Gradle wrapper was hardened against concurrent temporary-drive alias races discovered during that verification pass
 
-Validation update on 2026-05-25:
+Validation update on 2026-06-02:
 
-1. The Android profile area now consumes `POST /api/v1/usuarios/me/export` and saves the generated ZIP through the native document picker, aligning the app with the LGPD/data-export contract already present in the backend
-2. Backend account deletion no longer swallows file-system cleanup failures silently; the deletion details now record removed files and residual delete errors for audit/support visibility
-3. Firebase Admin SDK initialization is retryable again after a missing/invalid credential path, so correcting the environment no longer requires restarting the backend process
-4. The latest validation pass reran `mvn test`, `app:testDebugUnitTest`, and the Phase 9 load harness; the repository remained green with `223` backend tests, `86.08%` JaCoCo line coverage, `30` Android JVM tests, `0%` load-test errors, `562 ms` search p95 and `616 ms` upload p95
+1. Backend fixtures and integration slices were aligned with the current runtime rules: `cpf` is now present in complete-profile test users, `necessidade_academica` is now included in material creation fixtures, and the `UsuarioControllerWebMvcTest` slice now mocks the image-storage dependency it imports transitively
+2. The Android module no longer carries the legacy `HomeScreen` showcase, sample insights, sample donation preview or the orphaned UI models/components that were no longer reachable from the real navigation graph
+3. Root/runtime documentation no longer claims that the Android app offers a self-service personal-data export flow; that capability remains backend-only in the current repository
+4. The latest validation pass reran `mvn test` and `app:testDebugUnitTest`; the repository stayed green with `229` backend tests, `0` failures, `0` errors, `3` controlled skips, `84.72%` JaCoCo line coverage and a green Android JVM baseline via the ASCII-path Gradle wrapper
 
 ---
 

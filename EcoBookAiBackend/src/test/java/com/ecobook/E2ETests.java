@@ -252,7 +252,8 @@ class E2ETests extends BaseIntegrationTest {
                                   "nivel_ensino": "FUNDAMENTAL",
                                   "ano": 7,
                                   "sistema_ensino": "ANGLO",
-                                  "estado_conservacao": "BOM"
+                                  "estado_conservacao": "BOM",
+                                  "necessidade_academica": "TEXTBOOKS"
                                 }
                                 """.formatted(uploadId)))
                 .andExpect(status().isBadRequest())
@@ -325,17 +326,17 @@ class E2ETests extends BaseIntegrationTest {
     void shouldRejectGifAndWebp() throws Exception {
         Usuario donor = createCompleteUser("e2e-image-formats@example.com", "Doador", true);
 
-        mockMvc.perform(multipart("/v1/materiais/preview")
+                mockMvc.perform(multipart("/v1/materiais/preview")
                         .file(new MockMultipartFile("file", "animado.gif", "image/gif", "GIF89a".getBytes(StandardCharsets.UTF_8)))
                         .header("Authorization", "Bearer " + tokenFor(donor)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field_errors.image").value("A imagem precisa estar em formato JPEG ou PNG"));
+                .andExpect(jsonPath("$.field_errors.image").value("Formato não suportado. Escolha uma imagem em JPG ou PNG."));
 
-        mockMvc.perform(multipart("/v1/materiais/preview")
+                mockMvc.perform(multipart("/v1/materiais/preview")
                         .file(new MockMultipartFile("file", "capa.webp", "image/webp", "RIFF1234WEBPVP8 ".getBytes(StandardCharsets.UTF_8)))
                         .header("Authorization", "Bearer " + tokenFor(donor)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field_errors.image").value("A imagem precisa estar em formato JPEG ou PNG"));
+                .andExpect(jsonPath("$.field_errors.image").value("Formato não suportado. Escolha uma imagem em JPG ou PNG."));
     }
 
     @Test
@@ -592,6 +593,7 @@ class E2ETests extends BaseIntegrationTest {
                                   "ano": %s,
                                   "sistema_ensino": "%s",
                                   "estado_conservacao": "BOM",
+                                  "necessidade_academica": "TEXTBOOKS",
                                   "data_publicacao": 2023
                                 }
                                 """.formatted(uploadId, titulo, disciplina, nivelEnsino, ano, sistemaEnsino)))

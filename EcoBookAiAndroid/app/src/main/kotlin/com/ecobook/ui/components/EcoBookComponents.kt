@@ -30,15 +30,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.ecobook.model.DonationStep
 import com.ecobook.model.MaterialHighlight
-import com.ecobook.model.ProjectInsight
 import com.ecobook.ui.theme.EcoBookTone
 import com.ecobook.ui.theme.ecoBookBadgeColors
 import com.ecobook.ui.theme.ecoBookCardShadowElevation
@@ -205,44 +202,6 @@ fun StatusBadge(
     }
 }
 
-@Composable
-fun MetricCard(
-    title: String,
-    value: String,
-    description: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier
-) {
-    GlassCard(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        Text(
-            text = value,
-            style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterChipCard(
@@ -332,48 +291,6 @@ fun MaterialHighlightCard(material: MaterialHighlight) {
             text = material.matchNote,
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
-@Composable
-fun InsightCard(insight: ProjectInsight) {
-    GlassCard {
-        Text(
-            text = insight.title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = insight.description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-fun JourneyStepCard(
-    step: DonationStep,
-    index: Int
-) {
-    val stepColors = toneColors(EcoBookTone.Success)
-
-    GlassCard {
-        StatusBadge(
-            text = "Etapa ${index + 1}",
-            containerColor = stepColors.first,
-            contentColor = stepColors.second
-        )
-        Text(
-            text = step.title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = step.description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

@@ -245,7 +245,7 @@ public class UsuarioService {
         if (usuarioRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new BadRequestException(
                     "O perfil contem campos invalidos",
-                    new LinkedHashMap<>(java.util.Map.of("email", "Este email ja esta cadastrado"))
+                    new LinkedHashMap<>(java.util.Map.of("email", "Este email já está cadastrado"))
             );
         }
     }

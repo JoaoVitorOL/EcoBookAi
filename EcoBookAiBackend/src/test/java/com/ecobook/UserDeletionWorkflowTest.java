@@ -124,6 +124,7 @@ class UserDeletionWorkflowTest extends BaseIntegrationTest {
                 .passwordHash(passwordEncoder.encode(rawPassword))
                 .nome(nome)
                 .whatsapp("+5511991234567")
+                .cpf("52998224725")
                 .cidade("FLORIANOPOLIS")
                 .bairro("CENTRO")
                 .perfilCompleto(true)

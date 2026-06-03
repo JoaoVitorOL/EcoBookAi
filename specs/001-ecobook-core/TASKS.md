@@ -3,7 +3,7 @@
 **Project**: EcoBook IA - AI-Powered Material Donation Matching Platform  
 **Phase**: 1–10 (Setup through Polish & Launch)  
 **Total Tasks**: 230  
-**Status**: Phases 1-10 are now implemented and validated in runtime; the final Phase 10 JavaDoc/documentation closeout landed on 2026-05-23, the Android UI/general review and operational runbook revalidation passes have also been executed, the 2026-05-25 reliability/export follow-up is merged, and no formal implementation tasks remain open  
+**Status**: Phases 1-10 are now implemented and validated in runtime; the final Phase 10 JavaDoc/documentation closeout landed on 2026-05-23, the Android UI/general review and operational runbook revalidation passes have also been executed, the 2026-06-02 reliability/documentation-alignment follow-up is merged, and no additional runtime blockers from that audit remain open  
 **Generated**: 2026-04-15
 
 ---
@@ -1311,7 +1311,7 @@ Runtime note on 2026-05-14:
   - Run: `mvn clean test jacoco:report`
   - Check: target/site/jacoco/index.html
   - Coverage target: 85% line coverage for Phase 4 gate
-  - Runtime note (2026-05-25): the backend closes this gate at `86.08%` JaCoCo line coverage with the `223`-test regression suite green and `3` controlled skips (`LoadValidationTest` manual gate plus the two snapshot-required rollback cases in `MigrationRollbackValidationTest`)
+  - Runtime note (2026-06-02): the backend currently regenerates JaCoCo at `84.72%` line coverage with the `229`-test regression suite green and `3` controlled skips (`LoadValidationTest` manual gate plus the two snapshot-required rollback cases in `MigrationRollbackValidationTest`); the original `85%` target remains part of the historical phase gate, but should not be claimed as closed in the current docs baseline
 - [x] **T227** Run linting & code analysis:
   - CheckStyle: verify code style (naming, formatting)
   - SonarQube: identify code smells, security issues
@@ -1396,7 +1396,7 @@ What is already true in the repository:
 - ✅ Phase 7 reporting plus admin moderation/runtime authorization are now implemented on backend, with the Android student reporting flow already live
 - ✅ Phase 8 LGPD/security runtime is implemented through consent history, account deletion/anonymization, authenticated image access, audit logging and data export
 - ✅ Phase 9 hardening is now closed in runtime, including response compression, Micrometer/Prometheus metrics, smoke coverage, immutable reference-data catalog caching, discovery cursor pagination, rollback cleanup, Firebase validation and explicit 50-user load evidence
-- ✅ Backend regression is stable again (`mvn test` green com `225` testes / `3` skips controlados: `LoadValidationTest` manual gate + `2` cenarios snapshot-only de rollback) and Android local JVM validation remains green through `scripts/Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+- ✅ Backend regression is stable again (`mvn test` green com `229` testes / `3` skips controlados: `LoadValidationTest` manual gate + `2` cenarios snapshot-only de rollback) and Android local JVM validation remains green through `scripts/Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 
 Phase 3 closeout notes:
 
@@ -1417,7 +1417,7 @@ Phase 3 closeout notes:
 ---
 
 **Generated**: 2026-04-15  
-**Status**: All planned implementation phases are complete; the latest post-closeout pass also revalidated Android lint/adaptive UI/accessibility and closed the Android data-export plus backend reliability follow-ups. Use this file as the historical implementation ledger and add new items only for post-MVP scope changes  
+**Status**: All planned implementation phases are complete; the latest post-closeout pass also revalidated the backend reliability/documentation-alignment follow-ups and kept Android local JVM validation green. Use this file as the historical implementation ledger and add new items only for post-MVP scope changes  
 **Document Owner**: Product/Tech Lead  
 **Last Updated**: 2026-05-25
 
