@@ -56,7 +56,7 @@ fun LegalDocumentsDialog(
                 ) {
                     LegalSection(
                         title = "Uso da plataforma",
-                        body = "O EcoBook conecta doadores e responsáveis interessados em materiais de estudo. A conta deve ser usada por pais, mães e responsáveis legais, nunca por crianças ou adolescentes sozinhos."
+                        body = "O EcoBook conecta doadores e responsáveis interessados em materiais de estudo. A conta deve ser usada por pais, mães e responsáveis legais, nunca por crianças ou adolescentes sozinhos. O uso do app é destinado ao adulto responsável que fará o contato e acompanhará a retirada."
                     )
                     LegalSection(
                         title = "Fluxo do aplicativo",
@@ -68,7 +68,7 @@ fun LegalDocumentsDialog(
                     )
                     LegalSection(
                         title = "Entrega e contato",
-                        body = "O app não organiza conversa, retirada nem ponto de encontro dentro da plataforma. Depois da aprovação, doador e responsável combinam tudo diretamente pelo WhatsApp, por conta própria e fora do EcoBook."
+                        body = "O app não organiza conversa, retirada, entrega nem ponto de encontro dentro da plataforma. Depois da aprovação, o contato e a combinação do local de encontro acontecem diretamente pelo WhatsApp, entre as partes adultas e por conta própria."
                     )
                     LegalSection(
                         title = "Privacidade e LGPD",

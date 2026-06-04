@@ -373,18 +373,6 @@ private fun ConsentStep(
 ) {
     GlassCard {
         Text(
-            text = "Fluxo da conta",
-            style = MaterialTheme.typography.titleLarge
-        )
-        Text(
-            text = "A necessidade acadêmica de cada item é escolhida depois, no cadastro do material. Nesta etapa, você apenas confirma os termos e decide se quer usar a classificação assistida por IA.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-
-    GlassCard {
-        Text(
             text = "Consentimento da plataforma",
             style = MaterialTheme.typography.titleLarge
         )

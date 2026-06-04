@@ -77,14 +77,6 @@ fun AuthScreen(
                     }
                 )
 
-                GlassCard {
-                    Text(
-                        text = "Uso destinado a pais, mães e responsáveis legais. O app não organiza conversa nem entrega dentro da plataforma: o contato e o ponto de encontro são combinados depois, via WhatsApp, entre as partes adultas.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
                 if (!sessionMessage.isNullOrBlank()) {
                     GlassCard {
                         Text(

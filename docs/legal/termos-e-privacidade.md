@@ -27,6 +27,8 @@ Crianças e adolescentes não devem:
 
 Se houver tratamento de dados relacionados a estudantes menores de idade no contexto do uso do app, esse tratamento deve sempre ocorrer de forma indireta, limitada e sob atuação do adulto responsável.
 
+O uso da conta é destinado ao adulto responsável que fará o contato com a outra parte e acompanhará a retirada ou entrega fora da plataforma.
+
 ---
 
 ## 3. Visão geral do fluxo do aplicativo

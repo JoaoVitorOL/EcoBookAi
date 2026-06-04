@@ -33,7 +33,6 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -193,18 +192,6 @@ fun ProfileScreen(
                         destination = ProfileMenuDestination.Legal
                     )
                 )
-            ),
-            ProfileMenuCategory(
-                key = "seguranca",
-                title = "Segurança",
-                items = listOf(
-                    ProfileMenuItem(
-                        key = ProfileSection.SECURITY.key,
-                        label = "Sessão e exclusão",
-                        icon = Icons.Rounded.Shield,
-                        destination = ProfileMenuDestination.Section(ProfileSection.SECURITY)
-                    )
-                )
             )
         )
     }
@@ -309,7 +296,9 @@ fun ProfileScreen(
                         ProfileSection.OVERVIEW -> ProfileOverviewSection(
                             uiState = uiState,
                             onUploadProfilePhoto = { profilePhotoPicker.launch("image/*") },
-                            onReadLegalDocuments = { showLegalDialog = true }
+                            onReadLegalDocuments = { showLegalDialog = true },
+                            onLogout = onLogout,
+                            onOpenDeleteAccount = onOpenDeleteAccount
                         )
 
                         ProfileSection.ACCOUNT -> ProfileAccountSection(
@@ -344,12 +333,6 @@ fun ProfileScreen(
                             onReadLegalDocuments = { showLegalDialog = true },
                             onToggleAiConsent = onToggleAiConsent
                         )
-
-                        ProfileSection.SECURITY -> ProfileSecuritySection(
-                            uiState = uiState,
-                            onLogout = onLogout,
-                            onOpenDeleteAccount = onOpenDeleteAccount
-                        )
                     }
                 }
 
@@ -382,10 +365,36 @@ fun ProfileScreen(
 }
 
 @Composable
+private fun ProfileQuickSecurityActionsCard(
+    uiState: EcoBookUiState,
+    onLogout: () -> Unit,
+    onOpenDeleteAccount: () -> Unit
+) {
+    GlassCard {
+        ProfileCardHeader(
+            title = "Sessão da conta",
+            subtitle = "As ações de sair da conta e excluir conta ficam visíveis aqui em qualquer área do perfil."
+        )
+        Text(
+            text = "Use sair da conta para encerrar o acesso deste aparelho ou exclusão para remover definitivamente os dados vinculados à conta.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        ProfileSecurityActionButtons(
+            uiState = uiState,
+            onLogout = onLogout,
+            onOpenDeleteAccount = onOpenDeleteAccount
+        )
+    }
+}
+
+@Composable
 private fun ProfileOverviewSection(
     uiState: EcoBookUiState,
     onUploadProfilePhoto: () -> Unit,
-    onReadLegalDocuments: () -> Unit
+    onReadLegalDocuments: () -> Unit,
+    onLogout: () -> Unit,
+    onOpenDeleteAccount: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -456,6 +465,11 @@ private fun ProfileOverviewSection(
                 }
             }
         }
+        ProfileQuickSecurityActionsCard(
+            uiState = uiState,
+            onLogout = onLogout,
+            onOpenDeleteAccount = onOpenDeleteAccount
+        )
     }
 }
 
@@ -714,68 +728,39 @@ private fun ProfileSettingsSection(
 }
 
 @Composable
-private fun ProfileSecuritySection(
+private fun ProfileSecurityActionButtons(
     uiState: EcoBookUiState,
     onLogout: () -> Unit,
     onOpenDeleteAccount: () -> Unit
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ProfileSectionHeader(
-            title = "Segurança",
-            subtitle = "Gerencie a sessão atual e os caminhos de saída da conta."
-        )
-        GlassCard {
-            ProfileCardHeader(
-                title = "Sessão e proteção da conta",
-                subtitle = "A conta deve ser usada por pais, mães ou responsáveis legais."
+        OutlinedButton(
+            onClick = onLogout,
+            modifier = Modifier.weight(1f),
+            enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Logout,
+                contentDescription = null
             )
-            ListItem(
-                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                leadingContent = {
-                    Icon(
-                        imageVector = Icons.Rounded.Shield,
-                        contentDescription = null
-                    )
-                },
-                headlineContent = {
-                    Text("Uso responsável")
-                },
-                supportingContent = {
-                    Text("Materiais, imagens e dados vinculados à conta são tratados conforme os termos e removidos quando a exclusão é confirmada.")
-                }
+            Text("Sair da conta")
+        }
+        Button(
+            onClick = onOpenDeleteAccount,
+            modifier = Modifier.weight(1f),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onLogout,
-                    modifier = Modifier.weight(1f),
-                    enabled = !uiState.isSavingProfile && !uiState.isUpdatingAiConsent
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Logout,
-                        contentDescription = null
-                    )
-                    Text("Sair")
-                }
-                Button(
-                    onClick = onOpenDeleteAccount,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.DeleteOutline,
-                        contentDescription = null
-                    )
-                    Text("Excluir conta")
-                }
-            }
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.DeleteOutline,
+                contentDescription = null
+            )
+            Text("Excluir conta")
         }
     }
 }
@@ -1201,11 +1186,6 @@ private enum class ProfileSection(
         key = "settings",
         subtitle = "Preferências, termos e IA ficam concentrados aqui.",
         categoryKey = "configuracoes"
-    ),
-    SECURITY(
-        key = "security",
-        subtitle = "Sessão, proteção da conta e exclusão ficam isoladas nesta seção.",
-        categoryKey = "seguranca"
     );
 
     companion object {
