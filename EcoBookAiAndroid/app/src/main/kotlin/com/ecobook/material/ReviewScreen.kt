@@ -1,10 +1,15 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.ecobook.material
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -12,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +60,38 @@ fun ReviewScreen(
 ) {
     var showConfirmation by remember { mutableStateOf(false) }
     var showRestartConfirmation by remember { mutableStateOf(false) }
+    val fieldRequesters = remember {
+        mapOf(
+            "upload_id" to BringIntoViewRequester(),
+            "titulo" to BringIntoViewRequester(),
+            "autor" to BringIntoViewRequester(),
+            "editora" to BringIntoViewRequester(),
+            "descricao" to BringIntoViewRequester(),
+            "disciplina" to BringIntoViewRequester(),
+            "nivel_ensino" to BringIntoViewRequester(),
+            "ano" to BringIntoViewRequester(),
+            "sistema_ensino" to BringIntoViewRequester(),
+            "estado_conservacao" to BringIntoViewRequester(),
+            "necessidade_academica" to BringIntoViewRequester(),
+            "data_publicacao" to BringIntoViewRequester()
+        )
+    }
+    val firstInvalidField = remember(uiState.validationErrors) {
+        listOf(
+            "upload_id",
+            "titulo",
+            "autor",
+            "editora",
+            "descricao",
+            "disciplina",
+            "nivel_ensino",
+            "ano",
+            "sistema_ensino",
+            "estado_conservacao",
+            "necessidade_academica",
+            "data_publicacao"
+        ).firstOrNull(uiState.validationErrors::containsKey)
+    }
     val overallColors = ecoBookBadgeColors(
         when (uiState.overallStatus) {
             AiAssistStatus.SUCCESS -> EcoBookTone.Success
@@ -63,8 +101,16 @@ fun ReviewScreen(
     )
     val uploadIdColors = ecoBookBadgeColors(EcoBookTone.Accent)
 
+    LaunchedEffect(firstInvalidField) {
+        firstInvalidField?.let { field ->
+            fieldRequesters[field]?.bringIntoView()
+        }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        GlassCard {
+        GlassCard(
+            modifier = Modifier.bringIntoViewRequester(fieldRequesters.getValue("upload_id"))
+        ) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 uiState.selectedFrontImage?.let { image ->
                     Column(
@@ -91,7 +137,7 @@ fun ReviewScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Capa de trás",
+                            text = "Capa de tras",
                             style = MaterialTheme.typography.titleSmall
                         )
                         AsyncImage(
@@ -110,7 +156,7 @@ fun ReviewScreen(
                 StatusBadge(
                     text = when (uiState.overallStatus) {
                         AiAssistStatus.SUCCESS -> "IA confiante"
-                        AiAssistStatus.LOW_CONFIDENCE -> "Revisão recomendada"
+                        AiAssistStatus.LOW_CONFIDENCE -> "Revisao recomendada"
                         AiAssistStatus.FAILURE, null -> "Preenchimento manual"
                     },
                     containerColor = overallColors.containerColor,
@@ -125,7 +171,7 @@ fun ReviewScreen(
                 }
                 if (uiState.selectedBackImage != null) {
                     StatusBadge(
-                        text = "verso incluído",
+                        text = "verso incluido",
                         containerColor = uploadIdColors.containerColor,
                         contentColor = uploadIdColors.contentColor
                     )
@@ -133,10 +179,17 @@ fun ReviewScreen(
             }
 
             Text(
-                text = uiState.previewMessage ?: "Revise os campos e ajuste tudo o que for necessário antes de publicar.",
+                text = uiState.previewMessage ?: "Revise os campos e ajuste tudo o que for necessario antes de publicar.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            uiState.validationErrors["upload_id"]?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
 
         GlassCard {
@@ -149,8 +202,10 @@ fun ReviewScreen(
             EditableField(
                 value = uiState.draft.titulo,
                 onValueChange = onTituloChange,
-                label = "Título",
-                modifier = Modifier.fillMaxWidth(),
+                label = "Titulo",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("titulo")),
                 errorMessage = uiState.validationErrors["titulo"]
             )
 
@@ -159,7 +214,9 @@ fun ReviewScreen(
                 value = uiState.draft.autor,
                 onValueChange = onAutorChange,
                 label = "Autor (opcional)",
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("autor")),
                 errorMessage = uiState.validationErrors["autor"]
             )
 
@@ -168,7 +225,9 @@ fun ReviewScreen(
                 value = uiState.draft.editora,
                 onValueChange = onEditoraChange,
                 label = "Editora (opcional)",
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("editora")),
                 errorMessage = uiState.validationErrors["editora"]
             )
 
@@ -176,8 +235,10 @@ fun ReviewScreen(
             EditableField(
                 value = uiState.draft.descricao,
                 onValueChange = onDescricaoChange,
-                label = "Descrição",
-                modifier = Modifier.fillMaxWidth(),
+                label = "Descricao",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("descricao")),
                 errorMessage = uiState.validationErrors["descricao"],
                 singleLine = false,
                 minLines = 4
@@ -190,18 +251,22 @@ fun ReviewScreen(
                 options = uiState.disciplinas,
                 optionLabel = { it.label },
                 onSelected = { onDisciplinaChange(it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("disciplina")),
                 errorMessage = uiState.validationErrors["disciplina"]
             )
 
             ConfidenceIndicator(confidence = uiState.confidenceByField["nivel_ensino"])
             EnumDropdown(
-                label = "Nível de ensino",
+                label = "Nivel de ensino",
                 selectedValue = uiState.draft.nivelEnsino,
                 options = uiState.niveisEnsino,
                 optionLabel = { it.label },
                 onSelected = { onNivelEnsinoChange(it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("nivel_ensino")),
                 errorMessage = uiState.validationErrors["nivel_ensino"]
             )
 
@@ -210,11 +275,13 @@ fun ReviewScreen(
                 value = uiState.draft.ano,
                 onValueChange = onAnoChange,
                 label = "Ano escolar",
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("ano")),
                 errorMessage = uiState.validationErrors["ano"],
                 supportingMessage = when (uiState.draft.nivelEnsino) {
-                    NivelEnsino.MEDIO -> "Para ensino médio, use apenas 1, 2 ou 3."
-                    NivelEnsino.SUPERIOR -> "Não se aplica a materiais de ensino superior."
+                    NivelEnsino.MEDIO -> "Para ensino medio, use apenas 1, 2 ou 3."
+                    NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
                     else -> "Para ensino fundamental, use um valor de 1 a 9."
                 },
                 enabled = uiState.draft.nivelEnsino != NivelEnsino.SUPERIOR
@@ -227,29 +294,35 @@ fun ReviewScreen(
                 options = uiState.sistemasEnsino,
                 optionLabel = { it.label },
                 onSelected = { onSistemaEnsinoChange(it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("sistema_ensino")),
                 errorMessage = uiState.validationErrors["sistema_ensino"]
             )
 
             ConfidenceIndicator(confidence = null)
             EnumDropdown(
-                label = "Estado de conservação",
+                label = "Estado de conservacao",
                 selectedValue = uiState.draft.estadoConservacao,
                 options = uiState.estadosConservacao,
                 optionLabel = { it.label },
                 onSelected = { onEstadoConservacaoChange(it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("estado_conservacao")),
                 errorMessage = uiState.validationErrors["estado_conservacao"]
             )
 
             ConfidenceIndicator(confidence = null)
             EnumDropdown(
-                label = "Necessidade acadêmica",
+                label = "Necessidade academica",
                 selectedValue = uiState.draft.necessidadeAcademica,
                 options = uiState.necessidadesAcademicas,
                 optionLabel = { it.label },
                 onSelected = { onNecessidadeAcademicaChange(it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("necessidade_academica")),
                 errorMessage = uiState.validationErrors["necessidade_academica"]
             )
 
@@ -257,8 +330,10 @@ fun ReviewScreen(
             EditableField(
                 value = uiState.draft.dataPublicacao,
                 onValueChange = onDataPublicacaoChange,
-                label = "Ano de publicação",
-                modifier = Modifier.fillMaxWidth(),
+                label = "Ano de publicacao",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("data_publicacao")),
                 errorMessage = uiState.validationErrors["data_publicacao"]
             )
 
@@ -293,7 +368,7 @@ fun ReviewScreen(
             title = { Text("Confirmar material") },
             text = {
                 Text(
-                    "Você vai publicar \"${uiState.draft.titulo.ifBlank { "Material sem título" }}\" como DISPONÍVEL. Ainda poderá ajustar o fluxo nas fases seguintes, mas esta publicação já entra pronta para matching."
+                    "Voce vai publicar \"${uiState.draft.titulo.ifBlank { "Material sem titulo" }}\" como DISPONIVEL. Ainda podera ajustar o fluxo nas fases seguintes, mas esta publicacao ja entra pronta para matching."
                 )
             },
             confirmButton = {
@@ -318,9 +393,9 @@ fun ReviewScreen(
     if (showRestartConfirmation) {
         AlertDialog(
             onDismissRequest = { showRestartConfirmation = false },
-            title = { Text("Descartar revisão") },
+            title = { Text("Descartar revisao") },
             text = {
-                Text("Você vai apagar a revisão atual e voltar para a etapa de escolha das imagens. Use isso apenas se realmente quiser recomeçar.")
+                Text("Voce vai apagar a revisao atual e voltar para a etapa de escolha das imagens. Use isso apenas se realmente quiser recomecar.")
             },
             confirmButton = {
                 Button(

@@ -137,7 +137,7 @@ public class MatchingService {
                 .sistemaEnsino(criteria.getSistemaEnsino())
                 .necessidadeAcademica(criteria.getNecessidadeAcademica())
                 .cidade(city == null ? null : geoNormalizationService.normalize(city))
-                .bairro(neighborhood == null ? null : geoNormalizationService.normalize(neighborhood))
+                .bairro(neighborhood == null ? null : geoNormalizationService.sanitizeDisplayText(neighborhood))
                 .minAnoPublicacao(criteria.getMinAnoPublicacao())
                 .maxAnoPublicacao(criteria.getMaxAnoPublicacao())
                 .build();
@@ -184,6 +184,20 @@ public class MatchingService {
                 predicates.add(criteriaBuilder.equal(root.get("necessidadeAcademica"), criteria.getNecessidadeAcademica()));
             }
 
+            if (StringUtils.hasText(criteria.getCidade())) {
+                predicates.add(criteriaBuilder.equal(
+                        normalizedTextExpression(root.get("cidade"), criteriaBuilder),
+                        normalizeText(criteria.getCidade())
+                ));
+            }
+
+            if (StringUtils.hasText(criteria.getBairro())) {
+                predicates.add(criteriaBuilder.equal(
+                        normalizedTextExpression(root.get("bairro"), criteriaBuilder),
+                        normalizeText(criteria.getBairro())
+                ));
+            }
+
             if (criteria.getMinAnoPublicacao() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
                         root.get("dataPublicacao"),
@@ -207,10 +221,12 @@ public class MatchingService {
         return (root, query, criteriaBuilder) -> {
             Expression<Integer> neighborhoodRank = neighborhoodRankExpression(root, criteriaBuilder, criteria);
             Expression<Integer> cityRank = cityRankExpression(root, criteriaBuilder, criteria);
+            Expression<Integer> disciplineRank = disciplineRankExpression(root, criteriaBuilder, criteria);
             Expression<Integer> publicationRank = publicationRankExpression(root, criteriaBuilder);
 
             int cursorNeighborhoodRank = neighborhoodRank(cursorMaterial, criteria);
             int cursorCityRank = cityRank(cursorMaterial, criteria);
+            int cursorDisciplineRank = disciplineRank(cursorMaterial, criteria);
             int cursorPublicationRank = publicationRank(cursorMaterial);
 
             Predicate afterNeighborhood = criteriaBuilder.greaterThan(neighborhoodRank, cursorNeighborhoodRank);
@@ -218,20 +234,27 @@ public class MatchingService {
                     criteriaBuilder.equal(neighborhoodRank, cursorNeighborhoodRank),
                     criteriaBuilder.greaterThan(cityRank, cursorCityRank)
             );
+            Predicate afterDiscipline = criteriaBuilder.and(
+                    criteriaBuilder.equal(neighborhoodRank, cursorNeighborhoodRank),
+                    criteriaBuilder.equal(cityRank, cursorCityRank),
+                    criteriaBuilder.greaterThan(disciplineRank, cursorDisciplineRank)
+            );
             Predicate afterPublication = criteriaBuilder.and(
                     criteriaBuilder.equal(neighborhoodRank, cursorNeighborhoodRank),
                     criteriaBuilder.equal(cityRank, cursorCityRank),
+                    criteriaBuilder.equal(disciplineRank, cursorDisciplineRank),
                     criteriaBuilder.lessThan(publicationRank, cursorPublicationRank)
             );
             Predicate afterId = criteriaBuilder.and(
                     criteriaBuilder.equal(neighborhoodRank, cursorNeighborhoodRank),
                     criteriaBuilder.equal(cityRank, cursorCityRank),
+                    criteriaBuilder.equal(disciplineRank, cursorDisciplineRank),
                     criteriaBuilder.equal(publicationRank, cursorPublicationRank),
                     criteriaBuilder.greaterThan(root.get("id"), cursorMaterial.getId())
             );
 
             applyOrdering(root, query, criteriaBuilder, criteria);
-            return criteriaBuilder.or(afterNeighborhood, afterCity, afterPublication, afterId);
+            return criteriaBuilder.or(afterNeighborhood, afterCity, afterDiscipline, afterPublication, afterId);
         };
     }
 
@@ -287,10 +310,25 @@ public class MatchingService {
         List<Order> ordering = List.of(
                 criteriaBuilder.asc(neighborhoodRankExpression(root, criteriaBuilder, criteria)),
                 criteriaBuilder.asc(cityRankExpression(root, criteriaBuilder, criteria)),
+                criteriaBuilder.asc(disciplineRankExpression(root, criteriaBuilder, criteria)),
                 criteriaBuilder.desc(publicationRankExpression(root, criteriaBuilder)),
                 criteriaBuilder.asc(root.get("id"))
         );
         query.orderBy(ordering);
+    }
+
+    private Expression<Integer> disciplineRankExpression(Root<Material> root,
+                                                         CriteriaBuilder criteriaBuilder,
+                                                         SearchCriteriaDTO criteria) {
+        if (criteria.getDisciplina() == null || criteria.getDisciplina() == Disciplina.TODAS) {
+            return criteriaBuilder.<Integer>selectCase()
+                    .when(criteriaBuilder.isNotNull(root.get("id")), 1)
+                    .otherwise(1);
+        }
+
+        return criteriaBuilder.<Integer>selectCase()
+                .when(criteriaBuilder.equal(root.get("disciplina"), criteria.getDisciplina()), 0)
+                .otherwise(1);
     }
 
     private Expression<Integer> neighborhoodRankExpression(Root<Material> root,
@@ -302,8 +340,15 @@ public class MatchingService {
                     .otherwise(1);
         }
 
+        String normalizedNeighborhood = normalizeText(criteria.getBairro());
         return criteriaBuilder.<Integer>selectCase()
-                .when(criteriaBuilder.equal(root.get("bairro"), criteria.getBairro()), 0)
+                .when(
+                        criteriaBuilder.equal(
+                                normalizedTextExpression(root.get("bairro"), criteriaBuilder),
+                                normalizedNeighborhood
+                        ),
+                        0
+                )
                 .otherwise(1);
     }
 
@@ -316,8 +361,15 @@ public class MatchingService {
                     .otherwise(1);
         }
 
+        String normalizedCity = normalizeText(criteria.getCidade());
         return criteriaBuilder.<Integer>selectCase()
-                .when(criteriaBuilder.equal(root.get("cidade"), criteria.getCidade()), 0)
+                .when(
+                        criteriaBuilder.equal(
+                                normalizedTextExpression(root.get("cidade"), criteriaBuilder),
+                                normalizedCity
+                        ),
+                        0
+                )
                 .otherwise(1);
     }
 
@@ -338,11 +390,18 @@ public class MatchingService {
     }
 
     private int neighborhoodRank(Material material, SearchCriteriaDTO criteria) {
-        return StringUtils.hasText(criteria.getBairro()) && criteria.getBairro().equals(material.getBairro()) ? 0 : 1;
+        return normalizedEquals(material.getBairro(), criteria.getBairro()) ? 0 : 1;
     }
 
     private int cityRank(Material material, SearchCriteriaDTO criteria) {
-        return StringUtils.hasText(criteria.getCidade()) && criteria.getCidade().equals(material.getCidade()) ? 0 : 1;
+        return normalizedEquals(material.getCidade(), criteria.getCidade()) ? 0 : 1;
+    }
+
+    private int disciplineRank(Material material, SearchCriteriaDTO criteria) {
+        if (criteria.getDisciplina() == null || criteria.getDisciplina() == Disciplina.TODAS) {
+            return 1;
+        }
+        return criteria.getDisciplina() == material.getDisciplina() ? 0 : 1;
     }
 
     private int publicationRank(Material material) {
@@ -360,5 +419,12 @@ public class MatchingService {
         return Normalizer.normalize(value, Normalizer.Form.NFD)
                 .replaceAll("[^\\p{ASCII}]", "")
                 .toLowerCase(Locale.ROOT);
+    }
+
+    private boolean normalizedEquals(String left, String right) {
+        if (!StringUtils.hasText(left) || !StringUtils.hasText(right)) {
+            return false;
+        }
+        return normalizeText(left).equals(normalizeText(right));
     }
 }

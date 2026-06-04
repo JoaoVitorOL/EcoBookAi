@@ -217,6 +217,30 @@ public class ImageStorageService {
     }
 
     /**
+     * Attempts to locate a promoted image on disk using the durable upload identifier.
+     * @param userId owner identifier for the upload directory
+     * @param uploadId durable upload identifier persisted on the material
+     * @param backImage whether to search for the back image variant
+     * @return existing image path or null when none could be resolved
+     */
+    public Path findPromotedImagePath(UUID userId, String uploadId, boolean backImage) {
+        if (userId == null || uploadId == null || uploadId.isBlank()) {
+            return null;
+        }
+
+        Path directory = Path.of(uploadDir, userId.toString()).toAbsolutePath().normalize();
+        String baseName = backImage ? uploadId + "-back" : uploadId;
+        for (String extension : List.of(".jpg", ".png")) {
+            Path candidate = directory.resolve(baseName + extension).normalize();
+            if (Files.exists(candidate)) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the absolute upload directory configured for stored files.
      * @return requested value
      */

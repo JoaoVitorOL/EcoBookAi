@@ -1,6 +1,9 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.ecobook.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +13,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -20,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -147,6 +153,33 @@ private fun AuthCard(
     onConfirmPasswordChange: (String) -> Unit,
     onSubmit: () -> Unit
 ) {
+    val fieldRequesters = remember {
+        mapOf(
+            "nome" to BringIntoViewRequester(),
+            "email" to BringIntoViewRequester(),
+            "password" to BringIntoViewRequester(),
+            "confirm_password" to BringIntoViewRequester()
+        )
+    }
+    val firstInvalidField = remember(uiState.mode, uiState.fieldErrors) {
+        buildList {
+            if (uiState.mode == AuthMode.REGISTER) {
+                add("nome")
+            }
+            add("email")
+            add("password")
+            if (uiState.mode == AuthMode.REGISTER) {
+                add("confirm_password")
+            }
+        }.firstOrNull(uiState.fieldErrors::containsKey)
+    }
+
+    LaunchedEffect(firstInvalidField) {
+        firstInvalidField?.let { field ->
+            fieldRequesters[field]?.bringIntoView()
+        }
+    }
+
     GlassCard {
         Text(
             text = if (uiState.mode == AuthMode.LOGIN) {
@@ -168,7 +201,9 @@ private fun AuthCard(
                     uiState.fieldErrors["nome"]?.let { message -> Text(message) }
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(fieldRequesters.getValue("nome"))
             )
         }
 
@@ -182,14 +217,17 @@ private fun AuthCard(
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(fieldRequesters.getValue("email"))
         )
 
         PasswordField(
             value = uiState.password,
             onValueChange = onPasswordChange,
             label = "Senha",
-            error = uiState.fieldErrors["password"]
+            error = uiState.fieldErrors["password"],
+            modifier = Modifier.bringIntoViewRequester(fieldRequesters.getValue("password"))
         )
 
         if (uiState.mode == AuthMode.REGISTER) {
@@ -197,7 +235,8 @@ private fun AuthCard(
                 value = uiState.confirmPassword,
                 onValueChange = onConfirmPasswordChange,
                 label = "Confirmar senha",
-                error = uiState.fieldErrors["confirm_password"]
+                error = uiState.fieldErrors["confirm_password"],
+                modifier = Modifier.bringIntoViewRequester(fieldRequesters.getValue("confirm_password"))
             )
         }
 
@@ -242,7 +281,8 @@ private fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    error: String?
+    error: String?,
+    modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
         value = value,
@@ -255,7 +295,7 @@ private fun PasswordField(
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     )
 }
 

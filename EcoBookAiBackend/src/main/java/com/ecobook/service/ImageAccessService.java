@@ -8,6 +8,7 @@ import com.ecobook.model.Usuario;
 import com.ecobook.model.enums.Role;
 import com.ecobook.model.enums.StatusMaterial;
 import com.ecobook.model.enums.StatusSolicitacao;
+import com.ecobook.repository.MaterialRepository;
 import com.ecobook.repository.SolicitacaoRepository;
 import com.ecobook.repository.TemporaryUploadRepository;
 import com.ecobook.repository.UsuarioRepository;
@@ -36,8 +37,10 @@ public class ImageAccessService {
     );
 
     private final TemporaryUploadRepository temporaryUploadRepository;
+    private final MaterialRepository materialRepository;
     private final UsuarioRepository usuarioRepository;
     private final SolicitacaoRepository solicitacaoRepository;
+    private final ImageStorageService imageStorageService;
 
     /**
      * Loads an image payload after applying requester access checks.
@@ -52,35 +55,32 @@ public class ImageAccessService {
         boolean backImage = "back".equalsIgnoreCase(side);
 
         Usuario requester = usuarioRepository.findByEmailIgnoreCase(requesterEmail)
-                .orElseThrow(() -> new AccessDeniedException("Usuário autenticado não encontrado"));
+                .orElseThrow(() -> new AccessDeniedException("Usuario autenticado nao encontrado"));
 
-        TemporaryUpload upload = temporaryUploadRepository.findById(parsedImageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Imagem não encontrada"));
-
-        Material material = upload.getMaterial();
+        TemporaryUpload upload = temporaryUploadRepository.findById(parsedImageId).orElse(null);
+        Material material = upload != null
+                ? upload.getMaterial()
+                : materialRepository.findByUploadTrackingId(parsedImageId).orElse(null);
         if (material == null) {
-            throw new ResourceNotFoundException("Imagem não encontrada");
+            throw new ResourceNotFoundException("Imagem nao encontrada");
         }
 
-        if (!canAccess(requester, material, backImage)) {
-            throw new AccessDeniedException("Você não tem permissão para acessar esta imagem");
+        if (!canAccess(requester, material)) {
+            throw new AccessDeniedException("Voce nao tem permissao para acessar esta imagem");
         }
 
-        String filePath = backImage ? upload.getSecondaryFilePath() : upload.getFilePath();
-        String mimeType = backImage ? upload.getSecondaryMimeType() : upload.getMimeType();
-        if (!StringUtils.hasText(filePath)) {
-            throw new ResourceNotFoundException("Imagem não encontrada");
+        Path path = resolveImagePath(upload, material, backImage);
+        if (path == null || !Files.exists(path)) {
+            throw new ResourceNotFoundException("Imagem nao encontrada");
         }
 
-        Path path = Path.of(filePath).toAbsolutePath().normalize();
-        if (!Files.exists(path)) {
-            throw new ResourceNotFoundException("Imagem não encontrada");
-        }
-
+        String mimeType = upload == null
+                ? null
+                : backImage ? upload.getSecondaryMimeType() : upload.getMimeType();
         return new ImagePayload(new FileSystemResource(path), resolveMimeType(mimeType, path));
     }
 
-    private boolean canAccess(Usuario requester, Material material, boolean backImage) {
+    private boolean canAccess(Usuario requester, Material material) {
         if (requester.getRole() == Role.ADMIN) {
             return true;
         }
@@ -90,7 +90,7 @@ public class ImageAccessService {
             return true;
         }
 
-        if (!backImage && material.getStatus() == StatusMaterial.DISPONIVEL) {
+        if (material.getStatus() == StatusMaterial.DISPONIVEL) {
             return true;
         }
 
@@ -103,8 +103,8 @@ public class ImageAccessService {
 
     private UUID parseImageId(String imageId) {
         if (!StringUtils.hasText(imageId)) {
-            throw new BadRequestException("Identificador de imagem inválido", Map.of(
-                    "image_id", "Informe um UUID válido"
+            throw new BadRequestException("Identificador de imagem invalido", Map.of(
+                    "image_id", "Informe um UUID valido"
             ));
         }
 
@@ -112,8 +112,8 @@ public class ImageAccessService {
             return UUID.fromString(imageId.trim());
         } catch (IllegalArgumentException exception) {
             LinkedHashMap<String, String> fieldErrors = new LinkedHashMap<>();
-            fieldErrors.put("image_id", "Informe um UUID válido");
-            throw new BadRequestException("Identificador de imagem inválido", fieldErrors);
+            fieldErrors.put("image_id", "Informe um UUID valido");
+            throw new BadRequestException("Identificador de imagem invalido", fieldErrors);
         }
     }
 
@@ -127,6 +127,67 @@ public class ImageAccessService {
             return "image/png";
         }
         return "image/jpeg";
+    }
+
+    private Path resolveImagePath(TemporaryUpload upload, Material material, boolean backImage) {
+        Path trackedPath = resolveTrackedPath(upload, backImage);
+        if (trackedPath != null) {
+            return trackedPath;
+        }
+
+        Usuario owner = material.getDoador();
+        if (owner != null && owner.getId() != null) {
+            Path promotedPath = imageStorageService.findPromotedImagePath(
+                    owner.getId(),
+                    material.getUploadId(),
+                    backImage
+            );
+            if (promotedPath != null) {
+                return promotedPath;
+            }
+        }
+
+        String storedUrl = backImage ? material.getImagemVersoUrl() : material.getImagemUrl();
+        return resolvePathFromStoredUrl(storedUrl);
+    }
+
+    private Path resolveTrackedPath(TemporaryUpload upload, boolean backImage) {
+        if (upload == null) {
+            return null;
+        }
+
+        String filePath = backImage ? upload.getSecondaryFilePath() : upload.getFilePath();
+        if (!StringUtils.hasText(filePath)) {
+            return null;
+        }
+
+        return Path.of(filePath).toAbsolutePath().normalize();
+    }
+
+    private Path resolvePathFromStoredUrl(String storedUrl) {
+        if (!StringUtils.hasText(storedUrl)) {
+            return null;
+        }
+
+        String normalized = storedUrl.trim();
+        int uploadsIndex = normalized.indexOf("/uploads/");
+        if (uploadsIndex < 0) {
+            return null;
+        }
+
+        String relativePath = normalized.substring(uploadsIndex + "/uploads/".length())
+                .split("\\?", 2)[0]
+                .replaceFirst("^/+", "");
+        if (!StringUtils.hasText(relativePath)) {
+            return null;
+        }
+
+        Path uploadRoot = Path.of(imageStorageService.getUploadDir()).toAbsolutePath().normalize();
+        Path resolvedPath = uploadRoot.resolve(relativePath).normalize();
+        if (!resolvedPath.startsWith(uploadRoot)) {
+            return null;
+        }
+        return resolvedPath;
     }
 
     public record ImagePayload(Resource resource, String contentType) {

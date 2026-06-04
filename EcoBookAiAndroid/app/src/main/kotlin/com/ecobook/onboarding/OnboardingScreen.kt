@@ -1,6 +1,9 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.ecobook.onboarding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +14,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -27,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -205,6 +211,23 @@ private fun ContactStep(
     onWhatsappFocusLost: () -> Unit,
     onCpfFocusLost: () -> Unit
 ) {
+    val fieldRequesters = remember {
+        mapOf(
+            "nome" to BringIntoViewRequester(),
+            "whatsapp" to BringIntoViewRequester(),
+            "cpf" to BringIntoViewRequester()
+        )
+    }
+    val firstInvalidField = remember(uiState.fieldErrors) {
+        listOf("nome", "whatsapp", "cpf").firstOrNull(uiState.fieldErrors::containsKey)
+    }
+
+    LaunchedEffect(firstInvalidField) {
+        firstInvalidField?.let { field ->
+            fieldRequesters[field]?.bringIntoView()
+        }
+    }
+
     GlassCard {
         Text(
             text = "A conta precisa representar um adulto responsável pelo contato e retirada.",
@@ -218,7 +241,9 @@ private fun ContactStep(
             isError = uiState.fieldErrors.containsKey("nome"),
             supportingText = uiState.fieldErrors["nome"]?.let { message -> { Text(message) } },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(fieldRequesters.getValue("nome"))
         )
         DigitOnlyTextField(
             value = uiState.whatsapp,
@@ -236,6 +261,7 @@ private fun ContactStep(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             maxDigits = 11,
             modifier = Modifier
+                .bringIntoViewRequester(fieldRequesters.getValue("whatsapp"))
                 .fillMaxWidth()
                 .onFocusChanged { state ->
                     if (!state.isFocused) {
@@ -258,6 +284,7 @@ private fun ContactStep(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             maxDigits = 11,
             modifier = Modifier
+                .bringIntoViewRequester(fieldRequesters.getValue("cpf"))
                 .fillMaxWidth()
                 .onFocusChanged { state ->
                     if (!state.isFocused) {
@@ -318,6 +345,21 @@ private fun LocationStep(
     onInstitutionChange: (String) -> Unit
 ) {
     val cityPreview = ProfileInputRules.cityStoragePreview(uiState.cidade)
+    val fieldRequesters = remember {
+        mapOf(
+            "cidade" to BringIntoViewRequester(),
+            "bairro" to BringIntoViewRequester()
+        )
+    }
+    val firstInvalidField = remember(uiState.fieldErrors) {
+        listOf("cidade", "bairro").firstOrNull(uiState.fieldErrors::containsKey)
+    }
+
+    LaunchedEffect(firstInvalidField) {
+        firstInvalidField?.let { field ->
+            fieldRequesters[field]?.bringIntoView()
+        }
+    }
 
     GlassCard {
         Text(
@@ -341,7 +383,9 @@ private fun LocationStep(
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(fieldRequesters.getValue("cidade"))
         )
         OutlinedTextField(
             value = uiState.bairro,
@@ -351,7 +395,9 @@ private fun LocationStep(
             supportingText = uiState.fieldErrors["bairro"]?.let { message -> { Text(message) } },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(fieldRequesters.getValue("bairro"))
         )
         OutlinedTextField(
             value = uiState.instituicao,
@@ -371,7 +417,17 @@ private fun ConsentStep(
     onTogglePlatformConsent: () -> Unit,
     onToggleConsent: () -> Unit
 ) {
-    GlassCard {
+    val platformConsentRequester = remember { BringIntoViewRequester() }
+
+    LaunchedEffect(uiState.fieldErrors["platform_consent"]) {
+        if (uiState.fieldErrors.containsKey("platform_consent")) {
+            platformConsentRequester.bringIntoView()
+        }
+    }
+
+    GlassCard(
+        modifier = Modifier.bringIntoViewRequester(platformConsentRequester)
+    ) {
         Text(
             text = "Consentimento da plataforma",
             style = MaterialTheme.typography.titleLarge

@@ -40,12 +40,13 @@ class MatchingServiceTest extends BaseIntegrationTest {
     private MaterialRepository materialRepository;
 
     @Test
-    @DisplayName("findMatching should rank same neighborhood first, then same city, then newest publication")
-    void shouldRankByNeighborhoodThenCityThenPublicationYear() {
+    @DisplayName("findMatching should filter city and neighborhood accent-insensitively and keep newest matches first")
+    void shouldFilterByCityAndNeighborhoodAccentInsensitively() {
         Usuario centroDonor = createUser("centro-donor@example.com", "SAO PAULO", "CENTRO");
         Usuario liberdadeDonor = createUser("liberdade-donor@example.com", "SAO PAULO", "LIBERDADE");
         Usuario campinasDonor = createUser("campinas-donor@example.com", "CAMPINAS", "CAMBUCI");
 
+        createMaterial(centroDonor, "Anglo 2024", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 5, SistemaEnsino.ANGLO, "SAO PAULO", "CENTRO", 2024);
         createMaterial(centroDonor, "Anglo 2020", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 5, SistemaEnsino.ANGLO, "SAO PAULO", "CENTRO", 2020);
         createMaterial(liberdadeDonor, "Anglo 2023", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 4, SistemaEnsino.ANGLO, "SAO PAULO", "LIBERDADE", 2023);
         createMaterial(campinasDonor, "Anglo 2025", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 5, SistemaEnsino.ANGLO, "CAMPINAS", "CAMBUCI", 2025);
@@ -58,15 +59,15 @@ class MatchingServiceTest extends BaseIntegrationTest {
                         .nivelEnsino(NivelEnsino.FUNDAMENTAL)
                         .ano(5)
                         .sistemaEnsino(SistemaEnsino.ANGLO)
-                        .cidade("Sao Paulo")
+                        .cidade("São Paulo")
                         .bairro("Centro")
                         .build(),
                 PageRequest.of(0, 10)
         );
 
-        assertThat(response.getTotal()).isEqualTo(3);
+        assertThat(response.getTotal()).isEqualTo(2);
         assertThat(response.getResults()).extracting(MaterialDTO::getTitulo)
-                .containsExactly("Anglo 2020", "Anglo 2023", "Anglo 2025");
+                .containsExactly("Anglo 2024", "Anglo 2020");
     }
 
     @Test
@@ -141,7 +142,7 @@ class MatchingServiceTest extends BaseIntegrationTest {
     void shouldIncludeMultidisciplinaryCollectionsInSpecificDisciplineSearch() {
         Usuario donor = createUser("multidisciplinary-donor@example.com", "CURITIBA", "CENTRO");
 
-        createMaterial(donor, "Colecao Geral", Disciplina.TODAS, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2021);
+        createMaterial(donor, "Colecao Geral", Disciplina.TODAS, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2025);
         createMaterial(donor, "Matematica Direta", Disciplina.MATEMATICA, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2022);
         createMaterial(donor, "Historia Direta", Disciplina.HISTORIA, NivelEnsino.FUNDAMENTAL, 6, SistemaEnsino.OUTRO, "CURITIBA", "CENTRO", 2020);
 
@@ -153,7 +154,7 @@ class MatchingServiceTest extends BaseIntegrationTest {
         );
 
         assertThat(response.getResults()).extracting(MaterialDTO::getTitulo)
-                .contains("Colecao Geral", "Matematica Direta")
+                .containsExactly("Matematica Direta", "Colecao Geral")
                 .doesNotContain("Historia Direta");
     }
 

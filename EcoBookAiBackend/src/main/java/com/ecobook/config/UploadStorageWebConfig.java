@@ -26,6 +26,13 @@ public class UploadStorageWebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path.of(uploadDir).toAbsolutePath().normalize();
+        Path uploadRoot = Path.of(uploadDir).toAbsolutePath().normalize();
+        String resourceLocation = uploadRoot.toUri().toString();
+        if (!resourceLocation.endsWith("/")) {
+            resourceLocation += "/";
+        }
+
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations(resourceLocation);
     }
 }

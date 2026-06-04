@@ -158,8 +158,8 @@ public class MaterialService {
                     .estadoConservacao(validated.data().estadoConservacao())
                     .necessidadeAcademica(validated.data().necessidadeAcademica())
                     .status(StatusMaterial.DISPONIVEL)
-                    .imagemUrl(secureImageUrl(upload.getId(), false))
-                    .imagemVersoUrl(promotedBackImage != null ? secureImageUrl(upload.getId(), true) : null)
+                    .imagemUrl(promotedImage.publicUrl())
+                    .imagemVersoUrl(promotedBackImage != null ? promotedBackImage.publicUrl() : null)
                     .uploadId(validated.uploadId())
                     .uploadTrackingId(upload.getId())
                     .cidade(usuario.getCidade())
@@ -290,10 +290,6 @@ public class MaterialService {
                     "id", "Informe um identificador de material válido"
             ));
         }
-    }
-
-    private String secureImageUrl(UUID uploadTrackingId, boolean backImage) {
-        return "/api/v1/images/" + uploadTrackingId + (backImage ? "?side=back" : "");
     }
 
     private void cleanupPromotedImage(ImageStorageService.PromotedImage promotedImage) {

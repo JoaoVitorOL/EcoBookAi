@@ -41,6 +41,7 @@ data class DiscoveryUiState(
     val isLoadingMore: Boolean = false,
     val hasSearched: Boolean = false,
     val errorMessage: String? = null,
+    val filterErrors: Map<String, String> = emptyMap(),
     val toastMessage: String? = null,
     val selectedMaterial: MaterialDTO? = null,
     val requestingMaterialId: String? = null,

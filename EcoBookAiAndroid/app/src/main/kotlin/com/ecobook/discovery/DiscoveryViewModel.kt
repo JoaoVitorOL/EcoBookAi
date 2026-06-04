@@ -53,7 +53,7 @@ class DiscoveryViewModel @Inject constructor(
     }
 
     fun updateNivelEnsino(value: NivelEnsino?) {
-        updateFilters {
+        updateFilters(clearedErrorKeys = setOf(FILTER_ERROR_ANO)) {
             copy(
                 nivelEnsino = value,
                 ano = sanitizeAnoEscolar(ano, value)
@@ -62,7 +62,9 @@ class DiscoveryViewModel @Inject constructor(
     }
 
     fun updateAno(value: String) {
-        updateFilters { copy(ano = sanitizeAnoEscolar(value, nivelEnsino)) }
+        updateFilters(clearedErrorKeys = setOf(FILTER_ERROR_ANO)) {
+            copy(ano = sanitizeAnoEscolar(value, nivelEnsino))
+        }
     }
 
     fun updateSistemaEnsino(value: com.ecobook.model.SistemaEnsino?) {
@@ -82,19 +84,23 @@ class DiscoveryViewModel @Inject constructor(
     }
 
     fun updateMinAnoPublicacao(value: String) {
-        updateFilters { copy(minAnoPublicacao = value.filter(Char::isDigit).take(4)) }
+        updateFilters(clearedErrorKeys = publicationYearErrorKeys) {
+            copy(minAnoPublicacao = value.filter(Char::isDigit).take(4))
+        }
     }
 
     fun updateMaxAnoPublicacao(value: String) {
-        updateFilters { copy(maxAnoPublicacao = value.filter(Char::isDigit).take(4)) }
+        updateFilters(clearedErrorKeys = publicationYearErrorKeys) {
+            copy(maxAnoPublicacao = value.filter(Char::isDigit).take(4))
+        }
     }
 
     fun search() {
         val filters = uiState.value.filters
-        val validationMessage = validate(filters)
-        if (validationMessage != null) {
+        val validationErrors = validate(filters)
+        if (validationErrors.isNotEmpty()) {
             _uiState.update { state ->
-                state.copy(toastMessage = validationMessage)
+                state.copy(filterErrors = validationErrors)
             }
             return
         }
@@ -107,6 +113,7 @@ class DiscoveryViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(
                 filters = clearedFilters,
+                filterErrors = emptyMap(),
                 selectedMaterial = null,
                 nextAfterId = null
             )
@@ -221,10 +228,12 @@ class DiscoveryViewModel @Inject constructor(
             state.copy(
                 activeFilters = filters,
                 errorMessage = null,
+                filterErrors = emptyMap(),
                 isLoadingInitial = !append,
                 isLoadingMore = append,
                 hasSearched = true,
-                nextAfterId = if (append) state.nextAfterId else null
+                nextAfterId = if (append) state.nextAfterId else null,
+                toastMessage = null
             )
         }
 
@@ -269,45 +278,48 @@ class DiscoveryViewModel @Inject constructor(
         }
     }
 
-    private fun validate(filters: DiscoveryFilters): String? {
+    private fun validate(filters: DiscoveryFilters): Map<String, String> {
         val ano = filters.ano.toIntOrNull()
         val minAnoPublicacao = filters.minAnoPublicacao.toIntOrNull()
         val maxAnoPublicacao = filters.maxAnoPublicacao.toIntOrNull()
+        val errors = linkedMapOf<String, String>()
 
         if (filters.nivelEnsino == NivelEnsino.SUPERIOR && filters.ano.isNotBlank()) {
-            return "Materiais de nível superior não usam ano escolar."
+            errors[FILTER_ERROR_ANO] = "Materiais de nivel superior nao usam ano escolar."
         }
-        if (filters.ano.isNotBlank()) {
+        if (filters.ano.isNotBlank() && FILTER_ERROR_ANO !in errors) {
             val maxAno = maxAnoEscolar(filters.nivelEnsino)
             if (ano == null || ano !in 1..maxAno) {
-                return "Informe um ano escolar válido para o nível selecionado."
+                errors[FILTER_ERROR_ANO] = "Informe um ano escolar valido para o nivel selecionado."
             }
         }
         if (filters.minAnoPublicacao.isNotBlank() && (minAnoPublicacao == null || minAnoPublicacao !in 1900..2100)) {
-            return "O ano inicial de publicação deve ficar entre 1900 e 2100."
+            errors[FILTER_ERROR_MIN_PUBLICACAO] = "O ano inicial de publicacao deve ficar entre 1900 e 2100."
         }
         if (filters.maxAnoPublicacao.isNotBlank() && (maxAnoPublicacao == null || maxAnoPublicacao !in 1900..2100)) {
-            return "O ano final de publicação deve ficar entre 1900 e 2100."
+            errors[FILTER_ERROR_MAX_PUBLICACAO] = "O ano final de publicacao deve ficar entre 1900 e 2100."
         }
         if (minAnoPublicacao != null && maxAnoPublicacao != null && minAnoPublicacao > maxAnoPublicacao) {
-            return "O ano inicial de publicação não pode ser maior que o ano final."
+            val rangeError = "O ano inicial de publicacao nao pode ser maior que o ano final."
+            errors[FILTER_ERROR_MIN_PUBLICACAO] = rangeError
+            errors[FILTER_ERROR_MAX_PUBLICACAO] = rangeError
         }
-        return null
+        return errors
     }
 
     private fun resolveSearchError(error: Throwable): String {
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400, 422 -> error.message
-                401 -> "Sua sessão expirou. Entre novamente para continuar."
-                403 -> "Conclua seu cadastro para buscar materiais disponíveis."
-                else -> "Não foi possível carregar os materiais agora."
+                401 -> "Sua sessao expirou. Entre novamente para continuar."
+                403 -> "Conclua seu cadastro para buscar materiais disponiveis."
+                else -> "Nao foi possivel carregar os materiais agora."
             }
 
             is SocketTimeoutException -> "A busca demorou demais para responder."
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Não foi possível conectar ao backend configurado no app."
+            is IOException -> "Nao foi possivel conectar ao backend configurado no app."
             else -> error.message ?: "Falha inesperada ao buscar materiais."
         }
     }
@@ -316,24 +328,30 @@ class DiscoveryViewModel @Inject constructor(
         return when (error) {
             is ApiException -> when (error.statusCode) {
                 400 -> error.message
-                401 -> "Sua sessão expirou. Entre novamente para continuar."
+                401 -> "Sua sessao expirou. Entre novamente para continuar."
                 403 -> "Conclua seu cadastro para solicitar materiais."
-                404 -> "Esse material não foi encontrado."
+                404 -> "Esse material nao foi encontrado."
                 409 -> error.message
-                422 -> "Esse material não está mais disponível para novas solicitações."
+                422 -> "Esse material nao esta mais disponivel para novas solicitacoes."
                 else -> error.message
             }
 
             is ConnectException,
             is UnknownHostException,
-            is IOException -> "Não foi possível enviar a solicitação porque o backend não respondeu."
-            else -> error.message ?: "Falha inesperada ao enviar a solicitação."
+            is IOException -> "Nao foi possivel enviar a solicitacao porque o backend nao respondeu."
+            else -> error.message ?: "Falha inesperada ao enviar a solicitacao."
         }
     }
 
-    private fun updateFilters(transform: DiscoveryFilters.() -> DiscoveryFilters) {
+    private fun updateFilters(
+        clearedErrorKeys: Set<String> = emptySet(),
+        transform: DiscoveryFilters.() -> DiscoveryFilters
+    ) {
         _uiState.update { state ->
-            state.copy(filters = state.filters.transform())
+            state.copy(
+                filters = state.filters.transform(),
+                filterErrors = state.filterErrors - clearedErrorKeys
+            )
         }
     }
 
@@ -371,5 +389,12 @@ class DiscoveryViewModel @Inject constructor(
             NivelEnsino.MEDIO -> 3
             else -> 9
         }
+    }
+
+    private companion object {
+        const val FILTER_ERROR_ANO = "ano"
+        const val FILTER_ERROR_MIN_PUBLICACAO = "minAnoPublicacao"
+        const val FILTER_ERROR_MAX_PUBLICACAO = "maxAnoPublicacao"
+        val publicationYearErrorKeys = setOf(FILTER_ERROR_MIN_PUBLICACAO, FILTER_ERROR_MAX_PUBLICACAO)
     }
 }

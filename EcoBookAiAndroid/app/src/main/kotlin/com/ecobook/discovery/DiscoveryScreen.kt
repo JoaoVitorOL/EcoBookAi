@@ -1,9 +1,13 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.ecobook.discovery
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ExpandLess
@@ -34,8 +40,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,9 +50,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecobook.model.Disciplina
 import com.ecobook.model.NecessidadeAcademica
 import com.ecobook.model.NivelEnsino
@@ -126,83 +132,83 @@ fun DiscoveryScreen(
             contentPadding = PaddingValues(top = 20.dp, bottom = 120.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-        item {
-            SectionHeading(
-                title = "Descoberta de materiais",
-                subtitle = "Busca real conectada ao backend com matching determinístico, filtros acadêmicos e ordenação por proximidade.",
-                trailingContent = {
-                    com.ecobook.ui.components.NotificationsEntryPointButton(
-                        unreadCount = unreadNotifications,
-                        onClick = onOpenNotifications
-                    )
-                }
-            )
-        }
-
-        item {
-            DiscoveryFiltersCard(
-                uiState = uiState,
-                onQueryChange = viewModel::updateQuery,
-                onDisciplinaChange = viewModel::updateDisciplina,
-                onNivelEnsinoChange = viewModel::updateNivelEnsino,
-                onAnoChange = viewModel::updateAno,
-                onSistemaEnsinoChange = viewModel::updateSistemaEnsino,
-                onNecessidadeAcademicaChange = viewModel::updateNecessidadeAcademica,
-                onCidadeChange = viewModel::updateCidade,
-                onBairroChange = viewModel::updateBairro,
-                onMinAnoPublicacaoChange = viewModel::updateMinAnoPublicacao,
-                onMaxAnoPublicacaoChange = viewModel::updateMaxAnoPublicacao,
-                onSearch = viewModel::search,
-                onReset = viewModel::resetFilters,
-                isLoading = uiState.isLoadingInitial
-            )
-        }
-
-        item {
-            ResultsSummary(uiState = uiState)
-        }
-
-        uiState.errorMessage?.let { message ->
             item {
-                GlassCard {
-                    Text(
-                        text = "Não foi possível carregar a busca.",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                SectionHeading(
+                    title = "Descoberta de materiais",
+                    subtitle = "Busca real conectada ao backend com matching deterministico, filtros academicos e paginação continua.",
+                    trailingContent = {
+                        com.ecobook.ui.components.NotificationsEntryPointButton(
+                            unreadCount = unreadNotifications,
+                            onClick = onOpenNotifications
+                        )
+                    }
+                )
             }
-        }
 
-        if (uiState.isLoadingInitial && uiState.results.isEmpty()) {
             item {
-                GlassCard {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CircularProgressIndicator()
+                DiscoveryFiltersCard(
+                    uiState = uiState,
+                    onQueryChange = viewModel::updateQuery,
+                    onDisciplinaChange = viewModel::updateDisciplina,
+                    onNivelEnsinoChange = viewModel::updateNivelEnsino,
+                    onAnoChange = viewModel::updateAno,
+                    onSistemaEnsinoChange = viewModel::updateSistemaEnsino,
+                    onNecessidadeAcademicaChange = viewModel::updateNecessidadeAcademica,
+                    onCidadeChange = viewModel::updateCidade,
+                    onBairroChange = viewModel::updateBairro,
+                    onMinAnoPublicacaoChange = viewModel::updateMinAnoPublicacao,
+                    onMaxAnoPublicacaoChange = viewModel::updateMaxAnoPublicacao,
+                    onSearch = viewModel::search,
+                    onReset = viewModel::resetFilters,
+                    isLoading = uiState.isLoadingInitial
+                )
+            }
+
+            item {
+                ResultsSummary(uiState = uiState)
+            }
+
+            uiState.errorMessage?.let { message ->
+                item {
+                    GlassCard {
                         Text(
-                            text = "Consultando materiais disponíveis...",
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = "Nao foi possivel carregar a busca.",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
-        } else if (uiState.hasSearched && uiState.results.isEmpty()) {
-            item {
-                EmptyDiscoveryState(onBrowseAll = viewModel::resetFilters)
+
+            if (uiState.isLoadingInitial && uiState.results.isEmpty()) {
+                item {
+                    GlassCard {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CircularProgressIndicator()
+                            Text(
+                                text = "Consultando materiais disponiveis...",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            } else if (uiState.hasSearched && uiState.results.isEmpty()) {
+                item {
+                    EmptyDiscoveryState(onBrowseAll = viewModel::resetFilters)
+                }
+            } else {
+                items(uiState.results, key = { it.id }) { material ->
+                    MaterialListItem(
+                        material = material,
+                        onClick = { viewModel.openMaterialDetail(material) }
+                    )
+                }
             }
-        } else {
-            items(uiState.results, key = { it.id }) { material ->
-                MaterialListItem(
-                    material = material,
-                    onClick = { viewModel.openMaterialDetail(material) }
-                )
-            }
-        }
 
             if (uiState.isLoadingMore) {
                 item {
@@ -227,7 +233,7 @@ private fun ResultsSummary(
     val regionLabel = when {
         activeCity != null && activeNeighborhood != null -> "$activeNeighborhood, $activeCity"
         activeCity != null -> activeCity
-        else -> "todo o catálogo disponível"
+        else -> "todo o catalogo disponivel"
     }
 
     val summary = if (uiState.total == 0L) {
@@ -253,7 +259,7 @@ private fun EmptyDiscoveryState(
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            text = "Ajuste os filtros ou abra todos os materiais disponíveis para ampliar a busca.",
+            text = "Ajuste os filtros ou abra todos os materiais disponiveis para ampliar a busca.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -281,13 +287,36 @@ private fun DiscoveryFiltersCard(
     isLoading: Boolean
 ) {
     var expanded by rememberSaveable { mutableStateOf(true) }
+    val fieldRequesters = remember {
+        mapOf(
+            "ano" to BringIntoViewRequester(),
+            "minAnoPublicacao" to BringIntoViewRequester(),
+            "maxAnoPublicacao" to BringIntoViewRequester()
+        )
+    }
+    val firstInvalidField = remember(uiState.filterErrors) {
+        listOf("ano", "minAnoPublicacao", "maxAnoPublicacao")
+            .firstOrNull(uiState.filterErrors::containsKey)
+    }
+
+    LaunchedEffect(firstInvalidField) {
+        if (firstInvalidField != null && !expanded) {
+            expanded = true
+        }
+    }
+
+    LaunchedEffect(firstInvalidField, expanded) {
+        if (firstInvalidField != null && expanded) {
+            fieldRequesters[firstInvalidField]?.bringIntoView()
+        }
+    }
 
     GlassCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            androidx.compose.foundation.layout.Column(
+            Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
@@ -297,7 +326,7 @@ private fun DiscoveryFiltersCard(
                 )
                 Text(
                     text = if (expanded) {
-                        "Ajuste disciplina, nível, sistema de ensino e local quando quiser refinar os resultados."
+                        "Ajuste disciplina, nivel, sistema de ensino e local quando quiser refinar os resultados."
                     } else {
                         collapsedFiltersSummary(uiState)
                     },
@@ -314,14 +343,14 @@ private fun DiscoveryFiltersCard(
         }
 
         AnimatedVisibility(visible = expanded) {
-            androidx.compose.foundation.layout.Column(
+            Column(
                 modifier = Modifier.animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedTextField(
                     value = uiState.filters.query,
                     onValueChange = onQueryChange,
-                    label = { Text("Buscar por título, descrição, autor ou local") },
+                    label = { Text("Buscar por titulo, descricao, autor ou local") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -350,7 +379,7 @@ private fun DiscoveryFiltersCard(
                     onSelected = onSistemaEnsinoChange
                 )
                 DropdownField(
-                    label = "Necessidade acadêmica",
+                    label = "Necessidade academica",
                     selectedOption = uiState.filters.necessidadeAcademica,
                     options = uiState.necessidadesAcademicas,
                     allLabel = "Todas",
@@ -361,15 +390,18 @@ private fun DiscoveryFiltersCard(
                     value = uiState.filters.ano,
                     onValueChange = onAnoChange,
                     label = { Text("Ano escolar") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .bringIntoViewRequester(fieldRequesters.getValue("ano")),
                     singleLine = true,
                     enabled = uiState.filters.nivelEnsino != NivelEnsino.SUPERIOR,
+                    isError = uiState.filterErrors.containsKey("ano"),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     supportingText = {
                         Text(
-                            when (uiState.filters.nivelEnsino) {
-                                NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino médio."
-                                NivelEnsino.SUPERIOR -> "Não se aplica a materiais de ensino superior."
+                            uiState.filterErrors["ano"] ?: when (uiState.filters.nivelEnsino) {
+                                NivelEnsino.MEDIO -> "Use apenas 1, 2 ou 3 para ensino medio."
+                                NivelEnsino.SUPERIOR -> "Nao se aplica a materiais de ensino superior."
                                 else -> "Use um valor de 1 a 9."
                             }
                         )
@@ -397,18 +429,34 @@ private fun DiscoveryFiltersCard(
                     OutlinedTextField(
                         value = uiState.filters.minAnoPublicacao,
                         onValueChange = onMinAnoPublicacaoChange,
-                        label = { Text("Publicação de") },
-                        modifier = Modifier.weight(1f),
+                        label = { Text("Publicacao de") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .bringIntoViewRequester(fieldRequesters.getValue("minAnoPublicacao")),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        isError = uiState.filterErrors.containsKey("minAnoPublicacao"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        supportingText = {
+                            uiState.filterErrors["minAnoPublicacao"]?.let { message ->
+                                Text(message)
+                            }
+                        }
                     )
                     OutlinedTextField(
                         value = uiState.filters.maxAnoPublicacao,
                         onValueChange = onMaxAnoPublicacaoChange,
-                        label = { Text("Publicação até") },
-                        modifier = Modifier.weight(1f),
+                        label = { Text("Publicacao ate") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .bringIntoViewRequester(fieldRequesters.getValue("maxAnoPublicacao")),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        isError = uiState.filterErrors.containsKey("maxAnoPublicacao"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        supportingText = {
+                            uiState.filterErrors["maxAnoPublicacao"]?.let { message ->
+                                Text(message)
+                            }
+                        }
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -446,7 +494,7 @@ private fun collapsedFiltersSummary(uiState: DiscoveryUiState): String {
     return if (activeFilters.isEmpty()) {
         "Filtros recolhidos. Toque para expandir quando quiser refinar a busca."
     } else {
-        "Filtros recolhidos com ${activeFilters.size} critério(s) ativo(s): ${activeFilters.joinToString(", ")}."
+        "Filtros recolhidos com ${activeFilters.size} criterio(s) ativo(s): ${activeFilters.joinToString(", ")}."
     }
 }
 

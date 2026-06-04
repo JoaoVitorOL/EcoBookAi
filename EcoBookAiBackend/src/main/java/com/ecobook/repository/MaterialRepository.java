@@ -24,6 +24,7 @@ public interface MaterialRepository extends JpaRepository<Material, UUID>, JpaSp
     List<Material> findByDoadorIdAndUploadTrackingIdIsNotNullOrderByCriadoEmDesc(UUID doadorId);
     List<Material> findByStatus(StatusMaterial status);
     List<Material> findByCidadeAndBairro(String cidade, String bairro);
+    Optional<Material> findByUploadTrackingId(UUID uploadTrackingId);
     Page<Material> findAllByOrderByCriadoEmDesc(Pageable pageable);
     Page<Material> findByStatusOrderByCriadoEmDesc(StatusMaterial status, Pageable pageable);
 

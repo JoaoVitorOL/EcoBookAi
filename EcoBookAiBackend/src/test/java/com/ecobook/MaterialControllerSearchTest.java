@@ -197,6 +197,28 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/materiais should filter by city and neighborhood with accent-insensitive matching")
+    void shouldFilterByCityAndNeighborhood() throws Exception {
+        Usuario requester = createUser("geo-search@example.com", "FLORIANOPOLIS", "CENTRO");
+        Usuario centroDonor = createUser("geo-centro@example.com", "FLORIANOPOLIS", "Centro Histórico");
+        Usuario trindadeDonor = createUser("geo-trindade@example.com", "FLORIANOPOLIS", "Trindade");
+        Usuario otherCityDonor = createUser("geo-other-city@example.com", "SAO JOSE", "Centro Histórico");
+
+        createMaterial(centroDonor, "Colecao Centro Historico", 2024);
+        createMaterial(trindadeDonor, "Colecao Trindade", 2023);
+        createMaterial(otherCityDonor, "Colecao Sao Jose", 2022);
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("cidade", "Florianópolis")
+                        .param("bairro", "centro historico"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.total").value(1))
+                .andExpect(jsonPath("$.data.results.length()").value(1))
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Colecao Centro Historico"));
+    }
+
+    @Test
     @DisplayName("GET /api/v1/materiais should filter by publication year range")
     void shouldFilterByPublicationYearRange() throws Exception {
         Usuario requester = createUser("range-search@example.com", "FLORIANOPOLIS", "CENTRO");
@@ -213,6 +235,52 @@ class MaterialControllerSearchTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.total").value(1))
                 .andExpect(jsonPath("$.data.results[0].titulo").value("Colecao 2012"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/materiais should prioritize exact discipline results before multidiscipline ones")
+    void shouldPrioritizeExactDisciplineResults() throws Exception {
+        Usuario requester = createUser("discipline-priority@example.com", "CRICIUMA", "CENTRO");
+        Usuario donor = createUser("discipline-priority-donor@example.com", "CRICIUMA", "CENTRO");
+
+        materialRepository.saveAndFlush(Material.builder()
+                .doador(donor)
+                .titulo("Colecao Todas Mais Nova")
+                .descricao("Descricao de descoberta para Colecao Todas Mais Nova")
+                .disciplina(Disciplina.TODAS)
+                .nivelEnsino(NivelEnsino.FUNDAMENTAL)
+                .ano(7)
+                .sistemaEnsino(SistemaEnsino.ANGLO)
+                .estadoConservacao(EstadoConservacao.BOM)
+                .necessidadeAcademica(NecessidadeAcademica.TEXTBOOKS)
+                .status(StatusMaterial.DISPONIVEL)
+                .cidade(donor.getCidade())
+                .bairro(donor.getBairro())
+                .dataPublicacao(2025)
+                .build());
+
+        materialRepository.saveAndFlush(Material.builder()
+                .doador(donor)
+                .titulo("Literatura Exata")
+                .descricao("Descricao de descoberta para Literatura Exata")
+                .disciplina(Disciplina.LITERATURA)
+                .nivelEnsino(NivelEnsino.FUNDAMENTAL)
+                .ano(7)
+                .sistemaEnsino(SistemaEnsino.ANGLO)
+                .estadoConservacao(EstadoConservacao.BOM)
+                .necessidadeAcademica(NecessidadeAcademica.TEXTBOOKS)
+                .status(StatusMaterial.DISPONIVEL)
+                .cidade(donor.getCidade())
+                .bairro(donor.getBairro())
+                .dataPublicacao(2021)
+                .build());
+
+        mockMvc.perform(get("/v1/materiais")
+                        .header("Authorization", "Bearer " + tokenFor(requester))
+                        .param("disciplina", "LITERATURA"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.results[0].titulo").value("Literatura Exata"))
+                .andExpect(jsonPath("$.data.results[1].titulo").value("Colecao Todas Mais Nova"));
     }
 
     @Test

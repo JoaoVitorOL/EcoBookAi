@@ -77,7 +77,7 @@ class DiscoveryViewModelTest {
     }
 
     @Test
-    fun searchShouldExposeValidationToastWhenPublicationRangeIsInvalid() = runTest {
+    fun searchShouldExposeInlineFilterErrorsWhenPublicationRangeIsInvalid() = runTest {
         val repository = mockk<MaterialRepository>()
         val requestRepository = mockk<RequestRepository>(relaxed = true)
         val referenceDataRepository = mockReferenceDataRepository()
@@ -98,9 +98,14 @@ class DiscoveryViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals(
-            "O ano inicial de publicação não pode ser maior que o ano final.",
-            state.toastMessage
+            "O ano inicial de publicacao nao pode ser maior que o ano final.",
+            state.filterErrors["minAnoPublicacao"]
         )
+        assertEquals(
+            "O ano inicial de publicacao nao pode ser maior que o ano final.",
+            state.filterErrors["maxAnoPublicacao"]
+        )
+        assertEquals(null, state.toastMessage)
 
         coVerify(exactly = 0) {
             repository.searchMaterials(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
