@@ -22,7 +22,12 @@ Se você quer subir o projeto inteiro sem cair em armadilhas de ambiente, siga e
 5. Rode `assembleDebug`, `lintDebug` e `testDebugUnitTest` no Android, em sequência.
 6. Abra `EcoBookAiAndroid` no Android Studio e execute o app.
 
-Essa ordem foi revalidada nesta máquina em `2026-06-03`.
+Essa ordem foi revalidada nesta máquina em `2026-06-04`, com:
+
+- backend `local` respondendo `200` em `/api/v1/health`
+- `app:assembleDebug` verde
+- `app:lintDebug` verde
+- `app:testDebugUnitTest` verde
 
 ## Requisitos
 
@@ -113,7 +118,9 @@ sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
 ```
 
-Se o backend estiver no WSL ou se você estiver usando um aparelho físico, troque `10.0.2.2` pelo IP real da máquina host.
+Se o backend estiver rodando no Windows host, em PowerShell, mantenha `10.0.2.2`.
+
+Só troque `10.0.2.2` pelo IP real da máquina quando o backend estiver rodando dentro do WSL, em outra VM ou quando você estiver usando um aparelho físico.
 
 Para descobrir o IP do WSL:
 
@@ -126,6 +133,8 @@ Exemplo:
 ```properties
 backend.url=http://172.22.160.34:8080/api
 ```
+
+Se você subiu o backend em outra porta, ajuste essa mesma porta no `backend.url`.
 
 `google-services.json` não é obrigatório para compilar ou testar os fluxos principais. Ele só é necessário quando você quer validar push real do Firebase.
 
@@ -210,7 +219,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest
 ```
 
-Último baseline conhecido em `2026-06-03`:
+Revalidação objetiva desta rodada em `2026-06-04`:
+
+- backend `local` iniciado com `Run-BackendLocal.ps1`
+- `GET http://127.0.0.1:8080/api/v1/health` respondendo `200`
+- Android `app:assembleDebug` verde
+- Android `app:lintDebug` verde
+- Android `app:testDebugUnitTest` verde
+
+Último baseline amplo conhecido em `2026-06-03`:
 
 - Backend: `mvn test` verde com `229` testes, `0` falhas, `0` erros e `3` skips controlados
 - Backend: JaCoCo em `84.72%`
@@ -229,6 +246,14 @@ cd .\EcoBookAiBackend
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-26'
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn spring-boot:run
+```
+
+Se o comando `docker` não existir na sua máquina, instale o Docker Desktop ou siga no perfil `local` com H2, que é o caminho revalidado para subir o projeto sem dependências externas.
+
+Depois de subir o backend nesse modo, valide:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8080/api/v1/health
 ```
 
 Esse modo espera:
@@ -258,6 +283,8 @@ Teste instrumentado:
 cd .\EcoBookAiAndroid
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.ecobook.fcm.FirebaseRealDeviceValidationTest'
 ```
+
+Sem essas credenciais, o projeto completo continua rodando para autenticação, onboarding, doação, busca, solicitações e perfil. O que fica opcional é apenas o push real do Firebase.
 
 ## Revisão Geral Mais Recente
 

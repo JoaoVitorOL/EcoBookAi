@@ -21,6 +21,13 @@ Backend Spring Boot do EcoBook AI.
 - Maven 3.9+
 - Docker Desktop opcional
 
+Antes de iniciar, vale conferir se o terminal realmente está usando Java `21+`:
+
+```powershell
+java -version
+mvn -version
+```
+
 ## Modos De Execução
 
 ### Perfil `local` (recomendado para primeiro boot)
@@ -53,9 +60,11 @@ mvn --% spring-boot:run -Dspring-boot.run.profiles=local
 
 Valide:
 
-```bash
-curl http://127.0.0.1:8080/api/v1/health
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8080/api/v1/health
 ```
+
+Esse é o caminho recomendado para o primeiro boot e foi revalidado novamente em `2026-06-04`.
 
 ### Perfil default (`PostgreSQL + Flyway`)
 
@@ -65,10 +74,14 @@ Na raiz do repositório:
 docker compose up -d postgres
 ```
 
+Se o comando `docker` não existir na sua máquina, instale o Docker Desktop ou volte para o perfil `local`, que não depende de serviços externos.
+
 Depois:
 
-```bash
+```powershell
 cd EcoBookAiBackend
+$env:JAVA_HOME = 'C:\caminho\para\jdk-21-ou-superior'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn spring-boot:run
 ```
 
@@ -79,6 +92,12 @@ Esse perfil espera:
 - senha vinda de `DB_PASSWORD` ou default `dev_password_123`
 
 Use esse modo quando o processo do backend realmente consegue alcançar o mesmo `localhost:5432` onde o PostgreSQL está exposto. Se você estiver no WSL e o banco estiver publicado em outro host/rede, ajuste `SPRING_DATASOURCE_URL` para um endereço alcançável pelo backend.
+
+Depois de subir o perfil default, valide:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8080/api/v1/health
+```
 
 ## Variáveis Importantes
 
@@ -106,7 +125,9 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn test
 ```
 
-Na validação mais recente de `2026-06-03`, o backend ficou verde com `229` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenários snapshot-only em `MigrationRollbackValidationTest`.
+Na validação ampla mais recente de `2026-06-03`, o backend ficou verde com `229` testes e `3` skips controlados: `LoadValidationTest` como gate manual e `2` cenários snapshot-only em `MigrationRollbackValidationTest`.
+
+Na revalidação documental desta rodada, em `2026-06-04`, o caminho de execução `local` também foi conferido novamente com backend subindo e respondendo `200` no endpoint de `health`.
 
 ## Swagger / OpenAPI
 

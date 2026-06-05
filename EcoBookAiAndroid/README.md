@@ -30,6 +30,8 @@ O EcoBook não define ponto de encontro dentro da plataforma. Quando uma solicit
 
 ## Configuração Inicial
 
+Antes de abrir o app, confirme que o backend já está respondendo. O caminho completo revalidado está no `README.md` da raiz e começa por `backend local -> health -> local.properties -> Gradle -> Android Studio`.
+
 1. Abra `local.properties.example`.
 2. Crie ou ajuste `local.properties`.
 3. Configure `sdk.dir`.
@@ -42,7 +44,9 @@ sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
 backend.url=http://10.0.2.2:8080/api
 ```
 
-Se o backend estiver no WSL e `10.0.2.2` não funcionar, use o IP atual do Linux:
+Se o backend estiver rodando no Windows host, em PowerShell, mantenha `10.0.2.2`.
+
+Só troque `10.0.2.2` quando o backend estiver rodando dentro do WSL, em outra máquina/VM ou quando você estiver usando um aparelho físico. Nesses casos, descubra o IP atual do Linux:
 
 ```powershell
 wsl.exe -e bash -lc "hostname -I"
@@ -53,6 +57,8 @@ e ajuste, por exemplo:
 ```properties
 backend.url=http://172.22.160.34:8080/api
 ```
+
+Se o backend estiver em uma porta diferente de `8080`, ajuste a porta no `backend.url`.
 
 ## Build E Testes
 
@@ -78,7 +84,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 1. Abra a pasta `EcoBookAiAndroid` no Android Studio.
 2. Aguarde o sync do Gradle.
 3. Inicie um emulador API 34 ou conecte um dispositivo físico.
-4. Clique em `Run`.
+4. Confirme que o backend segue respondendo em `/api/v1/health`.
+5. Clique em `Run`.
 
 ## Firebase
 
@@ -89,6 +96,8 @@ Ele só é necessário quando você quer validar:
 - FCM real
 - registro real de token Firebase
 - recebimento real de push no aparelho
+
+Sem ele, o projeto continua utilizável para os fluxos principais do MVP. O que fica de fora é apenas a validação de push real do Firebase.
 
 Coloque o arquivo em:
 
@@ -129,6 +138,12 @@ Validado em `2026-06-03`:
 - `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
 - revisão do texto legal exibido no app para mantê-lo fiel ao fluxo atual de privacidade
 
+Validado em `2026-06-04`:
+
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:assembleDebug`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:lintDebug`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 app:testDebugUnitTest`
+
 Lint/UI baseline atual:
 
 - `0` erros
@@ -138,5 +153,5 @@ Lint/UI baseline atual:
 ## Troubleshooting
 
 - O app não abre no Android Studio: confirme que a pasta aberta é `EcoBookAiAndroid`, não a raiz do repositório.
-- O emulador não encontra o backend: revise `backend.url` e, se preciso, troque `10.0.2.2` pelo IP atual do WSL.
+- O emulador não encontra o backend: revise `backend.url`. Se o backend estiver rodando no Windows host, use `10.0.2.2`. Troque para o IP do WSL apenas quando o backend realmente estiver rodando lá.
 - O push não chega: verifique `google-services.json`, permissão de notificação, backend com credencial Admin SDK válida e rode a validação `FirebaseRealDeviceValidationTest` para isolar se a falha está no token, no backend ou no recebimento em app.
