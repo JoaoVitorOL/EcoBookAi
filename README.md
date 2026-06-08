@@ -8,7 +8,7 @@ O uso previsto do MVP é por adultos, pais e responsáveis legais dos alunos. O 
 
 - Fases `1` a `10` estão implementadas e validadas no estado atual do repositório; o que resta para lançamento real é revisão jurídica do texto legal, monitoramento contínuo de dependências e revalidação do ambiente alvo.
 - Backend: auth `email + senha + JWT`, onboarding, preview IA, materiais, discovery, solicitações, notificações, moderação/admin, consentimentos, exclusão de conta, OpenAPI e observabilidade.
-- Android: login/cadastro, onboarding, doação, busca, pedidos do estudante, pedidos do doador, central de notificações, edição de perfil com CPF obrigatório e foto de perfil, consentimentos e exclusão de conta.
+- Android: login/cadastro, boas-vindas pós-cadastro, onboarding, doação, busca, pedidos do estudante, pedidos do doador, central de notificações, edição de perfil com CPF obrigatório e foto de perfil, consentimentos e exclusão de conta.
 - Em `2026-05-23`, o app Android também passou por uma revisão de UI/código baseada em referências oficiais do Compose para acessibilidade, state hoisting e layouts adaptativos.
 
 ## O Jeito Mais Seguro De Rodar Tudo

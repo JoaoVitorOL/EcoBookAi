@@ -11,7 +11,7 @@
 The runtime schema is defined by:
 
 - JPA mappings in `EcoBookAiBackend/src/main/java/com/ecobook/model/`
-- Flyway migrations `V1` through `V18`
+- Flyway migrations `V1` through `V19`
 
 This document is the current human-readable summary of that runtime model.
 

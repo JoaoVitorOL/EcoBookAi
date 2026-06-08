@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class OnboardingUiState(
+    val showWelcomeStep: Boolean = false,
     val currentStep: Int = 0,
     val nome: String = "",
     val email: String = "",
@@ -45,11 +46,12 @@ data class OnboardingUiState(
 class OnboardingViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val referenceDataRepository: ReferenceDataRepository,
-    sessionManager: SessionManager
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         OnboardingUiState(
+            showWelcomeStep = sessionManager.sessionState.value.showNewUserWelcome,
             nome = sessionManager.sessionState.value.nome,
             email = sessionManager.sessionState.value.email
         )
@@ -169,7 +171,27 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    fun dismissWelcomeStep() {
+        if (!_uiState.value.showWelcomeStep) {
+            return
+        }
+
+        sessionManager.dismissNewUserWelcome()
+        _uiState.update { state ->
+            state.copy(
+                showWelcomeStep = false,
+                message = null,
+                fieldErrors = emptyMap()
+            )
+        }
+    }
+
     fun nextStep() {
+        if (_uiState.value.showWelcomeStep) {
+            dismissWelcomeStep()
+            return
+        }
+
         val validationErrors = validateCurrentStep(_uiState.value.currentStep)
         if (validationErrors.isNotEmpty()) {
             _uiState.update {

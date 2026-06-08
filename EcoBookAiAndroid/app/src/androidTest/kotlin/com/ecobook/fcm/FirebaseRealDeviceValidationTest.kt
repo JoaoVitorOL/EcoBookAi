@@ -105,7 +105,7 @@ class FirebaseRealDeviceValidationTest {
             bairro = "Trindade"
         )
 
-        sessionManager.onAuthSuccess(donorAuth)
+        sessionManager.onRegistrationSuccess(donorAuth)
         sessionManager.onUserLoaded(donorProfile)
         notificationInboxRepository.markAllAsRead()
 
@@ -236,6 +236,7 @@ class FirebaseRealDeviceValidationTest {
                         ano = 7,
                         sistemaEnsino = "ANGLO",
                         estadoConservacao = "BOM",
+                        necessidadeAcademica = "TEXTBOOKS",
                         dataPublicacao = 2024
                     )
                 )

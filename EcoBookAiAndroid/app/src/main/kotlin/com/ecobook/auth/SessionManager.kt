@@ -21,7 +21,31 @@ class SessionManager @Inject constructor(
 
     fun hasActiveSession(): Boolean = _sessionState.value.isAuthenticated
 
-    fun onAuthSuccess(response: AuthResponseDTO) {
+    fun onRegistrationSuccess(response: AuthResponseDTO) {
+        persistAuthenticatedSession(
+            response = response,
+            showNewUserWelcome = !response.perfilCompleto
+        )
+    }
+
+    fun onLoginSuccess(response: AuthResponseDTO) {
+        persistAuthenticatedSession(
+            response = response,
+            showNewUserWelcome = false
+        )
+    }
+
+    fun dismissNewUserWelcome() {
+        secureStorage.saveShowNewUserWelcome(false)
+        _sessionState.update { current ->
+            current.copy(showNewUserWelcome = false)
+        }
+    }
+
+    private fun persistAuthenticatedSession(
+        response: AuthResponseDTO,
+        showNewUserWelcome: Boolean
+    ) {
         secureStorage.clearProfileData()
         secureStorage.saveToken(response.token)
         secureStorage.saveUserId(response.id)
@@ -29,6 +53,7 @@ class SessionManager @Inject constructor(
         secureStorage.saveUserEmail(response.email)
         secureStorage.saveUserRole(response.role)
         secureStorage.saveProfileComplete(response.perfilCompleto)
+        secureStorage.saveShowNewUserWelcome(showNewUserWelcome)
         secureStorage.saveUserWhatsapp(response.whatsapp)
         secureStorage.saveUserCpf(response.cpf)
         secureStorage.saveUserCidade(response.cidade)
@@ -44,11 +69,15 @@ class SessionManager @Inject constructor(
             email = response.email,
             nome = response.nome,
             role = response.role,
-            profileComplete = response.perfilCompleto
+            profileComplete = response.perfilCompleto,
+            showNewUserWelcome = showNewUserWelcome
         )
     }
 
     fun onUserLoaded(response: UsuarioDTO) {
+        if (response.perfilCompleto) {
+            secureStorage.saveShowNewUserWelcome(false)
+        }
         secureStorage.saveUserId(response.id)
         secureStorage.saveUserName(response.nome)
         secureStorage.saveUserEmail(response.email)
@@ -71,6 +100,7 @@ class SessionManager @Inject constructor(
                 nome = response.nome,
                 role = response.role,
                 profileComplete = response.perfilCompleto,
+                showNewUserWelcome = if (response.perfilCompleto) false else it.showNewUserWelcome,
                 lastErrorMessage = null
             )
         }
@@ -89,7 +119,8 @@ class SessionManager @Inject constructor(
             email = secureStorage.getUserEmail().orEmpty(),
             nome = secureStorage.getUserName().orEmpty(),
             role = secureStorage.getUserRole().orEmpty(),
-            profileComplete = secureStorage.getProfileComplete()
+            profileComplete = secureStorage.getProfileComplete(),
+            showNewUserWelcome = secureStorage.getShowNewUserWelcome()
         )
     }
 }

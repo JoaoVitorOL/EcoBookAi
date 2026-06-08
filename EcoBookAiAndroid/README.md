@@ -5,7 +5,7 @@ Aplicativo Android nativo do EcoBook AI.
 ## O Que O App Entrega Hoje
 
 - Login, cadastro, restauração de sessão e logout com `JWT`
-- Onboarding com WhatsApp, CPF obrigatório do adulto responsável, cidade, bairro, instituição e consentimento de IA
+- Boas-vindas pós-cadastro para novos usuários e onboarding com WhatsApp, CPF obrigatório do adulto responsável, cidade, bairro, instituição e consentimento de IA
 - Doação com imagem frontal obrigatória, imagem traseira opcional, preview IA, necessidade acadêmica manual e publicação final
 - Busca de materiais com filtros, paginação e diálogo de detalhes
 - `Minhas solicitações` para o estudante

@@ -87,6 +87,7 @@ data class SessionUiState(
     val nome: String = "",
     val role: String = "",
     val profileComplete: Boolean = false,
+    val showNewUserWelcome: Boolean = false,
     val lastErrorMessage: String? = null
 ) {
     val destination: SessionDestination

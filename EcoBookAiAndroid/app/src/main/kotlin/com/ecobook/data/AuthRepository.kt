@@ -40,7 +40,7 @@ class AuthRepository @Inject constructor(
             )
         )
         val body = requireData(response)
-        sessionManager.onAuthSuccess(body)
+        sessionManager.onRegistrationSuccess(body)
         fcmTokenSyncManager.syncCachedOrCurrentTokenAsync()
         return body
     }
@@ -53,7 +53,7 @@ class AuthRepository @Inject constructor(
             )
         )
         val body = requireData(response)
-        sessionManager.onAuthSuccess(body)
+        sessionManager.onLoginSuccess(body)
         fcmTokenSyncManager.syncCachedOrCurrentTokenAsync()
         return body
     }

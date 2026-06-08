@@ -183,9 +183,14 @@ class AuthFlowE2ETest {
         val registerRequest = backendRule.awaitRequest("/api/v1/auth/register")
         composeRule.activityRule.scenario.recreate()
         composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText("Completar onboarding").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Boas-vindas ao EcoBook").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("Completar onboarding").assertIsDisplayed()
+        composeRule.onNodeWithText("Boas-vindas ao EcoBook").assertIsDisplayed()
+        composeRule.onNodeWithText("Começar cadastro").performClick()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText("Completar cadastro").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Completar cadastro").assertIsDisplayed()
         composeRule.onNodeWithText("Etapa 1 de 3").assertIsDisplayed()
 
         val registerBody = registerRequest.body.readUtf8()

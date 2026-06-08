@@ -81,35 +81,34 @@ fun OnboardingScreen(
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 SectionHeading(
-                    title = "Completar cadastro",
-                    subtitle = "O EcoBook deve ser usado por pais e responsáveis. Esses dados liberam upload, matching e solicitações protegidas pelo backend."
+                    title = if (uiState.showWelcomeStep) {
+                        "Boas-vindas ao EcoBook"
+                    } else {
+                        "Completar cadastro"
+                    },
+                    subtitle = if (uiState.showWelcomeStep) {
+                        "Sua conta foi criada. Antes de liberar os fluxos protegidos, vamos pedir apenas os dados essenciais do adulto responsável."
+                    } else {
+                        "O EcoBook deve ser usado por pais e responsáveis. Esses dados liberam upload, matching e solicitações protegidas pelo backend."
+                    }
                 )
 
-                GlassCard {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        StatusBadge(
-                            text = "Etapa ${uiState.currentStep + 1} de 3",
-                            containerColor = stepColors.containerColor,
-                            contentColor = stepColors.contentColor
-                        )
-                        StatusBadge(
-                            text = uiState.email.ifBlank { "Conta atual" },
-                            containerColor = accountColors.containerColor,
-                            contentColor = accountColors.contentColor
-                        )
-                    }
-                    Text(
-                        text = when (uiState.currentStep) {
-                            0 -> "Primeiro registramos o adulto responsável e o contato que será usado fora do app."
-                            1 -> "Depois registramos a região para normalização geográfica e matching."
-                            else -> "Por fim, revisamos os consentimentos da plataforma e o uso opcional de IA."
-                        },
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                if (uiState.showWelcomeStep) {
+                    WelcomeStep(
+                        email = uiState.email,
+                        stepBadgeContainerColor = stepColors.containerColor,
+                        stepBadgeContentColor = stepColors.contentColor,
+                        accountBadgeContainerColor = accountColors.containerColor,
+                        accountBadgeContentColor = accountColors.contentColor
                     )
+
+                    Button(
+                        onClick = viewModel::dismissWelcomeStep,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Começar cadastro")
+                    }
+
                     OutlinedButton(
                         onClick = onLogout,
                         enabled = !uiState.isSubmitting,
@@ -117,77 +116,111 @@ fun OnboardingScreen(
                     ) {
                         Text("Sair da conta")
                     }
-                }
-
-                when (uiState.currentStep) {
-                    0 -> ContactStep(
-                        uiState = uiState,
-                        onNameChange = viewModel::updateNome,
-                        onWhatsappChange = viewModel::updateWhatsapp,
-                        onCpfChange = viewModel::updateCpf,
-                        onWhatsappFocusLost = viewModel::onWhatsappFocusLost,
-                        onCpfFocusLost = viewModel::onCpfFocusLost
-                    )
-
-                    1 -> LocationStep(
-                        uiState = uiState,
-                        onCityChange = viewModel::updateCidade,
-                        onNeighborhoodChange = viewModel::updateBairro,
-                        onInstitutionChange = viewModel::updateInstituicao
-                    )
-
-                    else -> ConsentStep(
-                        uiState = uiState,
-                        onOpenLegalDocuments = {
-                            viewModel.markPlatformTermsViewed()
-                            showLegalDialog = true
-                        },
-                        onTogglePlatformConsent = viewModel::togglePlatformConsentAccepted,
-                        onToggleConsent = viewModel::toggleConsentimentoIa
-                    )
-                }
-
-                if (!uiState.message.isNullOrBlank()) {
+                } else {
                     GlassCard {
-                        Text(
-                            text = uiState.message.orEmpty(),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (uiState.fieldErrors.isEmpty()) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            }
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    if (uiState.currentStep > 0) {
-                        OutlinedButton(
-                            onClick = viewModel::previousStep,
-                            enabled = !uiState.isSubmitting,
-                            modifier = Modifier.weight(1f)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Voltar")
+                            StatusBadge(
+                                text = "Etapa ${uiState.currentStep + 1} de 3",
+                                containerColor = stepColors.containerColor,
+                                contentColor = stepColors.contentColor
+                            )
+                            StatusBadge(
+                                text = uiState.email.ifBlank { "Conta atual" },
+                                containerColor = accountColors.containerColor,
+                                contentColor = accountColors.contentColor
+                            )
+                        }
+                        Text(
+                            text = when (uiState.currentStep) {
+                                0 -> "Primeiro registramos o adulto responsável e o contato que será usado fora do app."
+                                1 -> "Depois registramos a região para normalização geográfica e matching."
+                                else -> "Por fim, revisamos os consentimentos da plataforma e o uso opcional de IA."
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedButton(
+                            onClick = onLogout,
+                            enabled = !uiState.isSubmitting,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Sair da conta")
                         }
                     }
 
-                    Button(
-                        onClick = if (uiState.isLastStep) viewModel::submit else viewModel::nextStep,
-                        enabled = !uiState.isSubmitting,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        if (uiState.isSubmitting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                    when (uiState.currentStep) {
+                        0 -> ContactStep(
+                            uiState = uiState,
+                            onNameChange = viewModel::updateNome,
+                            onWhatsappChange = viewModel::updateWhatsapp,
+                            onCpfChange = viewModel::updateCpf,
+                            onWhatsappFocusLost = viewModel::onWhatsappFocusLost,
+                            onCpfFocusLost = viewModel::onCpfFocusLost
+                        )
+
+                        1 -> LocationStep(
+                            uiState = uiState,
+                            onCityChange = viewModel::updateCidade,
+                            onNeighborhoodChange = viewModel::updateBairro,
+                            onInstitutionChange = viewModel::updateInstituicao
+                        )
+
+                        else -> ConsentStep(
+                            uiState = uiState,
+                            onOpenLegalDocuments = {
+                                viewModel.markPlatformTermsViewed()
+                                showLegalDialog = true
+                            },
+                            onTogglePlatformConsent = viewModel::togglePlatformConsentAccepted,
+                            onToggleConsent = viewModel::toggleConsentimentoIa
+                        )
+                    }
+
+                    if (!uiState.message.isNullOrBlank()) {
+                        GlassCard {
+                            Text(
+                                text = uiState.message.orEmpty(),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (uiState.fieldErrors.isEmpty()) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.error
+                                }
                             )
-                        } else {
-                            Text(if (uiState.isLastStep) "Concluir perfil" else "Próxima etapa")
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        if (uiState.currentStep > 0) {
+                            OutlinedButton(
+                                onClick = viewModel::previousStep,
+                                enabled = !uiState.isSubmitting,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Voltar")
+                            }
+                        }
+
+                        Button(
+                            onClick = if (uiState.isLastStep) viewModel::submit else viewModel::nextStep,
+                            enabled = !uiState.isSubmitting,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if (uiState.isSubmitting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                Text(if (uiState.isLastStep) "Concluir perfil" else "Próxima etapa")
+                            }
                         }
                     }
                 }
@@ -199,6 +232,89 @@ fun OnboardingScreen(
                 onDismiss = { showLegalDialog = false }
             )
         }
+    }
+}
+
+@Composable
+private fun WelcomeStep(
+    email: String,
+    stepBadgeContainerColor: androidx.compose.ui.graphics.Color,
+    stepBadgeContentColor: androidx.compose.ui.graphics.Color,
+    accountBadgeContainerColor: androidx.compose.ui.graphics.Color,
+    accountBadgeContentColor: androidx.compose.ui.graphics.Color
+) {
+    GlassCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            StatusBadge(
+                text = "Conta criada",
+                containerColor = stepBadgeContainerColor,
+                contentColor = stepBadgeContentColor
+            )
+            StatusBadge(
+                text = email.ifBlank { "Novo acesso" },
+                containerColor = accountBadgeContainerColor,
+                contentColor = accountBadgeContentColor
+            )
+        }
+        Text(
+            text = "Você já entrou no app com sucesso. Agora vamos completar o cadastro do adulto responsável para liberar publicação, busca e solicitações com segurança.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    GlassCard {
+        Text(
+            text = "O que vem agora",
+            style = MaterialTheme.typography.titleLarge
+        )
+        WelcomeStepItem(
+            title = "Contato do responsável",
+            description = "Nome, WhatsApp e CPF do adulto que vai conversar e combinar a retirada."
+        )
+        WelcomeStepItem(
+            title = "Região de entrega",
+            description = "Cidade e bairro para melhorar matching, busca e contexto local."
+        )
+        WelcomeStepItem(
+            title = "Consentimentos do MVP",
+            description = "Aceite dos termos da plataforma e escolha opcional sobre o uso de IA no cadastro de materiais."
+        )
+    }
+
+    GlassCard {
+        Text(
+            text = "Sem surpresa no caminho",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Text(
+            text = "Tudo acontece nesta tela, com scroll e botões acessíveis. O contato entre as partes só é liberado depois da aprovação de um pedido.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun WelcomeStepItem(
+    title: String,
+    description: String
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

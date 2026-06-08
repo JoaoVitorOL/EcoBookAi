@@ -72,6 +72,18 @@ class SecureStorage @Inject constructor(
         return runStorageOperation { encryptedSharedPreferences.getBoolean("profile_complete", false) } ?: false
     }
 
+    fun saveShowNewUserWelcome(showWelcome: Boolean) {
+        runStorageOperation {
+            encryptedSharedPreferences.edit().putBoolean("show_new_user_welcome", showWelcome).apply()
+        }
+    }
+
+    fun getShowNewUserWelcome(): Boolean {
+        return runStorageOperation {
+            encryptedSharedPreferences.getBoolean("show_new_user_welcome", false)
+        } ?: false
+    }
+
     fun saveUserWhatsapp(whatsapp: String?) {
         runStorageOperation { encryptedSharedPreferences.edit().putString("user_whatsapp", whatsapp).apply() }
     }

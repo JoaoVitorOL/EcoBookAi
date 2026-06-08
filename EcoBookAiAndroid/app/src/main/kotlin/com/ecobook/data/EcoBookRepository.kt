@@ -27,7 +27,8 @@ class EcoBookRepository @Inject constructor(
             email = secureStorage.getUserEmail().orEmpty(),
             nome = secureStorage.getUserName().orEmpty(),
             role = secureStorage.getUserRole().orEmpty(),
-            profileComplete = secureStorage.getProfileComplete()
+            profileComplete = secureStorage.getProfileComplete(),
+            showNewUserWelcome = secureStorage.getShowNewUserWelcome()
         )
 
         return EcoBookUiState(
