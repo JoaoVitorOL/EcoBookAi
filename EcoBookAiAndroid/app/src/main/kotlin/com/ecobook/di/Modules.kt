@@ -61,12 +61,21 @@ object NetworkModule {
             }
         }
 
+        val connectTimeoutSeconds = 8L
+        val readTimeoutSeconds = 20L
+        val writeTimeoutSeconds = 30L
+        val callTimeoutSeconds = 20L
+
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            // The app talks to a local/dev backend most of the time, so failing
+            // fast is better UX than hanging for 30s when the server is offline.
+            .retryOnConnectionFailure(false)
+            .connectTimeout(connectTimeoutSeconds, TimeUnit.SECONDS)
+            .writeTimeout(writeTimeoutSeconds, TimeUnit.SECONDS)
+            .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
+            .callTimeout(callTimeoutSeconds, TimeUnit.SECONDS)
             .build()
     }
 

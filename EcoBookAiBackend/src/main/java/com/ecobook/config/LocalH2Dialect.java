@@ -1,4 +1,4 @@
-﻿package com.ecobook.config;
+package com.ecobook.config;
 
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.H2Dialect;

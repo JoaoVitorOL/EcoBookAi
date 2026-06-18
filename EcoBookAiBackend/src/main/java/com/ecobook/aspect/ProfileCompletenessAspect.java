@@ -1,4 +1,4 @@
-﻿package com.ecobook.aspect;
+package com.ecobook.aspect;
 
 import com.ecobook.annotation.RequireCompleteProfile;
 import com.ecobook.exception.ProfileIncompleteException;

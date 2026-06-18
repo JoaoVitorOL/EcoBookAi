@@ -1,4 +1,4 @@
-﻿package com.ecobook.validator;
+package com.ecobook.validator;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

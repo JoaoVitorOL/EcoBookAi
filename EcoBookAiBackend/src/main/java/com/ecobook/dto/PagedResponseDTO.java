@@ -1,4 +1,4 @@
-﻿package com.ecobook.dto;
+package com.ecobook.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

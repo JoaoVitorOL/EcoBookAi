@@ -1,4 +1,4 @@
-﻿package com.ecobook.dto.notification;
+package com.ecobook.dto.notification;
 
 import lombok.Builder;
 import lombok.Getter;

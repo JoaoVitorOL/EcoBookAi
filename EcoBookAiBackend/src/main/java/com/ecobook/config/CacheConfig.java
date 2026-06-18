@@ -1,4 +1,4 @@
-﻿package com.ecobook.config;
+package com.ecobook.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;

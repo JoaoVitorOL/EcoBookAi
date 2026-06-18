@@ -1,4 +1,4 @@
-﻿package com.ecobook.scheduler;
+package com.ecobook.scheduler;
 
 import com.ecobook.model.TemporaryUpload;
 import com.ecobook.repository.TemporaryUploadRepository;

@@ -1,4 +1,4 @@
-﻿package com.ecobook.service;
+package com.ecobook.service;
 
 import com.ecobook.model.RevokedJwtToken;
 import com.ecobook.repository.RevokedJwtTokenRepository;

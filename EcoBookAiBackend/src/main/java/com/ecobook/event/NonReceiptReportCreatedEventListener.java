@@ -1,4 +1,4 @@
-﻿package com.ecobook.event;
+package com.ecobook.event;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

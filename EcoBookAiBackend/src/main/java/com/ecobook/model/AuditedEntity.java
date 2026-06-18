@@ -1,4 +1,4 @@
-﻿package com.ecobook.model;
+package com.ecobook.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

@@ -1,4 +1,4 @@
-﻿package com.ecobook.security;
+package com.ecobook.security;
 
 import com.ecobook.config.CacheNames;
 import com.ecobook.exception.ResourceNotFoundException;

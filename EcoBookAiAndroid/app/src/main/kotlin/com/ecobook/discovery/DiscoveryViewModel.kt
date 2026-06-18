@@ -316,7 +316,7 @@ class DiscoveryViewModel @Inject constructor(
                 else -> "Nao foi possivel carregar os materiais agora."
             }
 
-            is SocketTimeoutException -> "A busca demorou demais para responder."
+            is SocketTimeoutException -> "A busca demorou demais para responder. Se o backend acabou de iniciar, aguarde o boot terminar e tente novamente."
             is ConnectException,
             is UnknownHostException,
             is IOException -> "Nao foi possivel conectar ao backend configurado no app."

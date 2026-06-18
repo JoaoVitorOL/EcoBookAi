@@ -1,4 +1,4 @@
-﻿package com.ecobook.scheduler;
+package com.ecobook.scheduler;
 
 import com.ecobook.service.SolicitacaoService;
 import lombok.RequiredArgsConstructor;

@@ -109,7 +109,7 @@ Se forem 2 pessoas:
 
 **Fala obrigatoria**
 
-"O unico ponto que a gente nao deve vender como concluido e o icone personalizado, porque no repositorio atual ele ainda esta pendente."
+"O app ja usa o icone personalizado do EcoBook no launcher, entao esse ponto agora tambem pode ser apresentado como concluido."
 
 **Transicao**
 
@@ -363,7 +363,7 @@ Falem em 3 blocos:
 - Uma resposta explicita para a pergunta: `Nao usamos Room. Usamos EncryptedSharedPreferences no Android e o dado oficial fica no backend.`
 - Uma resposta explicita para a pergunta: `Por que Gemini fica no backend e nao no app?` Resposta: seguranca da chave, controle de retry, timeout e parsing.
 - Um slide de encerramento com `papel de cada integrante`.
-- Uma fala honesta dizendo que `icone personalizado` ainda esta pendente no estado atual do repositorio.
+- Uma fala curta reforcando que o launcher agora usa o icone personalizado do EcoBook.
 
 ---
 

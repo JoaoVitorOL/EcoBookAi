@@ -1,9 +1,12 @@
 package com.ecobook.fcm
 
+import android.content.Context
 import com.ecobook.api.FcmApiService
 import com.ecobook.dto.FcmTokenRequestDTO
 import com.ecobook.utils.SecureStorage
+import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +17,7 @@ import timber.log.Timber
 
 @Singleton
 class FcmTokenSyncManager @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val fcmApiService: FcmApiService,
     private val secureStorage: SecureStorage
 ) {
@@ -24,6 +28,11 @@ class FcmTokenSyncManager @Inject constructor(
         secureStorage.getDiscoveredFcmToken()
             ?.takeIf { it.isNotBlank() }
             ?.let(::syncTokenAsync)
+
+        if (!ensureFirebaseConfigured()) {
+            Timber.i("Firebase is not configured for this build. Skipping live FCM token fetch.")
+            return
+        }
 
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
@@ -66,6 +75,15 @@ class FcmTokenSyncManager @Inject constructor(
             }.onFailure { error ->
                 Timber.w(error, "Unable to sync the FCM token with the backend.")
             }
+        }
+    }
+
+    private fun ensureFirebaseConfigured(): Boolean {
+        return runCatching {
+            FirebaseApp.getApps(appContext).isNotEmpty() || FirebaseApp.initializeApp(appContext) != null
+        }.getOrElse { error ->
+            Timber.w(error, "Firebase is unavailable for this build.")
+            false
         }
     }
 }

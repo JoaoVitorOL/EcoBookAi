@@ -25,7 +25,7 @@ This audit focused on structural work only and did not implement later-phase bus
 
 ## Still Pending or External
 
-- `T019`: `app/google-services.json` is still intentionally absent because it is a credentialed Firebase artifact and should not be faked or committed blindly.
+- `T019`: `app/google-services.json` can be tracked when it matches the real Android app (`com.ecobook`); only the backend Admin SDK JSON should remain out of Git.
 - `T002`: the repository still does not include a real Gemini SDK dependency wired for production use; Phase 1 only has the surrounding placeholders and service skeleton.
 - `T015`: the Lombok IDE plugin portion is an environment/tooling step, not something the repository can enforce by itself.
 - `T035`: the "register -> health check -> verify database connectivity" scenario is only partially represented. Health check and DB probe exist now, but real registration belongs to the Phase 2 authentication implementation.

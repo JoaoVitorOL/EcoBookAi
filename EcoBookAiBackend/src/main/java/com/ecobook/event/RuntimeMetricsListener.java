@@ -1,4 +1,4 @@
-﻿package com.ecobook.event;
+package com.ecobook.event;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

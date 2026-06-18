@@ -1,4 +1,4 @@
-﻿package com.ecobook.exception;
+package com.ecobook.exception;
 
 import java.util.Map;
 

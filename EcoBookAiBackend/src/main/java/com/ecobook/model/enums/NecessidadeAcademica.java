@@ -1,4 +1,4 @@
-﻿package com.ecobook.model.enums;
+package com.ecobook.model.enums;
 
 /**
  * Classificações acadêmicas usadas no cadastro e na busca de materiais.

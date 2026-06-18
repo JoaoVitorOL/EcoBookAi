@@ -1,4 +1,4 @@
-﻿package com.ecobook.security;
+package com.ecobook.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

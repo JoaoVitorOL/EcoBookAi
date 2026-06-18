@@ -1,4 +1,4 @@
-﻿package com.ecobook.model;
+package com.ecobook.model;
 
 import com.ecobook.model.enums.NecessidadeAcademica;
 import com.ecobook.model.enums.Role;
