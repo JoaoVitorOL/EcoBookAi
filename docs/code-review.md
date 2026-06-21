@@ -7,11 +7,10 @@ Date: `2026-06-03`
 - Backend runtime review across `145` Java source files under `EcoBookAiBackend/src/main/java`
 - Android runtime/UI helper review across the current Compose/navigation/tooling layer
 - Backlog/runtime alignment review against:
-  - `specs/001-ecobook-core/TASKS.md`
-  - `specs/001-ecobook-core/contracts/`
   - `README.md`
   - `EcoBookAiBackend/README.md`
   - `EcoBookAiAndroid/README.md`
+  - `docs/`
 
 ## Review Checklist
 
@@ -49,7 +48,7 @@ rg -n "System\\.out\\.print|printStackTrace\\(|Thread\\.sleep\\(|Runtime\\.getRu
 - Main Android content panes now cap their width on larger displays instead of stretching every form and list edge-to-edge.
 - Runtime backend URL overrides now use asynchronous `SharedPreferences.apply()` instead of blocking `commit()` writes.
 - The Android Gradle ASCII-path wrapper now serializes temporary-drive allocation, which removes the race that could make concurrent runs fail with random missing `X:\\app\\...` paths.
-- `Run-BackendLocal.ps1` now passes the dynamic port value correctly to Maven/Spring Boot instead of freezing `$Port` as a literal through PowerShell stop-parsing.
+- The backend local runbook now documents the dynamic port override correctly for Maven/Spring Boot local execution.
 
 ## Conclusion
 

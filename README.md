@@ -81,27 +81,28 @@ java -version
 mvn -version
 ```
 
-Se o `java -version` do terminal mostrar `17`, nao tem problema para o Android, mas o backend continua exigindo `21+`. Nesse caso, use o caminho correto no parametro `-JavaHome` do proximo passo.
+Se o `java -version` do terminal mostrar `17`, nao tem problema para o Android, mas o backend continua exigindo `21+`. Nesse caso, ajuste `JAVA_HOME` antes de subir o backend.
 
 ### 3. Subir o backend local
 
 Esse e o caminho recomendado para primeiro boot. Ele usa `H2`, nao depende de Docker e sobe mesmo sem segredos opcionais.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
+powershell -ExecutionPolicy Bypass -File .\EcoBookAiBackend\scripts\Run-Local.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
 ```
 
 Se a porta `8080` estiver ocupada:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26" -Port 8081
+powershell -ExecutionPolicy Bypass -File .\EcoBookAiBackend\scripts\Run-Local.ps1 -JavaHome "C:\Program Files\Java\jdk-26" -Port 8081
 ```
 
 Observacoes:
 
 - sem `GEMINI_API_KEY`, o perfil `local` usa mock do Gemini;
 - `google-services.json` nao e necessario para o backend subir;
-- o endpoint base do backend e `http://127.0.0.1:8080/api`.
+- o endpoint base do backend e `http://127.0.0.1:8080/api`;
+- deixe o backend rodando em um terminal separado antes de seguir para o Android.
 
 ### 4. Validar o health do backend
 
@@ -236,7 +237,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-GradleAsciiPath.ps1 ap
 
 Validacao executada nesta revisao, em `2026-06-18`:
 
-- backend local iniciado com `Run-BackendLocal.ps1`;
+- backend local iniciado com `EcoBookAiBackend/scripts/Run-Local.ps1`;
 - `GET /api/v1/health` retornando `200`;
 - `app:assembleDebug` concluido com sucesso;
 - `app:lintDebug` concluido com sucesso;

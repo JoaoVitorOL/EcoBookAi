@@ -181,7 +181,6 @@ Conclusao tecnica:
 | `Gradle Kotlin DSL` | `EcoBookAiAndroid/app/build.gradle.kts` | Build do app Android | Em uso |
 | `Maven` | `EcoBookAiBackend/pom.xml` | Build, testes e plugins do backend | Em uso |
 | `Docker Compose` | `docker-compose.yml` | Subir Postgres localmente | Em uso de desenvolvimento |
-| `GitHub Actions` | `.github/workflows/build-and-test.yml:1-82` | CI para build, testes e cobertura | Em uso |
 | `JUnit 4` | `EcoBookAiAndroid/app/build.gradle.kts:181-184` | Testes unitarios Android | Em uso |
 | `MockK` | `EcoBookAiAndroid/app/build.gradle.kts:183` | Mock em testes Kotlin/Android | Em uso |
 | `kotlinx-coroutines-test` | `EcoBookAiAndroid/app/build.gradle.kts:184` | Testar coroutines | Em uso |
@@ -226,7 +225,7 @@ Conclusao tecnica:
 
 | Tecnologia | Status | Motivo da conclusao |
 |---|---|---|
-| `Google OAuth2` | **Nao usado no runtime atual** | Ha notas legadas em `specs/001-ecobook-core/oauth2-firebase-setup.md`, mas a autenticacao real atual esta em `AuthService.java:24-128` com email/senha + JWT |
+| `Google OAuth2` | **Nao usado no runtime atual** | A autenticacao real atual esta em `AuthService.java:24-128` com email/senha + JWT |
 | `Firebase Auth` | **Nao usado** | Busca global sem ocorrencias no codigo-fonte atual |
 | `Google Sign-In` | **Nao usado** | Busca global sem ocorrencias no codigo-fonte atual |
 

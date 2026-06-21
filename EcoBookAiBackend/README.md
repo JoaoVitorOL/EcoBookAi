@@ -36,13 +36,13 @@ Usa H2 em arquivo, não depende de Docker e sobe com preview mock do `Gemini` ap
 Se a chave existir no processo, o perfil `local` usa o Gemini real automaticamente.
 Para forçar o mock mesmo com a chave configurada, defina `GEMINI_MOCK_FORCE=true`.
 
-Da raiz do repositório, o caminho mais simples é:
+O caminho mais simples no Windows agora é usar o script do próprio módulo:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\Run-BackendLocal.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
+powershell -ExecutionPolicy Bypass -File .\scripts\Run-Local.ps1 -JavaHome "C:\Program Files\Java\jdk-26"
 ```
 
-Equivalente manual dentro de `EcoBookAiBackend`:
+O equivalente manual dentro de `EcoBookAiBackend` é:
 
 ```bash
 cd EcoBookAiBackend
@@ -287,23 +287,21 @@ Opcoes aceitas:
 Script PowerShell:
 
 ```powershell
-cd ..
-.\scripts\Run-BackendWithFirebase.ps1 -ServiceAccountPath .\EcoBookAiBackend\credentials\ecobook-adminsdk.json
+.\scripts\Run-WithFirebase.ps1 -ServiceAccountPath .\credentials\ecobook-adminsdk.json
 ```
 
 Script WSL:
 
 ```bash
-cd ..
-chmod +x ./scripts/run-backend-with-firebase.sh
-./scripts/run-backend-with-firebase.sh /mnt/c/caminho/ecobook-adminsdk.json
+chmod +x ./scripts/run-with-firebase.sh
+./scripts/run-with-firebase.sh /mnt/c/caminho/ecobook-adminsdk.json
 ```
 
 Sem essa configuração, o app continua usando inbox local e a fila persistida de tentativas, mas o envio real fica dormente.
 
 Validação executada em `2026-05-23`:
 
-- backend `local` iniciado com `Run-BackendWithFirebase.ps1`
+- backend `local` iniciado com `scripts/Run-WithFirebase.ps1`
 - `Pixel_6` AVD com Google Play services e `google-services.json` real no app
 - `FirebaseRealDeviceValidationTest` confirmou `registro -> onboarding -> sync do token -> persistência da notificação -> envio FCM -> recebimento no app`
 
@@ -316,7 +314,7 @@ Validação executada em `2026-05-23`:
 
 ## Contratos E Fontes De Verdade
 
-- Contratos HTTP: `specs/001-ecobook-core/contracts/`
+- Contratos HTTP: Swagger/OpenAPI em `http://localhost:8080/api/swagger-ui.html` e `http://localhost:8080/api/v3/api-docs`
 - Migrations: `src/main/resources/db/migration/`
 - Code review: `../docs/code-review.md`
 - Análise estática: `../docs/static-analysis.md`

@@ -1,16 +1,30 @@
 # Android / Gradle
 EcoBookAiAndroid/.gradle/
+EcoBookAiAndroid/.idea/
 EcoBookAiAndroid/**/build/
 EcoBookAiAndroid/local.properties
 EcoBookAiAndroid/app/google-services.json
-EcoBookAiAndroid/.idea/
 EcoBookAiAndroid/*.iml
 
 # Backend / Maven
 EcoBookAiBackend/target/
+EcoBookAiBackend/data/
 EcoBookAiBackend/logs/
-# Keep only server-side Firebase credentials out of Git.
+EcoBookAiBackend/uploads/
+EcoBookAiBackend/uploads-local/
 EcoBookAiBackend/credentials/*.json
+EcoBookAiBackend/*.pid
+EcoBookAiBackend/dependency-tree.txt
+
+# Repo-local tooling and generated assets
+/.claude/
+/.specify/
+/datasets/
+/tools/
+/scripts/
+/specs/
+/tmp-*/
+/tmp-*.txt
 
 # IDE / OS
 .idea/
@@ -19,8 +33,10 @@ EcoBookAiBackend/credentials/*.json
 .DS_Store
 Thumbs.db
 
-#Databse e logs
-EcoBookAiBackend/data/
-EcoBookAiBackend/logs/
+# Databases and logs
 *.mv.db
+*.trace.db
 *.log
+*.out
+*.err
+*.dump

@@ -12,11 +12,9 @@ Rollback artifacts now live in:
 
 - `EcoBookAiBackend/src/main/resources/db/rollback`
 
-Snapshot helpers now live in:
+Snapshot execution is now documented directly in this file to keep the repository lean:
 
-- `scripts/Backup-DatabaseSnapshot.ps1`
-- `scripts/Restore-DatabaseSnapshot.ps1`
-- `scripts/Validate-MigrationRollbacks.ps1`
+- use native `pg_dump` / `pg_restore` commands when a snapshot-only rollback is required
 
 ## Strategy
 
@@ -80,7 +78,10 @@ mvn -Dtest=MigrationRollbackValidationTest test
 Or from the repo root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\Validate-MigrationRollbacks.ps1
+cd .\EcoBookAiBackend
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-26'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+mvn -Dtest=MigrationRollbackValidationTest test
 ```
 
 ## Snapshot Workflow
@@ -94,8 +95,8 @@ For any destructive migration path such as `V4` or `V12`:
 Example commands:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\Backup-DatabaseSnapshot.ps1 -Database ecobook -Username ecobook -OutputFile .\backups\pre-v12.dump
-powershell -ExecutionPolicy Bypass -File .\scripts\Restore-DatabaseSnapshot.ps1 -Database ecobook -Username ecobook -InputFile .\backups\pre-v12.dump
+pg_dump --format=custom --file .\backups\pre-v12.dump --dbname postgresql://ecobook:dev_password_123@localhost:5432/ecobook
+pg_restore --clean --if-exists --no-owner --dbname postgresql://ecobook:dev_password_123@localhost:5432/ecobook .\backups\pre-v12.dump
 ```
 
 ## Phase 10 Status
